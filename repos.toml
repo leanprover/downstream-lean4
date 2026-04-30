@@ -1,0 +1,39 @@
+[aesop]
+url = "https://github.com/leanprover-community/aesop"
+rev = "master"
+
+[batteries]
+url = "https://github.com/leanprover-community/batteries"
+rev = "main"
+
+# [cslib]
+# url = "https://github.com/leanprover/cslib"
+# rev = "main"
+
+[import-graph]
+url = "https://github.com/leanprover-community/import-graph"
+rev = "main"
+
+[lean4-cli]
+url = "https://github.com/leanprover/lean4-cli"
+rev = "main"
+
+[LeanSearchClient]
+url = "https://github.com/leanprover-community/LeanSearchClient"
+rev = "main"
+
+# [mathlib4]
+# url = "https://github.com/leanprover-community/mathlib4"
+# rev = "master"
+
+[plausible]
+url = "https://github.com/leanprover-community/plausible"
+rev = "main"
+
+[ProofWidgets4]
+url = "https://github.com/leanprover-community/ProofWidgets4"
+rev = "main"
+
+[quote4]
+url = "https://github.com/leanprover-community/quote4"
+rev = "master"
