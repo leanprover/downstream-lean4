@@ -1,0 +1,12 @@
+[project]
+name = "downstream"
+version = "0.0.0"
+description = "Scripts for managing lake package monorepos"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "py-yaml12>=0.1.0",
+]
+
+[tool.ruff]
+preview = true

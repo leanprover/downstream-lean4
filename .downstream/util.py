@@ -3,13 +3,12 @@ import re
 import shlex
 import shutil
 import subprocess
+import tomllib
+from collections.abc import Generator
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from subprocess import CompletedProcess
-from typing import Generator
-
-import tomllib
 
 type Arg = str | bytes | PathLike[str] | PathLike[bytes]
 
@@ -43,6 +42,14 @@ class Subrepo:
     @property
     def path(self) -> Path:
         return Path(self.name)
+
+    @property
+    def manifest_path(self) -> Path:
+        return self.path / "lake-manifest.json"
+
+    @property
+    def override_path(self) -> Path:
+        return self.path / ".lake" / "package-overrides.json"
 
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:
@@ -90,10 +97,7 @@ class Repo:
             file.symlink_to(relative)
 
     def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
-        manifest_path = subrepo.path / "lake-manifest.json"
-        override_path = subrepo.path / ".lake" / "package-overrides.json"
-
-        manifest = json.loads(manifest_path.read_text())
+        manifest = json.loads(subrepo.manifest_path.read_text())
 
         packages = []
         for package in manifest["packages"]:
@@ -116,8 +120,8 @@ class Repo:
                 packages.append(package)
 
         overrides = {"version": manifest["version"], "packages": packages}
-        override_path.parent.mkdir(parents=True, exist_ok=True)
-        override_path.write_text(json.dumps(overrides, indent=2))
+        subrepo.override_path.parent.mkdir(parents=True, exist_ok=True)
+        subrepo.override_path.write_text(json.dumps(overrides, indent=2))
 
     def commit(self, msg: str) -> None:
         result = run("git", "diff", "--staged", "--quiet", "--exit-code", check=False)
@@ -129,19 +133,17 @@ class Repo:
         self.fixup_subrepo_toolchain(subrepo)
         self.fixup_subrepo_dependencies(subrepo)
 
-        message = "\n".join(
-            [
-                f"downstream: {msg}",
-                "",
-                f"downstream-repo: {subrepo.name}",
-                f"downstream-url: {subrepo.url}",
-                f"downstream-rev: {subrepo.rev}",
-                f"downstream-sha: {sha}",
-            ]
-        )
+        message = "\n".join([
+            f"downstream: {msg}",
+            "",
+            f"downstream-repo: {subrepo.name}",
+            f"downstream-url: {subrepo.url}",
+            f"downstream-rev: {subrepo.rev}",
+            f"downstream-sha: {sha}",
+        ])
 
         run("git", "add", subrepo.path)
-        run("git", "add", "--force", subrepo.path / ".lake" / "package-overrides.json")
+        run("git", "add", "--force", subrepo.override_path)
         self.commit(message)
 
     def find_latest_subrepo_sha(self, subrepo: Subrepo) -> str:
