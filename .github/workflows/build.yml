@@ -1,0 +1,83 @@
+---
+name: Build all subrepos
+"on":
+  pull_request: ~
+  push:
+    branches:
+      - master
+jobs:
+  main:
+    runs-on:
+      - self-hosted
+      - chonk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - id: check-batteries
+        if: ""
+        name: Check batteries
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: batteries
+        continue-on-error: true
+      - id: check-lean4-cli
+        if: ""
+        name: Check lean4-cli
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: lean4-cli
+        continue-on-error: true
+      - id: check-LeanSearchClient
+        if: ""
+        name: Check LeanSearchClient
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: LeanSearchClient
+        continue-on-error: true
+      - id: check-plausible
+        if: ""
+        name: Check plausible
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: plausible
+        continue-on-error: true
+      - id: check-ProofWidgets4
+        if: ""
+        name: Check ProofWidgets4
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: ProofWidgets4
+        continue-on-error: true
+      - id: check-quote4
+        if: ""
+        name: Check quote4
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: quote4
+        continue-on-error: true
+      - id: check-aesop
+        if: "steps.check-batteries.outcome == 'success'"
+        name: Check aesop
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: aesop
+        continue-on-error: true
+      - id: check-import-graph
+        if: "steps.check-lean4-cli.outcome == 'success'"
+        name: Check import-graph
+        uses: leanprover/lean-action@120037de21d990cb66a6d592fa9b7fe64b1279e1
+        with:
+          lake-package-directory: import-graph
+        continue-on-error: true
+      - name: Generate report
+        run: |-
+          echo '# Build results' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-aesop.outcome == 'success', '✅', steps.check-aesop.outcome == 'failure', '🟥', steps.check-aesop.outcome == 'cancelled', '⏹️', steps.check-aesop.outcome == 'skipped', '⏭️', '❓') }} `aesop` (${{ steps.check-aesop.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-batteries.outcome == 'success', '✅', steps.check-batteries.outcome == 'failure', '🟥', steps.check-batteries.outcome == 'cancelled', '⏹️', steps.check-batteries.outcome == 'skipped', '⏭️', '❓') }} `batteries` (${{ steps.check-batteries.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-import-graph.outcome == 'success', '✅', steps.check-import-graph.outcome == 'failure', '🟥', steps.check-import-graph.outcome == 'cancelled', '⏹️', steps.check-import-graph.outcome == 'skipped', '⏭️', '❓') }} `import-graph` (${{ steps.check-import-graph.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-lean4-cli.outcome == 'success', '✅', steps.check-lean4-cli.outcome == 'failure', '🟥', steps.check-lean4-cli.outcome == 'cancelled', '⏹️', steps.check-lean4-cli.outcome == 'skipped', '⏭️', '❓') }} `lean4-cli` (${{ steps.check-lean4-cli.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-LeanSearchClient.outcome == 'success', '✅', steps.check-LeanSearchClient.outcome == 'failure', '🟥', steps.check-LeanSearchClient.outcome == 'cancelled', '⏹️', steps.check-LeanSearchClient.outcome == 'skipped', '⏭️', '❓') }} `LeanSearchClient` (${{ steps.check-LeanSearchClient.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-plausible.outcome == 'success', '✅', steps.check-plausible.outcome == 'failure', '🟥', steps.check-plausible.outcome == 'cancelled', '⏹️', steps.check-plausible.outcome == 'skipped', '⏭️', '❓') }} `plausible` (${{ steps.check-plausible.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-ProofWidgets4.outcome == 'success', '✅', steps.check-ProofWidgets4.outcome == 'failure', '🟥', steps.check-ProofWidgets4.outcome == 'cancelled', '⏹️', steps.check-ProofWidgets4.outcome == 'skipped', '⏭️', '❓') }} `ProofWidgets4` (${{ steps.check-ProofWidgets4.outcome }})' >> $GITHUB_STEP_SUMMARY
+          echo '- ${{ case(steps.check-quote4.outcome == 'success', '✅', steps.check-quote4.outcome == 'failure', '🟥', steps.check-quote4.outcome == 'cancelled', '⏹️', steps.check-quote4.outcome == 'skipped', '⏭️', '❓') }} `quote4` (${{ steps.check-quote4.outcome }})' >> $GITHUB_STEP_SUMMARY
+...
