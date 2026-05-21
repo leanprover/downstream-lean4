@@ -1,0 +1,53 @@
+name = "downstream-lean4"
+# defaultTargets = [
+#   "aesop",
+#   "batteries",
+#   # "cslib",
+#   "importGraph",
+#   "Cli",
+#   "LeanSearchClient",
+#   # "mathlib",
+#   "plausible",
+#   "proofwidgets",
+#   "quote4"
+# ]
+
+# [[require]]
+# name = "cslib"
+# path = "cslib"
+
+# [[require]]
+# name = "mathlib"
+# path = "mathlib4"
+
+[[require]]
+name = "importGraph"
+path = "import-graph"
+
+[[require]]
+name = "aesop"
+path = "aesop"
+
+[[require]]
+name = "quote4"
+path = "quote4"
+
+[[require]]
+name = "proofwidgets"
+path = "ProofWidgets4"
+
+[[require]]
+name = "plausible"
+path = "plausible"
+
+[[require]]
+name = "LeanSearchClient"
+path = "LeanSearchClient"
+
+[[require]]
+name = "Cli"
+path = "lean4-cli"
+
+[[require]]
+name = "batteries"
+path = "batteries"
