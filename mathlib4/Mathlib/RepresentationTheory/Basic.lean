@@ -737,6 +737,7 @@ lemma free_single_single (g h : G) (i : α) (r : k) :
 variable (k G) (α : Type*)
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The free `k[G]`-module on a type `α` is isomorphic to the representation `free k G α`. -/
 noncomputable def finsuppLEquivFreeAsModule : (α →₀ k[G]) ≃ₗ[k[G]] (free k G α).asModule where
   toAddEquiv := (asModuleEquiv _).symm.toAddEquiv

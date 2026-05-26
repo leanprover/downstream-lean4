@@ -98,6 +98,8 @@ lemma forget₂_map_restrictScalars {R : Type u₁} {S : Type u₂} [Ring R] [Ri
     (forget₂ _ Ab).map ((ModuleCat.restrictScalars f).map g) = (forget₂ _ Ab).map g :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance {R : Type u₁} {S : Type u₂} [Ring R] [Ring S] (f : R →+* S) :
     (restrictScalars.{v} f).Faithful where
   map_injective h := by
@@ -757,6 +759,7 @@ def HomEquiv.fromExtendScalars {X : ModuleCat R} {Y : ModuleCat S}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given `R`-module X and `S`-module Y, `S`-linear maps `(extendScalars f).obj X ⟶ Y`
 bijectively correspond to `R`-linear maps `X ⟶ (restrictScalars f).obj Y`.
 -/

@@ -924,6 +924,9 @@ variable {R S : Type*} (K L : Type*) [CommRing R] [IsDomain R] [CommRing S] [IsD
 local instance (f : R ≃+* S) : RingHomInvPair (f : R →+* S) f.symm :=
   RingHomInvPair.of_ringEquiv f
 
+local instance (f : R ≃+* S) : RingHomInvPair (f.symm : S →+* R) f :=
+  RingHomInvPair.of_ringEquiv f.symm
+
 /-- If `f : R ≃+* S` is a ring isomorphism and `I : Submodule R K` is fractional with respect to
 `R⁰`, then `I.map (IsFractionRing.semilinearEquivOfRingEquiv K L f).toLinearMap`
 is fractional with respect to `S⁰`.
@@ -947,6 +950,7 @@ theorem _root_.IsFractional.mapEquiv {I : Submodule R K} (hI : IsFractional R⁰
     ← map_mul, ← Algebra.smul_def, ← hr', ringEquivOfRingEquiv_algebraMap]
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The equiv `FractionalIdeal R⁰ K ≃+* FractionalIdeal S⁰ L`
   induced by a ring isomorphism `f : R ≃+* S`. -/
 @[simps -isSimp]
@@ -1013,6 +1017,7 @@ lemma ringEquivOfRingEquiv_refl :
   simp [semilinearEquivOfRingEquiv]
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ringEquivOfRingEquiv_spanSingleton (x : K) :
     FractionalIdeal.ringEquivOfRingEquiv K L f (spanSingleton R⁰ x) =
       spanSingleton S⁰ (IsFractionRing.ringEquivOfRingEquiv (L := L) f x) := by

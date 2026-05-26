@@ -228,6 +228,7 @@ def ofCocone {J : Type*} [Category* J] {F : J ⥤ TopModuleCat R}
     naturality {X Y} f := by ext x; exact congr($(c.ι.naturality f).hom x) }
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a colimit cocone over the underlying modules, equipping the cocone point with
 the coinduced topology gives a colimit cocone in `TopModuleCat R`. -/
 def isColimit {J : Type*} [Category* J] {F : J ⥤ TopModuleCat R}
@@ -423,6 +424,7 @@ def freeMap {X Y : TopCat.{v}} (f : X ⟶ Y) : freeObj R X ⟶ freeObj R Y :=
 lemma freeMap_map {X Y : TopCat.{v}} (f : X ⟶ Y) (v : X →₀ R) :
     (freeMap R f : (X →₀ R) → (Y →₀ R)) v = Finsupp.mapDomain f.hom v := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The free topological module over a topological space as a functor.
 This is left adjoint to the forgetful functor. -/
 @[simps] noncomputable

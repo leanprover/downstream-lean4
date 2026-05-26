@@ -315,6 +315,7 @@ The categorical product of rings is the Cartesian product of rings. This is its 
 def piFan : Fan R :=
   Fan.mk (CommRingCat.of ((i : ι) → R i)) (fun i ↦ ofHom <| Pi.evalRingHom _ i)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The categorical product of rings is the Cartesian product of rings.
 -/

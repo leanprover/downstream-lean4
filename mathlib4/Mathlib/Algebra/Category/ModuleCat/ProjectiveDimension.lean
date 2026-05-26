@@ -53,6 +53,7 @@ variable [Small.{v} R] {R' : Type u'} [Ring R'] [Small.{v'} R'] (e : R ≃+* R')
 variable {M : ModuleCat.{v} R} {N : ModuleCat.{v'} R'}
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 attribute [local instance] RingHomInvPair.of_ringEquiv in
 lemma hasProjectiveDimensionLE_of_semiLinearEquiv (e' : M ≃ₛₗ[RingHomClass.toRingHom e] N)
     (n : ℕ) [HasProjectiveDimensionLE M n] : HasProjectiveDimensionLE N n := by
@@ -86,6 +87,8 @@ lemma hasProjectiveDimensionLE_of_semiLinearEquiv (e' : M ≃ₛₗ[RingHomClass
 alias _root_.CategoryTheory.hasProjectiveDimensionLE_of_semiLinearEquiv :=
   hasProjectiveDimensionLE_of_semiLinearEquiv
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 attribute [local instance] RingHomInvPair.of_ringEquiv in
 lemma projectiveDimension_eq_of_semiLinearEquiv (e' : M ≃ₛₗ[RingHomClass.toRingHom e] N) :
     projectiveDimension M = projectiveDimension N := by

@@ -111,6 +111,8 @@ instance universallyClosed_isZariskiLocalAtTarget : IsZariskiLocalAtTarget @Univ
 instance (f : X ⟶ Y) (V : Y.Opens) [UniversallyClosed f] : UniversallyClosed (f ∣_ V) :=
   IsZariskiLocalAtTarget.restrict ‹_› V
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 open Scheme.Pullback _root_.PrimeSpectrum MvPolynomial in
 /-- If `X` is universally closed over a field, then `X` is quasi-compact. -/
 lemma compactSpace_of_universallyClosed

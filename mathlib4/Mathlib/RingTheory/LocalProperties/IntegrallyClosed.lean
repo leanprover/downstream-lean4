@@ -28,6 +28,8 @@ open Localization Ideal IsLocalization
 
 variable {R K : Type*} [CommRing R] [Field K] [Algebra R K] [IsFractionRing R K]
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem IsIntegrallyClosed.iInf {ι : Type*} (S : ι → Subalgebra R K)
     (h : ∀ i, IsIntegrallyClosed (S i)) :
     IsIntegrallyClosed (⨅ i, S i : Subalgebra R K) := by

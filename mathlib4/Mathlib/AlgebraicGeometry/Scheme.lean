@@ -890,6 +890,7 @@ lemma Scheme.inv_hom_apply {X Y : Scheme.{u}} (e : X ≅ Y) (y : Y) :
   simp
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Spec_zeroLocus_eq_zeroLocus {R : CommRingCat} (s : Set R) :
     (Spec R).zeroLocus ((Scheme.ΓSpecIso R).inv '' s) = PrimeSpectrum.zeroLocus s := by
   ext x

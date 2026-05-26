@@ -90,6 +90,7 @@ instance (j : 𝒰.I₀) : ((𝒰.pullbackCoverOver S f).X j).Over S where
   hom := (pullback (f.asOver S) ((𝒰.f j).asOver S)).hom
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (𝒰.pullbackCoverOver S f).Over S where
   isOver_map j := { comp_over := by exact Over.w (pullback.fst (f.asOver S) ((𝒰.f j).asOver S)) }
 
@@ -117,6 +118,7 @@ instance (j : 𝒰.I₀) : ((𝒰.pullbackCoverOver' S f).X j).Over S where
   hom := (pullback ((𝒰.f j).asOver S) (f.asOver S)).hom
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (𝒰.pullbackCoverOver' S f).Over S where
   isOver_map j := { comp_over := by exact Over.w (pullback.snd ((𝒰.f j).asOver S) (f.asOver S)) }
 
@@ -156,6 +158,7 @@ instance (j : 𝒰.I₀) : ((𝒰.pullbackCoverOverProp S f hX hW hQ).X j).Over 
     ((𝒰.f j).asOverProp (hX := hQ j) (hY := hX) S)).hom
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (𝒰.pullbackCoverOverProp S f hX hW hQ).Over S where
   isOver_map j :=
     { comp_over := by exact (pullback.fst (f.asOverProp S) ((𝒰.f j).asOverProp S)).w }
@@ -189,6 +192,7 @@ instance (j : 𝒰.I₀) : ((𝒰.pullbackCoverOverProp' S f hX hW hQ).X j).Over
     (f.asOverProp (hX := hW) (hY := hX) S)).hom
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (𝒰.pullbackCoverOverProp' S f hX hW hQ).Over S where
   isOver_map j :=
     { comp_over := by exact (pullback.snd ((𝒰.f j).asOverProp S) (f.asOverProp S)).w }

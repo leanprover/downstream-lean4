@@ -110,6 +110,8 @@ variable {R} in
 instance (V : FGModuleCat.{v} R) : Module.Finite R V :=
   V.property
 
+-- Needs to unfold the `forget₂` at `instances` transparency.
+set_option backward.isDefEq.respectTransparency.instances false in
 instance : (forget₂ (FGModuleCat.{v} R) (ModuleCat.{v} R)).Full where
   map_surjective f := ⟨ofHom f.hom, rfl⟩
 
@@ -227,6 +229,7 @@ theorem FGModuleCatEvaluation_apply (f : FGModuleCatDual K V) (x : V) :
   contractLeft_apply f x
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `@[simp]`-normal form of `FGModuleCatEvaluation_apply`, where the carriers have been unfolded.
 -/
 @[simp]

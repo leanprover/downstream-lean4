@@ -37,6 +37,7 @@ instance (G : Over (Spec (.of K))) [GrpObj G] : IsClosedImmersion η[G].left :=
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCommMonObj_of_isProper_of_isIntegral_tensorObj_of_isAlgClosed [IsAlgClosed K]
     (G : Over (Spec (.of K))) [IsProper G.hom] [IsIntegral (G ⊗ G).left] [GrpObj G] :
     IsCommMonObj G := by

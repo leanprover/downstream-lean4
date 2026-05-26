@@ -125,6 +125,7 @@ section id
 
 /-! #### Identity -/
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem hasMFDerivAt_id (x : M) :
     HasMFDerivAt% (@id M) x (ContinuousLinearMap.id 𝕜 (TangentSpace% x)) := by
   refine ⟨continuousAt_id, ?_⟩
@@ -662,6 +663,7 @@ lemma writtenInExtChartAt_sumSwap_eventuallyEq_id :
       refine ⟨I.continuousWithinAt_symm.preimage_mem_nhdsWithin ?_, self_mem_nhdsWithin⟩
       exact (chartAt H x).open_target.mem_nhds (by simp)
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem hasMFDerivAt_sumSwap :
     HasMFDerivAt% (@Sum.swap M M') p (ContinuousLinearMap.id 𝕜 (TangentSpace% p)) := by
   refine ⟨by fun_prop, ?_⟩
@@ -706,6 +708,7 @@ lemma writtenInExtChartAt_sumInr_eventuallyEq_id :
     Sum.inr_injective.extend_apply <| chartAt H q',
     (chartAt H q').right_inv (by simpa [Set.mem_preimage, I.left_inv] using hyT)]
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem hasMFDerivWithinAt_inl :
     HasMFDerivAt[s] (@Sum.inl M M') q (ContinuousLinearMap.id 𝕜 (TangentSpace% q)) := by
   refine ⟨by fun_prop, ?_⟩
@@ -720,6 +723,7 @@ theorem hasMFDerivAt_inl :
     HasMFDerivAt% (@Sum.inl M M') q (ContinuousLinearMap.id 𝕜 (TangentSpace% p)) := by
   simpa [HasMFDerivAt, hasMFDerivWithinAt_univ] using! hasMFDerivWithinAt_inl (s := Set.univ)
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem hasMFDerivWithinAt_inr {t : Set M'} :
     HasMFDerivAt[t] (@Sum.inr M M') q' (ContinuousLinearMap.id 𝕜 (TangentSpace% q')) := by
   refine ⟨by fun_prop, ?_⟩

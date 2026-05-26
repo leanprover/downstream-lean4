@@ -90,6 +90,9 @@ scoped[Isocrystal] notation "φ(" p ", " k ")" => WittVector.FractionRing.froben
 instance inv_pair₁ : RingHomInvPair φ(p, k) (FractionRing.frobenius p k).symm :=
   RingHomInvPair.of_ringEquiv (FractionRing.frobenius p k)
 
+instance inv_pair₁_symm : RingHomInvPair (FractionRing.frobenius p k).symm φ(p, k)  :=
+  RingHomInvPair.of_ringEquiv (FractionRing.frobenius p k).symm
+
 instance inv_pair₂ : RingHomInvPair ((FractionRing.frobenius p k).symm : K(p, k) →+* K(p, k))
     (FractionRing.frobenius p k) :=
   RingHomInvPair.of_ringEquiv (FractionRing.frobenius p k).symm
@@ -164,6 +167,8 @@ section PerfectRing
 
 variable [IsDomain k] [CharP k p] [PerfectRing k p]
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The standard one-dimensional isocrystal of slope `m : ℤ` is an isocrystal. -/
 instance (m : ℤ) : Isocrystal p k (StandardOneDimIsocrystal p k m) where
   frob :=

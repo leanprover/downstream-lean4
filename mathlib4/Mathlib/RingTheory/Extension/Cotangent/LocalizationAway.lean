@@ -118,6 +118,7 @@ lemma sq_ker_comp_le_ker_compLocalizationAwayAlgHom :
       simp [hsple hx]
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 Let `R → S → T` be algebras such that `T` is the localization of `S` away from one
 element, where `S` is generated over `R` by `P` with kernel `I` and `Q` is the

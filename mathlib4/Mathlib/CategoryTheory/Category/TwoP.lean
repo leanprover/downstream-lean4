@@ -66,6 +66,7 @@ noncomputable instance largeCategory : LargeCategory TwoP :=
   inferInstanceAs <| Category (InducedCategory _ toBipointed)
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 noncomputable instance concreteCategory : ConcreteCategory TwoP
     (fun X Y => Bipointed.HomSubtype X.toBipointed Y.toBipointed) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toBipointed) _

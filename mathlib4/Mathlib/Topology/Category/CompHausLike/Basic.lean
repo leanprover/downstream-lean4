@@ -92,6 +92,9 @@ instance : CoeSort (CompHausLike P) (Type u) :=
 instance category : Category (CompHausLike P) :=
   inferInstanceAs <| Category (InducedCategory _ toTop)
 
+-- Would need to have a new type synonym for the `FunLike` instance for the induced category.
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance concreteCategory : ConcreteCategory (CompHausLike P) (C(·, ·)) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toTop) _
 

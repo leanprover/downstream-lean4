@@ -53,6 +53,7 @@ variable (I)
 
 /-! #### Model with corners -/
 
+set_option backward.isDefEq.respectTransparency.types false in
 protected theorem hasMFDerivAt {x} : HasMFDerivAt I 𝓘(𝕜, E) I x (ContinuousLinearMap.id _ _) :=
   ⟨I.continuousAt, (hasFDerivWithinAt_id _ _).congr' I.rightInvOn (mem_range_self _)⟩
 
@@ -71,6 +72,7 @@ protected theorem mdifferentiableOn {s} : MDiff[s] I := fun _ _ =>
 
 protected theorem mdifferentiable : MDiff I := fun _ => I.mdifferentiableAt
 
+set_option backward.isDefEq.respectTransparency.types false in
 theorem hasMFDerivWithinAt_symm {x} (hx : x ∈ range I) :
     HasMFDerivWithinAt 𝓘(𝕜, E) I I.symm (range I) x (ContinuousLinearMap.id _ _) :=
   ⟨I.continuousWithinAt_symm,

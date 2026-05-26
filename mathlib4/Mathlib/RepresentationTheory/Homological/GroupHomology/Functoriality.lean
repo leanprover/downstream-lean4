@@ -617,6 +617,7 @@ and `Y - ∑ aᵢ·sᵢ` is a cycle. -/
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a `G`-representation `A` and a normal subgroup `S ≤ G`, the degree 1
 corestriction-coinflation sequence `H₁(S, A) ⟶ H₁(G, A) ⟶ H₁(G ⧸ S, A_S)` is exact. `simp`s
 squeezed for performance. -/

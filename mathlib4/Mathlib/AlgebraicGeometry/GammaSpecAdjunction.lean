@@ -213,6 +213,7 @@ theorem toStalk_stalkMap_toΓSpec (x : X) :
   exact (X.toΓSpecBase _* X.presheaf).germ_res le_top.hom _ _
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The canonical morphism from `X` to the spectrum of its global sections. -/
 @[simps! base]
 def toΓSpec : X ⟶ Spec.locallyRingedSpaceObj (Γ.obj (op X)) :=
@@ -236,6 +237,7 @@ def toΓSpec : X ⟶ Spec.locallyRingedSpaceObj (Γ.obj (op X)) :=
     exact ht.mul <| (IsLocalization.map_units (R := Γ.obj (op X)) S s).map _)
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- On a locally ringed space `X`, the preimage of the zero locus of the prime spectrum
 of `Γ(X, ⊤)` under `toΓSpec` agrees with the associated zero locus on `X`. -/
 lemma toΓSpec_preimage_zeroLocus_eq {X : LocallyRingedSpace.{u}}

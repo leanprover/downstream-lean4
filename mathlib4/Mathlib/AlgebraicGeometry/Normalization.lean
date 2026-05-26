@@ -344,6 +344,7 @@ instance : IsDominant f.toNormalization := by
   exact ⟨dense_iff_closure_eq.mpr this⟩
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 @[stacks 0AXN]
 instance [IsReduced X] : IsReduced f.normalization :=

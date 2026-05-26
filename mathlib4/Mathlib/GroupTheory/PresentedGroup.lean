@@ -107,8 +107,7 @@ theorem generated_by (rels : Set (FreeGroup α)) (H : Subgroup (PresentedGroup r
   · exact h _
   · exact (Subgroup.inv_mem_iff H).mpr (by assumption)
   rename_i h1 h2
-  change QuotientGroup.mk _ ∈ H.carrier
-  rw [QuotientGroup.mk_mul]
+  -- This is defeq abuse.
   exact Subgroup.mul_mem _ h1 h2
 
 section ToGroup

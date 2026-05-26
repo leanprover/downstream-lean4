@@ -52,16 +52,19 @@ instance : HasAffineProperty @IsFinite
   simp [isFinite_iff]
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : IsStableUnderComposition @IsFinite :=
   HasAffineProperty.affineAnd_isStableUnderComposition inferInstance
     RingHom.finite_stableUnderComposition
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : IsStableUnderBaseChange @IsFinite :=
   HasAffineProperty.affineAnd_isStableUnderBaseChange inferInstance
     RingHom.finite_respectsIso RingHom.finite_isStableUnderBaseChange
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : ContainsIdentities @IsFinite :=
   HasAffineProperty.affineAnd_containsIdentities inferInstance
     RingHom.finite_respectsIso RingHom.finite_containsIdentities
@@ -156,6 +159,7 @@ lemma comp_iff {f : X ⟶ Y} {g : Y ⟶ Z} [IsFinite g] :
   ⟨fun _ ↦ .of_comp f g, fun _ ↦ inferInstance⟩
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance {U V X : Scheme.{u}} (f : U ⟶ X) (g : V ⟶ X) [IsFinite f] [IsFinite g] :
     IsFinite (Limits.coprod.desc f g) := by
   refine HasAffineProperty.coprodDesc_affineAnd inferInstance RingHom.finite_respectsIso

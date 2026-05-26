@@ -683,6 +683,8 @@ lemma eVariationOn_inter_Iio_eq_inter_Iic_of_continuousWithinAt
   · congr 1
     grind
 
+-- Defeq abuse: `h` should be translated into a statement about `aᵒᵈ`.
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- If a function is continuous on the right at a point `a`, then its variations on `Ioi a` and
 on `Ici a` coincide. We give a version relative to a set `s`. -/
 lemma eVariationOn_inter_Ioi_eq_inter_Ici_of_continuousWithinAt

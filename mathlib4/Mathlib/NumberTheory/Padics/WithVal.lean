@@ -36,6 +36,7 @@ variable {p : ℕ} [Fact p.Prime]
 open NNReal WithZero UniformSpace
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 open MonoidWithZeroHom.ValueGroup₀ in
 lemma isUniformInducing_cast_withVal : IsUniformInducing ((Rat.castHom ℚ_[p]).comp
     (WithVal.equiv (Rat.padicValuation p)).toRingHom) := by

@@ -151,6 +151,7 @@ namespace DiscreteContAction
 
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : HasForget₂ (DiscreteContAction V G) (ContAction V G) :=
   inferInstanceAs <| HasForget₂ (ObjectProperty.FullSubcategory _) _
 

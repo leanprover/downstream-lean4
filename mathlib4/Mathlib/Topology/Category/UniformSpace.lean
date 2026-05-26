@@ -165,6 +165,7 @@ instance instFunLike (X Y : CpltSepUniformSpace) :
   coe_injective _ _ h := Subtype.ext h
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The concrete category instance on `CpltSepUniformSpace`. -/
 instance concreteCategory : ConcreteCategory CpltSepUniformSpace
     ({ f : · → · // UniformContinuous f }) :=

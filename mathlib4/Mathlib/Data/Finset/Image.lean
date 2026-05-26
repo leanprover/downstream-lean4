@@ -179,6 +179,7 @@ lemma map_filter' (p : α → Prop) [DecidablePred p] (f : α ↪ β) (s : Finse
   simp [filter_map]
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma filter_attach' [DecidableEq α] (s : Finset α) (p : s → Prop) [DecidablePred p] :
     s.attach.filter p =
       (s.filter fun x => ∃ h, p ⟨x, h⟩).attach.map

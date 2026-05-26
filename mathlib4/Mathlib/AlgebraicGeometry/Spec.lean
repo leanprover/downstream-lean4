@@ -238,6 +238,7 @@ theorem localRingHom_comp_stalkIso {R S : CommRingCat.{u}} (f : R ⟶ S) (p : Pr
   exact stalkMap_toStalk_apply f p x
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The induced map of a ring homomorphism on the prime spectra, as a morphism of locally ringed spaces.
 -/
@@ -369,6 +370,7 @@ def toPushforwardStalkAlgHom :
     commutes' := fun _ => rfl }
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isLocalizedModule_toPushforwardStalkAlgHom_aux (y) :
     ∃ x : S × p.asIdeal.primeCompl, x.2 • y = toPushforwardStalkAlgHom R S p x.1 := by
   obtain ⟨U, hp, s, e⟩ := TopCat.Presheaf.exists_germ_eq _ y
@@ -402,6 +404,7 @@ theorem isLocalizedModule_toPushforwardStalkAlgHom_aux (y) :
   congr 1
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance isLocalizedModule_toPushforwardStalkAlgHom :
     IsLocalizedModule p.asIdeal.primeCompl (toPushforwardStalkAlgHom R S p).toLinearMap := by
   apply IsLocalizedModule.mkOfAlgebra

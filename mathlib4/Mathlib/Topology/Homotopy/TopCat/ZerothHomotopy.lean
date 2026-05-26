@@ -29,6 +29,7 @@ namespace TopCat
 variable {X : TopCat.{u}}
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given `X : TopCat`, this is the bijection between `1`-simplices of the
 singular simplicial set of `X` and the type of morphisms `I ⟶ X`. -/
 noncomputable def toSSetObj₁Equiv :

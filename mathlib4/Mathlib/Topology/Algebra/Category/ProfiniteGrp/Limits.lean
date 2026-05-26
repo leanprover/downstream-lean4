@@ -93,6 +93,9 @@ def toLimit (P : ProfiniteGrp.{u}) : P ⟶ limit (diagram P) :=
   ofHom { toLimitFun P with
   continuous_toFun := toLimitFun_continuous P }
 
+-- Defeq abuse, see `change` below.
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An auxiliary result, superseded by `toLimit_surjective` -/
 theorem denseRange_toLimit (P : ProfiniteGrp.{u}) : DenseRange (toLimit P) := by
   apply dense_iff_inter_open.mpr
@@ -153,6 +156,7 @@ noncomputable def isoLimittoFiniteQuotientFunctor (P : ProfiniteGrp.{u}) :
   ContinuousMulEquiv.toProfiniteGrpIso (continuousMulEquivLimittoFiniteQuotientFunctor P)
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The projection from `P` to the quotient by an open normal subgroup. -/
 @[to_additive /-- The projection from `P` to the quotient by an open normal subgroup. -/]
 def proj {P : ProfiniteGrp.{u}} (U : OpenNormalSubgroup P) : P ⟶ (diagram P).obj U :=

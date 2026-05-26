@@ -404,6 +404,7 @@ instance {C} [Category* C] {D} [Category* D] (F : C ⥤ D)
   preservesPullback_symmetry _ _ _
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem finitaryExtensive_of_preserves_and_reflects (F : C ⥤ D) [FinitaryExtensive D]
     [HasFiniteCoproducts C] [HasPullbacksOfInclusions C]
     [PreservesPullbacksOfInclusions F]

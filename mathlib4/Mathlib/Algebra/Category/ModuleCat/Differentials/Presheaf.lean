@@ -201,6 +201,8 @@ noncomputable def relativeDifferentials' :
 
 attribute [simp] relativeDifferentials'_obj
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma relativeDifferentials'_map_d {X Y : Dᵒᵖ} (f : X ⟶ Y) (x : R.obj X) :
     DFunLike.coe (α := CommRingCat.KaehlerDifferential (φ'.app X))

@@ -100,6 +100,7 @@ def indexCone (hC : IsCompact C) : Cone (indexFunctor hC) where
 variable (hC : IsCompact C)
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance isIso_indexCone_lift :
     IsIso ((limitConeIsLimit.{u, u} (indexFunctor hC)).lift (indexCone hC)) :=
   haveI : CompactSpace C := by rwa [← isCompact_iff_compactSpace]

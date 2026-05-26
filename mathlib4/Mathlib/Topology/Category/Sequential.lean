@@ -44,6 +44,9 @@ attribute [instance] is_sequential
 instance : Category.{u, u + 1} Sequential.{u} :=
   inferInstanceAs <| Category (InducedCategory _ toTop)
 
+-- Would need to have a new type synonym for the `FunLike` instance for the induced category.
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : ConcreteCategory.{u} Sequential.{u} (C(·, ·)) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toTop) _
 

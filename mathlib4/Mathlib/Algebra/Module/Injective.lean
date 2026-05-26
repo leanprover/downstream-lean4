@@ -474,6 +474,7 @@ instance Module.Injective.pi
     exact DFunLike.congr_fun (hl i) x⟩
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 universe u' in
 attribute [local instance] RingHomInvPair.of_ringEquiv in
 theorem Module.Injective.of_ringEquiv {R : Type u} [Ring R] [Small.{v} R] {S : Type u'} [Ring S]

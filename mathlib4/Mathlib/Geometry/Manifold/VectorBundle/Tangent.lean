@@ -240,6 +240,7 @@ theorem mem_chart_source_iff (p q : TM) :
   simp only [FiberBundle.chartedSpace_chartAt, mfld_simps]
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp, mfld_simps]
 theorem mem_chart_target_iff (p : H × E) (q : TM) :
     p ∈ (chartAt (ModelProd H E) q).target ↔ p.1 ∈ (chartAt H q.1).target := by

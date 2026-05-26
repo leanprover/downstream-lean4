@@ -144,6 +144,7 @@ nonrec lemma LocallyOfFiniteType.jacobsonSpace
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The category of affine schemes locally of finite type over a fixed base scheme is essentially small.
 TODO: extend this to (relatively) quasi-compact schemes.

@@ -479,6 +479,7 @@ instance left_affine_comp_pullback_hasPullback {X Y Z : Scheme} (f : X ⟶ Z) (g
     hasPullback_assoc_symm f (Z.affineCover.f i) (Z.affineCover.f i) g
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance {X Y Z : Scheme} (f : X ⟶ Z) (g : Y ⟶ Z) : HasPullback f g :=
   hasPullback_of_cover (Z.affineCover.pullback₁ f) f g
 

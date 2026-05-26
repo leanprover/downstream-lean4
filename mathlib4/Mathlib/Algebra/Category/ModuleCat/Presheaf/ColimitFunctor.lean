@@ -290,6 +290,7 @@ variable {M' : PresheafOfModules.{w} R} {cM' : Cocone M'.presheaf}
 
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The linear map between the colimit modules induced by a morphism of modules. -/
 noncomputable def map (f : M ⟶ M') :
     ModuleColimit hcR hcM →ₗ[cR.pt] ModuleColimit hcR hcM' where

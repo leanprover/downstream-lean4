@@ -129,6 +129,7 @@ abbrev prodSnd {X Y : TopCat.{u}} : TopCat.of (X × Y) ⟶ Y :=
 def prodBinaryFan (X Y : TopCat.{u}) : BinaryFan X Y :=
   BinaryFan.mk prodFst prodSnd
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The constructed binary fan is indeed a limit -/
 def prodBinaryFanIsLimit (X Y : TopCat.{u}) : IsLimit (prodBinaryFan X Y) where
   lift := fun S : BinaryFan X Y => ofHom { toFun s := (S.fst s, S.snd s) }
@@ -234,6 +235,9 @@ protected def binaryCofan (X Y : TopCat.{u}) : BinaryCofan X Y :=
   BinaryCofan.mk (ofHom ⟨Sum.inl, by fun_prop⟩) (ofHom ⟨Sum.inr, by fun_prop⟩)
 
 set_option backward.isDefEq.respectTransparency.types false in
+-- `continuity` can't unfold the category theory language properly.
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The constructed binary coproduct cofan in `TopCat` is the coproduct. -/
 def binaryCofanIsColimit (X Y : TopCat.{u}) : IsColimit (TopCat.binaryCofan X Y) := by
   refine Limits.BinaryCofan.isColimitMk (fun s => ofHom
@@ -250,6 +254,7 @@ def binaryCofanIsColimit (X Y : TopCat.{u}) : IsColimit (TopCat.binaryCofan X Y)
     exacts [ConcreteCategory.congr_hom h₁ x, ConcreteCategory.congr_hom h₂ x]
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem binaryCofan_isColimit_iff {X Y : TopCat.{u}} (c : BinaryCofan X Y) :
     Nonempty (IsColimit c) ↔
       IsOpenEmbedding c.inl ∧ IsOpenEmbedding c.inr ∧ IsCompl (range c.inl) (range c.inr) := by
