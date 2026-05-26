@@ -14,20 +14,22 @@ require LeanSearchClient from "LeanSearchClient"
 require Cli from "lean4-cli"
 require batteries from "batteries"
 
+def deps := #[
+  importGraph,
+  aesop,
+  quote4,
+  proofwidgets,
+  plausible,
+  LeanSearchClient,
+  Cli,
+  batteries,
+]
+
 @[default_target]
 target buildAll : Unit := do
-  let deps := #[
-    importGraph,
-    aesop,
-    quote4,
-    proofwidgets,
-    plausible,
-    LeanSearchClient,
-    Cli,
-    batteries,
-  ]
+  let workspace ← getWorkspace
   let specs ← deps.flatMapM fun dep => do
-    match (← parseTargetSpec (← getWorkspace) dep.name.toString |>.toBaseIO) with
+    match (← parseTargetSpec workspace dep.name.toString |>.toBaseIO) with
     | .ok spec => pure spec
     | .error e => error s!"invalid package: {e}"
   buildSpecs specs
