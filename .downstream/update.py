@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser
 from pathlib import Path
 
-from util import Repo
+from downstream.updater import Updater
 
 
 class Args:
@@ -25,7 +25,7 @@ def main() -> None:
     args = parser.parse_args(namespace=Args())
 
     os.chdir(args.downstream)
-    updater = Repo()
+    updater = Updater()
 
     reset_names = set(args.reset)
     if args.reset_all:
