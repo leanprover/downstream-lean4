@@ -1,0 +1,45 @@
+{
+  "version": "1.2.0",
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "leansqlite",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../leansqlite"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "Cli",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.toml",
+      "dir": "../lean4-cli"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "UnicodeBasic",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../lean4-unicode-basic"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "BibtexQuery",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.toml",
+      "dir": "../BibtexQuery"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+name: Multi-library docs regression test
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+
+jobs:
+  test-multi-lib:
+    name: Test multi-library doc generation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install elan and build doc-gen4
+        uses: leanprover/lean-action@v1
+        with:
+          build-args: "--wfail"
+
+      - name: Run multi-library docs test
+        run: ./test/test-multi-lib-docs.sh

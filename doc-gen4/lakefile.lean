@@ -1,0 +1,416 @@
+import Lake
+open System Lake DSL
+
+package «doc-gen4»
+
+lean_lib DocGen4
+
+@[default_target]
+lean_exe «doc-gen4» {
+  root := `Main
+  supportInterpreter := true
+}
+
+require MD4Lean from git
+  "https://github.com/acmepjz/md4lean" @ "main"
+
+require BibtexQuery from git
+  "https://github.com/dupuisf/BibtexQuery" @ "nightly-testing"
+
+require «UnicodeBasic» from git
+  "https://github.com/fgdorais/lean4-unicode-basic" @ "main"
+
+require Cli from git
+  "https://github.com/leanprover/lean4-cli" @ "main"
+
+require leansqlite from git
+  "https://github.com/leanprover/leansqlite" @ "main"
+
+/--
+Obtains the subdirectory of the Lean package relative to the root of the enclosing git repository.
+-/
+def getGitSubDirectory (directory : System.FilePath := "." ) : IO System.FilePath := do
+  let out ← IO.Process.output {
+    cmd := "git",
+    args := #["rev-parse", "--show-prefix"],
+    cwd := directory
+  }
+  if out.exitCode != 0 then
+    let explanation := "Failed to execute git rev-parse --show-prefix"
+    let err := s!"git exited with code {out.exitCode} while looking for the git subdirectory in {directory}"
+    throw <| IO.userError <| explanation ++ "\n" ++ err
+  let subdir := out.stdout.trimAsciiEnd
+  -- e.g. if the Lean package is under a directory "myleanpackage",
+  -- `git rev-parse --show-prefix` would return "myleanpackage/".
+  -- We drop the trailing path separator.
+  return if subdir == "".toSlice then "." else subdir.dropEnd 1 |>.copy
+
+/--
+Obtains the GitHub URL of a project by parsing the origin remote.
+-/
+def getGitRemoteUrl (directory : System.FilePath := "." ) (remote : String := "origin") : IO String := do
+  let out ← IO.Process.output {
+    cmd := "git",
+    args := #["remote", "get-url", remote],
+    cwd := directory
+  }
+  if out.exitCode != 0 then
+    let explanation := "Failed to find a git remote in your project, consider reading: https://github.com/leanprover/doc-gen4#source-locations"
+    let err := s!"git exited with code {out.exitCode} while looking for the git remote in {directory}"
+    throw <| IO.userError <| explanation ++ "\n" ++ err
+  return out.stdout.trimAsciiEnd.copy
+
+/--
+Obtains the Git commit hash of the project that is currently getting analyzed.
+-/
+def getProjectCommit (directory : System.FilePath := "." ) : IO String := do
+  let out ← IO.Process.output {
+    cmd := "git",
+    args := #["rev-parse", "HEAD"]
+    cwd := directory
+  }
+  if out.exitCode != 0 then
+    throw <| IO.userError <| s!"git exited with code {out.exitCode} while looking for the current commit in {directory}"
+  return out.stdout.trimAsciiEnd.copy
+
+def filteredPath (path : FilePath) : List String := path.components.filter (· != ".")
+
+/--
+Turns a git remote URL into an HTTPS base URL for source linking.
+Supported link types:
+- https://github.com/org/repo
+- https://github.com/org/repo.git
+- git@github.com:org/repo.git
+- https://github.example.com/org/repo (GitHub Enterprise)
+- https://codeberg.org/org/repo.git (Codeberg/Forgejo/Gitea)
+- git@host:org/repo.git (any SSH remote)
+
+Note: Source links use GitHub's `/blob/COMMIT/path` convention.
+This is correct for GitHub and GitHub Enterprise. For Codeberg/Forgejo/Gitea
+(which use `/src/commit/COMMIT/path`), the source links will not resolve.
+Use `DOCGEN_SRC=file` as a workaround for non-GitHub hosts.
+-/
+def getGithubBaseUrl (url : String) : Option String :=
+  -- git@host:org/repo.git → https://host/org/repo
+  if url.startsWith "git@" && url.endsWith ".git" then
+    let rest := url.drop "git@".length |>.dropEnd ".git".length |>.toString
+    match rest.splitOn ":" with
+    | [host, path] => some s!"https://{host}/{path}"
+    | _ => none
+  -- https://host/org/repo[.git]
+  else if url.startsWith "https://" then
+    let stripped := if url.endsWith ".git" then url.dropEnd ".git".length |>.copy else url
+    -- Verify at least host/org/repo structure
+    let afterScheme := stripped.drop "https://".length |>.toString
+    let parts := afterScheme.splitOn "/"
+    if parts.length >= 3 then some stripped else none
+  else
+    .none
+
+inductive UriSource
+  | github
+  | vscode
+  | file
+
+def UriSource.parse : IO UriSource := do
+  match ← IO.getEnv "DOCGEN_SRC" with
+  | .none | .some "github" | .some "" => pure .github
+  | "vscode" => pure .vscode
+  | "file" => pure .file
+  | _ => error "$DOCGEN_SRC should be github, file, or vscode."
+
+/-! Note that all URIs can use `/` even when the system path separator is `\`. -/
+
+
+/-- The GitHub URI of the source code of the package. -/
+package_facet srcUri.github (pkg) : String := Job.async do
+  let url ← getGitRemoteUrl pkg.dir "origin"
+  let .some baseUrl := getGithubBaseUrl url
+      | error <|
+        s!"Could not interpret Git remote uri {url} as a Github source repo.\n"
+          ++ "See README on source URIs for more details."
+  let commit ← getProjectCommit pkg.dir
+  logInfo s!"Found git remote for {pkg.baseName} at {baseUrl} @ {commit}"
+  let subdir ← getGitSubDirectory pkg.dir
+  return "/".intercalate <| baseUrl :: "blob" :: commit :: filteredPath (subdir / pkg.config.srcDir)
+
+/-- The `vscode://` URI of the source code of the package. -/
+package_facet srcUri.vscode (pkg) : String := .pure <$> do
+  let dir ← IO.FS.realPath (pkg.dir / pkg.config.srcDir)
+  return s!"vscode://file/{dir}"
+
+/-- The `file://` URI of the source code of the package. -/
+package_facet srcUri.file (pkg) : String := .pure <$> do
+  let dir ← IO.FS.realPath (pkg.dir / pkg.config.srcDir)
+  return s!"file://{dir}"
+
+/-- The URI of the source code of the package, respecting `DOCGEN_SRC`. -/
+package_facet srcUri (pkg) : String := do
+  match ← UriSource.parse with
+  | .github => fetch <| pkg.facet `srcUri.github
+  | .vscode => fetch <| pkg.facet `srcUri.vscode
+  | .file => fetch <| pkg.facet `srcUri.file
+
+
+private def makeLibSrcUriFacet (lib : LeanLib) (which : Lean.Name)
+    [FamilyDef FacetOut (Package.facetKind ++ which) String] :
+    FetchM (Job String) := do
+  let pkgUri ← fetch <| lib.pkg.facet which
+  pkgUri.mapM (sync := true) fun pkgUri => do
+    return "/".intercalate (pkgUri :: filteredPath lib.config.srcDir)
+
+/-- The github URI of the source code of the library. -/
+library_facet srcUri.github (lib) : String := makeLibSrcUriFacet lib `srcUri.github
+/-- The `vscode://` URI of the source code of the library. -/
+library_facet srcUri.vscode (lib) : String := makeLibSrcUriFacet lib `srcUri.vscode
+/-- The `file://` URI of the source code of the library. -/
+library_facet srcUri.file (lib) : String := makeLibSrcUriFacet lib `srcUri.file
+/-- The URI of the source code of the library, respecting `DOCGEN_SRC`. -/
+library_facet srcUri (lib) : String := makeLibSrcUriFacet lib `srcUri
+
+private def makeModuleSrcUriFacet (mod : Module) (which : Lean.Name)
+    [FamilyDef FacetOut (LeanLib.facetKind ++ which) String] :
+    FetchM (Job String) := do
+  let libUri ← fetch <| mod.lib.facet which
+  libUri.mapM (sync := true) fun libUri => do
+    return mod.name.components.foldl (init := libUri) (·.push '/' ++ ·.toString (escape := False)) ++ ".lean"
+
+/-- The GitHub URI of the source code of the module. -/
+module_facet srcUri.github (mod) : String := makeModuleSrcUriFacet mod `srcUri.github
+/-- The `vscode://` URI of the source code of the module. -/
+module_facet srcUri.vscode (mod) : String := makeModuleSrcUriFacet mod `srcUri.vscode
+/-- The `file://` URI of the source code of the module. -/
+module_facet srcUri.file (mod) : String := makeModuleSrcUriFacet mod `srcUri.file
+/-- The URI of the source code of the module, respecting `DOCGEN_SRC`. -/
+module_facet srcUri (mod) : String := makeModuleSrcUriFacet mod `srcUri
+
+target bibPrepass : FilePath := do
+  let exeJob ← «doc-gen4».fetch
+  let buildDir := (← getRootPackage).buildDir
+  let dataPath := buildDir / "doc-data"
+  let inputJsonFile := (← getRootPackage).srcDir / "docs" / "references.json"
+  let inputBibFile := (← getRootPackage).srcDir / "docs" / "references.bib"
+  let outputFile := dataPath / "references.json"
+  let tryJson : JobM (Array String) := do
+    addTrace <| ← computeTrace inputJsonFile
+    addTrace <| BuildTrace.ofHash (.ofString "json")
+    return #["--build", buildDir.toString, "--json", inputJsonFile.toString]
+  let tryBib : JobM (Array String) := do
+    addTrace <| ← computeTrace inputBibFile
+    addTrace <| BuildTrace.ofHash (.ofString "bib")
+    return #["--build", buildDir.toString, inputBibFile.toString]
+  let tryBibFailed : JobM (Array String) := do
+    addTrace .nil
+    return #["--build", buildDir.toString, "--none"]
+  exeJob.mapM fun exeFile => do
+    let args ← tryJson <|> tryBib <|> tryBibFailed
+    buildFileUnlessUpToDate' outputFile do
+      proc {
+        cmd := exeFile.toString
+        args := #["bibPrepass"] ++ args
+        env := ← getAugmentedEnv
+      }
+    return outputFile
+
+def coreTarget (component : Lean.Name) : FetchM (Job FilePath) := do
+  let exeJob ← «doc-gen4».fetch
+  let bibPrepassJob ← bibPrepass.fetch
+  let buildDir := (← getRootPackage).buildDir
+  -- Building the core targets adds their information to the database file. While it would be
+  -- possible to hash just the relevant content of the database (e.g. using SQLite's SHA3 module)
+  -- and write the result to a file, this adds a significant overhead. Instead, we create an empty
+  -- "marker file" to indicate that the database content has been inserted, and rely on its trace
+  -- changing to trigger rebuilds.
+  let markerFile := buildDir / "doc-data" / s!"core-{component}.doc"
+  bibPrepassJob.bindM fun _ => do
+    exeJob.mapM fun exeFile => do
+      buildFileUnlessUpToDate' markerFile do
+        proc {
+          cmd := exeFile.toString
+          args := #["genCore", "--build", buildDir.toString, component.toString, "api-docs.db"]
+          env := ← getAugmentedEnv
+        }
+        createParentDirs markerFile
+        IO.FS.writeFile markerFile ""
+      return markerFile
+
+/--
+Populates the database with documentation data for core Lean. Returns a set of marker files that
+indicate that the database has been updated for the corresponding modules, allowing Lake to track
+changes and dependencies.
+-/
+target coreDocs : Array FilePath := do
+  let coreComponents := #[`Init, `Std, `Lake, `Lean]
+  return ← (Job.collectArray <| ← coreComponents.mapM coreTarget).mapM fun deps =>
+    return deps
+
+/--
+Places the module's documentation content into the package's documentation database.
+
+Returns a marker file that indicates the database has been populated for this module.
+The marker file participates in Lake's dependency tracking, allowing for incremental updates.
+-/
+module_facet docInfo (mod) : FilePath := do
+  let exeJob ← «doc-gen4».fetch
+  let bibPrepassJob ← bibPrepass.fetch
+  let coreJob ← coreDocs.fetch
+  let modJob ← mod.leanArts.fetch
+  -- Build all documentation for imported modules
+  let imports ← (← mod.imports.fetch).await
+  let depDocJobs := Job.mixArray <| ← imports.mapM fun mod => fetch <| mod.facet `docInfo
+  let buildDir := (← getRootPackage).buildDir
+  -- Building the documentation info for the module adds or updates the relevant content in the
+  -- database. If the dependencies change, then this needs to be re-done. While it would be possible
+  -- to hash just the relevant content of the database (e.g. using SQLite's SHA3 module) and write
+  -- the result to a file, this adds a significant overhead. Instead, we create an empty "marker
+  -- file" to indicate that the database content has been inserted, and rely on its Lake trace
+  -- changing to trigger rebuilds.
+  let markerFile := buildDir / "doc-data" / s!"{mod.name}.doc"
+  coreJob.bindM fun _ => do
+    depDocJobs.bindM fun _ => do
+      bibPrepassJob.bindM fun _ => do
+        exeJob.bindM fun exeFile => do
+          modJob.mapM fun _ => do
+            buildFileUnlessUpToDate' markerFile do
+              let uriJob ← fetch <| mod.facet `srcUri
+              let srcUri ← uriJob.await
+              proc {
+                cmd := exeFile.toString
+                args := #["single", "--build", buildDir.toString, mod.name.toString, "api-docs.db", srcUri]
+                env := ← getAugmentedEnv
+              }
+              createParentDirs markerFile
+              IO.FS.writeFile markerFile ""
+            return markerFile
+
+/--
+Populates the database with information for all modules in a library.
+-/
+library_facet docInfo (lib) : Array FilePath := do
+  let mods ← (← lib.modules.fetch).await
+  pure <| Job.collectArray <| ← mods.mapM (fetch <| ·.facet `docInfo)
+
+/--
+A facet to collect docInfo dependencies for a package (no HTML generation).
+This populates the database with all module data and core docs for all packages
+in the workspace (including dependencies).
+Returns the database file path.
+-/
+package_facet docInfo (pkg) : FilePath := do
+  let ws ← getWorkspace
+  let allLibs := ws.packages.flatMap (·.leanLibs)
+  let libDocJobs := Job.collectArray <| ← allLibs.mapM (fetch <| ·.facet `docInfo)
+  let coreJobs ← coreDocs.fetch
+  let dbPath := pkg.buildDir / "api-docs.db"
+  coreJobs.bindM fun _ => do
+    libDocJobs.mapM fun _ =>
+      return dbPath
+
+library_facet docsHeader (lib) : FilePath := do
+  -- Depend on the package docs facet to ensure HTML is generated first
+  let pkgDocsJob ← fetch <| lib.pkg.facet `docs
+  let exeJob ← «doc-gen4».fetch
+  -- Shared with DocGen4.Output
+  let buildDir := (← getRootPackage).buildDir
+  let basePath := buildDir / "doc"
+  let dataFile := basePath / "declarations" / "header-data.bmp"
+  let markerFile := buildDir / "doc-data" / s!"{lib.name}--library.docsHeader_built"
+  exeJob.bindM fun exeFile => do
+    pkgDocsJob.mapM fun _ => do
+      buildFileUnlessUpToDate' markerFile do
+        logInfo "Documentation header indexing"
+        proc {
+          cmd := exeFile.toString
+          args := #["headerData", "--build", buildDir.toString]
+        }
+        createParentDirs markerFile
+        IO.FS.writeFile markerFile ""
+      return dataFile
+
+
+/--
+Generate HTML documentation for the given root modules.
+Fetches docInfo for all roots, ensures core docs are built, then runs a single `fromDb` process.
+Returns an array of all generated file paths.
+-/
+def generateHtmlDocs (markerName : String) (rootMods : Array Module) (description : String) : FetchM (Job (Array FilePath)) := do
+  let exeJob ← «doc-gen4».fetch
+  let bibPrepassJob ← bibPrepass.fetch
+  let coreJob ← coreDocs.fetch
+  let docInfoJobs := Job.collectArray <| ← rootMods.mapM (fetch <| ·.facet `docInfo)
+  let buildDir := (← getRootPackage).buildDir
+  let basePath := buildDir / "doc"
+  let dbPath := buildDir / "api-docs.db"
+  let dataFile := basePath / "declarations" / "declaration-data.bmp"
+  let markerFile := buildDir / "doc-data" / s!"{markerName}.docs_built"
+  let staticFiles := #[
+    basePath / "style.css",
+    basePath / "favicon.svg",
+    basePath / "declaration-data.js",
+    basePath / "color-scheme.js",
+    basePath / "nav.js",
+    basePath / "jump-src.js",
+    basePath / "expand-nav.js",
+    basePath / "how-about.js",
+    basePath / "search.js",
+    basePath / "mathjax-config.js",
+    basePath / "instances.js",
+    basePath / "importedBy.js",
+    basePath / "index.html",
+    basePath / "404.html",
+    basePath / "navbar.html",
+    basePath / "search.html",
+    basePath / "foundational_types.html",
+    basePath / "references.html",
+    basePath / "references.bib",
+    basePath / "tactics.html",
+    basePath / "find" / "index.html",
+    basePath / "find" / "find.js"
+  ]
+  let coreRoots := #[`Init, `Std, `Lake, `Lean]
+  let rootNames := rootMods.map (·.name) ++ coreRoots
+  let manifestFile := buildDir / "doc-manifest.json"
+  coreJob.bindM fun _ => do
+    docInfoJobs.bindM fun _ => do
+      bibPrepassJob.bindM fun _ => do
+        exeJob.mapM fun exeFile => do
+          buildFileUnlessUpToDate' markerFile do
+            logInfo description
+            proc {
+              cmd := exeFile.toString
+              args := #["fromDb", "--build", buildDir.toString, "--manifest", manifestFile.toString, dbPath.toString] ++ rootNames.map (·.toString)
+              env := ← getAugmentedEnv
+            }
+            createParentDirs markerFile
+            IO.FS.writeFile markerFile ""
+          let traces ← staticFiles.mapM computeTrace
+          addTrace <| mixTraceArray traces
+          -- We read the manifest to determine which HTML files were generated because we only
+          -- pass root module names to fromDb, which computes the transitive closure internally.
+          -- This avoids passing potentially thousands of module names on the command line.
+          match Lean.Json.parse <| ← IO.FS.readFile manifestFile with
+          | .error _ => return #[dataFile] ++ staticFiles
+          | .ok manifestData =>
+            match Lean.fromJson? manifestData with
+            | .error _ => return #[dataFile] ++ staticFiles
+            | .ok (manifestDeps : Array System.FilePath) =>
+              return #[dataFile] ++ staticFiles ++ manifestDeps.map (buildDir / ·)
+
+/-- Generate HTML for this module and its transitive imports. -/
+module_facet docs (mod) : Array FilePath := do
+  generateHtmlDocs s!"{mod.name}--module" #[mod] s!"Generating documentation for {mod.name} and dependencies"
+
+/-- Generate HTML for all modules in this library. -/
+library_facet docs (lib) : Array FilePath := do
+  let rootMods := lib.rootModules
+  generateHtmlDocs s!"{lib.name}--library" rootMods s!"Generating documentation for {lib.name} ({rootMods.size} root modules)"
+
+/--
+Generates documentation for the package's default library targets. Runs a single HTML generation
+process for all root modules across all default libraries.
+-/
+package_facet docs (pkg) : Array FilePath := do
+  let defaultTargets := pkg.defaultTargets
+  let libs := pkg.leanLibs.filter fun lib => defaultTargets.contains lib.name
+  let rootMods := libs.flatMap (·.rootModules)
+  generateHtmlDocs s!"{pkg.baseName}--package" rootMods s!"Generating documentation for {pkg.baseName} ({rootMods.size} root modules)"
