@@ -1,0 +1,135 @@
+name: Lean Action CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        lean-version:
+          - toolchain-file
+
+    name: build (${{ matrix.os }}, lean ${{ matrix.lean-version }})
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set Lean version
+        if: matrix.lean-version != 'toolchain-file'
+        run: echo "${{ matrix.lean-version }}" > lean-toolchain
+
+      - uses: leanprover/lean-action@v1
+        with:
+          test: false
+
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: tests
+          test: true
+
+  test-large-files:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        lean-version:
+          - toolchain-file
+
+    name: test-large-files (lean ${{ matrix.lean-version }})
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set Lean version
+        if: matrix.lean-version != 'toolchain-file'
+        run: echo "${{ matrix.lean-version }}" > lean-toolchain
+
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache elan toolchain
+        uses: actions/cache/restore@v3
+        id: cache-elan
+        with:
+          path: ~/.elan
+          key: elan-${{ runner.os }}-${{ hashFiles('lean-toolchain') }}
+
+      - name: Cache Lake build
+        uses: actions/cache/restore@v3
+        id: cache-lake
+        with:
+          path: |
+            .lake
+            tests/.lake
+          key: lake-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.lean', 'lake-manifest.json', 'tests/lean-toolchain', 'tests/lakefile.lean', 'tests/lake-manifest.json') }}-${{ hashFiles('**/*.lean', 'bindings/**/*') }}
+          restore-keys: |
+            lake-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.lean', 'lake-manifest.json', 'tests/lean-toolchain', 'tests/lakefile.lean', 'tests/lake-manifest.json') }}-${{ hashFiles('**/*.lean', 'bindings/**/*') }}
+            lake-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'lakefile.lean', 'lake-manifest.json', 'tests/lean-toolchain', 'tests/lakefile.lean', 'tests/lake-manifest.json') }}-
+            lake-${{ runner.os }}-
+
+      - name: Build project
+        run: lake build
+
+      - name: Save elan cache
+        uses: actions/cache/save@v3
+        if: steps.cache-elan.outputs.cache-hit != 'true'
+        with:
+          path: ~/.elan
+          key: ${{ steps.cache-elan.outputs.cache-primary-key }}
+
+      - name: Save Lake cache
+        uses: actions/cache/save@v3
+        if: steps.cache-lake.outputs.cache-hit != 'true'
+        with:
+          path: |
+            .lake
+            tests/.lake
+          key: ${{ steps.cache-lake.outputs.cache-primary-key }}
+
+      - name: Create large test database
+        run: |
+          # Create a >2.5GB SQLite database using sparse file (doesn't use actual disk space)
+          python3 << 'EOF'
+          import sqlite3
+          import os
+
+          # Create a valid SQLite database
+          db = sqlite3.connect('large_test.db')
+          db.execute('CREATE TABLE test (id INTEGER PRIMARY KEY, data TEXT)')
+          db.execute('INSERT INTO test VALUES (1, "test")')
+          db.commit()
+          db.close()
+
+          # Extend it to 2.6GB using truncate (creates sparse file)
+          with open('large_test.db', 'ab') as f:
+              f.truncate(2600 * 1024 * 1024)  # 2.6GB
+
+          size = os.path.getsize('large_test.db')
+          print(f'Database size: {size / (1024**3):.2f} GB')
+
+          # Verify the file is actually >2.5GB
+          expected = 2600 * 1024 * 1024
+          if size < expected:
+              print(f'ERROR: File size {size} is less than expected {expected}')
+              exit(1)
+          EOF
+
+          # Show size for debugging
+          ls -lh large_test.db
+          du -h large_test.db  # Shows actual disk usage (should be small)
+
+      - name: Test large file support
+        working-directory: tests
+        run: lake test -- ../large_test.db
