@@ -1,0 +1,306 @@
+/-
+Copyright (c) 2023-2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+import Lean.DocString.Syntax
+import VersoManual
+import VersoBlog
+
+open Verso Genre Manual
+
+open InlineLean
+open Verso.Doc
+
+#doc (Manual) "Manuals and Books" =>
+%%%
+tag := "manual"
+htmlSplit := .never
+%%%
+
+Verso's {name}`Manual` genre can be used to write reference manuals, textbooks, or other book-like documents.
+It supports generating both HTML and PDFs via LaTeX, but the PDF support is relatively immature and untested compared to the HTML support.
+
+{docstring Manual}
+
+{docstring Manual.PartMetadata}
+
+{docstring Manual.HtmlSplitMode}
+
+The {name}`Manual` genre's block and inline element types are extensible.
+In the document, they consist of instances of {name}`Manual.Block` and {name}`Manual.Inline`, respectively:
+
+{docstring Manual.Block}
+
+{docstring Manual.Inline}
+
+The fields {name}`Block.name` and {name Manual.Inline.name}`Inline.name` are used to look up concrete implementations of traversal and output generation in run-time tables that contain descriptions:
+
+{docstring Manual.BlockDescr}
+
+{docstring Manual.InlineDescr}
+
+Typically, the `inline_extension` and `block_extension` commands are used to simultaneously define an element and its descriptor, registering them for use by {name}`manualMain`.
+
+:::paragraph
+The type {name}`HtmlAssets` contains CSS and JavaScript code.
+{name}`Manual.TraverseState`, {name}`Manual.BlockDescr`, and {name}`Manual.InlineDescr` all inherit from this structure.
+During traversal, HTML assets are collected; they are all included in the final rendered document.
+
+{docstring Manual.HtmlAssets}
+
+Use {name}`HtmlAssets.combine` to combine multiple assets.
+
+{docstring Manual.HtmlAssets.combine}
+
+:::
+
+# Tags and References
+%%%
+tag := "manual-tags"
+%%%
+
+The {name}`Manual` genre maintains a table of link targets for various namespaces, such as documented constants, documented syntax, technical terminology, and sections.
+In this table, domain-specific names are mapped to their documentation location.
+For items such as document sections that don't have a clear, unambiguous, globally-unique name, Verso requires such a name to be manually specified before it is in the table.
+Extensions and parts for which names should be manually specified take a `tag` parameter.
+
+:::paragraph
+Specifying a tag has the following benefits:
+ * The item is included in the quick-jump box and the index.
+ * The tag can be used to construct permalinks that will continue to work even if the document is reorganized, so long as the tag is maintained.
+ * The item can be linked to automatically from other documents.
+
+Tags should be specified for all sections that the author considers to have a stable identity.
+:::
+
+:::paragraph
+To refer to a tag, use the {name}`ref` role.
+It takes the following parameters:
+ * A mandatory _canonical name_, which is the tag assigned to some content.
+  By default, this is expected to be a section tag; specifying alternative domains allows the cross reference to be resolved in some other namespace.
+ * An optional named argument `domain`, which determines the namespace in which the canonical name is looked up. If no domain is provided, then `domain` defaults to section tags, but other kinds of content may add their cross-references to other namespaces.
+ * An optional named argument `remote`, which causes the name to be looked up in data loaded from some other Verso document.
+:::
+
+:::paragraph
+A {ref "manual-tags"}[reference to this very section] can be created using its tag `"manual-tags"`:
+```
+{ref "manual-tags"}[reference to this very section]
+```
+:::
+
+# Paragraphs
+%%%
+tag := "paragraph-directive"
+%%%
+
+The {name}`paragraph` directive indicates that a sequence of blocks form a logical paragraph.
+Verso's markup language shares one key limitation with Markdown and HTML: bulleted lists and code blocks cannot be contained within paragraphs.
+However, there's no _a priori_ reason to reject this, and many real documents include lists in paragraphs.
+When using the {name}`paragraph` directive, HTML output wraps the contents in a suitable element that causes their internal margins to be a bit smaller, and TeX output omits the blank line that would signal a paragraph break to TeX.
+
+# Tables
+%%%
+tag := "table-directive"
+%%%
+
+The {name}`table` directive is used to implement tables.
+Tables are written as bulleted list of bulleted lists; the outer lists are rows, and the inner lists are columns; each row must contain the same number of columns.
+
+The flag `header` determines whether the first row should be considered as table data or as headers for the remaining rows.
+The named paramter `align`, which may be {name TableConfig.Alignment.left}`left`, {name TableConfig.Alignment.center}`center`, or {name TableConfig.Alignment.right}`right`, determines the alignment of the table with respect to the surrounding text.
+
+::::paragraph
+This table maps $`n` to $`n!`:
+```
+:::table +header (align := center)
+*
+  * $`n`
+  * $`n!`
+*
+  * 0
+  * 1
+*
+  * 1
+  * 1
+*
+  * 2
+  * 2
+*
+  * 3
+  * 6
+*
+  * 4
+  * 24
+:::
+```
+
+It is rendered as follows:
+:::table +header (align := center)
+*
+  * $`n`
+  * $`n!`
+*
+  * 0
+  * 1
+*
+  * 1
+  * 1
+*
+  * 2
+  * 2
+*
+  * 3
+  * 6
+*
+  * 4
+  * 24
+:::
+::::
+
+# Docstrings
+%%%
+tag := "docstrings"
+%%%
+
+Docstrings can be included using the `docstring` directive. For instance,
+
+```
+{docstring List.forM}
+```
+
+results in
+
+{docstring List.forM}
+
+The {name}`docstring` command takes a positional parameter which is the documented name.
+It also accepts the following optional named parameters:
+
+: `allowMissing : Bool`
+
+  If `true`, missing docstrings are a warning rather than an error.
+
+: `hideFields : Bool`
+
+  If `true`, fields or methods of structures or classes are not shown.
+
+: `hideStructureConstructor : Bool`
+
+  If `true`, constructors of structures or classes are not shown.
+
+: `label : String`
+
+  A label to show instead of the default.
+
+::::paragraph
+The {name}`tactic` directive and the {name}`optionDocs` command can be used to show documentation for tactics and compiler options, respectively.
+
+```
+:::tactic "induction"
+:::
+```
+
+results in
+
+:::tactic "induction"
+:::
+
+and
+
+```
+{optionDocs pp.deepTerms.threshold}
+```
+
+results in
+
+{optionDocs pp.deepTerms.threshold}
+::::
+
+
+# Technical Terminology
+%%%
+shortTitle := "Glossary"
+tag := "tech-terms"
+%%%
+
+The `deftech` role can be used to annotate the definition of a {tech}[technical term].
+Elsewhere in the document, `tech` can be used to annotate a use site of a technical term.
+A {deftech}_technical term_ is a term with a specific meaning that's used precisely, like this one.
+References to technical terms are valid both before and after their definition sites.
+
+{docstring deftech}
+
+{docstring tech}
+
+
+# Open-Source Licenses
+%%%
+tag := "oss-licenses"
+%%%
+
+To facilitate providing appropriate credit to the authors of open-source JavaScript, CSS, and HTML libraries used to render a Verso document, inline and block elements can specify the licenses of components that they include in their rendered output.
+This is done using the {name HtmlAssets.licenseInfo}`licenseInfo` field that {name}`BlockDescr` and {name}`InlineDescr` inherit from {name}`HtmlAssets`.
+These contain a {name}`LicenseInfo`:
+
+{docstring LicenseInfo}
+
+The {name}`licenseInfo` command displays the licenses for all components that were included in the generated document:
+
+{docstring licenseInfo}
+
+# Diagrams
+%%%
+tag := "diagrams"
+%%%
+
+Diagrams can be defined using the `illuminate` library and added to documents using the {name}`diagram` code block.
+*This library is experimental, and its API is subject to change.*
+
+:::paragraph
+For example, a diagram with a connected circle and rectangle can be rendered using the following code:
+````
+```diagram (cssWidth := "50%") (texWidth := "0.5\\textwidth")
+open Illuminate Diagram in
+let c := circle 50 (name := `c)
+let r := rect 80 90 (name := `r)
+hsep 10 [c, r]
+  |>.connectEdge
+    { point := `c, angle := some (pi / 4), pull := 0.5 }
+    { point := `r, angle := some (2 * pi / 3), pull := 1 }
+```
+````
+
+It results in the following output:
+
+```diagram (cssWidth := "50%") (texWidth := "0.5\\textwidth")
+open Illuminate Diagram in
+let c := circle 50 (name := `c)
+let r := rect 80 90 (name := `r)
+hsep 10 [c, r]
+  |>.connectEdge
+    { point := `c, angle := some (pi / 4), pull := 0.5 }
+    { point := `r, angle := some (2 * pi / 3), pull := 1 }
+```
+:::
+:::paragraph
+The {name}`diagram` code block accepts an `inline` flag that marks it for inline rendering in CSS. It also accepts the following named arguments:
+
+: `cssWidth`
+
+  A width in CSS format that is copied verbatim to the width of the output image in HTML.
+
+: `cssScale`
+
+  A scaling factor that relates the diagram's width to `em` in rendered HTML. Use this to have consistent sizing between multiple diagrams.
+
+: `texWidth`
+
+  The `width` parameter passed verbatim to `\includesvg` in TeX output.
+
+
+:::
+
+Building PDFs from LaTeX output relies on the `svg` LaTeX package, which calls Inkscape to convert each emitted SVG to PDF at build time.
+This requires `inkscape` on the `PATH` as well as running `lualatex` with the `-shell-escape` flag.
+This flag allows LaTeX to execute arbitrary commands during compilation.

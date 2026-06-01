@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Extract subverso information from root manifest
+ROOT_MANIFEST="./lake-manifest.json"
+
+# Extract required fields for validation
+SUBVERSO_REV=$(jq -r '.packages[] | select(.name == "subverso") | .rev' "$ROOT_MANIFEST")
+SUBVERSO_URL=$(jq -r '.packages[] | select(.name == "subverso") | .url' "$ROOT_MANIFEST")
+SUBVERSO_NOMODULE_REV=$(git ls-remote "$SUBVERSO_URL" "no-modules/$SUBVERSO_REV" | awk '{print $1}')
+
+# Ensure we found subverso in the root manifest
+if [ -z "$SUBVERSO_REV" ]; then
+    echo "Error: Could not find 'subverso' package in root manifest"
+    exit 1
+fi
+
+# Ensure we found subverso in the root manifest
+if [ -z "$SUBVERSO_NOMODULE_REV" ]; then
+    echo "Error: Could not find no-module rev for SubVerso"
+    exit 1
+fi
+
+echo "Found subverso rev: $SUBVERSO_REV"
+echo "Found subverso url: $SUBVERSO_URL"
+echo "Found subverso non-module rev: $SUBVERSO_NOMODULE_REV"
+
+
+
+# Find example lake-manifest.json files in the repo (excluding the root one)
+find test-projects -name "lake-manifest.json" -not -path "$ROOT_MANIFEST" | grep -v "\.lake" | while read -r manifest_file; do
+    echo "Processing $manifest_file..."
+
+    # Check if the manifest contains subverso package
+    if jq -e '.packages[] | select(.name == "subverso")' "$manifest_file" > /dev/null; then
+
+        # Get actual values for comparison
+        ACTUAL_URL=$(jq -r '.packages[] | select(.name == "subverso") | .url' "$manifest_file")
+        ACTUAL_TYPE=$(jq -r '.packages[] | select(.name == "subverso") | .type' "$manifest_file")
+        ACTUAL_INPUT_REV=$(jq -r '.packages[] | select(.name == "subverso") | .inputRev' "$manifest_file")
+
+        # Validate URL
+        if [ "$ACTUAL_URL" != "$SUBVERSO_URL" ]; then
+            echo "Error in $manifest_file: URL mismatch"
+            echo "  Expected: $SUBVERSO_URL"
+            echo "  Actual:   $ACTUAL_URL"
+            exit 1
+        fi
+
+        # Validate type
+        if [ "$ACTUAL_TYPE" != "git" ]; then
+            echo "Error in $manifest_file: Type mismatch"
+            echo "  Expected: git"
+            echo "  Actual:   $ACTUAL_TYPE"
+            exit 1
+        fi
+
+        # Validate inputRev
+        if [ "$ACTUAL_INPUT_REV" != "main" ]; then
+            echo "Error in $manifest_file: InputRev mismatch"
+            echo "  Expected: main"
+            echo "  Actual:   $ACTUAL_INPUT_REV"
+            exit 1
+        fi
+
+        # Projects that depend on Verso as a path dependency inherit its
+        # `module` status and need the modulized SubVerso rev. Other
+        # projects need the de-modulized rev.
+        # The directory containing this manifest's project
+        project_dir=$(dirname "$manifest_file")
+
+        if jq -e '.packages[] | select(.name == "verso" and .type == "path")' "$manifest_file" > /dev/null 2>&1; then
+            TARGET_REV="$SUBVERSO_REV"
+            echo "  Uses Verso path dependency → modulized rev"
+            # Keep toolchain in sync with root
+            cp lean-toolchain "$project_dir/lean-toolchain"
+            echo "  Copied lean-toolchain to $project_dir/"
+        else
+            TARGET_REV="$SUBVERSO_NOMODULE_REV"
+            echo "  Standalone project → de-modulized rev"
+        fi
+
+        jq --arg rev "$TARGET_REV" '.packages = (.packages | map(
+            if .name == "subverso" then
+                .rev = $rev
+            else
+                .
+            end
+        ))' "$manifest_file" > "${manifest_file}.tmp"
+
+        # Replace the original file
+        mv "${manifest_file}.tmp" "$manifest_file"
+        echo "Updated $manifest_file"
+    else
+        echo "No subverso package found in $manifest_file, skipping"
+    fi
+done
+
+echo "All manifests processed successfully"

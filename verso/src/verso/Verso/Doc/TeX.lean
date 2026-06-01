@@ -1,0 +1,238 @@
+/-
+Copyright (c) 2023-2024 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+public import Std.Data.HashMap
+public import Verso.Doc
+import Verso.Method
+public import Verso.Output.TeX
+public import Verso.BuildLog
+
+namespace Verso.Doc.TeX
+
+open Verso (Severity SourceSpan MonadBuildLog Logger reportError reportWarning)
+open Verso.Output TeX
+
+public structure Options (g : Genre) where
+  headerLevels : Array String := #["chapter", "section", "subsection", "subsubsection", "paragraph"]
+  /-- The level of the top-level headers -/
+  headerLevel : Option (Fin headerLevels.size)
+
+public structure TeXContext where
+  /--
+  True if we are currently rendering TeX in a fragile environment
+  (specifically, one which cannot accommodate `\Verb`)
+  -/
+  inFragile : Bool := false
+
+public structure OutputState where
+  extraFiles : Std.HashMap String String := {}
+
+public abbrev TeXT (genre : Genre) (m : Type → Type) : Type → Type :=
+  ReaderT (Options genre × genre.TraverseContext × genre.TraverseState × TeXContext) <|
+  StateT OutputState <|
+  m
+
+public instance [Monad m] [Inhabited α] : Inhabited (TeXT g m α) := ⟨pure default⟩
+
+public def options [Monad m] : TeXT g m (Options g) := do
+  pure (← read).fst
+
+public def state [Monad m] : TeXT g m g.TraverseState := do
+  pure (← read).2.2.1
+
+@[deprecated "Use `Verso.reportError` instead." (since := "2026-05-29")]
+public def logError [Monad m] [MonadBuildLog (TeXT g m)] (message : String) : TeXT g m Unit :=
+  reportError message
+
+public def texContext [Monad m] : TeXT g m TeXContext := do
+  let ⟨_, _, _, ctx⟩ ← read
+  pure ctx
+
+section
+variable [Monad m] [MonadBuildLog (TeXT g m)]
+
+private def mkHeader (opts : Options g)
+    (level : Option (Fin opts.headerLevels.size)) (name : TeX) (label : Option String) : TeXT g m TeX := do
+  let some i := level
+    | reportError s!"No more header nesting available at {name.asString}"; return \TeX{\textbf{\Lean{name}}}
+  let label := label.map (\TeX{\label{\Lean{.raw ·}}}) |>.getD .empty
+  pure <| .raw (s!"\\{opts.headerLevels[i]}" ++ "{") ++ name ++ .raw "}" ++ label
+
+public def headerLevel (name : TeX) (level : Nat) (label : Option String) : TeXT g m TeX := do
+  let opts ← options
+  let lev := if h : level < opts.headerLevels.size then some ⟨level, h⟩ else none
+  mkHeader opts lev name label
+
+public def header (name : TeX) (label : Option String) : TeXT g m TeX := do
+  let opts ← options
+  mkHeader opts opts.headerLevel name label
+
+public def inFragile (act : TeXT g m α) : TeXT g m α :=
+  withReader (fun (opts, st, st', tctx) => (opts, st, st', { tctx with inFragile := true })) act
+
+public def inHeader (act : TeXT g m α) : TeXT g m α :=
+  withReader (fun (opts, st, st', tctx) => (bumpHeader opts, st, st', tctx)) act
+where
+  bumpHeader (opts : Options g) : Options g :=
+    if let some i := opts.headerLevel then
+      if h : i.val + 1 < opts.headerLevels.size then
+        {opts with headerLevel := some ⟨i.val + 1, h⟩}
+      else {opts with headerLevel := none}
+    else opts
+end
+
+public class GenreTeX (genre : Genre) (m : outParam (Type → Type)) where
+  part
+    (partTeX : Part genre → (label : Option String) → TeXT genre m TeX)
+    (metadata : genre.PartMetadata) (contents : Part genre) : TeXT genre m TeX
+  block (inlineTeX : Inline genre → TeXT genre m TeX) (blockTeX : Block genre → TeXT genre m TeX) (container : genre.Block) (contents : Array (Block genre)) : TeXT genre m TeX
+  inline (inlineTeX : Inline genre → TeXT genre m TeX) (container : genre.Inline) (contents : Array (Inline genre)) : TeXT genre m TeX
+
+def escapeForTexHref (s : String) : String :=
+  s |>.replace "%" r#"\%"# |>.replace "#" r##"\#"##
+
+/--
+Replaces characters with strings simultaneously.
+-/
+def replaceChars (s : String) (replace : Char → Option String) : String :=
+  let rec loop (acc : String) (pos : String.Pos.Raw) :=
+    if pos.byteIdx ≥ s.utf8ByteSize then acc
+    else
+      have : (String.Pos.Raw.next s pos).byteIdx > pos.byteIdx :=
+        String.Pos.Raw.byteIdx_lt_byteIdx_next s pos
+      let c := pos.get s
+      let s' := match replace c with | some rs => rs | none => s!"{c}"
+      loop (acc ++ s') (pos.next s)
+    termination_by s.rawEndPos.1 - pos.1
+  loop "" 0
+
+/--
+Escapes a single character in an appropriate way for uses of `\Verb` and
+`\begin{Verbatim}...\end{Verbatim}` (from package `fancyvrb`) with
+command characters `\`, `{`, and `}`.
+-/
+private def escapeCharForVerbatim (c : Char) : Option String :=
+  match c with
+  | '{' => some "\\symbol{123}"
+  | '|' => some "\\symbol{124}"
+  | '}' => some "\\symbol{125}"
+  | '\\' => some "\\symbol{92}"
+  | '#' => some "\\symbol{35}" -- FIXME: this is really just a test
+  | _ => none
+
+/--
+Tracks the previous character class for inserting line break opportunities.
+-/
+private inductive PrevChar
+  /-- previous was lowercase letter -/
+  | lower
+  /-- previous was digit -/
+  | digit
+  /-- previous was '.' -/
+  | dot
+  /-- initial / anything else -/
+  | other
+
+/--
+Escapes a string in an appropriate way for uses of `\Verb` and
+`\begin{Verbatim}...\end{Verbatim}` (from package `fancyvrb`) with
+command characters `\`, `{`, and `}`.
+
+When `lineBreaks` is true, inserts line break opportunities:
+- After `.`: insert `\allowbreak{}` (no hyphen on break)
+- On lowercase→uppercase transition: insert `\-` (soft hyphen)
+- On digit→letter transition: insert `\-` (soft hyphen)
+-/
+public def escapeForVerbatim (s : String) (lineBreaks : Bool := false) : String :=
+  if !lineBreaks then
+    replaceChars s escapeCharForVerbatim
+  else Id.run do
+    let mut state : PrevChar := .other
+    let mut result : String := ""
+    for c in s.toList do
+      -- Emit break if transition warrants it
+      let break_ := match state with
+        | .dot => if c != '.' then "\\allowbreak{}" else ""
+        | .lower => if c.isUpper then "\\-" else ""
+        | .digit => if c.isAlpha then "\\-" else ""
+        | .other => ""
+      -- Emit escaped char
+      let escaped := escapeCharForVerbatim c |>.getD c.toString
+      -- Update state
+      state :=
+        if c.isLower then .lower
+        else if c.isDigit then .digit
+        else if c == '.' then .dot
+        else .other
+      result := result ++ break_ ++ escaped
+    return result
+
+/--
+Wraps some TeX (which is already assumed to be appropriately escaped in the appropriate
+verbatim-like environment depending on whether we're in a fragile environment.
+-/
+public def verbatimInline [Monad m] [GenreTeX g m] (t : TeX) : TeXT g m Verso.Output.TeX := do
+  if (← texContext).inFragile then
+    pure (.seq #[.raw "\\texttt{", t, .raw "}"]) -- TODO: better escaping for texttt
+  else
+    pure (.seq #[.raw "\\LeanVerb|", t, .raw "|"])
+
+public def makeLink (url : String) (content : TeX) : TeX :=
+  \TeX{\href{\Lean{.raw (escapeForTexHref url)}}{\Lean{content}}}
+
+section
+variable [Monad m] [MonadBuildLog (TeXT g m)] [GenreTeX g m]
+
+public partial defmethod Inline.toTeX : Inline g → TeXT g m TeX
+  | .text str => pure <| .text str
+  | .link content dest => do
+    pure <| makeLink dest (← content.mapM Inline.toTeX)
+  | .image _alt dest => do
+    pure \TeX{\includegraphics{\Lean{.raw (toString (repr dest))}}} -- TODO link destinations
+  | .footnote _name txt => do
+    pure \TeX{\footnote{\Lean{← txt.mapM Inline.toTeX}}}
+  | .linebreak str => pure <| .text str
+  | .emph content => do
+    pure \TeX{\emph{\Lean{← content.mapM toTeX}}}
+  | .bold content => do
+    pure \TeX{\textbf{\Lean{← content.mapM toTeX}}}
+  | .code str => verbatimInline (.raw <| escapeForVerbatim str)
+  | .math .inline str => pure <| .raw s!"${str}$"
+  | .math .display str => pure <| .raw s!"\\[{str}\\]"
+  | .concat inlines => inlines.mapM toTeX
+  | .other container content => GenreTeX.inline Inline.toTeX container content
+
+public partial defmethod Block.toTeX : Block g → TeXT g m TeX
+  | .para xs => do
+    pure <| (← xs.mapM Inline.toTeX)
+  | .blockquote bs => do
+    pure \TeX{\begin{quotation} \Lean{← bs.mapM Block.toTeX} \end{quotation}}
+  | .ul items => do
+    pure \TeX{\begin{itemize} \Lean{← items.mapM fun li => do pure \TeX{\item " " \Lean{← li.contents.mapM Block.toTeX} s!"\n"}} \end{itemize} }
+  | .ol _start items => do -- TODO start numbering here
+    pure \TeX{\begin{enumerate} \Lean{← items.mapM fun li => do pure \TeX{\item " " \Lean{← li.contents.mapM Block.toTeX} s!"\n"}}\end{enumerate} }
+  | .dl items => do
+    pure \TeX{\begin{description} \Lean{← items.mapM fun li => do pure \TeX{\item[\Lean{← li.term.mapM Inline.toTeX}] " " \Lean{← li.desc.mapM Block.toTeX}}} \end{description} }
+  | .code content => do
+    pure \TeX{\begin{verbatim} \Lean{.raw content} \end{verbatim}}
+  | .concat items => TeX.seq <$> items.mapM Block.toTeX
+  | .other container content => GenreTeX.block Inline.toTeX Block.toTeX container content
+
+
+public partial defmethod Part.toTeX (p : Part g) (label : Option String) : TeXT g m TeX :=
+  match p.metadata with
+  | .none => do
+    pure \TeX{
+      \Lean{← header (← inFragile <| p.title.mapM Inline.toTeX) label}
+      "\n\n"
+      \Lean{← p.content.mapM (fun b => do pure <| TeX.seq #[← Block.toTeX b, .paragraphBreak])}
+      "\n\n"
+      \Lean{← inHeader <| p.subParts.mapM (Part.toTeX · none)}
+    }
+  | some m =>
+    GenreTeX.part Part.toTeX m p.withoutMetadata
+
+end

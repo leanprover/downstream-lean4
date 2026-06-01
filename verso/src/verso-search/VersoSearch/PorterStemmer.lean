@@ -1,0 +1,344 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+set_option linter.missingDocs true
+set_option doc.verso true
+
+namespace Verso.Search.Stemmer.Porter
+
+/-!
+This module implements a fairly naïve Porter stemmer, as described by the inventor
+[here](https://tartarus.org/martin/PorterStemmer/). This is the algorithm used by
+{lit}`elasticlunr.js`, so there's no need to use anything more powerful.
+
+Profiling shows that index generation is fast, and costs are dominated by generating and emitting
+JSON. If it ever becomes a performance bottleneck, there are a number of optimizations that can be
+implemented:
+
+ 1. Rule selection can be smarter, based on string contents rather than just trying them
+    top-to-bottom. Many rules are almost uniquely determined by the last or second-last letter of
+    the word. See the linked page for more details.
+
+ 2. There is some unnecessary allocation of strings. A substring could be profitably used when
+    shortening strings, and setting values when lengthening them, similarly to a Lisp fill pointer
+    or C byte array.
+
+This implementation is based off the declarative description on the web page, rather than the C
+reference implementation or the paper, and it is tested against Porter's provided input data.
+-/
+
+/--
+Checks whether the character at position {name}`i` is a consonant. {lean}`'y'` is a consonant if not
+preceded by a consonant.
+-/
+def isConsonant (i : String.Slice.Pos str) : Bool :=
+  match i.get! with
+  | 'a' | 'e' | 'i' | 'o' | 'u' => false
+  | 'y' =>
+    if h : i = str.startPos then true
+    else !isConsonant (i.prev h)
+  | _ => true
+termination_by i.offset.byteIdx
+decreasing_by exact String.Slice.Pos.prev_lt
+
+/--
+The measure of a word is the number of v+c+ clusters (vowels followed by consonants).
+-/
+def measure (word : String.Slice) : Nat :=
+  let rec aux (pos : String.Slice.Pos word) (inVowel : Bool) (count : Nat) : Nat :=
+    if h : pos = word.endPos then count
+    else
+      let next := pos.next h
+      if !isConsonant pos then
+        aux next true count
+      else if inVowel then
+        aux next false (count + 1)
+      else
+        aux next false count
+  termination_by word.endPos.offset.byteIdx - pos.offset.byteIdx
+  decreasing_by
+    all_goals
+    apply Nat.sub_lt_sub_left
+    . simp only [String.Slice.offset_endPos, String.Slice.byteIdx_rawEndPos]
+      have : pos.offset.byteIdx ≠ word.endPos.offset.byteIdx := by
+        intro h'; apply h; ext; assumption
+      apply Nat.lt_of_le_of_ne pos.isValidForSlice.le_utf8ByteSize <;> assumption
+    . simp [(pos.get h).utf8Size_pos]
+
+  aux word.startPos false 0
+
+/--
+Checks whether the provided word contains a vowel.
+-/
+def containsVowel (word : String.Slice) : Bool := Id.run do
+  let mut pos := word.startPos
+  repeat
+    let some next := pos.next?
+      | break
+    if isConsonant pos then pos := next
+    else return true
+  return false
+
+/--
+Checks whether the word ends with a double consonant.
+-/
+def endsWithDoubleConsonant (word : String.Slice) : Bool :=
+  let endPos := word.endPos
+  if h : endPos = word.startPos then false
+  else
+    let i :=  endPos.prev h
+    if h : i = word.startPos then false
+    else
+      let j := i.prev h
+      isConsonant i && i.get! == j.get!
+
+/--
+Checks whether a word ends with a CVC pattern where the final consonant is not {lean}`'w'`,
+{lean}`'x'`, or {lean}`'y'`.
+-/
+def endsWithCvc (word : String.Slice) : Bool :=
+  let endPos := word.endPos
+  if h : endPos = word.startPos then false
+  else
+    let i := endPos.prev h
+    if hi : i = word.startPos then false
+    else
+      let j := i.prev hi
+      if hj : j = word.startPos then false
+      else
+        let k := j.prev hj
+        isConsonant i && !isConsonant j && isConsonant k &&
+        let ch := i.get!
+        ch != 'w' && ch != 'x' && ch != 'y'
+
+/--
+Replaces the given {name}`suffix` with {name}`replacement` if the remaining word after removing the suffix
+satisfies the {name}`condition`.
+-/
+def replaceSuffix (word : String) (suffix : String) (replacement : String)
+  (condition : String → Bool) : String :=
+  if word.endsWith suffix then
+    let stem := (word.dropEnd suffix.length).copy ++ replacement
+    if condition stem then stem else word
+  else word
+
+/--
+A rule, as described in Porter's paper.
+-/
+structure Rule where
+  /-- A suffix that must match exactly. -/
+  suffix : String
+  /-- A replacement in case the suffix and condition match -/
+  replacement : String
+  /-- A condition that must be fulfilled by the word up to the suffix. -/
+  condition : String.Slice → Bool := fun _ => true
+
+/-- A convenience function for constructing a rewrite rule. -/
+def Rule.rw (suffix replacement : String) (condition : String.Slice → Bool := fun _ => true) : Rule :=
+  { suffix, replacement, condition }
+
+/-- Applies a rule to a string, returning the modified string if it matches. -/
+def Rule.apply? (rule : Rule) (word : String.Slice) : Option String.Slice := do
+  if word.endsWith rule.suffix then
+    let word' := word.dropEnd rule.suffix.length
+    if rule.condition word' then
+      return word'.copy ++ rule.replacement |>.toSlice
+    else return word
+  none
+
+/--
+Returns the result of applying the first rule that matches, or the original string if none match.
+-/
+def applyRules (rules : List Rule) (word : String.Slice) : String.Slice := Id.run do
+  for rule in rules do
+    if let some word' := rule.apply? word then
+      return word'
+  return word
+
+/--
+Returns the result of applying the first rule that matches, or {name}`none` if none match.
+-/
+def applyRules? (rules : List Rule) (word : String.Slice) : Option String.Slice := Id.run do
+  for rule in rules do
+    if let some word' := rule.apply? word then return some word'
+  return none
+
+/--
+Step 1a of Porter's algorithm. Simplifies plural markers.
+-/
+def step1a : String.Slice → String.Slice :=
+  applyRules [
+    .rw "sses" "ss",
+    .rw "ies" "i",
+    .rw "ss" "ss",
+    .rw "s" ""
+  ]
+
+/--
+Step 1b of Porter's algorithm.
+-/
+def step1b (word : String.Slice) : String.Slice :=
+  if let some w := (Rule.rw "eed" "ee" (measure · > 0)).apply? word then w
+  else if let some w := applyRules? [.rw "ed" "" containsVowel, .rw "ing" "" containsVowel] word then
+    if w != word then extra w else word
+  else word
+where
+  extra (word : String.Slice) : String.Slice := Id.run do
+    if word.endsWith "at" then return word.copy ++ "e" |>.toSlice
+    if word.endsWith "bl" then return word.copy ++ "e" |>.toSlice
+    if word.endsWith "iz" then return word.copy ++ "e" |>.toSlice
+    let endPos := word.endPos
+    let some i := endPos.prev?
+      | return word
+    let some j := i.prev?
+      | return word
+    if isConsonant i && i.get! == j.get! && i.get! ∉ ['l', 's', 'z'] then
+      return word.dropEnd 1
+    if measure word == 1 && endsWithCvc word then return word.copy ++ "e" |>.toSlice
+    word
+
+/--
+Step 1c of Porter's algorithm.
+-/
+def step1c (word : String.Slice) : String.Slice :=
+  applyRules [.rw "y" "i" containsVowel] word
+
+/--
+Step 2 of Porter's algorithm. Simplifies many common suffixes.
+-/
+def step2 (word : String.Slice) : String.Slice := Id.run do
+  unless measure word > 0 do return word
+  for (s, s') in suffixes do
+    let rule := Rule.mk s s' (measure · > 0)
+    if let some w := rule.apply? word then return w
+  word
+where
+  suffixes := [
+    ("ational", "ate"),
+    ("ization", "ize"),
+    ("iveness", "ive"),
+    ("fulness", "ful"),
+    ("ousness", "ous"),
+    ("tional", "tion"),
+    ("biliti", "ble"),
+    ("entli", "ent"),
+    ("ousli", "ous"),
+    ("ation", "ate"),
+    ("alism", "al"),
+    ("aliti", "al"),
+    ("iviti", "ive"),
+    ("enci", "ence"),
+    ("anci", "ance"),
+    ("izer", "ize"),
+    ("alli", "al"),
+    ("ator", "ate"),
+    ("logi", "log"),
+    ("bli", "ble"),
+    ("eli", "e")]
+
+/--
+Step 3 of Porter's algorithm. Simplifies further common suffixes.
+-/
+def step3 (word : String.Slice) : String.Slice := Id.run do
+  unless measure word > 0 do return word
+  for (s, s') in suffixes do
+    let rule := Rule.mk s s' (measure · > 0)
+    if let some w := rule.apply? word then return w
+  word
+where
+  suffixes := [
+    ("icate", "ic"),
+    ("ative", ""),
+    ("alize", "al"),
+    ("iciti", "ic"),
+    ("ical", "ic"),
+    ("ful", ""),
+    ("ness", "")
+  ]
+
+/--
+Step 4 of Porter's algorithm. Removes many derivational suffixes.
+-/
+def step4 : String.Slice → String.Slice :=
+  applyRules rules
+where
+  rules : List Rule := [
+    .mk "ance" "" (measure · > 1),
+    .mk "ence" "" (measure · > 1),
+    .mk "able" "" (measure · > 1),
+    .mk "ible" "" (measure · > 1),
+    .mk "ement" "" (measure · > 1),
+    .mk "ment" "" (measure · > 1),
+    .mk "ent" "" (measure · > 1),
+    .mk "ant" "" (measure · > 1),
+    .mk "ion" "" fun w => measure w > 1 && (w.endsWith "s" || w.endsWith "t"),
+    .mk "ism" "" (measure · > 1),
+    .mk "ate" "" (measure · > 1),
+    .mk "iti" "" (measure · > 1),
+    .mk "ous" "" (measure · > 1),
+    .mk "ive" "" (measure · > 1),
+    .mk "ize" "" (measure · > 1),
+    .mk "ou" "" (measure · > 1),
+    .mk "er" "" (measure · > 1),
+    .mk "al" "" (measure · > 1),
+    .mk "ic" "" (measure · > 1)]
+
+/--
+Step 5a of Porter's algorithm. Removes extra trailing {lean}`'e'`.
+-/
+def step5a : String.Slice → String.Slice :=
+  applyRules [
+    .rw "e" "" fun w => measure w > 1 || (measure w == 1 && !endsWithCvc w)
+  ]
+
+/--
+Step 5b of Porter's algorithm. Converts trailing {lean}`"ll"` to {lean}`"l"`.
+-/
+def step5b (word : String.Slice) : String.Slice :=
+  if measure word > 1 ∧ endsWithDoubleConsonant word ∧ word.endsWith "l" then
+    word.dropEnd 1
+  else word
+
+/--
+Heuristically computes the stem of an English word using
+[Martin Porter's algorithm](https://tartarus.org/martin/PorterStemmer/).
+-/
+public def porterStem (word : String) : String :=
+  if word.length <= 2 then word
+  else
+    let word := word.toLower.toSlice
+    let word := step1a word
+    let word := step1b word
+    let word := step1c word
+    let word := step2 word
+    let word := step3 word
+    let word := step4 word
+    let word := step5a word
+    let word := step5b word
+    word.copy
+
+-- Debugging function
+private def trace (word : String) : IO Unit := do
+  if word.length <= 2 then IO.println s!"Short: {word}"
+  else
+    let word := word.toLower.toSlice
+    IO.println s!"Lower: {word.copy}"
+    let word := step1a word
+    IO.println s!"1a: {word.copy}"
+    let word := step1b word
+    IO.println s!"1b: {word.copy}"
+    let word := step1c word
+    IO.println s!"1c: {word.copy}"
+    let word := step2 word
+    IO.println s!"2: {word.copy}"
+    let word := step3 word
+    IO.println s!"3: {word.copy}"
+    let word := step4 word
+    IO.println s!"4: {word.copy}"
+    let word := step5a word
+    IO.println s!"5a: {word.copy}"
+    let word := step5b word
+    IO.println s!"5b: {word.copy}"

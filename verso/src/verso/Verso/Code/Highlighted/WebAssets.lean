@@ -1,0 +1,26 @@
+/-
+Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+meta import Init.System.FilePath
+
+namespace Verso.Code.Highlighted.WebAssets
+
+
+public section
+
+def popper := include_str "../../../../../vendored-js/popper/popper.min.js"
+
+def popper.map := include_str "../../../../../vendored-js/popper/popper.min.js.map"
+
+def tippy := include_str "../../../../../vendored-js/tippy/tippy-bundle.umd.min.js"
+
+def tippy.map := include_str "../../../../../vendored-js/tippy/tippy-bundle.umd.min.js.map.json"
+
+def tippy.border.css := include_str "../../../../../vendored-js/tippy/border.css"
+
+def marked := include_str "../../../../../vendored-js/marked/marked.umd.min.js"
+
+def marked.map := include_str "../../../../../vendored-js/marked/marked.umd.min.js.map"

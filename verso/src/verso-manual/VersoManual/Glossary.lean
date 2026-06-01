@@ -1,0 +1,275 @@
+/-
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+import Lean.Data.Json
+import Lean.Data.Json.FromToJson
+
+import Verso.Doc.Elab
+public meta import Verso.Doc.Elab.Inline
+public meta import Verso.Doc.PointOfInterest
+public import VersoManual.Basic
+public import VersoManual.Glossary.Norm
+meta import VersoManual.Glossary.Norm
+public import Verso.Doc.Elab.Monad
+
+open Verso Genre Manual ArgParse
+open Verso.Doc.Elab
+open Verso.Multi (AllRemotes)
+open Lean (Json ToJson FromJson)
+
+namespace Verso.Genre.Manual
+
+public structure DefTechArgs where
+  key : Option String
+  normalize : Bool
+
+public structure TechArgs extends DefTechArgs where
+  remote : Option String
+
+section
+variable [Monad m] [Lean.MonadError m] [MonadLiftT Lean.CoreM m]
+
+meta def DefTechArgs.parse : ArgParse m DefTechArgs :=
+  DefTechArgs.mk <$> .named `key .string true <*> .flag `normalize true
+
+public meta instance : FromArgs DefTechArgs m where
+  fromArgs := private DefTechArgs.parse
+
+meta def TechArgs.parse  : ArgParse m TechArgs :=
+  TechArgs.mk <$> fromArgs <*> .named `remote .string true
+
+public meta instance : FromArgs TechArgs m where
+  fromArgs := private TechArgs.parse
+
+end
+
+private def glossaryState := `Verso.Genre.Manual.glossary
+@[grind =]
+private theorem glossaryState.isPublic : NameMap.isPublic glossaryState := by grind [glossaryState]
+
+public def Inline.deftech : Inline where
+  name := `Verso.Genre.Manual.deftech
+
+
+
+open Lean in
+/--
+Defines a technical term.
+
+Internally, these definitions are saved according to a key that is derived by stripping formatting
+information from the arguments in `args`, and then normalizing the resulting string by:
+
+ 1. lowercasing it
+ 2. replacing trailing `"ies"` with `"y"`
+ 3. replacing consecutive runs of whitespace and/or hyphens with a single space
+
+Call with `(normalize := false)` to disable normalization, and `(key := some k)` to use `k` instead
+of the automatically-derived key.
+
+Uses of `tech` use the same process to derive a key, and the key is matched against the `deftech` table.
+-/
+@[role]
+public meta def deftech : RoleExpanderOf DefTechArgs
+  | {key, normalize}, content => do
+
+    -- Heuristically guess at the string and key (usually works)
+    let str := inlineToString (← getEnv) <| mkNullNode content
+    let k := key.getD str
+    let k := if normalize then normString k else k
+    Doc.PointOfInterest.save (← getRef) str
+      (detail? := some s!"Def (key {k})")
+      (kind := .key)
+
+    let content ← content.mapM elabInline
+
+    `(let content : Array (Doc.Inline Verso.Genre.Manual) := #[$content,*]
+      let asString : String := techString (Doc.Inline.concat content)
+      let k : String := ($(quote key) : Option String).getD asString
+      Doc.Inline.other {Inline.deftech with data := ToJson.toJson (if $(quote normalize) then normString k else k, asString)} content)
+
+
+/-- Adds an internal identifier as a target for a given glossary entry -/
+def Glossary.addEntry [Monad m] [MonadState TraverseState m] [MonadLiftT IO m] [MonadReaderOf TraverseContext m] [MonadBuildLog m]
+    (id : InternalId) (key : String) : m Unit := do
+  match (← get).get? glossaryState with
+  | none =>
+    modify (TraverseState.set · glossaryState <| Lean.Json.mkObj [(key, ToJson.toJson id)])
+  | some (.error err) => reportError err
+  | some (.ok (v : Json)) =>
+    modify (TraverseState.set · glossaryState <| v.setObjVal! key (ToJson.toJson id))
+
+open Verso.Search in
+def technicalTermDomainMapper : DomainMapper := {
+  displayName := "Terminology",
+  className := "tech-term-domain",
+  dataToSearchables :=
+    "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    searchKey: value[0].data.term,
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Verso.Genre.Manual.doc.tech',
+    ref: value,
+  }))"
+  : DomainMapper }.setFont { family := .text }
+
+@[inline_extension deftech]
+public def deftech.descr : InlineDescr where
+  init st := st
+    |>.setDomainTitle technicalTermDomain "Terminology"
+    |>.setDomainDescription technicalTermDomain "Definitions of technical terms"
+    |>.addQuickJumpMapper technicalTermDomain technicalTermDomainMapper
+
+  traverse id data _contents := do
+    -- A round with internal tags is not needed here because users's don't get to pick IDs
+    let path ← (·.path) <$> read
+    match FromJson.fromJson? data with
+    | .error err =>
+      reportError err
+      return none
+    | .ok ((key, term) : (String × String) ) =>
+      let termSlug := term.sluggify.toString
+      let _ ← Verso.Genre.Manual.externalTag id path s!"--tech-term-{termSlug}"
+      Glossary.addEntry id key
+      modify fun st =>
+        st
+          |>.saveDomainObject technicalTermDomain key id
+          |>.saveDomainObjectData technicalTermDomain key (json%{"term": $term})
+
+      pure none
+
+  toTeX :=
+    some <| fun go _id _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  toHtml :=
+    open Verso.Output.Html Doc.Html.HtmlT in
+    some <| fun go id inl content => do
+      let some link := (← state).externalTags[id]?
+        | panic! s!"Untagged index target with data {inl}"
+      return {{<span id={{link.htmlId.toString}} class="def-technical-term">{{← content.mapM go}}</span>}}
+
+public def Inline.tech : Inline where
+  name := `Verso.Genre.Manual.tech
+
+open Lean in
+/--
+Emits a reference to a technical term defined with `deftech.`
+
+Internally, these terms are found according to a key that is derived by stripping formatting
+information from the arguments in `args`, and then normalizing the resulting string by:
+
+ 1. lowercasing it
+ 2. replacing trailing `"ies"` with `"y"`
+ 3. replacing consecutive runs of whitespace and/or hyphens with a single space
+
+Call with `(normalize := false)` to disable normalization, and `(key := some k)` to use `k` instead
+of the automatically-derived key.
+-/
+@[role]
+public meta def tech : RoleExpanderOf TechArgs
+  | {key, normalize, remote}, content => do
+
+    -- Heuristically guess at the string and key (usually works)
+    let str := inlineToString (← getEnv) <| mkNullNode content
+    let k := key.getD str
+    let k := if normalize then normString k else k
+    Doc.PointOfInterest.save (← getRef) str
+      (detail? := some s!"Use (key {k})")
+      (kind := .key)
+
+    let filename ← getFileName
+    let pos? := (← getFileMap).utf8PosToLspPos <$> (← getRef).getPos?
+
+    let content ← content.mapM elabInline
+
+
+    `(let content : Array (Doc.Inline Verso.Genre.Manual) := #[$content,*]
+      let k := ($(quote key) : Option String).getD (techString (Doc.Inline.concat content))
+      let loc : Verso.SourceLoc :=
+        { file := $(quote filename), span := ($(quote pos?) : Option Lean.Lsp.Position) }
+      Doc.Inline.other {Inline.tech with data := Json.arr #[Json.str (if $(quote normalize) then normString k else k), Lean.toJson loc, $(quote remote).map Json.str |>.getD Json.null]} content)
+
+open Verso.Output Html in
+private def techLink (addr : String) (content : Html) (remote? : Option String := none) :=
+  let remoteAttr := remote?.map (fun r => #[("data-verso-remote", r)]) |>.getD #[]
+  {{<a class="technical-term" href={{addr}} {{remoteAttr}}>{{content}}</a>}}
+
+@[inline_extension tech]
+public def tech.descr : InlineDescr where
+  traverse _id _data _contents := pure none
+  toTeX :=
+    some <| fun go _id _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  toHtml :=
+    open Verso.Output.Html in
+    open Doc.Html in
+    some <| fun go _id info content => do
+      let Json.arr #[.str key, locJson, remote] := info
+        | reportError s!"Failed to decode glossary key and location from {info}"
+          content.mapM go
+      let loc : Option Verso.SourceLoc := (Lean.fromJson? (α := Verso.SourceLoc) locJson).toOption
+      let remote ←
+        match remote with
+        | .null => pure none
+        | .str s => pure (some s)
+        | other => reportError s!"Failed to decode optional remote from {other}"; pure none
+
+      match remote with
+      | none =>
+        if let some term := (← Doc.Html.HtmlT.state).getDomainObject? technicalTermDomain key then
+          let ids := term.ids.toArray
+          if h : ids.size = 1 then
+            if let some link := (← HtmlT.state).resolveId ids[0] then
+              return techLink link.relativeLink (← content.mapM go)
+            else
+              reportError s!"No link target saved for internal ID of term \"{key}\"" loc
+              content.mapM go
+          else
+            let st ← HtmlT.state
+            let potentialTargets := ids.map st.resolveId |>.map (·.map (·.link))
+            let potentialTargets := potentialTargets.map fun tgt? =>
+              s!" * {tgt?.getD "<no link>"}"
+            reportError s!"Ambiguous term def with key \"{key}\". Targets:\n{"\n".intercalate potentialTargets.toList}" loc
+            content.mapM go
+        else
+          reportError s!"No term def with key \"{key}\"" loc
+          content.mapM go
+      | some r =>
+        if let some remote := (← readThe AllRemotes)[r]? then
+          if let some objs := remote.getDomainObject? technicalTermDomain key then
+            if h : objs.size = 1 then
+              return techLink objs[0].link.link (← content.mapM go)
+            else
+              reportError s!"Ambiguous term def with key \"{key}\" in remote {r.quote} - {objs.map (·.link.link)} found" loc
+              content.mapM go
+          else
+            let keys := remote.domains[technicalTermDomain]?
+              |>.map (·.contents.keysArray.qsortOrd.toList |> ", ".intercalate)
+              |>.map ("Keys are: " ++ ·)
+              |>.getD "Technical term domain not found."
+            reportError s!"No term def with key \"{key}\" in remote {r.quote}. {keys}" loc
+            content.mapM go
+        else
+          reportError s!"Remote {r.quote} not found in {(← readThe AllRemotes).allRemotes.keys}" loc
+          content.mapM go
+
+  extraCss := [
+    r#"
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
+}
+"#
+  ]

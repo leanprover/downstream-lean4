@@ -1,0 +1,168 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+import VersoLiterateCode
+import VersoSearch.DomainSearch
+
+open Lean
+
+open Verso.Output.Html
+open Verso.Code
+open Verso (withLogger)
+
+open VersoLiterate
+open VersoLiterateCode
+open Std
+
+structure Config where
+  inputDir : System.FilePath
+  outputDir : System.FilePath
+
+def getConfig (args : List String) : Except String Config :=
+  match args with
+  | [i, o] => pure { inputDir := i, outputDir := o }
+  | _ => throw s!"Didn't understand args: {args}. Expected INDIR OUTDIR"
+
+def code.css := include_str "code.css"
+
+open Verso Output Html Search in
+/--
+The `<head>` fragment shared by module pages and the full-page search results view.
+Bundles the code-highlighting assets and every piece of the search UI (combobox on
+normal pages; plain input + live-updating list on `/search/`).
+-/
+private def headContents : Html := {{
+  <!-- Stop favicon requests -->
+  <link rel="icon" href="data:," />
+
+  <script src="popper.js"></script>
+  <script src="tippy.js"></script>
+  <script>{{Html.text false highlightingJs}}</script>
+  <style>{{Html.text false highlightingStyle}}</style>
+  <link rel="stylesheet" href="tippy-border.css"/>
+  <link rel="stylesheet" href="code.css"/>
+
+  {{ searchAssetTags }}
+}}
+
+open Verso Output Doc Html in
+def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod) : EmitM Unit := do
+  let components := mod.name.components
+  let nesting := components.length
+
+  let siteRoot := if nesting = 0 then "./" else nesting.fold (init := "") fun _ _ s => s ++ "../"
+
+  let mut breadcrumbs := Html.empty
+  for h : i in [0:components.length - 1] do
+    let addr := components.take (i+1) |>.map (·.toString) |> "/".intercalate
+    have : i < components.length := by
+      have := h.2.1
+      grind
+    breadcrumbs := {{<li><a href={{addr}}><code>{{toString components[i]}}</code></a></li>}} ++ breadcrumbs
+
+  let htmlId? := (← read).moduleIds.find? mod.name
+
+  let children : Array Html :=
+    if let some d := root[mod.name]? then
+      d.children.map fun (c : Name × Dir) =>
+        {{<li><a href={{(components.map toString |> "/".intercalate) ++ "/" ++ toString c.1}}>{{mod.name ++ c.1 |> toString}}</a></li>}}
+    else #[]
+
+  let base ← read
+  let ctx := { base with
+    options := {}
+    traverseContext := { currentModule := mod.name }
+    codeOptions := {}
+  }
+
+  let (results, st) ← mod.contents.mapIdxM renderCode |>.run ctx (← get).hlState
+  -- Discard the accumulated headers because there's no local ToC here
+  let body : Html := .seq (results.map (·.1))
+
+  modify ({ · with hlState := st })
+
+  let contents := page (toString mod.name) siteRoot headContents mod.name root htmlId? body
+
+  let outFile := mod.name.components.map (·.toString) |>.foldl (init := outDir) (· / ·)
+
+  IO.FS.createDirAll outFile
+
+  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ contents.asString
+
+def emitDir (outDir : System.FilePath) (dir : Dir) : EmitM Unit := do
+  let root := dir
+  let mut todo := [dir]
+  repeat
+    match todo with
+    | [] => break
+    | d :: ds =>
+      todo := ds
+      if let some m := d.mod then
+        emitMod root outDir m
+      for c in d.children do
+        todo := c.2 :: todo
+
+open Verso Output Html in
+/--
+Emits the search page at `search/index.html`. Result rendering is deferred to `search-page.js`;
+`<base href="../"/>` makes the search infrastructure resolve against the site root.
+-/
+def emitSearchResultsPage (outDir : System.FilePath) : IO Unit := do
+  let pageHtml : Html := {{
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <base href="../"/>
+        <title>"Search"</title>
+        <!-- Start the xref.json download in parallel with script loading. The
+             search page JS can't fetch it until it runs, so without the preload
+             the data fetch sits at the tail of the critical path. -->
+        <link rel="preload" href="xref.json" as="fetch"/>
+        {{ headContents }}
+      </head>
+      <body>
+        <main class="search-page" id="main-content">
+          <h1>"Search"</h1>
+          <div data-search-host class="search-page-host"></div>
+          <noscript><p>"This search feature requires JavaScript."</p></noscript>
+          <div id="search-page-results"></div>
+          <script type="module" src="-verso-search/search-page.js"></script>
+        </main>
+      </body>
+    </html>
+  }}
+  IO.FS.createDirAll (outDir / "search")
+  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+
+def main (args : List String) : IO UInt32 := do
+  let config ←
+    match getConfig args with
+    | .error e => throw <| .userError e
+    | .ok v => pure v
+  withLogger fun logger => do
+    IO.FS.createDirAll config.outputDir
+    IO.FS.writeFile (config.outputDir / "popper.js") Verso.Code.Highlighted.WebAssets.popper
+    IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
+    IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
+    IO.FS.writeFile (config.outputDir / "code.css") code.css
+    emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
+    let dir ← loadDir config.inputDir
+    let dir := dir.sort
+    let (dir, traverseState) ← traverse dir
+    let ctx := {
+      definitionIds := traverseState.definitionIds
+      linkTargets := traverseState.linkTargets
+      moduleIds := traverseState.moduleIds
+      traverseState
+    }
+    let ((), st) ← emitDir config.outputDir dir |>.run ctx |>.run {} |>.run logger
+    emitIndex {} traverseState dir (config.outputDir / "-verso-search") logger
+    emitSearchResultsPage config.outputDir
+    let domainData : Verso.NameMap Verso.Multi.Domain := ({} : Verso.NameMap _)
+      |>.insert constDomainName traverseState.constantDefDomain
+      |>.insert moduleDomainName traverseState.moduleDomain
+    IO.FS.writeFile (config.outputDir / "xref.json") <| Json.compress <| Verso.Multi.xrefJson domainData traverseState.allLinks
+    IO.FS.writeFile (config.outputDir / "-verso-docs.json") st.hlState.dedup.docJson.compress

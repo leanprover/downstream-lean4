@@ -1,0 +1,98 @@
+/-
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+import Lean.Elab.InfoTree.Types
+
+import Verso
+import VersoManual.Basic
+import VersoManual.HighlightedCode
+import SubVerso.Examples
+
+open SubVerso.Highlighting
+
+open Verso Genre Manual ArgParse Doc Elab
+open Verso Output Html
+open Verso Code Highlighted WebAssets
+open Verso.SyntaxUtils
+open Lean Elab
+
+namespace Verso.Genre.Manual.InlineLean
+
+block_extension Block.signature via withHighlighting where
+  traverse _ _ _ := do
+    pure none
+  toTeX :=
+    some <| fun _ go _ _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ _ _ data _ => do
+      match FromJson.fromJson? data with
+      | .error err =>
+        reportError <| "Couldn't deserialize Lean code while rendering HTML signature: " ++ err ++ "\n" ++ toString data
+        pure .empty
+      | .ok (hl : Highlighted) =>
+        hl.blockHtml (g := Manual) "examples"
+
+
+declare_syntax_cat signature_spec
+syntax ("def" <|> "theorem")? declId declSig : signature_spec
+
+structure SignatureConfig where
+  «show» : Bool := true
+
+section
+
+variable [Monad m] [MonadError m] [MonadLiftT CoreM m]
+
+def SignatureConfig.parse  : ArgParse m SignatureConfig :=
+  SignatureConfig.mk <$>
+    (.flag `show true)
+
+instance : FromArgs SignatureConfig m where
+  fromArgs := SignatureConfig.parse
+end
+
+@[code_block]
+def signature : CodeBlockExpanderOf SignatureConfig
+  | {«show»}, str => withoutAsync do
+    let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
+    let stx ← parseStrLitAsCategory `signature_spec str
+
+    let `(signature_spec|$[$kw]? $name:declId $sig:declSig) := stx
+      | throwError m!"Didn't understand parsed signature: {indentD stx}"
+
+    PointOfInterest.save (← getRef) (toString name.raw)
+      (kind := Lsp.SymbolKind.file)
+      (detail? := some "Signature")
+
+    let cmdCtx : Command.Context := {
+      fileName := ← getFileName,
+      fileMap := ← getFileMap,
+      snap? := none,
+      cancelTk? := none
+    }
+    let cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, infoState := ← getInfoState}
+    let hls ←
+      try
+        let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
+        setInfoState st'.infoState
+        pure (Highlighted.seq hls)
+      catch e =>
+        let fmt ← PrettyPrinter.ppSignature (TSyntax.mk name.raw[0]).getId
+        Suggestion.saveSuggestion str (fmt.fmt.pretty 60) (fmt.fmt.pretty 30 ++ "\n")
+        throw e
+
+    let hls :=
+      if let some col := col? then
+        hls.deIndent col
+      else hls
+
+    if «show» then
+      `(Block.other {Block.signature with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])
+    else
+      ``(Block.concat #[])

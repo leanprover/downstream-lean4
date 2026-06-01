@@ -1,0 +1,157 @@
+/-
+Copyright (c) 2023-2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+public import Lean.Data.Options
+public import Lean.Environment
+public import Lean.Exception
+public import Lean.Util.Trace
+
+import SubVerso.Helper
+public import SubVerso.Module
+import MD4Lean
+public import Verso.Code.External.Env
+
+public section
+
+open Lean
+
+open SubVerso.Highlighting
+open SubVerso.Helper
+open SubVerso.Module
+
+namespace Verso.Code.External
+
+register_option verso.exampleProject : String := {
+  defValue := "",
+  descr := "The directory in which to search for example code",
+}
+
+register_option verso.exampleModule : String := {
+  defValue := "",
+  descr := "The default module to load examples from",
+}
+
+register_option verso.externalExamples.suppressedNamespaces : String := {
+  defValue := "",
+  descr := "Namespaces to be hidden in term metadata (separated by spaces)",
+}
+
+
+initialize registerTraceClass `Elab.Verso.Code.External
+
+initialize registerTraceClass `Elab.Verso.Code.External.loadModule
+
+variable [Monad m] [MonadLift IO m] [MonadEnv m] [MonadOptions m] [MonadError m] [MonadTrace m] [AddMessageContext m] [MonadFinally m] [MonadAlwaysExcept ε m]
+
+
+open System in
+def loadModuleContent' (projectDir : StrLit) (mod : String) (suppressNamespaces : List String) : m (Array ModuleItem) := do
+  let blame := projectDir
+
+  let projectDir : FilePath := projectDir.getString
+
+  -- Validate that the path is really a Lean project
+  let lakefile := projectDir / "lakefile.lean"
+  let lakefile' := projectDir / "lakefile.toml"
+  if !(← lakefile.pathExists) && !(← lakefile'.pathExists) then
+    throwErrorAt blame m!"Neither {lakefile} nor {lakefile'} exist, couldn't load project"
+  let toolchainfile := projectDir / "lean-toolchain"
+  let toolchain ← do
+      if !(← toolchainfile.pathExists) then
+        throwErrorAt blame m!"File {toolchainfile} doesn't exist, couldn't load project"
+      pure (← IO.FS.readFile toolchainfile).trimAscii.copy
+
+  -- Kludge: remove variables introduced by Lake. Clearing out DYLD_LIBRARY_PATH and
+  -- LD_LIBRARY_PATH is useful so the version selected by Elan doesn't get the wrong shared
+  -- libraries.
+  let lakeVars :=
+    #["LAKE", "LAKE_HOME", "LAKE_PKG_URL_MAP",
+      "LEAN_SYSROOT", "LEAN_AR", "LEAN_PATH", "LEAN_SRC_PATH",
+      "LEAN", "ELAN", "ELAN_HOME", "LEAN_GITHASH",
+      "ELAN_TOOLCHAIN", "DYLD_LIBRARY_PATH", "LD_LIBRARY_PATH"]
+
+  let cmd := "elan"
+  let runCmd' (args : Array String) : m Unit := do
+      let res ← IO.Process.output {
+        cmd, args, cwd := projectDir
+        -- Unset Lake's environment variables
+        env :=
+          lakeVars.map (·, none) ++
+          #[("SUBVERSO_SUPPRESS_NAMESPACES", some (" ".intercalate suppressNamespaces))]
+      }
+      if res.exitCode != 0 then reportFail projectDir cmd args res
+
+  let runCmd (trace : MessageData) (args : Array String) : m Unit :=
+    withTraceNode `Elab.Verso.Code.External.loadModule (fun _ => pure <| trace.trace {cls := `command} #[m!"elan {" ".intercalate args.toList}"]) (runCmd' args)
+
+  let toolchainFile ← IO.FS.Handle.mk toolchainfile .read
+  -- Lake tends to get in trouble if used concurrently, so build the Lean code with a lock.
+  toolchainFile.lock (exclusive := true)
+  try
+    runCmd m!"loadModuleContent': building extractor" #["run", "--install", toolchain, "lake", "build", "subverso-extract-mod"]
+    runCmd m!"loadModuleContent': building highlighted example" #["run", "--install", toolchain, "lake", "build", "+" ++ mod ++ ":highlighted"]
+  finally
+    toolchainFile.unlock
+
+  let hlDir := ("build" : System.FilePath) / "highlighted"
+  let hlFile :=
+    (mod.splitToList (· == '.')).foldl (init := hlDir) (· / ·) |>.addExtension "json"
+  -- Very old Lake versions don't put things in .lake
+  let lakeDir := if (← (projectDir / ".lake").isDir) then projectDir / ".lake" else projectDir
+  let json ← IO.FS.readFile (lakeDir / hlFile)
+  let json ←
+    match Json.parse json with
+    | .ok v => pure v
+    | .error err => throwError s!"Invalid JSON syntax in {lakeDir / hlFile}. {err}"
+  match Module.fromJson? json with
+  | .error err =>
+    throwError s!"Couldn't deserialize JSON from output file: {err}\nIn:\n{json}"
+  | .ok val => pure val.items
+
+where
+  decorateOut (name : String) (out : String) : String :=
+    if out.isEmpty then "" else s!"\n{name}:\n{out}\n"
+  reportFail {α} (projectDir : FilePath) (cmd : String) (args : Array String) (res : IO.Process.Output) : m α := do
+    throwError ("Build process failed." ++
+      "\nCWD: " ++ projectDir.toString ++
+      "\nCommand: " ++ cmd ++
+      "\nArgs: " ++ repr args ++
+      "\nExit code: " ++ toString res.exitCode ++
+      "\nstdout: " ++ res.stdout ++
+      "\nstderr: " ++ res.stderr)
+
+def getSuppress : m (List String) := do
+  let some nss ← verso.externalExamples.suppressedNamespaces.get? <$> getOptions
+    | return []
+  let nss := nss.dropWhile (· == '"') |>.dropEndWhile (· == '"') -- Strings getting double-quoted for some reason
+  return nss.copy.splitOn " "
+
+def loadModuleContent [MonadAlwaysExcept ε m] (projectDir : StrLit) (mod : String) : m (Array ModuleItem) :=
+  withTraceNode `Elab.Verso.Code.External (fun _ => pure m!"Loading example module {mod}") <| do
+    let dirName := projectDir.getString
+    let modName := mod.toName
+    let suppress ← getSuppress
+    if let some ms := (loadedModulesExt.getState (← getEnv))[dirName]?.getD {} |>.find? modName then
+      if let some m := ms[suppress]? then
+        trace[Elab.Verso.Code.External] m!"Cache hit for {mod}"
+        return m
+
+    let traceMsg (r : Except ε (Array ModuleItem × Nat)) : m MessageData :=
+      match r with
+      | .error .. => pure m!"Cache miss for {mod} but failed to load it"
+      | .ok (_, ms) => pure m!"Cache miss for {mod}, loaded in {ms.toFloat / 1000.0}s"
+    Prod.fst <$> withTraceNode `Elab.Verso.Code.External.loadModule traceMsg do
+      let ms1 ← IO.monoMsNow
+      let items ← loadModuleContent' projectDir mod suppress
+      let ms2 ← IO.monoMsNow
+      modifyEnv fun env =>
+        loadedModulesExt.modifyState env fun st =>
+          st.alter dirName fun ms =>
+            let ms := ms.getD {}
+            let forMod := ms.find? modName |>.getD {}
+            let forMod := forMod.insert suppress items
+            some (ms.insert modName forMod)
+      return (items, ms2 - ms1)

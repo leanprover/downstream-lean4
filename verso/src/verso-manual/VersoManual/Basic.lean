@@ -1,0 +1,1606 @@
+/-
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+import Std.Data.HashSet
+import Std.Data.TreeSet
+import Verso.Doc
+public import Verso.Instances
+public import Verso.Doc.Html
+public import Verso.Doc.TeX
+public import MultiVerso
+public import MultiVerso.InternalId
+public import MultiVerso.NameMap
+public import MultiVerso.Slug
+public import VersoSearch
+public import VersoSearch.DomainSearch
+import VersoManual.LicenseInfo
+import VersoManual.Html.Config
+public import VersoManual.Html.Features
+public meta import VersoManual.Ext
+import Verso.Output.Html
+public import Verso.Output.TeX
+public import Verso.BEq
+import Verso.Method
+
+set_option doc.verso true
+
+public section
+
+open Lean (Name Json NameMap ToJson FromJson)
+open Std (HashSet HashMap TreeSet)
+open Verso.Doc
+open Verso.Multi
+open Verso.Output
+open Verso.BEq
+
+namespace Verso.Genre.Manual
+
+export Verso.Multi (InternalId)
+
+inductive Output where
+  | /-- LaTeX -/
+    tex
+  | /-- HTML - one page per part at the given depth -/
+    html (depth : Nat)
+deriving DecidableEq, BEq, Hashable
+
+/--
+The font families used when rendering documents.
+
+These font families are specified using CSS variables, so they can be overridden.
+-/
+inductive FontFamily where
+  | /--
+    The font used for ordinary text, customized with the `--verso-text-font-family` CSS variable.
+    -/
+    text
+  | /--
+    The font used for “structural” text, such as headers. Customized with the `--verso-structure-font-family` CSS variable.
+    -/
+    structure
+  | /--
+    The font used for monospace code, customized with the `--verso-code-font-family` CSS variable.
+    -/
+    code
+deriving DecidableEq, Repr, Hashable
+
+namespace FontFamily
+/--
+The CSS variable that is used to style this font.
+-/
+def toCssVar : FontFamily → String
+  | .text => "--verso-text-font-family"
+  | .structure => "--verso-structure-font-family"
+  | .code => "--verso-code-font-family"
+
+/--
+Returns CSS code that styles text using the font family.
+-/
+def toCss (family : FontFamily) : String := s!"font-family: var({family.toCssVar});"
+
+end FontFamily
+
+inductive FontStyle where
+  | normal
+  | italic
+deriving DecidableEq, Repr, Hashable
+
+def FontStyle.toCss (s : FontStyle) : String :=
+  "font-style: " ++
+  match s with
+  | .normal => "normal;"
+  | .italic => "italic;"
+
+inductive FontWeight where
+  | lighter
+  | light
+  | normal
+  | bold
+  | bolder
+  | numeric (weight : Nat) (ok : weight > 0 ∧ weight < 1000 := by grind)
+deriving DecidableEq, Repr, Hashable
+
+def FontWeight.toCss (w : FontWeight) : String :=
+  "font-weight: " ++
+  match w with
+  | .lighter => "lighter;"
+  | .light => "light;"
+  | .normal => "normal;"
+  | .bold => "bold;"
+  | .bolder => "bolder;"
+  | .numeric n _ => s!"{n};"
+
+/-- A specification of a font. -/
+structure Font where
+  family : FontFamily := .text
+  style : FontStyle := .normal
+  weight : FontWeight := .normal
+deriving DecidableEq, Repr, Hashable
+
+/-- CSS code for a font. -/
+def Font.toCss (font : Font) : String :=
+  "  " ++ font.family.toCss ++ "\n" ++
+  "  " ++ font.style.toCss ++ "\n" ++
+  "  " ++ font.weight.toCss ++ "\n"
+
+open Verso.Search in
+defmethod DomainMapper.setFont (mapper : DomainMapper) (font : Font) : DomainMapper :=
+  { mapper with
+    quickJumpCss :=
+      s!".verso-search-results .{mapper.className} " ++ "{\n" ++ font.toCss ++ "}\n"
+  }
+
+/--
+Tags are used to refer to parts through tables of contents, cross-references, and the like.
+
+During the traverse pass, the following steps occur:
+ 1. user-provided tags are ensured to be globally unique, and saved as xref targets
+ 2. internal tags are heuristically assigned to parts based on their section names
+ 3. internal tags are converted to unique external tags, but not provided for user-written xrefs
+    (needed for automatic linking, e.g. in a table of contents)
+
+Note that internal invariants about uniqueness of names can be violated by editing the JSON
+serialization. This may lead to unexpected results.
+-/
+inductive Tag where
+  | /-- A user-provided tag - respect this if possible -/ provided (name : String)
+  | /-- A unique tag, suitable for inclusion in a document -/ private external (name : Slug)
+  | /-- A machine-assigned tag -/ private internal (name : String)
+deriving BEq, DecidableEq, Hashable, Repr, ToJson, FromJson
+
+instance : Inhabited Tag where
+  default := private .external "".sluggify
+
+instance : ToString Tag where
+  toString := toString ∘ repr
+
+instance : Coe String Tag where
+  coe := .provided
+
+
+
+/-- When rendering multi-page HTML, should splitting pages follow the depth setting? -/
+inductive HtmlSplitMode where
+  | /-- Follow the main setting -/ default
+  |  /-- Do not split here nor in child parts -/ never
+deriving BEq, Hashable, Repr, ToJson, FromJson
+
+instance : Inhabited HtmlSplitMode := ⟨.default⟩
+
+inductive Numbering where
+  | /-- Ordinary numbering -/
+    nat (n : Nat)
+  | /-- Letter numbering, used e.g. for appendices -/
+    letter (char : Char)
+deriving DecidableEq, Hashable, Repr
+
+instance : ToJson Numbering where
+  toJson
+    | .nat n => .num { mantissa := n, exponent := 0 }
+    | .letter c => .str <| String.singleton c
+
+instance : FromJson Numbering where
+  fromJson?
+    | v@(.num { mantissa, exponent }) =>
+      if exponent = 0 then
+        if let some n := mantissa.toNat? then
+          return .nat n
+        else throw s!"Expected natural number, got {v.compress}"
+      else throw s!"Expected exponent 0 for {v.compress}"
+    | v@(.str s) =>
+      if h : s.length = 1 then
+        return .letter <| s.startPos.get <| by
+          have : "".length = 0 := by rfl
+          grind => instantiate only [String.startPos_eq_endPos_iff]
+      else throw s!"Expected one-character string for {v.compress}"
+    | other => throw s!"Expected number or string, got {other.compress}"
+
+instance : ToString Numbering where
+  toString
+    | .nat n => toString n
+    | .letter a => toString a
+
+/-- Metadata for the manual -/
+structure PartMetadata where
+  /--
+  A shorter title to be shown in titlebars and tables of contents.
+  -/
+  shortTitle : Option String := none
+  /--
+  A shorter title to be shown in breadcrumbs for search results. Should typically be at least as
+  short as {name (full := PartMetadata.shortTitle)}`shortTitle`.
+  -/
+  shortContextTitle : Option String := none
+  /-- The book's authors -/
+  authors : List String := []
+  /-- An extra note to show after the author list -/
+  authorshipNote : Option String := none
+  /-- The publication date -/
+  date : Option String := none
+  /-- The main tag for the part, used for cross-references. -/
+  tag : Option Tag := none
+  /-- If this part ends up as the root of a file, use this name for it -/
+  file : Option String := none
+  /-- The internal unique ID, which is automatically assigned during traversal. -/
+  id : Option InternalId := none
+  /-- Should this section be numbered? If {name}`false`, then it's like `\section*` in LaTeX -/
+  number : Bool := true
+  /-- If {name}`true`, the part is only rendered in draft mode. -/
+  draft : Bool := false
+  /-- Which number has been assigned? This field is set during traversal. -/
+  assignedNumber : Option Numbering := none
+  /-- If {name}`true`, this part will display a list of subparts that are separate HTML pages. -/
+  htmlToc := true
+  /-- How should this document be split when rendering multi-page HTML output? -/
+  htmlSplit : HtmlSplitMode := .default
+  /--
+  Relative priority of this section in search results, on a scale from {lean (type := "Fin 100")}`0`
+  to {lean (type := "Fin 100")}`99`. {lean (type := "Fin 100")}`50` is the default (no boost);
+  higher values boost the section's rank and lower values de-emphasize it. The same priority
+  influences both quick-jump and full-text matches for the section.
+
+  Priorities set on ancestor parts are inherited: each ancestor's deviation from
+  {lean (type := "Fin 100")}`50` accumulates into a section's effective priority. For example,
+  setting {name (full := PartMetadata.searchPriority)}`searchPriority` to {lean (type := "Fin 100")}`25` on a top-level “Release Notes”
+  part de-emphasizes every subsection beneath it, while an individual subsection can override by
+  setting a higher value of its own (which is added to, not multiplied with, the ancestor
+  contribution). A chain of neutral ({lean (type := "Fin 100")}`50`) ancestors contributes nothing.
+  -/
+  searchPriority : Fin 100 := 50
+deriving BEq, Hashable, Repr, ToJson, FromJson
+
+
+@[expose] def Domains := NameMap Domain deriving Repr
+def Domains.contents : Domains → NameMap Domain := id
+
+instance : BEq Domains where
+  beq := private ptrEqThen fun x y =>
+    x.size == y.size &&
+    x.all fun k v => y.get? k |>.isEqSome v
+
+instance : GetElem Domains Name Domain (fun ds d => ds.contents.contains d) where
+  getElem ds d _ok := ds.contents.get! d
+
+instance : GetElem? Domains Name Domain (fun ds d => ds.contents.contains d) where
+  getElem? ds d := ds.contents.get? d
+
+instance : EmptyCollection Domains := ⟨({} : NameMap Domain)⟩
+
+instance [Monad m] : ForIn m Domains (Name × Domain) where
+  forIn doms init f := (inferInstance : ForIn m (NameMap Domain) (NameMap.PublicName × Domain)) |>.forIn doms init fun (n, dom) v =>
+    -- Eta expansion uses a coercion
+    f (n, dom) v
+
+instance : ToJson Domains where
+  toJson doms :=
+    doms.foldl (init := Json.obj {}) fun json name dom => json.setObjVal! name.toString (ToJson.toJson dom)
+
+instance : FromJson Domains where
+  fromJson? j := do
+    let jsonDoms ← j.getObj?
+    jsonDoms.foldlM (init := ({} : Domains)) fun doms name dom => do
+      if let some ⟨x, h⟩ := NameMap.PublicName.ofString name then
+        pure <| doms.insert x (← FromJson.fromJson? dom) h
+      else throw s!"The string {name.quote} is not a valid name for a domain"
+
+/--
+Computes a filename for an extra file, to be saved in a map from filenames to contents. If the
+requested filename already is present but the content differs, a unique filename is chosen. The
+resulting filename and the updated state are returned.
+-/
+partial def extraFileName (files : HashMap String String) (stem extension content : String) : String :=
+  go none
+where
+  go (counter : Option Nat) :=
+    let fn := s!"{stem}{counter.map (s!"{·}") |>.getD ""}.{extension}"
+    if let some txt := files[fn]? then
+      if txt == content then fn
+      else go <| some (counter.getD 0 + 1)
+    else fn
+
+def StringSet := HashSet String
+
+structure Contents where
+  contents : NameMap Json
+
+instance : EmptyCollection Contents := ⟨⟨{}⟩⟩
+
+instance : Repr Contents where
+  reprPrec v _ :=
+    .group <|
+    .nestD
+      ("{" ++
+        .line ++
+        .joinSep
+          (v.contents.toList.map fun (k, v) =>
+            Std.Format.group <|
+            .nestD ("(" ++ k.toString ++ "," ++ Std.Format.line ++ "json%" ++ v.pretty ++ ")"))
+          .line) ++
+    .line ++ "}"
+
+open Verso.Search in
+structure TraverseState extends HtmlAssets where
+  tags : HashMap Tag InternalId := {}
+  externalTags : HashMap InternalId Link := {}
+  domains : Domains := {}
+  ids : TreeSet InternalId := {}
+  quickJump : DomainMappers := {}
+  /--
+  TeX `\usepackage{…}` lines contributed by block and inline extensions whose blocks actually
+  occur in the document. Populated during traversal at each block/inline occurrence so unused
+  extensions don't pollute the preamble.
+  -/
+  texPackages : HashSet String := {}
+  /--
+  Free-form TeX preamble items contributed by block and inline extensions whose blocks actually
+  occur in the document. Populated during traversal.
+  -/
+  texPreambleItems : HashSet String := {}
+  private contents : Contents := {}
+deriving Repr
+
+def TraverseState.initialize (htmlAssets : HtmlAssets) : TraverseState :=
+  { toHtmlAssets := htmlAssets }
+
+section
+variable [ToJson α] [ToJson β] [FromJson α] [FromJson β] [BEq α] [Hashable α]
+private def jsonMap (xs : HashMap α β) : Json :=
+  .arr (xs.toArray.map fun (x, y) => json%{"key": $x, "value": $y})
+
+private def fromJsonMap (v : Json) (field : String) : Except String (HashMap α β) := do
+    let v ← v.getObjValAs? (Array Json) field
+    let v ← v.mapM fun j => do
+      let k ← j.getObjValAs? _ "key"
+      let v ← j.getObjValAs? _ "value"
+      pure (k, v)
+    return HashMap.insertMany {} v
+
+instance : ToJson TraverseState where
+  toJson st := private
+    let { tags, externalTags, domains, ids, features, extraCss, extraJs, extraJsFiles, extraCssFiles, extraDataFiles, quickJump, licenseInfo, texPackages, texPreambleItems, contents } := st
+    json%{
+      "tags": $(jsonMap tags),
+      "externalTags": $(jsonMap externalTags),
+      "domains": $domains,
+      "ids": $ids.toArray,
+      "features": $features,
+      "extraCss": $extraCss.toArray,
+      "extraJs": $extraJs.toArray,
+      "extraJsFiles": $extraJsFiles.toArray,
+      "extraDataFiles": $extraDataFiles.toArray,
+      "extraCssFiles": $extraCssFiles.toArray,
+      "quickJump": $quickJump.toArray,
+      "licenseInfo": $licenseInfo.toArray,
+      "texPackages": $texPackages.toArray,
+      "texPreambleItems": $texPreambleItems.toArray,
+      "contents": $contents.contents
+    }
+
+public instance : FromJson TraverseState where
+  fromJson? v := private do
+    let tags ← fromJsonMap v "tags"
+    let externalTags ← fromJsonMap v "externalTags"
+    let domains <- v.getObjValAs? _ "domains"
+    let ids <- v.getObjValAs? (Array InternalId) "ids"
+    let ids := .ofArray ids
+    let features ← v.getObjValAs? _ "features"
+    let extraCss <- v.getObjValAs? (Array CSS) "extraCss"
+    let extraCss := .ofArray extraCss
+    let extraJs <- v.getObjValAs? (Array JS) "extraJs"
+    let extraJs := .ofArray extraJs
+    let extraJsFiles <- HashSet.ofArray <$> v.getObjValAs? (Array _) "extraJsFiles"
+    let extraCssFiles <- HashSet.ofArray <$> v.getObjValAs? (Array _) "extraCssFiles"
+    let extraDataFiles ← HashSet.ofArray <$> v.getObjValAs? (Array _) "extraDataFiles"
+    let quickJump <- v.getObjValAs? (Array (String × Search.DomainMapper)) "quickJump"
+    let quickJump := HashMap.insertMany {} quickJump
+    let licenseInfo <- v.getObjValAs? (Array LicenseInfo) "licenseInfo"
+    let licenseInfo := .ofArray licenseInfo
+    let texPackages ← HashSet.ofArray <$> v.getObjValAs? (Array _) "texPackages"
+    let texPreambleItems ← HashSet.ofArray <$> v.getObjValAs? (Array _) "texPreambleItems"
+    let contents ← v.getObjValAs? (NameMap Json) "contents"
+    let contents := ⟨contents⟩
+    return { tags, externalTags, domains, ids, features, extraCss, extraJs, extraJsFiles, extraCssFiles, extraDataFiles, quickJump, licenseInfo, texPackages, texPreambleItems, contents }
+end
+/--
+Returns a fresh internal ID.
+-/
+def freshId [Monad m] [MonadStateOf TraverseState m] : m InternalId := do
+  modifyGet fun st =>
+    let (i, ids) := InternalId.fresh st.ids
+    (i, {st with ids})
+
+def freshTag [Monad m] [MonadStateOf TraverseState m] (hint : String) (id : InternalId) : m String := do
+  let strPart : String := hint.sluggify.toString
+  let mut numPart : Option Nat := none
+  repeat
+    let attempt := tagStr strPart numPart
+    if (← get).tags.contains  attempt then
+      numPart := some <| numPart.map (· + 1) |>.getD 0
+    else break
+  let tag := tagStr strPart numPart
+  modify fun st => {st with tags := st.tags.insert (Tag.internal tag) id}
+  pure tag
+where
+  tagStr (strPart : String) (numPart : Option Nat) := s!"{strPart}{numPart.map (s!"-{·}") |>.getD ""}"
+
+local instance [BEq α] [Hashable α] : BEq (HashSet α) where
+  beq := private ptrEqThen fun xs ys => xs.size == ys.size && xs.all (ys.contains ·)
+
+local instance [BEq α] [Ord α] : BEq (TreeSet α) where
+  beq := private ptrEqThen fun xs ys => xs.size == ys.size && xs.all (ys.contains ·)
+
+local instance [BEq α] [Hashable α] [BEq β] : BEq (HashMap α β) where
+  beq := private ptrEqThen fun xs ys => xs.size == ys.size && xs.all (ys[·]?.isEqSome ·)
+
+instance : BEq Contents where
+  beq := ptrEqThen fun c1 c2 =>
+    c1.contents.size == c2.contents.size &&
+    c1.contents.all (c2.contents[·.toName]?.isEqSome ·)
+
+instance : BEq TraverseState where
+  beq := private ptrEqThen fun x y =>
+    x.toHtmlAssets == y.toHtmlAssets &&
+    ptrEqThen' x.tags y.tags (fun t1 t2 =>
+      t1.size == t2.size && t1.all (t2[·]?.isEqSome ·)) &&
+    x.externalTags == y.externalTags &&
+    x.domains == y.domains &&
+    x.ids == y.ids &&
+    x.quickJump == y.quickJump &&
+    x.contents == y.contents
+
+namespace TraverseState
+
+def set [ToJson α] (state : TraverseState) (name : Name) (value : α) (ok : NameMap.isPublic name := by first | grind | decide) : TraverseState :=
+  { state with contents.contents := state.contents.contents.insert name (ToJson.toJson value) ok }
+
+/--
+{open Except}
+{given -show}`e : String`
+
+Returns {lean}`none` if the key is not found, or {lean}`some (error e)` if JSON deserialization failed.
+-/
+def get? [FromJson α] (state : TraverseState) (name : Name) : Option (Except String α) :=
+  state.contents.contents.get? name |>.map FromJson.fromJson?
+
+def saveDomainObject (state : TraverseState) (domain : Name) (canonicalName : String) (id : InternalId) : TraverseState :=
+  {state with
+    domains :=
+      state.domains.insert! domain (state.domains.get? domain |>.getD {} |>.insertId canonicalName id)}
+
+def saveDomainObjectData (state : TraverseState) (domain : Name) (canonicalName : String) (data : Json) : TraverseState :=
+  {state with
+    domains :=
+      state.domains.insert! domain (state.domains.get? domain |>.getD {} |>.setData canonicalName data)}
+
+def modifyDomainObjectData (state : TraverseState) (domain : Name) (canonicalName : String) (f : Json → Json) : TraverseState :=
+  {state with
+    domains :=
+      state.domains.insert! domain (state.domains.get? domain |>.getD {} |>.modifyData canonicalName f)}
+
+def getDomainObject? (state : TraverseState) (domain : Name) (canonicalName : String) : Option Object :=
+  state.domains.get? domain >>= fun d => d.get? canonicalName
+
+def setDomainTitle (state : TraverseState) (domain : Name) (title : String) : TraverseState :=
+  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with title := some title}}
+
+def setDomainDescription (state : TraverseState) (domain : Name) (description : String) : TraverseState :=
+  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with description := some description}}
+
+open Verso.Search in
+def addQuickJumpMapper (state : TraverseState) (domain : Name) (domainMapper : DomainMapper) : TraverseState :=
+  { state with quickJump := state.quickJump.insert domain.toString domainMapper }
+
+def htmlId (state : TraverseState) (id : InternalId) : Array (String × String) :=
+  if let some {htmlId, ..} := state.externalTags[id]? then
+    #[("id", htmlId.toString)]
+  else #[]
+
+def modifyHtmlAssets (state : TraverseState) (f : HtmlAssets → HtmlAssets) : TraverseState :=
+  { state with toHtmlAssets := f state.toHtmlAssets }
+
+/-- Adds an open-source license used in the generated HTML/JavaScript. -/
+def addLicenseInfo (state : TraverseState) (licenseInfo : LicenseInfo) : TraverseState :=
+  {state with licenseInfo := state.licenseInfo.insert licenseInfo}
+
+@[inherit_doc HtmlAssets.writeFiles]
+def writeFiles (state : TraverseState) (destination : System.FilePath) : IO Unit :=
+  state.toHtmlAssets.writeFiles destination
+
+end TraverseState
+
+private partial def cmpJson : (j1 j2 : Json) → Ordering
+  | .null, .null => .eq
+  | .null, _ => .lt
+  | _, .null => .gt
+  | .bool b1, .bool b2 => Ord.compare b1 b2
+  | .bool _, _ => .lt
+  | _, .bool _ => .gt
+  | .str s1, .str s2 => Ord.compare s1 s2
+  | .str _, _ => .lt
+  | _, .str _ => .gt
+  | .num n1, .num n2 => Ord.compare n1 n2
+  | .num _, _ => .lt
+  | _, .num _ => .gt
+  | .arr xs, .arr ys =>
+    Ord.compare xs.size ys.size |>.then (Id.run do
+      for ⟨x, _⟩ in xs.attach, ⟨y, _⟩ in ys.attach do
+        let o := cmpJson x y
+        if o != .eq then return o
+      .eq)
+  | .arr _, _ => .lt
+  | _, .arr _ => .gt
+  | .obj o1, .obj o2 =>
+    let k1 := o1.toArray.qsort (·.1 < ·.1)
+    let k2 := o2.toArray.qsort (·.1 < ·.1)
+    Ord.compare k1.size k2.size |>.then (Id.run do
+      for ⟨kx, x⟩ in k1, ⟨ky, y⟩ in k2 do
+        let o := Ord.compare kx ky |>.then (cmpJson x y)
+        if o != .eq then return o
+      .eq)
+
+/--
+A custom block. The {name (full := Block.name)}`name` field should correspond to an entry in the block descriptions table.
+-/
+structure Block where
+  /-- A unique name that identifies the block. -/
+  name : Name := by exact decl_name%
+  /-- A unique ID, assigned during traversal. -/
+  id : Option InternalId := none
+  /--
+  Data saved by elaboration, potentially updated during traversal, and used to render output. This
+  is the primary means of communicating information about a block between phases.
+  -/
+  data : Json := Json.null
+  /--
+  A registry for properties that can be used to create ad-hoc protocols for coordination between
+  block elements in extensions.
+  -/
+  properties : NameMap String := {}
+deriving ToJson, FromJson
+
+section
+local instance : Repr Json := ⟨fun v _ => s!"json%" ++ v.render ⟩
+deriving instance Repr for Block
+end
+
+
+instance : BEq Block where
+  beq
+    | ⟨n1, i1, d1, p1⟩, ⟨n2, i2, d2, p2⟩ =>
+      n1 == n2 &&
+      i1 == i2 &&
+      ptrEqThen' d1 d2 (· == ·) &&
+      ptrEqThen' p1 p2 fun x y =>
+        x.size == y.size && x.all (fun k v => y[k.toName]? |>.isEqSome v)
+
+instance : Hashable Block where
+  hash
+    | ⟨n, i, d, p⟩ =>
+      have : Ord (Name × String) := Ord.lex ⟨Name.quickCmp⟩ inferInstance
+      mixHash (hash n) <|
+      mixHash (hash i) <|
+      mixHash (hash d) <|
+      hash <| p.toArray.qsort fun ⟨x, s1⟩ ⟨y, s2⟩ =>
+        x.quickCmp y |>.then (compare s1 s2) |>.isLT
+
+/--
+A custom inline. The {name (full := Inline.name)}`name` field should correspond to an entry in the
+block descriptions table.
+-/
+structure Inline where
+  /-- A unique name that identifies the inline. -/
+  name : Name := by exact decl_name%
+  /-- The internal unique ID, which is automatically assigned during traversal. -/
+  id : Option InternalId := none
+  /--
+  Data saved by elaboration, potentially updated during traversal, and used to render output. This
+  is the primary means of communicating information about a block between phases.
+  -/
+  data : Json := Json.null
+deriving BEq, Hashable, ToJson, FromJson
+
+section
+local instance : Repr Json := ⟨fun v _ => s!"json%" ++ v.render ⟩
+deriving instance Repr for Inline
+end
+
+
+instance : Ord Inline where
+  compare i1 i2 := private
+    i1.name.cmp i2.name |>.then (Ord.compare i1.id i2.id) |>.then (cmpJson i1.data i2.data)
+
+structure PartHeader where
+  titleString : String
+  metadata : Option PartMetadata
+  /--
+  A registry for properties that can be used to create ad-hoc protocols for coordination between
+  parts and/or block elements in extensions.
+  -/
+  properties : NameMap String
+deriving Repr
+
+inductive BlockContext where
+  | para
+  | code
+  | ul
+  | ol (start : Int)
+  | dl
+  | blockquote
+  | concat
+  | other (container : Manual.Block)
+deriving Repr
+
+/--
+Information that tracks the current context of traversal for a document.
+-/
+structure TraverseContext where
+  /-- The current URL path - will be {lean (type:="Path")}`#[]` for non-HTML output or in the root -/
+  path : Path := #[]
+  /-- The path from the root to the current header -/
+  headers : Array PartHeader := #[]
+  /-- The path from the current header to the current block -/
+  blockContext : Array BlockContext := #[]
+  /-- Whether the current build is a draft (used for hiding TODOs, etc from public builds) -/
+  draft : Bool := false
+def TraverseContext.inFile (self : TraverseContext) (file : String) : TraverseContext :=
+  {self with path := self.path.push file}
+
+abbrev BlockTraversal genre :=
+  InternalId → Json → Array (Doc.Block genre) →
+  ReaderT TraverseContext (StateT TraverseState (BuildLogT IO)) (Option (Doc.Block genre))
+
+abbrev BlockToHtml (genre : Genre) (m) :=
+  (Doc.Inline genre → Html.HtmlT genre m Output.Html) →
+  (Doc.Block genre → Html.HtmlT genre m Output.Html) →
+  InternalId → Json → Array (Doc.Block genre) → Html.HtmlT genre m Output.Html
+
+abbrev BlockToTeX (genre : Genre) (m) :=
+  (Doc.Inline genre → TeX.TeXT genre m Output.TeX) →
+  (Doc.Block genre → TeX.TeXT genre m Output.TeX) →
+  InternalId → Json → Array (Doc.Block genre) → TeX.TeXT genre m Output.TeX
+
+abbrev InlineTraversal genre :=
+  InternalId → Json → Array (Doc.Inline genre) →
+  ReaderT TraverseContext (StateT TraverseState (BuildLogT IO)) (Option (Doc.Inline genre))
+
+abbrev InlineToHtml (genre : Genre) (m) :=
+  (Doc.Inline genre → Html.HtmlT genre m Output.Html) →
+    InternalId → Json → Array (Doc.Inline genre) → Html.HtmlT genre m Output.Html
+
+abbrev InlineToTeX (genre : Genre) (m) :=
+  (Doc.Inline genre → TeX.TeXT genre m Output.TeX) →
+    InternalId → Json → Array (Doc.Inline genre) → TeX.TeXT genre m Output.TeX
+
+
+structure ExtensionImpls where
+  private mk ::
+  -- This is to work around recursion restrictions, not for real dynamism
+  -- They are expected to be `InlineDescr` and `BlockDescr`, respectively
+  inlineDescrs : Lean.NameMap Dynamic
+  blockDescrs : Lean.NameMap Dynamic
+
+end Manual
+
+/-- A genre for writing reference manuals and other book-like documents. -/
+@[expose]
+def Manual : Genre where
+  PartMetadata := Manual.PartMetadata
+  Block := Manual.Block
+  Inline := Manual.Inline
+  TraverseContext := Manual.TraverseContext
+  TraverseState := Manual.TraverseState
+
+instance : BEq (Genre.PartMetadata Manual) := inferInstanceAs (BEq Manual.PartMetadata)
+instance : BEq (Genre.Block Manual) := inferInstanceAs (BEq Manual.Block)
+instance : BEq (Genre.Inline Manual) := inferInstanceAs (BEq Manual.Inline)
+
+instance : Ord (Genre.Inline Manual) := inferInstanceAs (Ord Manual.Inline)
+
+instance : Hashable (Genre.Block Manual) := inferInstanceAs (Hashable Manual.Block)
+instance : Hashable (Genre.Inline Manual) := inferInstanceAs (Hashable Manual.Inline)
+instance : Hashable (Genre.PartMetadata Manual) := inferInstanceAs (Hashable Manual.PartMetadata)
+
+instance : Repr (Genre.Inline Manual) := inferInstanceAs (Repr Manual.Inline)
+instance : Repr (Genre.Block Manual) := inferInstanceAs (Repr Manual.Block)
+instance : Repr (Genre.PartMetadata Manual) := inferInstanceAs (Repr Manual.PartMetadata)
+
+instance : ToJson (Genre.Inline Manual) := inferInstanceAs (ToJson Manual.Inline)
+instance : ToJson (Genre.Block Manual) := inferInstanceAs (ToJson Manual.Block)
+instance : ToJson (Genre.PartMetadata Manual) := inferInstanceAs (ToJson Manual.PartMetadata)
+
+instance : FromJson (Genre.Inline Manual) := inferInstanceAs (FromJson Manual.Inline)
+instance : FromJson (Genre.Block Manual) := inferInstanceAs (FromJson Manual.Block)
+instance : FromJson (Genre.PartMetadata Manual) := inferInstanceAs (FromJson Manual.PartMetadata)
+
+namespace Manual
+
+def BlockContext.ofBlock (block : Lean.Doc.Block i Manual.Block) : BlockContext :=
+  match block with
+  | .para .. => .para
+  | .code .. => .code
+  | .ul .. => .ul
+  | .ol start .. => .ol start
+  | .dl .. => .dl
+  | .blockquote .. => .blockquote
+  | .concat .. => .concat
+  | .other container .. => .other container
+
+def PartHeader.ofPart (part : Part Manual) : PartHeader :=
+  { titleString := part.titleString, metadata := part.metadata, properties := {} }
+
+def TraverseContext.inPart (self : TraverseContext) (part : Part Manual) : TraverseContext :=
+  { self with headers := self.headers.push <| .ofPart part }
+
+def TraverseContext.inBlock (self : TraverseContext) (block : Lean.Doc.Block i Manual.Block) : TraverseContext :=
+  { self with blockContext := self.blockContext.push (.ofBlock block) }
+
+def TraverseContext.sectionNumber (self : TraverseContext) : Array (Option Numbering) :=
+  self.headers.map (·.metadata |>.getD {} |>.assignedNumber)
+
+/-- Implementations of all the operations needed to use an inline element. -/
+structure InlineDescr extends HtmlAssets where
+  /-- All registered initializers are called in the state prior to the first traversal. -/
+  init : TraverseState → TraverseState := id
+
+  /--
+  Given the contents of the {name (full := Inline.data)}`data` field of the corresponding
+  {name}`Manual.Inline` and the contained inline elements, carry out the traversal pass.
+
+  In addition to updating the cross-reference state through the available monadic effects, a
+  traversal may additionally replace the element with another one. This can be used to e.g. emit a
+  cross-reference once the target becomes available in the state. To replace the element, return
+  {name}`some`. To leave it as is, return {name}`none`.
+  -/
+  traverse : InlineTraversal Manual
+
+  /--
+  How to generate HTML. If {name}`none`, generating HTML from a document that contains this inline will fail.
+  -/
+  toHtml : Option (InlineToHtml Manual (ReaderT AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))))
+
+  /--
+  Should this inline be an entry in the page-local ToC? If so, how should it be represented?
+
+  Entries should be returned as a preference-ordered array of representations. Each representation
+  consists of a string and some HTML; the string should represent the HTML's content if all
+  formatting were stripped. Items are compared for string equality, with later suggestions used in
+  case of overlap, but the HTML is what's displayed.
+
+  The empty array means that the inline should not be included.
+  -/
+  localContentItem : InternalId → Json → Array (Doc.Inline Manual) → Except String (Array (String × Verso.Output.Html)) :=
+    fun _ _ _ => pure #[]
+
+  /--
+  How to generate TeX. If {name}`none`, generating TeX from a document that contains this inline
+  will fail.
+  -/
+  toTeX : Option (InlineToTeX Manual (ReaderT ExtensionImpls (BuildLogT IO)))
+  /-- Required TeX `\usepackage` lines -/
+  usePackages : List String := {}
+  /-- Required items in the TeX preamble -/
+  preamble : List String := {}
+
+deriving TypeName
+
+instance : Inhabited InlineDescr := ⟨⟨default, id, default, default, default, default, default, default⟩⟩
+
+/--
+Implementations of all the operations needed to use a block.
+-/
+structure BlockDescr extends HtmlAssets where
+  /-- All registered initializers are called in the state prior to the first traversal. -/
+  init : TraverseState → TraverseState := id
+
+  /-- How the traversal phase should process this block -/
+  traverse : BlockTraversal Manual
+
+  /--
+  How to generate HTML. If {name}`none`, generating HTML from a document that contains this block
+  will fail.
+  -/
+  toHtml : Option (BlockToHtml Manual (ReaderT AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))))
+
+  /--
+  Should this block be an entry in the page-local ToC? If so, how should it be represented?
+
+  Entries should be returned as a preference-ordered array of representations. Each representation
+  consists of a string and some HTML; the string should represent the HTML's content if all
+  formatting were stripped. Items are compared for string equality, with later suggestions used in
+  case of overlap, but the HTML is what's displayed. Exceptions are logged as errors during HTML
+  generation.
+
+  The empty array means that the block should not be included.
+  -/
+  localContentItem : InternalId → Json → Array (Doc.Block Manual) → Except String (Array (String × Verso.Output.Html)) :=
+    fun _ _ _ => pure #[]
+
+  /--
+  How to generate TeX. If {name}`none`, generating TeX from a document that contains this block
+  will fail.
+  -/
+  toTeX : Option (BlockToTeX Manual (ReaderT ExtensionImpls (BuildLogT IO)))
+  /-- Required TeX `\usepackage` lines -/
+  usePackages : List String := {}
+  /-- Required items in the TeX preamble -/
+  preamble : List String := {}
+deriving TypeName
+
+instance : Inhabited BlockDescr := ⟨⟨default, id, default, default, default, default, default, default⟩⟩
+
+syntax (name := inline_extension) "inline_extension" ident : attr
+syntax (name := block_extension) "block_extension" ident : attr
+
+open Lean in
+meta initialize
+  let register (name) (strName : String) (ext : PersistentEnvExtension (Name × Name) (Name × Name) (Lean.NameMap Name)) (get : Syntax → Option Ident) := do
+    registerBuiltinAttribute {
+      name := name,
+      ref := by exact decl_name%,
+      add := fun decl stx kind => do
+        unless kind == AttributeKind.global do throwError "invalid attribute '{name}', must be global"
+        unless ((← getEnv).getModuleIdxFor? decl).isNone do
+          throwError "invalid attribute '{name}', declaration is in an imported module"
+        let some extIdent := get stx
+          | throwError "invalid syntax for '{name}' attribute"
+
+        let extName ← Lean.Elab.realizeGlobalConstNoOverloadWithInfo extIdent
+
+        modifyEnv fun env => ext.addEntry env (extName.eraseMacroScopes, decl.eraseMacroScopes) -- TODO check that it's not already there
+
+      descr := s!"Registers a definition as the description of {strName}"
+    }
+  register `inline_extension "an inline extension" inlineExtensionExt fun | `(attr|inline_extension $extIdent) => extIdent | _ => none
+  register `block_extension "a block extension" blockExtensionExt fun | `(attr|block_extension $extIdent) => extIdent | _ => none
+
+
+open Lean.Parser Term in
+meta def extContents := structInstFields (sepByIndent Term.structInstField "; " (allowTrailingSep := true))
+
+/--
+Defines a new block extension.
+
+```
+block_extension NAME PARAMS [via MIXINS,+] where
+  data := ...
+  fields*
+```
+defines a new kind of block called {lit}`NAME` that takes initialization parameters {lit}`PARAMS`
+for the {name (full := Block.data)}`data` field.
+
+If there are no {lit}`PARAMS`, then {lit}`NAME` is bound to the block with empty data. If there are
+{lit}`PARAMS`, then {lit}`NAME` is bound to a function that constructs an instance of the block with
+the data field initialized as directed. {lit}`PARAMS` are only in scope for the data field.
+
+The remaining fields are used to define traversal and output generation for the block. The resulting
+block descriptor is then processed by {lit}`MIXINS`, from left to right, before being added to the
+block descriptor table.
+-/
+syntax "block_extension" ident (ppSpace bracketedBinder)* (&" via " ident,+)? ppIndent(ppSpace "where" extContents) : command
+/--
+Defines a new inline extension.
+
+```
+inline_extension NAME PARAMS [via MIXINS,+] where
+  data := ...
+  fields*
+```
+defines a new kind of inline called {lit}`NAME` that takes initialization parameters {lit}`PARAMS`
+for the {name (full := Inline.data)}`data` field.
+
+If there are no {lit}`PARAMS`, then {lit}`NAME` is bound to the inline with empty data. If there are
+{lit}`PARAMS`, then {lit}`NAME` is bound to a function that constructs an instance of the inline
+with the data field initialized as directed. {lit}`PARAMS` are only in scope for the data field.
+
+The remaining fields are used to define traversal and output generation for the inline. The
+resulting inline descriptor is then processed by {lit}`MIXINS`, from left to right, before being
+added to the inline descriptor table.
+-/
+syntax "inline_extension" ident (ppSpace bracketedBinder)* (&" via " ident,+)? ppIndent(ppSpace "where" extContents) : command
+
+meta def isDataField : Lean.TSyntax ``Lean.Parser.Term.structInstField → Bool
+  | `(Lean.Parser.Term.structInstField|data := $_) => true
+  | `(Lean.Parser.Term.structInstField|data) => true
+  | _ => false
+
+open Lean Elab Command in
+elab_rules : command
+  | `(block_extension $x $args* $[via $mixins,*]? where $contents;*) => do
+    let (data, nonData) := (contents : Array _).partition isDataField
+    if data.size > 1 then
+      for x in data do
+        logErrorAt x "Multiple 'data' fields found"
+    let cmd1 ←
+      `(command| def $x $args* : Block where $data;*)
+    let innerDescrName := x.getId ++ `descr.inner |> mkIdentFrom x
+    let descrName := x.getId ++ `descr |> mkIdentFrom x
+    let applyMixins (x : Term) : CommandElabM Term :=
+      let mixins := (mixins : Option (Array Ident)).getD #[]
+      mixins.foldlM (init := x) fun soFar mixin => `(($mixin $soFar))
+    let cmd2 ←
+      `(command|
+        private def $innerDescrName : BlockDescr where $nonData;*)
+    let cmd3 ←
+      `(command|
+        @[block_extension $x]
+        private def $descrName : BlockDescr := $(← applyMixins innerDescrName))
+    elabCommand cmd1
+    elabCommand cmd2
+    elabCommand cmd3
+
+open Lean Elab Command in
+elab_rules : command
+  | `(inline_extension $x $args* $[via $mixins,*]? where $contents;*) => do
+    let (data, nonData) := (contents : Array _).partition isDataField
+    if data.size > 1 then
+      for x in data do
+        logErrorAt x "Multiple 'data' fields found"
+    let cmd1 ←
+      `(command| def $x $args* : Inline where $data;*)
+    let innerDescrName := x.getId ++ `descr.inner |> mkIdentFrom x
+    let descrName := x.getId ++ `descr |> mkIdentFrom x
+    let applyMixins (x : Term) : CommandElabM Term :=
+      let mixins := (mixins : Option (Array Ident)).getD #[]
+      mixins.foldlM (init := x) fun soFar mixin => `(($mixin $soFar))
+    let cmd2 ←
+      `(command|
+        private def $innerDescrName : InlineDescr where $nonData;*)
+    let cmd3 ←
+      `(command|
+        @[inline_extension $x]
+        private def $descrName : InlineDescr := $(← applyMixins innerDescrName))
+    elabCommand cmd1
+    elabCommand cmd2
+    elabCommand cmd3
+
+open Lean in
+private meta def nameAndDef [Monad m] [MonadRef m] [MonadQuotation m] (ext : Name × Name) : m Term := do
+  let quoted : Term := quote ext.fst
+  let ident ← mkCIdentFromRef ext.snd
+  `(($quoted, $(⟨ident⟩)))
+
+open Lean Elab Term in
+scoped elab "inline_extensions%" : term => do
+  let env ← getEnv
+  let mut exts := #[]
+  for (ext, descr) in inlineExtensionExt.getState env do
+    exts := exts.push (ext, descr)
+  for imported in inlineExtensionExt.toEnvExtension.getState env |>.importedEntries do
+    for x in imported do
+      exts := exts.push x
+  let stx ← `([$[($(← exts.mapM nameAndDef) : Name × InlineDescr)],*])
+  elabTerm stx none
+
+open Lean Elab Term in
+scoped elab "block_extensions%" : term => do
+  let env ← getEnv
+  let mut exts := #[]
+  for (ext, descr) in blockExtensionExt.getState env do
+    exts := exts.push (ext, descr)
+  for imported in blockExtensionExt.toEnvExtension.getState env |>.importedEntries do
+    for x in imported do
+      exts := exts.push x
+  let stx ← `([$[($(← exts.mapM nameAndDef) : Name × BlockDescr)],*])
+  elabTerm stx none
+
+def ExtensionImpls.empty : ExtensionImpls := ⟨{}, {}⟩
+
+instance : EmptyCollection ExtensionImpls where
+  emptyCollection := .empty
+
+def ExtensionImpls.getInline? (impls : ExtensionImpls) (name : Name) : Option InlineDescr :=
+  impls.inlineDescrs.find? name |>.map (·.get? InlineDescr |>.get!)
+
+def ExtensionImpls.getBlock? (impls : ExtensionImpls) (name : Name) : Option BlockDescr :=
+  impls.blockDescrs.find? name |>.map (·.get? BlockDescr |>.get!)
+
+def ExtensionImpls.insertInline (impls : ExtensionImpls) (name : Name) (desc : InlineDescr) : ExtensionImpls :=
+  {impls with
+    inlineDescrs := impls.inlineDescrs.insert name (.mk desc)}
+
+def ExtensionImpls.insertBlock (impls : ExtensionImpls) (name : Name) (desc : BlockDescr) : ExtensionImpls :=
+  {impls with
+    blockDescrs := impls.blockDescrs.insert name (.mk desc)}
+
+def ExtensionImpls.fromLists (inlineImpls : List (Name × InlineDescr)) (blockImpls : List (Name × BlockDescr)) : ExtensionImpls :=
+  inlineImpls.foldl (fun out (n, impl) => out.insertInline n impl) <| blockImpls.foldl (fun out (n, impl) => out.insertBlock n impl) {}
+
+open Lean Elab Term in
+elab "extension_impls%" : term => do elabTerm (← ``(ExtensionImpls.fromLists inline_extensions% block_extensions%)) none
+
+abbrev TraverseM := ReaderT ExtensionImpls (ReaderT Manual.TraverseContext (StateT Manual.TraverseState (BuildLogT IO)))
+
+def TraverseM.run
+    (impls : ExtensionImpls)
+    (ctxt : Manual.TraverseContext)
+    (state : Manual.TraverseState)
+    (act : TraverseM α) : BuildLogT IO (α × Manual.TraverseState) :=
+  act impls ctxt state
+
+instance : MonadReader Manual.TraverseContext TraverseM where
+  read := readThe _
+
+instance : MonadWithReader Manual.TraverseContext TraverseM where
+  withReader := withTheReader Manual.TraverseContext
+
+@[deprecated "Use `Verso.reportError` instead." (since := "2026-05-29")]
+def logError [MonadBuildLog m] (err : String) : m Unit :=
+  Verso.reportError err
+
+def isDraft [Functor m] [MonadReaderOf Manual.TraverseContext m] : m Bool :=
+  (·.draft) <$> (readThe Manual.TraverseContext)
+
+/--
+Get or create the external tag assigned to an ID.
+
+If the external tag already exists, it is returned. If it needs creating, then the provided path is
+saved as its target and the string argument is used as a basis for the tag.
+-/
+def externalTag [Monad m] [MonadState TraverseState m] (id : InternalId) (path : Path) (name : String) : m Tag := do
+  if let some { htmlId := t, .. } := (← get).externalTags[id]? then
+    return Tag.external t
+  else
+    let mut attempt := name.sluggify
+    repeat
+      if (← get).tags.contains (Tag.external attempt) then attempt := attempt.toString ++ "-next" |>.sluggify
+      else break
+    let t' := Tag.external attempt
+    modify fun st => {st with
+      tags := st.tags.insert t' id,
+      externalTags := st.externalTags.insert id { path, htmlId := attempt }
+    }
+    pure t'
+
+def TraverseState.resolveId (st : TraverseState) (id : InternalId) : Option Link :=
+  if let some x := st.externalTags[id]? then
+      pure x
+  else none
+
+def TraverseState.resolveDomainObject (st : TraverseState) (domain : Name) (canonicalName : String) : Except String Link := do
+  if let some obj := st.getDomainObject? domain canonicalName then
+    match obj.ids.size with
+      | 0 =>
+        throw s!"No link target registered for {canonicalName} in {domain}"
+      | 1 =>
+        let id := obj.ids.toArray[0]!
+        if let some dest := st.resolveId id then
+          return dest
+        else
+          throw s!"No link target registered for id {id} from {canonicalName} in {domain}"
+      | more =>
+        throw s!"Ref {canonicalName} in {domain} has {more} targets, can only link to one"
+  else throw s!"Not found: {canonicalName} in {domain}"
+
+-- def TraverseState.resolveRemoteObject (st : TraverseState) (domain : Name) (canonicalName : String) (remote : String) : Except String RemoteLink := do
+--   let some data := st.remoteContent[remote]?
+--     | throw s!"Remote {remote} not found"
+--   let some dom := data.domains[domain]?
+--     | throw s!"Remote {remote} has no domain '{domain}'"
+--   let some v := dom.contents[canonicalName]?
+--     | throw s!"Remote {remote} domain '{domain}' does not define '{canonicalName}'"
+--   match h : v.size with
+--   | 0 =>
+--     throw s!"No link target registered for {canonicalName} in {domain} in remote {remote}"
+--   | 1 =>
+--     return v[0].link
+--   | more =>
+--     throw s!"Ref {canonicalName} in {domain} in remote {remote} has {more} targets, can only link to one"
+
+
+def TraverseState.resolveTag (st : TraverseState) (tag : Slug) : Option Link :=
+  if let some id := st.tags[Tag.external tag]? then
+    if let some x := st.externalTags[id]? then
+      pure x
+    else panic! s!"No location for ID {id}, but it came from external tag '{tag}'"
+  else none
+
+/--
+A representation of domains.
+
+A domain is a particular namespace of documentable entities.
+
+Generally, domains are identified by their name, but having a representation for them
+means that they can be used with Lean's standard namespace features and have docstrings.
+-/
+structure Domain where
+  name : Name := by exact decl_name%
+
+def doc : Domain := {}
+def doc.suggestion : Domain := {}
+def doc.tactic : Domain := {}
+def doc.tech : Domain := {}
+def doc.syntaxKind : Domain := {}
+def doc.option : Domain := {}
+def doc.tactic.conv : Domain := {}
+
+
+/-- Names defined as examples -/
+-- Protected to avoid taking up good namespace
+protected def «example» : Domain := {}
+
+def docstringDomain := ``Verso.Genre.Manual.doc
+def suggestionDomain := ``Verso.Genre.Manual.doc.suggestion
+def tacticDomain := ``Verso.Genre.Manual.doc.tactic
+def technicalTermDomain := ``Verso.Genre.Manual.doc.tech
+def syntaxKindDomain := ``Verso.Genre.Manual.doc.syntaxKind
+def optionDomain := ``Verso.Genre.Manual.doc.option
+def convDomain := ``Verso.Genre.Manual.doc.tactic.conv
+def exampleDomain := ``Verso.Genre.Manual.example
+
+def TraverseContext.propertyValue (ctxt : TraverseContext) (name : Name) : Option String := Id.run do
+  for b in ctxt.blockContext do
+    match b with
+    | .other x =>
+      if let some v := x.properties[name]? then return some v
+    | _ => continue
+  for p in ctxt.headers do
+      if let some v := p.properties[name]? then return some v
+  return none
+
+def TraverseState.definitionIds (state : TraverseState) (ctxt : TraverseContext) : Lean.NameMap String := Id.run do
+  let exampleBlock := ctxt.propertyValue `Verso.Genre.Manual.exampleDefContext
+  let exampleDeco := exampleBlock.map (s!" (in {·})")
+  if let some examples := state.domains.get? exampleDomain then
+    let mut idMap := {}
+    for (x, _) in examples.objects do
+      let afterSpace := x.dropWhile (· != ' ') |>.copy
+      if exampleDeco.isEqSome afterSpace then
+        if let .ok { htmlId := slug, .. } := state.resolveDomainObject exampleDomain x then
+          idMap := idMap.insert (x.takeWhile (· != ' ') |>.toName) slug.toString
+      else if afterSpace.isEmpty then
+        if let .ok { htmlId := slug, .. } := state.resolveDomainObject exampleDomain x then
+          idMap := idMap.insert x.toName slug.toString
+    return idMap
+  else return {}
+
+open Verso.Search in
+/--
+Quick jump configuration for definitions in examples
+-/
+def exampleDomainMapper : DomainMapper := {
+  displayName := "Example Definition",
+  className := "example-def",
+  -- This is a bit of a hack. Examples with repeated names should really get differing canonical
+  -- names, but it's unclear what to use for them. Perhaps it should be the concatenated tags of the
+  -- containing sections, with a sequence number in case of further duplication? For now, this
+  -- fairly complicated mapper does the job. It'd also be good to have a way to show metadata in the
+  -- quick-jump box, with different styling.
+  dataToSearchables :=
+    "(domainData) => {
+  const byName = Object.entries(domainData.contents).flatMap(([key, value]) =>
+    value.map(v => ({
+      context: v.data[`${v.address}#${v.id}`].context,
+      name: v.data[`${v.address}#${v.id}`].display,
+      address: `${v.address}#${v.id}`
+    }))).reduce((acc, obj) => {
+      const key = obj.name;
+      if (!acc.hasOwnProperty(key)) acc[key] = [];
+      acc[key].push(obj);
+      return acc;
+    }, {})
+  return Object.entries(byName).flatMap(([key, value]) => {
+    if (value.length === 0) { return []; }
+    const firstCtxt = value[0].context;
+    let prefixLength = 0;
+    for (let i = 0; i < firstCtxt.length; i++) {
+      if (value.every(v => i < v.context.length && v.context[i] === firstCtxt[i])) {
+        prefixLength++;
+      } else break;
+    }
+    return value.map((v) => ({
+      searchKey: v.context.slice(prefixLength).concat(v.name).join(' › '),
+      address: v.address,
+      domainId: 'Verso.Genre.Manual.example',
+      ref: value
+    }));
+  });
+}"
+  : DomainMapper }.setFont { family := .code }
+
+section
+
+open SubVerso.Highlighting
+
+/--
+Extracts all names that are marked as definition sites, with both their occurrence in the source and
+the underlying name.
+-/
+partial def definedNames : Highlighted → Array (Name × String)
+  | .token ⟨.const n _ _ true _, s⟩ => #[(n, s)]
+  | .token _ => #[]
+  | .span _ hl | .tactics _ _ _ hl => definedNames hl
+  | .seq hls => hls.map definedNames |>.foldl (· ++ ·) #[]
+  | .text .. | .point .. | .unparsed .. => #[]
+
+variable [Monad m] [MonadReader TraverseContext m] [MonadStateOf TraverseState m]
+
+/--
+Saves a set of example definitions to the xref database with the expected metadata.
+-/
+def saveExampleDefs (id : InternalId) (definedNames : Array (Name × String)) : m Unit := do
+  let key := (ToJson.toJson id).compress
+  let assignedIds : Option (Except String Json) := (← get).get? `Verso.Genre.Manual.saveExampleDefs
+  let assignedIds := assignedIds.bind (·.toOption) |>.getD (Json.mkObj [])
+  let mut theseIds := if let .ok v@(.obj _) := assignedIds.getObjVal? key then v else Json.mkObj []
+
+  let exampleBlock := (← read).propertyValue `Verso.Genre.Manual.exampleDefContext
+
+  let context := (← read).headers.map (·.titleString)
+  let context := exampleBlock.map context.push |>.getD context
+  for (d, s) in definedNames do
+    if d.isAnonymous then continue
+    let thisId := theseIds.getObjValAs? InternalId d.toString |>.toOption
+    let thisId ←
+      if let some i := thisId then pure i
+      else
+        let i ← freshId
+        theseIds := theseIds.setObjValAs! d.toString i
+        pure i
+    let d :=
+      if let some ex := exampleBlock then s!"{d} (in {ex})" else d.toString
+    let path ← (·.path) <$> read
+    let _ ← externalTag thisId path d
+    modify (·.saveDomainObject exampleDomain d thisId)
+    if let some link := (← get).externalTags[thisId]? then
+      modify (·.modifyDomainObjectData exampleDomain d fun v =>
+        let v := if let .obj _ := v then v else .obj {}
+        v.setObjVal! link.link (json%{"context": $context, "display": $s}))
+  let assignedIds := assignedIds.setObjVal! key theseIds
+  modify (·.set `Verso.Genre.Manual.saveExampleDefs assignedIds)
+end
+
+def TraverseState.linksFromDomain
+    (domain : Name) (canonicalName : String)
+    (shortDescription description : String)
+    (state : TraverseState) : Array Code.CodeLink :=
+  state.resolveDomainObject domain canonicalName |>.toOption |>.toArray |>.map fun l =>
+    { shortDescription, description, href := l.link }
+
+def TraverseState.exampleLinks (name : String) (state : TraverseState) (ctxt? : Option TraverseContext) : Array Code.CodeLink := Id.run do
+  let exampleBlock := ctxt?.bind (·.propertyValue `Verso.Genre.Manual.exampleDefContext)
+
+  let name := exampleBlock.map (s!"{name} (in {·})") |>.getD name
+  -- There's no `x` in the tooltip on the next line to avoid revealing suppressed namespaces
+  state.linksFromDomain exampleDomain name "def" s!"Definition of example"
+
+def TraverseState.localTargets (state : TraverseState) : Code.LinkTargets Manual.TraverseContext where
+  const := fun x ctxt? =>
+    state.linksFromDomain docstringDomain x.toString "doc" s!"Documentation for {x}" ++
+    state.exampleLinks x.toString ctxt?
+  option := fun x _ctxt? =>
+    state.linksFromDomain optionDomain x.toString "doc" s!"Documentation for option {x}"
+  keyword := fun k _ctxt? =>
+    state.linksFromDomain tacticDomain k.toString "doc" "Documentation for tactic" ++
+    state.linksFromDomain syntaxKindDomain k.toString "doc" "Documentation for syntax" ++
+    state.linksFromDomain convDomain k.toString "doc" "Documentation for conv tactic"
+
+def _root_.Verso.Multi.AllRemotes.remoteTargets (remoteContent : AllRemotes) : Code.LinkTargets ρ where
+  const := fun x _ctxt? =>
+    fromRemoteDomain docstringDomain x.toString (s!"doc ({·})") (s!"Documentation for {x} in {·}")
+  option := fun x _ctxt? =>
+    fromRemoteDomain optionDomain x.toString (s!"doc ({·})") (s!"Documentation for option {x} in {·}")
+  keyword := fun k _ctxt? =>
+    fromRemoteDomain tacticDomain k.toString (s!"doc ({·})") (s!"Documentation for tactic in {·}") ++
+    fromRemoteDomain syntaxKindDomain k.toString (s!"doc ({·})") (s!"Documentation for syntax in {·}") ++
+    fromRemoteDomain convDomain k.toString (s!"doc ({·})") (s!"Documentation for conv tactic in {·}")
+where
+
+  fromRemoteDomain (domain : Name) (canonicalName : String) (shortDescription description : String → String) : Array Code.CodeLink := Id.run do
+    remoteContent.toArray.filterMap fun (r, info) =>
+      let objs := info.getDomainObject? domain canonicalName |>.getD #[]
+      if h : objs.size = 1 then
+        some {
+          shortDescription := shortDescription info.shortName,
+          description := description info.longName,
+          href := objs[0].link.link
+        }
+      else none
+
+
+
+
+def sectionNumberString (num : Array Numbering) : String := Id.run do
+  let mut out := ""
+  for n in num do
+    out := out ++
+      match n with
+      | .nat n => s!"{n}."
+      | .letter a => s!"{a}."
+  out
+
+def sectionString (ctxt : TraverseContext) : Option String :=
+  ctxt.sectionNumber.mapM id |>.map sectionNumberString
+
+
+def sectionDomain := `Verso.Genre.Manual.section
+
+open Verso.Search in
+def sectionDomainMapper : DomainMapper := {
+  displayName := "Section",
+  className := "section-domain",
+  dataToSearchables :=
+    "(domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: `${value[0].data.sectionNum ?? ''} ${value[0].data.title}`,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: 'Verso.Genre.Manual.section',
+      ref: value,
+      priority: value[0].data.searchPriority ?? 50,
+    }))"
+  : DomainMapper }.setFont { family := .structure, weight := .bold }
+
+instance : TraversePart Manual where
+  inPart p := (·.inPart p)
+
+instance : TraverseBlock Manual where
+  inBlock b := (·.inBlock b)
+
+/--
+Sums the search-priority deviations from the neutral 50 across an array of part headers (typically
+a part's ancestor chain including itself) and recenters on 50. The result is consumed by the
+client as a log-space contribution $`\frac{p - 50}{50}`, so summing deviations here lets a chain of
+ancestor priorities influence a section's final boost additively: a long or extreme chain can
+drift outside $`[0, 99]`, but the downstream math handles that uniformly.
+-/
+def ancestorSearchPriority (headers : Array PartHeader) : Int :=
+  headers.foldl (init := 50) fun acc h =>
+    let p : Int := (h.metadata.map (·.searchPriority.val) |>.getD 50 : Nat)
+    acc + (p - 50)
+
+def savePartXref (slug : Slug) (id : InternalId) (part : Part Manual) : TraverseM Unit := do
+  let jsonMetadata :=
+    Json.arr ((← read).inPart part |>.headers.map (fun h => json%{
+      "title": $h.titleString,
+      "shortTitle": $(h.metadata.bind (·.shortTitle)),
+      "number": $(h.metadata.bind (·.assignedNumber) |>.map toString)
+    }))
+  let title := (← read).inPart part |>.headers |>.back? |>.map (·.titleString)
+  let shortTitle := (← read).inPart part |>.headers |>.back? |>.bind (·.metadata) |>.bind (·.shortTitle)
+  -- During the traverse pass, the root section (which is unnumbered) is in the header stack.
+  -- Including it causes all sections to be unnumbered, so it needs to be dropped here.
+  -- TODO: harmonize this situation with HTML generation and give it a clean API
+  let num :=
+    ((← read).inPart part |>.headers[1:]).toArray.map (fun (h : PartHeader) => h.metadata.bind (·.assignedNumber))
+      |>.mapM _root_.id |>.map sectionNumberString
+  let searchPriority := ancestorSearchPriority ((← read).inPart part |>.headers)
+  modify fun (st : TraverseState) => st.saveDomainObject sectionDomain slug.toString id |>.saveDomainObjectData sectionDomain slug.toString (json%{
+    "context": $jsonMetadata,
+    "title": $title,
+    "shortTitle": $shortTitle,
+    "sectionNum": $num,
+    "searchPriority": $searchPriority
+  })
+
+/--
+Assigns a tag to a part during traversal.
+
+This operation is careful to preserve and prioritize user-selected tags. In the first round, the
+following may occur:
+
+ * If there's no tag at all, then an internal tag is applied.
+
+ * If there's a provided tag, it is converted to an external tag and added as an xref target.
+
+In subsequent rounds, the internal tags are converted to external tags. At this point, the
+user-provided tags have already been made external. It also ensures that auto-generated tags are
+never added as xref targets.
+-/
+def tagPart
+    (part : Lean.Doc.Part Manual.Inline Manual.Block m) (metadata : m)
+    (getId : m → Option InternalId) (getTag : m → Option Tag)
+    (saveXref : Slug → InternalId → Lean.Doc.Part Manual.Inline Manual.Block m → TraverseM Unit) :
+    TraverseM Tag := do
+  let some id := getId metadata
+    | reportError "No internal ID assigned while tagging part"; return default
+  match getTag metadata with
+  | none =>
+    -- Assign an internal tag - the next round will make it external. This is done in two rounds to
+    -- give priority to user-provided tags that might otherwise anticipate the name-mangling scheme
+    let what := (← read).headers.map (·.titleString ++ "--") |>.push part.titleString |>.foldl (init := "") (· ++ ·)
+    let tag ← freshTag what id
+    return Tag.internal tag
+  | some t =>
+    -- Ensure uniqueness
+    if let some id' := (← get).tags[t]? then
+      if id != id' then
+        reportError s!"Duplicate tag '{t}'"
+    else
+      modify fun st => {st with tags := st.tags.insert t id}
+    let path := (← readThe TraverseContext).path
+    match t with
+    | Tag.external name =>
+      saveXref name id { part with metadata := some metadata }
+      -- These are the actual IDs to use in generated HTML and links and such
+      modify fun st : TraverseState => { st with externalTags := st.externalTags.insert id { path, htmlId := name } }
+      return t
+    | Tag.internal name =>
+      return (← externalTag id path name)
+    | Tag.provided n =>
+      let slug := n.sluggify
+      -- Convert to an external tag, and fail if we can't (users should control their link IDs)
+      let external := Tag.external slug
+
+      let t ← if let some id' := (← get).tags[external]? then
+        if id != id' then reportError s!"Duplicate tag '{t}'"
+          pure t
+        else
+          modify fun st => { st with
+              tags := st.tags.insert external id,
+              externalTags := st.externalTags.insert id { path, htmlId := slug }
+            }
+          pure external
+      return t
+
+
+instance : Traverse Manual TraverseM where
+  part p := private
+    if p.metadata.isNone then pure (some {}) else pure none
+  block _ := private pure ()
+  inline _ := private pure ()
+  genrePart startMeta part := private do
+    let mut «meta» := startMeta
+
+    -- First, assign a unique ID if there is none
+    let id ← if let some i := meta.id then pure i else freshId
+    «meta» := { «meta» with id := some id }
+
+    -- Next, assign a tag, prioritizing user-chosen external IDs
+    «meta» := { «meta» with tag := ← tagPart part «meta» (·.id) (·.tag) savePartXref }
+
+    -- Assign section numbers to subsections
+    let mut i := 1
+    let mut subs := #[]
+    let mut modifiedSubs := false
+    for s in part.subParts do
+      let mut subMeta := s.metadata.getD {}
+      if subMeta.number then
+        if subMeta.assignedNumber != some (.nat i) then
+          subMeta := { subMeta with assignedNumber := some (.nat i) }
+        i := i + 1
+      else
+        if subMeta.assignedNumber.isSome then
+          subMeta := { subMeta with assignedNumber := none }
+      if s.metadata == some subMeta then
+        subs := subs.push s
+      else
+        subs := subs.push <| { s with metadata :=  subMeta }
+        modifiedSubs := true
+
+
+    pure <|
+      if not modifiedSubs && «meta» == startMeta then none
+      else pure { part with metadata := some «meta», subParts := subs }
+
+  genreBlock := private fun
+    | ⟨name, id?, data, props⟩, content => do
+      if let some id := id? then
+        if let some impl := (← readThe ExtensionImpls).getBlock? name then
+          modify fun s => { s with
+            toHtmlAssets := s.toHtmlAssets.combine impl.toHtmlAssets
+            texPackages := s.texPackages.insertMany impl.usePackages
+            texPreambleItems := s.texPreambleItems.insertMany impl.preamble
+          }
+
+          impl.traverse id data content
+        else
+          reportError s!"No block traversal implementation found for {name}"
+          pure none
+      else
+        -- Assign a fresh ID if there is none. It can then be used on the next traversal pass.
+        let id ← freshId
+        pure <| some <| Block.other ⟨name, some id, data, props⟩ content
+  genreInline := private fun
+    | ⟨name, id?, data⟩, content => do
+      if let some id := id? then
+        if let some impl := (← readThe ExtensionImpls).getInline? name then
+          modify fun s => { s with
+            toHtmlAssets := s.toHtmlAssets.combine impl.toHtmlAssets
+            texPackages := s.texPackages.insertMany impl.usePackages
+            texPreambleItems := s.texPreambleItems.insertMany impl.preamble
+          }
+
+          impl.traverse id data content
+        else
+          reportError s!"No inline traversal implementation found for {name}"
+          pure none
+      else
+        -- Assign a fresh ID if there is none. It can then be used on the next traversal pass.
+        let id ← freshId
+        pure <| some <| Inline.other ⟨name, some id, data⟩ content
+
+open Verso.Output.TeX in
+instance : TeX.GenreTeX Manual (ReaderT ExtensionImpls (BuildLogT IO)) where
+  part go metadata txt := do
+    let st ← TeX.state
+    let label? := do
+      let id ← metadata.id
+      let link ← st.externalTags[id]?
+      pure <| labelForTeX link.htmlId
+    go txt label?
+  block goI goB b content := do
+    let some id := b.id
+      | panic! s!"Block {b.name} wasn't assigned an ID during traversal"
+    let some descr := (← readThe ExtensionImpls).getBlock? b.name
+      | panic! s!"Unknown block {b.name} while rendering.\n\nKnown blocks: {(← readThe ExtensionImpls).blockDescrs.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)}"
+    let some impl := descr.toTeX
+      | reportError s!"Block {b.name} doesn't support TeX"
+        return .empty
+    impl goI goB id b.data content
+  inline go i content := do
+    let some id := i.id
+      | panic! s!"Inline {i.name} wasn't assigned an ID during traversal"
+    let some descr := (← readThe ExtensionImpls).getInline? i.name
+      | panic! s!"Unknown inline {i.name} while rendering.\n\nKnown inlines: {(← readThe ExtensionImpls).inlineDescrs.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)}"
+    let some impl := descr.toTeX
+      | reportError s!"Inline {i.name} doesn't support TeX"
+        return .empty
+    impl go id i.data content
+
+
+def sectionHtml (ctxt : TraverseContext) : Html :=
+  match sectionString ctxt with
+  | none => .empty
+   -- Non-breaking space because section numbers shouldn't end up on a line alone
+  | some s => .text true (s ++ " ")
+
+open Html in
+/--
+Create a permalink widget for sharing links to content.
+
+If the provided state contains a canonical name for the object with the given ID in some domain,
+then the returned HTML can be used to indicate this to users and give them a stable link to the
+content. If the object has multiple names, or has names in multiple domains, then one of them is
+selected arbitrarily. The returned HTML should be included within the HTML that represents the
+object, rather than adjacent to it.
+-/
+def permalink (id : InternalId) (st : TraverseState) (inline : Bool := true) : Html := Id.run do
+  let mut candidates := #[]
+  for (dom, {objectsById, ..}) in st.domains do
+    if let some canonicalNames := objectsById[id]? then
+      for n in canonicalNames do
+        candidates := candidates.push (dom, n)
+  if h : candidates.size = 0 then .empty
+  else
+    -- If there's multiple, select one arbitrarily.
+    let (domain, canonicalName) := candidates[0]
+    let classes := "permalink-widget " ++ if inline then "inline" else "block"
+    {{<span class={{classes}}>
+        <a href=s!"/find/?domain={domain}&name={canonicalName}" title="Permalink">"🔗"</a>
+      </span>
+    }}
+
+
+open Verso.Output.Html in
+instance : Html.GenreHtml Manual (ReaderT AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))) where
+  part go «meta» txt := do
+    let st ← Verso.Doc.Html.HtmlT.state
+    let attrs := meta.id.map (st.htmlId) |>.getD #[]
+    let ctxt ← Verso.Doc.Html.HtmlT.context
+    let sectionNumber : Html := sectionHtml ctxt
+    let permalink? m :=
+      if let some id := m.id then permalink id st
+      else .empty
+    let mkHeader lvl content :=
+      .tag s!"h{lvl}" attrs (sectionNumber ++ content ++ permalink? «meta»)
+    go txt mkHeader
+
+  block goI goB b content := do
+    let some id := b.id
+      | panic! s!"Block {b.name} wasn't assigned an ID during traversal"
+    let some descr := (← readThe ExtensionImpls).getBlock? b.name
+      | panic! s!"Unknown block {b.name} while rendering HTML.\n\nKnown blocks: {(← readThe ExtensionImpls).blockDescrs.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)}"
+    let some impl := descr.toHtml
+      | panic! s!"Block {b.name} doesn't support HTML"
+    impl goI goB id b.data content
+
+  inline go i content := do
+    let some id := i.id
+      | panic! s!"Inline {i.name} wasn't assigned an ID during traversal"
+    let some descr := (← readThe ExtensionImpls).getInline? i.name
+      | panic! s!"Unknown inline {i.name} with data {i.data} while rendering HTML.\n\nKnown inlines: {(← readThe ExtensionImpls).inlineDescrs.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)}"
+    let some impl := descr.toHtml
+      | panic! s!"Inline {i.name} doesn't support HTML"
+    impl go id i.data content
