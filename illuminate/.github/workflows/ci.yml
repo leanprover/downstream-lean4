@@ -1,0 +1,53 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+
+            - name: Cache Playwright browsers
+              uses: actions/cache@v4
+              with:
+                  path: .playwright-browsers
+                  key: playwright-${{ runner.os }}-${{ hashFiles('test_playwright.py') }}
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Inkscape Docker image
+              uses: docker/build-push-action@v6
+              with:
+                  context: visual_tests
+                  tags: illuminate-inkscape
+                  load: true
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - uses: leanprover/lean-action@v1
+              with:
+                  build-args: --wfail
+                  test-args: --wfail
+
+            - name: Type check player JS
+              run: npx tsc --noEmit -p player_js/jsconfig.json
+
+            - name: Check imports with lake shake
+              run: lake shake
+
+            - name: Visual and structural tests
+              run: uv run test_playwright.py

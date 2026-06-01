@@ -1,0 +1,504 @@
+/-
+Copyright (c) 2026 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+public import Illuminate.Diagram.Placement
+import Lean.DocString.Syntax
+public import Illuminate.Style.Stroke
+public section
+
+
+namespace Illuminate
+
+/-- A label to place on a connection. -/
+structure Label (β : Type) where
+  /-- The label diagram (typically text). -/
+  label : Diagram β
+  /-- Position along the curve as a parameter from 0 (start) to 1 (end). -/
+  pos : Float := 0.5
+  /-- Additional offset after automatic placement. -/
+  shift : Vec2 := 0
+  /-- When true, the label keeps its original orientation instead of rotating to follow the arrow. -/
+  upright : Bool := false
+
+instance {β : Type} : Coe (Diagram β) (Label β) where
+  coe label := { label }
+
+
+/-!
+# Arrowhead rendering
+-/
+
+namespace ArrowDraw
+
+variable {β : Type} [Backend β]
+
+/-- Default base length of arrowheads (before scaling). -/
+private def baseHeadLen : Float := 8.0
+
+/-- Default half-angle of open/stealth arrowheads in radians (~23°). -/
+private def headAngle : Float := 0.4
+
+/--
+Computes the minimum half-angle so the arrowhead covers the shaft at its end point.
+For stealth, the shaft ends at the notch (headLen/2); for triangle, at the base.
+-/
+private def minHalfAngle (ah : Arrowhead) (strokeWidth : Float) : Float :=
+  let headLen := baseHeadLen * ah.length
+  match ah.type with
+  | .stealth =>
+    -- At notch (headLen*0.5 from tip), width = headLen * tan(a). Need >= strokeWidth.
+    if headLen > 0.001 then Float.atan (strokeWidth / headLen) else 0
+  | .triangle =>
+    -- At base, width = 2*headLen*sin(a). Need >= strokeWidth.
+    let ratio := strokeWidth / (2 * headLen)
+    if headLen > 0.001 && ratio < 1 then Float.asin ratio else 0
+  | _ => 0
+
+/--
+Computes how much the shaft must be shortened for a given arrowhead type.
+Takes the stroke width to match the minimum angle enforcement in {name scope:="Illuminate.Diagram.Arrow"}`drawArrowhead`.
+-/
+def arrowheadShorten (ah : Arrowhead) (strokeWidth : Float) : Float :=
+  let headLen := baseHeadLen * ah.length
+  let halfAngle := max (headAngle * ah.width) (minHalfAngle ah strokeWidth)
+  match ah.type with
+  | .latex => 0
+  | .stealth => headLen * 0.5
+  | .triangle => headLen * Float.cos halfAngle
+  | .circle => headLen * 0.4 * 2
+
+/--
+Draws an arrowhead at {name}`tip` pointing in direction {name}`dir`.
+Returns the arrowhead diagram and the amount the shaft should be shortened
+to avoid overlapping the head.
+-/
+def drawArrowhead (ah : Arrowhead) (tip dir : Vec2) (stroke : Stroke) :
+    Diagram β × Float :=
+  let headLen := baseHeadLen * ah.length
+  -- For filled arrowheads, enforce minimum angle so the arrowhead covers the shaft
+  let halfAngle := max (headAngle * ah.width) (minHalfAngle ah stroke.width)
+  let n := dir.normalize
+  match ah.type with
+  | .latex =>
+    let cosA := Float.cos halfAngle
+    let sinA := Float.sin halfAngle
+    let ld : Vec2 := ⟨-(n.x * cosA - n.y * sinA), -(n.y * cosA + n.x * sinA)⟩
+    let rd : Vec2 := ⟨-(n.x * cosA + n.y * sinA), -(n.y * cosA - n.x * sinA)⟩
+    let path := PathData.empty
+      |>.moveTo (tip + headLen • ld)
+      |>.lineTo tip
+      |>.lineTo (tip + headLen • rd)
+    (Diagram.fromStroke path stroke, 0)
+  | .stealth =>
+    let cosA := Float.cos halfAngle
+    let sinA := Float.sin halfAngle
+    let ld : Vec2 := ⟨-(n.x * cosA - n.y * sinA), -(n.y * cosA + n.x * sinA)⟩
+    let rd : Vec2 := ⟨-(n.x * cosA + n.y * sinA), -(n.y * cosA - n.x * sinA)⟩
+    let notch := tip + (headLen * 0.5) • (-n)
+    let path := PathData.empty
+      |>.moveTo tip
+      |>.lineTo (tip + headLen • ld)
+      |>.lineTo notch
+      |>.lineTo (tip + headLen • rd)
+      |>.close
+    let noStroke : Stroke := { width := 0 }
+    (Diagram.fromPath path (fill := .solid stroke.color) (stroke := noStroke), headLen * 0.5)
+  | .triangle =>
+    let cosA := Float.cos halfAngle
+    let sinA := Float.sin halfAngle
+    let ld : Vec2 := ⟨-(n.x * cosA - n.y * sinA), -(n.y * cosA + n.x * sinA)⟩
+    let rd : Vec2 := ⟨-(n.x * cosA + n.y * sinA), -(n.y * cosA - n.x * sinA)⟩
+    let path := PathData.empty
+      |>.moveTo tip
+      |>.lineTo (tip + headLen • ld)
+      |>.lineTo (tip + headLen • rd)
+      |>.close
+    let noStroke : Stroke := { width := 0 }
+    (Diagram.fromPath path (fill := .solid stroke.color) (stroke := noStroke), headLen * cosA)
+  | .circle =>
+    let r := headLen * 0.4
+    let center := tip - r • n
+    let noStroke : Stroke := { width := 0 }
+    let d := Diagram.transform (Matrix.translate center.x center.y)
+      (Diagram.circle r (fill := .solid stroke.color) (stroke := noStroke))
+    (d, r * 2)
+
+/-!
+# Bézier curve computation
+-/
+
+/-- Evaluates a cubic Bézier curve at parameter {name}`t`. -/
+def bezierAt (p0 c1 c2 p3 : Vec2) (t : Float) : Vec2 :=
+  let u := 1 - t
+  (u * u * u) • p0 + (3 * u * u * t) • c1 + (3 * u * t * t) • c2 + (t * t * t) • p3
+
+/-- Computes the tangent (first derivative) of a cubic Bézier at parameter {name}`t`. -/
+def bezierTangent (p0 c1 c2 p3 : Vec2) (t : Float) : Vec2 :=
+  let u := 1 - t
+  (3 * u * u) • (c1 - p0) + (6 * u * t) • (c2 - c1) + (3 * t * t) • (p3 - c2)
+
+
+/-- Computes the unit direction vector for a given angle in radians. -/
+private def angleDir (θ : Float) : Vec2 := ⟨Float.cos θ, Float.sin θ⟩
+
+/-- Computes the angle (in radians) from {name}`a` to {name}`b`. -/
+def angleBetween (a b : Vec2) : Float :=
+  Float.atan2 (b.y - a.y) (b.x - a.x)
+
+/--
+Computes cubic Bézier control points for a line between two resolved endpoints.
+
+Each endpoint has an angle (the direction the line departs/arrives) and a pull
+(how far the control point extends as a fraction of the endpoint distance).
+This matches Racket pict's {lit}`pin-arrow-line` behaviour:
+- $`c1 = src + pull × dist × dir(srcAngle)`
+- $`c2 = tgt - pull × dist × dir(tgtAngle)`
+-/
+def computeControlPoints (src tgt : Vec2)
+    (srcAngle tgtAngle : Float) (srcPull tgtPull : Float) :
+    Vec2 × Vec2 :=
+  let dist := (tgt - src).length
+  let c1 := src + (srcPull * dist) • angleDir srcAngle
+  let c2 := tgt - (tgtPull * dist) • angleDir tgtAngle
+  (c1, c2)
+
+/-!
+# High-level line/arrow drawing
+-/
+
+/--
+Draws a line or arrow between two resolved points with the given endpoint specs.
+This is the low-level function that operates on concrete {name}`Vec2` positions.
+-/
+def drawLine (srcPos tgtPos : Vec2)
+    (srcEnd tgtEnd : LineEnd) (stroke : Stroke := .defaultArrow) :
+    Diagram β :=
+  let straightAngle := angleBetween srcPos tgtPos
+  let srcAngle := srcEnd.angle.getD straightAngle
+  let tgtAngle := tgtEnd.angle.getD straightAngle
+  -- Compute control points for the full curve
+  let (c1, c2) := computeControlPoints srcPos tgtPos srcAngle tgtAngle srcEnd.pull tgtEnd.pull
+  -- Sample the Bézier near each tip to get visual arrowhead directions
+  let dist := (tgtPos - srcPos).length
+  let srcVisualDir := match srcEnd.arrowhead with
+    | some ah =>
+      let headLen := baseHeadLen * ah.length
+      let δ := min 0.15 (headLen / dist)
+      (srcPos - bezierAt srcPos c1 c2 tgtPos δ).normalize
+    | none => Vec2.zero
+  let tgtVisualDir := match tgtEnd.arrowhead with
+    | some ah =>
+      let headLen := baseHeadLen * ah.length
+      let δ := min 0.15 (headLen / dist)
+      (tgtPos - bezierAt srcPos c1 c2 tgtPos (1 - δ)).normalize
+    | none => Vec2.zero
+  -- Shorten shaft along the visual arrowhead direction so it doesn't poke
+  -- through filled heads. For unfilled heads (latex), the shaft meets the tip.
+  let srcShorten := match srcEnd.arrowhead with
+    | some ah => arrowheadShorten ah stroke.width
+    | none => 0.0
+  let tgtShorten := match tgtEnd.arrowhead with
+    | some ah => arrowheadShorten ah stroke.width
+    | none => 0.0
+  let shaftSrc := srcPos - srcShorten • srcVisualDir
+  let shaftTgt := tgtPos - tgtShorten • tgtVisualDir
+  -- Recompute control points for shortened shaft
+  let (sc1, sc2) := computeControlPoints shaftSrc shaftTgt srcAngle tgtAngle srcEnd.pull tgtEnd.pull
+  -- Draw arrowheads using the visual directions
+  let srcHead := match srcEnd.arrowhead with
+    | some ah => some (drawArrowhead ah srcPos srcVisualDir stroke).1
+    | none => none
+  let tgtHead := match tgtEnd.arrowhead with
+    | some ah => some (drawArrowhead ah tgtPos tgtVisualDir stroke).1
+    | none => none
+  -- Determine if this is a straight line (default angles, no pull override making it curved)
+  let isStraight := srcEnd.angle.isNone && tgtEnd.angle.isNone &&
+    srcEnd.pull == 0.25 && tgtEnd.pull == 0.25
+  let shaft :=
+    if isStraight then
+      Diagram.fromStroke (PathData.line shaftSrc shaftTgt) stroke
+    else
+      Diagram.fromStroke
+        (PathData.empty |>.moveTo shaftSrc |>.curveTo sc1 sc2 shaftTgt) stroke
+  -- Compose
+  let result := shaft
+  let result := match srcHead with | some h => Diagram.atop h result | none => result
+  let result := match tgtHead with | some h => Diagram.atop h result | none => result
+  result
+
+end ArrowDraw
+
+/-!
+# Diagram-level API
+-/
+
+/--
+Builds the arrow diagram between two concrete points with the given endpoint specs and label.
+-/
+private def buildArrow {β : Type} [Backend β] (srcPos tgtPos : Vec2)
+    (start stop : LineEnd) (stroke : Stroke)
+    (label : Option (Label β) := none)
+    (labelUpright : Bool := false) : Diagram β :=
+  let arrow := ArrowDraw.drawLine srcPos tgtPos start stop stroke
+  match label with
+  | none => arrow
+  | some lbl =>
+    let straightAngle := ArrowDraw.angleBetween srcPos tgtPos
+    let srcAngle := start.angle.getD straightAngle
+    let tgtAngle := stop.angle.getD straightAngle
+    let (c1, c2) := ArrowDraw.computeControlPoints srcPos tgtPos srcAngle tgtAngle start.pull stop.pull
+    let mid := ArrowDraw.bezierAt srcPos c1 c2 tgtPos lbl.pos
+    let tangent := ArrowDraw.bezierTangent srcPos c1 c2 tgtPos lbl.pos
+    let n := tangent.normalize
+    let chord := tgtPos - srcPos
+    let chordMid := (0.5 : Float) • (srcPos + tgtPos)
+    let bulge := mid - chordMid
+    let bulgeCross := chord.x * bulge.y - chord.y * bulge.x
+    let rawPerp : Vec2 := ⟨-n.y, n.x⟩
+    let perp := if bulgeCross.abs < 1e-6 then rawPerp
+                else if (rawPerp.x * bulge.x + rawPerp.y * bulge.y) > 0 then rawPerp
+                else -rawPerp
+    if let .nonempty labelEnv := lbl.label.getEnvelope then
+      let isUpright := lbl.upright || labelUpright
+      let pos :=
+        if isUpright then
+          let extent := labelEnv (-perp)
+          mid + (extent + stroke.width + 6) • perp + lbl.shift
+        else
+          let labelH := (labelEnv Vec2.north + labelEnv Vec2.south) / 2
+          mid + (labelH + stroke.width + 4) • perp + lbl.shift
+      let labelXform :=
+        if isUpright then
+          Matrix.translate pos.x pos.y
+        else
+          let halfPi := pi / 2
+          let angle := let a := Float.atan2 n.y n.x
+            if a > halfPi || a < -halfPi then a + pi else a
+          Matrix.mul (Matrix.translate pos.x pos.y) (Matrix.rotate angle)
+      Diagram.atop (Diagram.transform labelXform lbl.label) arrow
+    else
+      let isUpright := lbl.upright || labelUpright
+      let labelXform :=
+        if isUpright then
+          Matrix.identity
+        else
+          let halfPi := pi / 2
+          let angle := let a := Float.atan2 n.y n.x
+            if a > halfPi || a < -halfPi then a + pi else a
+          Matrix.rotate angle
+      Diagram.atop (Diagram.transform labelXform lbl.label) arrow |>.warning "Label has no envelope"
+
+/--
+Draws a line or arrow between two points.
+-/
+def Diagram.connect' {β : Type} [Backend β] (srcPoint tgtPoint : Point) (start stop : LineEnd)
+    (stroke : Stroke := .defaultArrow)
+    (arrowhead : Option Arrowhead := none)
+    (label : Option (Label β) := none)
+    (d : Diagram β) : Diagram β :=
+  let stop' := { stop with arrowhead := stop.arrowhead <|> arrowhead }
+  let src := srcPoint.toVec2 + start.shift
+  let tgt := tgtPoint.toVec2 + stop.shift
+  .compose d (buildArrow src tgt start stop' stroke label)
+
+/--
+Draws a line or arrow between two named anchor points in a diagram.
+
+Without a label, stores the arrow specification as a deferred {name}`Diagram.arrow`
+node so that the morph system can match arrows by their logical endpoints.
+With a label, resolves eagerly since label placement needs full curve geometry.
+-/
+def Diagram.connect {β : Type} [Backend β] (start stop : LineEnd)
+    (stroke : Stroke := .defaultArrow)
+    (arrowhead : Option Arrowhead := none)
+    (label : Option (Label β) := none)
+    (d : Diagram β) : Diagram β :=
+  let stop' := { stop with arrowhead := stop.arrowhead <|> arrowhead }
+  match label with
+  | none => .arrow start stop' stroke false d
+  | some _ =>
+    -- Eager resolution for labeled arrows (label placement needs curve geometry)
+    let srcPoint := (d.find start.point).origin
+    let tgtPoint := (d.find stop.point).origin
+    let src := srcPoint.toVec2 + start.shift
+    let tgt := tgtPoint.toVec2 + stop'.shift
+    .compose d (buildArrow src tgt start stop' stroke label)
+
+/-- Direction for the bend in an L-shaped connection. -/
+inductive BendDirection where
+  /-- The line goes horizontally first, then vertically. -/
+  | horizontal
+  /-- The line goes vertically first, then horizontally. -/
+  | vertical
+deriving Repr, BEq, Inhabited
+
+/--
+Draws an L-shaped (right-angle) line or arrow between two points.
+{name}`bend` controls whether the line goes horizontally or vertically first.
+-/
+def Diagram.connectL' {β : Type} [Backend β] (srcPoint tgtPoint : Point) (start stop : LineEnd)
+    (bend : BendDirection := .vertical)
+    (stroke : Stroke := .defaultArrow)
+    (d : Diagram β) : Diagram β :=
+  let src := srcPoint.toVec2 + start.shift
+  let tgt := tgtPoint.toVec2 + stop.shift
+  let startAh := start.arrowhead
+  let stopAh := stop.arrowhead
+  let mid : Vec2 := match bend with
+    | .vertical => ⟨src.x, tgt.y⟩
+    | .horizontal => ⟨tgt.x, src.y⟩
+  let lPath := PathData.empty
+    |>.moveTo src
+    |>.lineTo mid
+    |>.lineTo tgt
+  let shaft := Diagram.fromStroke lPath stroke
+  let heads := match startAh with
+    | some ah =>
+      let dir := (src - mid).normalize
+      (ArrowDraw.drawArrowhead ah src dir stroke).1
+    | none => .empty
+  let heads := match stopAh with
+    | some ah =>
+      let dir := (tgt - mid).normalize
+      Diagram.compose heads (ArrowDraw.drawArrowhead ah tgt dir stroke).1
+    | none => heads
+  .compose d ([shaft, heads].foldl Diagram.compose .empty)
+
+/--
+Draws an L-shaped (right-angle) line or arrow between two named anchor points.
+{name}`bend` controls whether the line goes horizontally or vertically first.
+-/
+def Diagram.connectL {β : Type} [Backend β] (start stop : LineEnd)
+    (bend : BendDirection := .vertical)
+    (stroke : Stroke := .defaultArrow)
+    (d : Diagram β) : Diagram β :=
+  let srcPoint := (d.find start.point).origin
+  let tgtPoint := (d.find stop.point).origin
+  d.connectL' srcPoint tgtPoint start stop bend stroke
+
+/--
+Draws a U-shaped (double right-angle) line or arrow between two points.
+The path has three segments: out from the source, across, then into the target.
+The {name}`offset` controls how far the middle segment is displaced from the
+endpoints. Positive values go right/up relative to the {name}`bend` direction.
+-/
+def Diagram.connectU' {β : Type} [Backend β] (srcPoint tgtPoint : Point) (start stop : LineEnd)
+    (offset : Float)
+    (bend : BendDirection := .vertical)
+    (stroke : Stroke := .defaultArrow)
+    (label : Option (Label β) := none)
+    (d : Diagram β) : Diagram β :=
+  let src := srcPoint.toVec2 + start.shift
+  let tgt := tgtPoint.toVec2 + stop.shift
+  let startAh := start.arrowhead
+  let stopAh := stop.arrowhead
+  let (mid1, mid2) := match bend with
+    | .vertical =>
+      -- Out horizontally to offset, then vertically, then horizontally back
+      (Vec2.mk offset src.y, Vec2.mk offset tgt.y)
+    | .horizontal =>
+      -- Out vertically to offset, then horizontally, then vertically back
+      (Vec2.mk src.x offset, Vec2.mk tgt.x offset)
+  let uPath := PathData.empty
+    |>.moveTo src
+    |>.lineTo mid1
+    |>.lineTo mid2
+    |>.lineTo tgt
+  let shaft := Diagram.fromStroke uPath stroke
+  let heads := match startAh with
+    | some ah =>
+      let dir := (src - mid1).normalize
+      (ArrowDraw.drawArrowhead ah src dir stroke).1
+    | none => .empty
+  let heads := match stopAh with
+    | some ah =>
+      let dir := (tgt - mid2).normalize
+      Diagram.compose heads (ArrowDraw.drawArrowhead ah tgt dir stroke).1
+    | none => heads
+  let arrow := [shaft, heads].foldl Diagram.compose .empty
+  -- Place label at midpoint of the middle segment, offset perpendicular to it
+  let arrowWithLabel := match label with
+    | none => arrow
+    | some lbl =>
+      let midPt := (0.5 : Float) • (mid1 + mid2)
+      let segDir := (mid2 - mid1).normalize
+      let perp := Vec2.mk (-segDir.y) segDir.x
+      if let .nonempty labelEnv := lbl.label.getEnvelope then
+        let extent := labelEnv perp
+        let pos := midPt + (extent + stroke.width + 4) • perp + lbl.shift
+        Diagram.atop (Diagram.transform (Matrix.translate pos.x pos.y) lbl.label) arrow
+      else
+        Diagram.atop (Diagram.transform (Matrix.translate midPt.x midPt.y) lbl.label) arrow
+  .compose d arrowWithLabel
+
+/--
+Draws a U-shaped (double right-angle) line or arrow between two named anchor points.
+The {name}`offset` controls the position of the middle segment.
+-/
+def Diagram.connectU {β : Type} [Backend β] (start stop : LineEnd)
+    (offset : Float)
+    (bend : BendDirection := .vertical)
+    (stroke : Stroke := .defaultArrow)
+    (label : Option (Label β) := none)
+    (d : Diagram β) : Diagram β :=
+  let srcPoint := (d.find start.point).origin
+  let tgtPoint := (d.find stop.point).origin
+  d.connectU' srcPoint tgtPoint start stop offset bend stroke label
+
+/--
+Draws a line or arrow between two named shapes using trace-based boundary detection.
+Instead of connecting to explicit anchor points (like {lit}`node.north`), this finds the
+named subdiagrams, computes the direction between their centers, and uses traces to
+find where the arrow should start and end on each shape's boundary.
+
+When an endpoint specifies an explicit angle, it is interpreted as the absolute direction
+from the shape's center to the connection point on its boundary: {lit}`0` connects on the
+right, {name}`pi` on the left, {lean}`pi / 2` on the top, etc. Without an explicit angle, the
+center-to-center direction is used.
+-/
+def Diagram.connectEdge {β : Type} [Backend β] (start stop : LineEnd)
+    (stroke : Stroke := .defaultArrow)
+    (arrowhead : Option Arrowhead := none)
+    (label : Option (Label β) := none)
+    (d : Diagram β) : Diagram β :=
+  let stop' := { stop with arrowhead := stop.arrowhead <|> arrowhead }
+  match label with
+  | none => .arrow start stop' stroke true d
+  | some _ =>
+    -- Eager resolution for labeled arrows (label placement needs curve geometry)
+    let srcSub := d.find start.point
+    let tgtSub := d.find stop'.point
+    let srcCenter := srcSub.origin.toVec2
+    let tgtCenter := tgtSub.origin.toVec2
+    let defaultDir := (tgtCenter - srcCenter).normalize
+    let srcDir := match start.angle with
+      | some a => Vec2.mk (Float.cos a) (Float.sin a)
+      | none => defaultDir
+    let tgtDir := match stop'.angle with
+      | some a => Vec2.mk (Float.cos a) (Float.sin a)
+      | none => -defaultDir
+    let srcTrace := Diagram.getStrokeTrace srcSub
+    let tgtTrace := Diagram.getStrokeTrace tgtSub
+    let diagHalf := stroke.width / 2
+    let tipOffset (ah? : Option Arrowhead) : Float := match ah? with
+      | some ah =>
+        match ah.type with
+        | .latex =>
+          let halfAngle := 0.4 * ah.width
+          if halfAngle > 0.01 then stroke.width / (2 * Float.sin halfAngle)
+          else diagHalf
+        | _ => diagHalf
+      | none => 0
+    let src := match srcTrace.farthest (Point.ofVec2 srcCenter) srcDir with
+      | some hit => srcCenter + (hit.edge + hit.width + tipOffset start.arrowhead) • srcDir + start.shift
+      | none => srcCenter + start.shift
+    let tgt := match tgtTrace.farthest (Point.ofVec2 tgtCenter) tgtDir with
+      | some hit => tgtCenter + (hit.edge + hit.width + tipOffset stop'.arrowhead) • tgtDir + stop'.shift
+      | none => tgtCenter + stop'.shift
+    let stop'' := match stop'.angle with
+      | some a => { stop' with angle := some (a + pi) }
+      | none => stop'
+    .compose d (buildArrow src tgt start stop'' stroke label)
