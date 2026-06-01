@@ -6,8 +6,24 @@ rev = "master"
 url = "https://github.com/leanprover-community/batteries"
 rev = "main"
 
+[BibtexQuery]
+url = "https://github.com/dupuisf/BibtexQuery"
+rev = "master"
+
+[comparator]
+url = "https://github.com/leanprover/comparator"
+rev = "master"
+
 [cslib]
 url = "https://github.com/leanprover/cslib"
+rev = "main"
+
+[doc-gen4]
+url = "https://github.com/leanprover/doc-gen4"
+rev = "main"
+
+[illuminate]
+url = "https://github.com/leanprover/illuminate"
 rev = "main"
 
 [import-graph]
@@ -18,8 +34,20 @@ rev = "main"
 url = "https://github.com/leanprover/lean4-cli"
 rev = "main"
 
+[lean4-unicode-basic]
+url = "https://github.com/fgdorais/lean4-unicode-basic"
+rev = "main"
+
+[lean4export]
+url = "https://github.com/leanprover/lean4export"
+rev = "master"
+
 [LeanSearchClient]
 url = "https://github.com/leanprover-community/LeanSearchClient"
+rev = "main"
+
+[leansqlite]
+url = "https://github.com/leanprover/leansqlite"
 rev = "main"
 
 [mathlib4]
@@ -37,3 +65,19 @@ rev = "main"
 [quote4]
 url = "https://github.com/leanprover-community/quote4"
 rev = "master"
+
+[repl]
+url = "https://github.com/leanprover-community/repl"
+rev = "master"
+
+[verso]
+url = "https://github.com/leanprover/verso"
+rev = "main"
+
+[verso-slides]
+url = "https://github.com/leanprover/verso-slides"
+rev = "main"
+
+[verso-web-components]
+url = "https://github.com/leanprover/verso-web-components"
+rev = "main"
