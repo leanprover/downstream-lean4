@@ -1,0 +1,45 @@
+.authors li,
+.links li {
+    display: inline;
+    list-style: none;
+}
+
+ol.authors {
+    margin: 0px;
+    padding: 0px;
+}
+
+.publication ol.authors li:after,
+.publication ul.links li:after {
+    content: ", ";
+}
+
+.publication ol.authors li:last-child:after,
+.publication ul.links li:last-child:after {
+    content: ".";
+}
+
+.publication .links::after,
+.publication .authors::after {
+    content: '\A';
+    white-space: pre;
+}
+
+.publication .title::before {
+    content: "“";
+}
+
+.publication .title::after {
+    content: "”";
+}
+
+.publication ul.links {
+    margin: 0;
+    padding: 0;
+    display: inline;
+}
+
+.publication ul.links li {
+    display: inline;
+    list-style: none;
+}

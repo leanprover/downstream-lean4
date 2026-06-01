@@ -1,0 +1,84 @@
+.button {
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-12);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    justify-content: center;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+a.primary {
+    background: var(--color-primary);
+    color: var(--color-text-contrast);
+    fill: var(--color-text-contrast);
+}
+
+a.primary svg {
+    fill: var(--color-text-contrast);
+}
+
+a.primary:hover {
+    background: var(--color-primary-light) !important;
+    color: var(--color-text-contrast) !important;
+    border: 0px !important;
+}
+
+a.primary:focus {
+    background: var(--color-primary-focus);
+    color: var(--color-text-contrast);
+}
+
+.secondary {
+    border: 2px solid var(--color-primary);
+    background: var(--color-white);
+    color: var(--color-primary);
+}
+
+.secondary:hover {
+    background: var(--color-primary);
+    fill: var(--color-text-contrast);
+    color: var(--color-text-contrast);
+}
+
+.secondary:hover svg {
+    fill: var(--color-text-contrast);
+}
+
+.primary.inverted {
+    background: var(--color-text-contrast);
+    color: var(--color-primary);
+    fill: var(--color-primary);
+}
+
+.primary.inverted svg {
+    fill: var(--color-text-contrast);
+}
+
+.primary.inverted:hover {
+    background: #e9e9e9;
+}
+
+.primary.inverted:focus {
+    background: var(--color-primary-focus);
+    color: var(--color-text-contrast);
+}
+
+.secondary.inverted {
+    border: 2px solid var(--color-text-contrast);
+    background: transparent;
+    color: var(--color-text-contrast);
+}
+
+.secondary.inverted:hover {
+    background: var(--color-text-contrast);
+    fill: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.secondary.inverted:hover svg {
+    fill: var(--color-white);
+}

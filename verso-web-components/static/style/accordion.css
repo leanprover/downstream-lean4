@@ -1,0 +1,27 @@
+ summary {
+    font-weight: bold;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.accordion summary::-webkit-details-marker {
+    display: none;
+}
+
+.accordion summary::after {
+    content: "▶";
+    display: inline-block;
+    margin-left: 0.5em;
+    transition: transform 0.2s ease;
+}
+
+details.accordion[open] summary::after {
+    transform: rotate(90deg);
+}
+
+details.accordion {
+    border-bottom: 1px solid var(--color-border);
+}

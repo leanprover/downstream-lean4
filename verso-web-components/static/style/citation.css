@@ -1,0 +1,40 @@
+.citations-section {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--color-border);
+}
+
+.citations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: citation-counter;
+}
+
+.citation-item {
+    counter-increment: citation-counter;
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.citation-item::before {
+    content: "[" counter(citation-counter) "]";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 700;
+    color: var(--color-primary);
+    min-width: 2.5rem;
+}
+
+.citation-ref {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9em;
+    vertical-align: super;
+    line-height: 0;
+}

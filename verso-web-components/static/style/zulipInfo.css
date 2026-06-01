@@ -1,0 +1,84 @@
+
+.zulip-info {
+    display: flex;
+    gap: 30px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-12);
+    background-color: var(--card-bg);
+    transition: background-color var(--transition-base), border-color var(--transition-base);
+    align-items: center;
+    position: relative;
+    overflow: visible;
+    margin: 50px 0px;
+}
+
+.zulip-card-title {
+    font-weight: bold;
+}
+
+.zulip-info a {
+    background: var(--color-primary) !important;
+    padding: var(--space-10) var(--space-16);
+    border-radius: var(--radius-md);
+    color: var(--color-text-contrast) !important;
+    text-align: center;
+    white-space: nowrap;
+    height: 100%;
+    text-decoration: none;
+    transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+.zulip-info a:hover {
+    border: none !important;
+}
+
+.zulip-info h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--fs-lg);
+    color: var(--color-text);
+    transition: color var(--transition-base);
+}
+
+.zulip-info p {
+    margin: var(--space-1) 0 0;
+    font-size: var(--fs-base) !important;
+    color: var(--color-text-light)  !important;
+    line-height: 1.6 !important;
+    width: 100%;
+    margin: 0px !important;
+}
+
+@media (max-width: 1024px) {
+    .zulip-info {
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .zulip-card-content {
+        text-align: center;
+        gap: 30px;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+.zulip-card-content {
+    gap: var(--gap-md);
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+}
+
+.hexapus {
+    position: absolute;
+    width: 100px;
+    top: -57px;
+    right: 20px;
+    border: 0px !important;
+    box-shadow: none !important;
+    margin: 0px !important;
+}

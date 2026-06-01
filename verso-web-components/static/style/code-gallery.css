@@ -1,0 +1,120 @@
+.code-gallery-tip {
+    display: none;
+    align-items: center;
+    gap: 20px;
+    color: var(--color-text-light);
+    justify-content: space-between;
+    width: 100%;
+}
+
+.code-gallery-tip.active {
+    display: flex;
+}
+
+.code-gallery-box {
+    background-color: var(--color-white);
+    border: 2px solid var(--color-primary);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0px 124px 74px rgba(35, 55, 139, 0.01),
+        0px 55px 55px rgba(35, 55, 139, 0.04),
+        0px 0px 4px rgba(208, 241, 255, 0.25);
+    width: 100%;
+    box-sizing: border-box;
+    height: 515px;
+}
+
+.code-gallery-tabs {
+    display: flex;
+    position: relative;
+    overflow-x: auto;
+}
+
+.code-gallery-tab {
+    padding: var(--space-3) var(--space-8);
+    background-color: var(--color-white);
+    border-bottom: 2px solid var(--color-border);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.code-gallery-tab.active {
+    color: var(--color-primary);
+}
+
+.code-gallery-tab.filler {
+    flex: 1;
+}
+
+.code-gallery-tab-border {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    background: var(--color-primary);
+    transition: left 0.3s ease, width 0.3s ease;
+    z-index: 0;
+}
+
+.code-gallery-content {
+    font-family: monospace;
+    font-size: 0.9rem;
+    flex: 1;
+    line-height: 1.7;
+    min-height: 300px;
+    position: relative;
+    overflow: auto;
+}
+
+.code-gallery-snippet.visible-code {
+    padding: var(--space-4);
+    display: block;
+}
+
+.code-gallery-snippet {
+    display: none;
+}
+
+.code-gallery-footer {
+    min-height: 70px;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    padding: 10px 30px;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.hero-footer-left {
+    display: flex;
+    gap: var(--gap-md);
+    line-height: 1.4;
+    width: 100%;
+}
+
+.code-gallery-next {
+    position: absolute;
+    bottom: -2rem;
+    right: var(--space-4);
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: var(--color-white);
+    color: var(--color-primary);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.code-block-wrapper {
+    position: relative;
+}
+
+.hl.lean span {
+    color: var(--color-text) !important;
+}

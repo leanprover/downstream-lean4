@@ -1,0 +1,33 @@
+.feature {
+    flex: 1;
+    padding: var(--space-6);
+    transition: all var(--transition-fast);
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+}
+
+.feature-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-weight: 600;
+    font-size: var(--fs-md);
+    margin-bottom: var(--space-6);
+}
+
+.feature-description {
+    font-size: var(--fs-base);
+    line-height: 1.4;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    color: var(--color-text-light);
+}
+
+.features-heading {
+    gap: 70px;
+    display: flex;
+    flex-direction: column;
+}

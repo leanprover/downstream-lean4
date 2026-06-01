@@ -1,0 +1,103 @@
+.selector-list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--gap-sm);
+    padding: var(--space-4);
+    width: fit-content;
+    position: relative;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .selector-list {
+        width: 100%;
+    }
+}
+
+.selector-button {
+    padding: var(--space-2) var(--space-6);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text);
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: var(--fs-base);
+    position: relative;
+    z-index: var(--z-above);
+    transition: background var(--transition-fast), color var(--transition-fast);
+    text-align: center;
+    white-space: pre;
+}
+
+.selector-button:hover {
+    background: #7094de1c;
+}
+
+.selector-button.active {
+    color: var(--color-text-contrast);
+}
+
+@media (scripting: none) {
+    .selector-button.active {
+        background-color: var(--color-primary);
+    }
+}
+
+.selector-group::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: var(--color-primary-light);
+    border-radius: var(--radius-md);
+    transition: left var(--transition-base), width var(--transition-base);
+    z-index: var(--z-normal);
+}
+
+.selector-panel {
+    display: none;
+    width: 100%;
+    min-width: 0;
+}
+
+.selector-panel.active {
+    display: block;
+}
+
+.selector-panel.same-size {
+    display: block;
+    grid-area: slide;
+    visibility: hidden;
+    width: 100%;
+}
+
+.selector-panel.same-size.active {
+    visibility: visible;
+}
+
+.selector-panel > article {
+    height: 100%;
+}
+
+.selectors-container {
+    gap: var(--gap-lg);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    max-width: 100vw;
+}
+
+.active-background {
+    position: absolute;
+    height: 34px;
+    background: var(--color-primary);
+    border-radius: var(--radius-md);
+    transition: left var(--transition-base), top var(--transition-base), width var(--transition-base);
+    z-index: var(--z-normal);
+}

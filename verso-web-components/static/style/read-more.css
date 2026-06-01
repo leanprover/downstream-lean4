@@ -1,0 +1,21 @@
+.read-more {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: var(--fs-sm);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--color-text);
+    margin-top: auto;
+}
+
+.read-more svg {
+    fill: var(--color-text) !important;
+    transition: transform 0.2s, opacity 0.2s;
+    opacity: 1;
+}
+
+.read-more:hover svg {
+    transform: translateX(4px);
+    opacity: 1;
+}

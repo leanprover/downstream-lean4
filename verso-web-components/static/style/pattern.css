@@ -1,0 +1,19 @@
+#main-background {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+.background-wrapper {
+    z-index: var(--z-below);
+    width: min(1400px, 100vw);
+}
+
+.background-wrapper svg {
+    width: 100%;
+    stroke: #D7E0E9;
+}
+
+.dark-theme .background-wrapper svg {
+    stroke: #1C1E26;
+}
