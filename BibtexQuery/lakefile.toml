@@ -1,0 +1,14 @@
+name = "BibtexQuery"
+defaultTargets = ["BibtexQuery", "«bibtex-query»"]
+
+[[require]]
+name = "UnicodeBasic"
+scope = "fgdorais"
+rev = "main"
+
+[[lean_lib]]
+name = "BibtexQuery"
+
+[[lean_exe]]
+name = "«bibtex-query»"
+root = "BibtexQuery.Main"
