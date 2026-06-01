@@ -6,9 +6,9 @@ rev = "master"
 url = "https://github.com/leanprover-community/batteries"
 rev = "main"
 
-# [cslib]
-# url = "https://github.com/leanprover/cslib"
-# rev = "main"
+[cslib]
+url = "https://github.com/leanprover/cslib"
+rev = "main"
 
 [import-graph]
 url = "https://github.com/leanprover-community/import-graph"
@@ -22,9 +22,9 @@ rev = "main"
 url = "https://github.com/leanprover-community/LeanSearchClient"
 rev = "main"
 
-# [mathlib4]
-# url = "https://github.com/leanprover-community/mathlib4"
-# rev = "master"
+[mathlib4]
+url = "https://github.com/leanprover-community/mathlib4"
+rev = "master"
 
 [plausible]
 url = "https://github.com/leanprover-community/plausible"
