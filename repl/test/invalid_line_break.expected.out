@@ -1,0 +1,14 @@
+{"messages":
+ [{"severity": "error",
+   "pos": {"line": 1, "column": 23},
+   "endPos": {"line": 1, "column": 30},
+   "data": "Unknown identifier `bysorry`"}],
+ "env": 0}
+
+{"messages":
+ [{"severity": "error",
+   "pos": {"line": 1, "column": 23},
+   "endPos": {"line": 1, "column": 28},
+   "data": "Unknown identifier `byrfl`"}],
+ "env": 1}
+

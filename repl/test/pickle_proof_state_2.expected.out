@@ -1,0 +1,6 @@
+{"proofStatus": "Incomplete: open goals remain",
+ "proofState": 0,
+ "goals": ["t : Nat\n⊢ Nat"]}
+
+{"proofStatus": "Completed", "proofState": 1, "goals": []}
+
