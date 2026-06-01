@@ -1,0 +1,15 @@
+{
+  "version": "1.2.0",
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "lean4export",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.toml",
+      "dir": "../lean4export"
+    }
+  ]
+}

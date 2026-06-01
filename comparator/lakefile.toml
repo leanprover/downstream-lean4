@@ -1,0 +1,20 @@
+name = "Comparator"
+version = "0.1.0"
+defaultTargets = ["comparator"]
+
+[[lean_lib]]
+name = "Comparator"
+
+[[lean_exe]]
+name = "comparator"
+root = "Main"
+
+[[require]]
+scope = "leanprover"
+name = "Lean4Checker"
+rev = "b7398199245524275543dec6113229c9bb4902e5"
+
+[[require]]
+scope = "leanprover"
+name = "lean4export"
+rev = "master"
