@@ -1,0 +1,48 @@
+name: Lean Action CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        env:
+            PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.playwright-browsers
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  enable-cache: true
+                  cache-dependency-glob: "browser-tests/pyproject.toml"
+
+            - name: Cache Playwright browsers
+              uses: actions/cache@v5
+              with:
+                  path: .playwright-browsers
+                  key: playwright-${{ runner.os }}-${{ hashFiles('browser-tests/uv.lock') }}
+
+            - uses: leanprover/lean-action@v1
+
+    typecheck:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Install TypeScript
+              run: npm install --no-save typescript@5.7.2
+
+            - name: Verify every .js under web-lib/ is in some jsconfig.json
+              run: scripts/check-jsconfig-coverage.sh
+
+            - name: Type check panel JavaScript
+              run: npx tsc --noEmit -p web-lib/panel/jsconfig.json
+
+            - name: Type check widget JavaScript
+              run: npx tsc --noEmit -p web-lib/widget/jsconfig.json

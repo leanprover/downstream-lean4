@@ -1,0 +1,24 @@
+name: Check Formatting of JS/CSS/HTML and Markdown
+
+on:
+    pull_request:
+    merge_group:
+
+jobs:
+    check-prettier-formatting:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v5
+              with:
+                  node-version: "22"
+                  cache: "npm"
+
+            - name: Install pinned dependencies
+              run: npm ci
+
+            - name: Check formatting with prettier
+              run: npx --no-install prettier --check .

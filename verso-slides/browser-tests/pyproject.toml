@@ -1,0 +1,11 @@
+[project]
+name = "verso-slides-tests"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest",
+    "pytest-xdist",
+    "playwright",
+    "beautifulsoup4",
+    "requests>=2.33.1",
+]
