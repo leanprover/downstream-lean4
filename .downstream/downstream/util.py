@@ -46,6 +46,7 @@ class Subrepo:
     name: str
     url: str
     rev: str
+    critical: bool
     override_only: bool
 
     @property
@@ -63,7 +64,10 @@ class Subrepo:
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:
     for name, data in tomllib.loads(path.read_text()).items():
-        url = normalize_url(data["url"])
-        rev = data["rev"]
-        override_only = data.get("override_only", False)
-        yield Subrepo(name=name, url=url, rev=rev, override_only=override_only)
+        yield Subrepo(
+            name=name,
+            url=normalize_url(data["url"]),
+            rev=data["rev"],
+            critical=data.get("critical", True),
+            override_only=data.get("override_only", False),
+        )

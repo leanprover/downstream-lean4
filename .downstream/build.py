@@ -39,20 +39,25 @@ def run_cmd(subrepo: Subrepo, command: str) -> bool | None:
     return result.returncode == 0
 
 
-def do_phase(subrepos: list[Subrepo], report: list[str], command: str) -> None:
+def do_phase(subrepos: list[Subrepo], report: list[str], command: str) -> bool:
     print()
     print(f"## {command}")
     report.append("")
     report.append(f"## `lake {command}`")
+    critical_failed = False
 
     for subrepo in subrepos:
+        noncritical = "" if subrepo.critical else " (non-critical)"
         if not check_cmd(subrepo, command):
-            report.append(f"- {SKIPPED} {subrepo.name}")
+            report.append(f"- {SKIPPED} {subrepo.name}{noncritical}")
             continue
         if run_cmd(subrepo, command):
-            report.append(f"- {SUCCESS} {subrepo.name}")
+            report.append(f"- {SUCCESS} {subrepo.name}{noncritical}")
         else:
-            report.append(f"- {FAILURE} {subrepo.name}")
+            report.append(f"- {FAILURE} {subrepo.name}{noncritical}")
+            critical_failed |= subrepo.critical
+
+    return critical_failed
 
 
 class Args:
@@ -81,15 +86,20 @@ def main() -> None:
     subrepos = topo_subrepos(updater)
 
     report = ["# Build report"]
+    critical_failed = False
+
     if not args.no_build:
-        do_phase(subrepos, report, "build")
+        critical_failed |= do_phase(subrepos, report, "build")
     if args.test:
-        do_phase(subrepos, report, "test")
+        critical_failed |= do_phase(subrepos, report, "test")
     if args.lint:
-        do_phase(subrepos, report, "lint")
+        critical_failed |= do_phase(subrepos, report, "lint")
 
     if report_path is not None:
         report_path.write_text("\n".join(report) + "\n")
+
+    if critical_failed:
+        raise SystemExit("At least one critical repo failed.")
 
 
 if __name__ == "__main__":
