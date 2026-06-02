@@ -18,7 +18,7 @@ def run(
     capture: bool = False,
     env: dict[str, str] | None = None,
 ) -> CompletedProcess[str]:
-    print(f"$ {' '.join(shlex.quote(str(arg)) for arg in args)}")
+    print(f"$ {' '.join(shlex.quote(str(arg)) for arg in args)}", flush=True)
     return subprocess.run(
         args,
         check=check,

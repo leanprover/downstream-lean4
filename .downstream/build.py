@@ -40,13 +40,14 @@ def run_cmd(subrepo: Subrepo, command: str) -> bool | None:
 
 
 def do_phase(subrepos: list[Subrepo], report: list[str], command: str) -> bool:
-    print()
-    print(f"## {command}")
     report.append("")
     report.append(f"## `lake {command}`")
     critical_failed = False
 
     for subrepo in subrepos:
+        # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#grouping-log-lines
+        print(f"::group::{subrepo.name}: lake {command}", flush=True)
+
         noncritical = "" if subrepo.critical else " (non-critical)"
         if not check_cmd(subrepo, command):
             report.append(f"- {SKIPPED} {subrepo.name}{noncritical}")
@@ -56,6 +57,8 @@ def do_phase(subrepos: list[Subrepo], report: list[str], command: str) -> bool:
         else:
             report.append(f"- {FAILURE} {subrepo.name}{noncritical}")
             critical_failed |= subrepo.critical
+
+        print("::endgroup::", flush=True)
 
     return critical_failed
 
