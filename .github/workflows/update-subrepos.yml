@@ -12,6 +12,7 @@ concurrency:
 jobs:
   main:
     runs-on: ubuntu-slim
+    environment: master
     steps:
       - name: Checkout
         uses: actions/checkout@v6
