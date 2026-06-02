@@ -111,21 +111,26 @@ class Updater:
         return run("git", "rev-parse", f"HEAD:{path}", capture=True).stdout.strip()
 
     def add_subrepo(self, subrepo: Subrepo) -> None:
+        print(f"::group::add {subrepo.name}", flush=True)
         self.reset()
 
         rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"add repo {subrepo.name}")
+        print("::endgroup::", flush=True)
 
     def reset_subrepo(self, subrepo: Subrepo) -> None:
+        print(f"::group::reset {subrepo.name}", flush=True)
         self.reset()
 
         rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
         shutil.rmtree(subrepo.path)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"reset repo {subrepo.name}")
+        print("::endgroup::", flush=True)
 
     def update_subrepo(self, subrepo: Subrepo) -> None:
+        print(f"::group::update {subrepo.name}", flush=True)
         self.reset()
 
         rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
@@ -136,24 +141,23 @@ class Updater:
 
         self.restore_tree_to(merged_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"update repo {subrepo.name}")
+        print("::endgroup::", flush=True)
 
     def remove_subrepo(self, path: Path) -> None:
+        print(f"::group::prune {path.name}", flush=True)
         self.reset()
 
         run("git", "rm", "-rf", path)
         self.commit(f"downstream: remove repo {path.name}")
+        print("::endgroup::", flush=True)
 
     def add_or_update_subrepo(self, subrepo: Subrepo) -> None:
-        self.reset()
-
         if subrepo.path.exists():
             self.update_subrepo(subrepo)
         else:
             self.add_subrepo(subrepo)
 
     def prune_subrepos(self) -> None:
-        self.reset()
-
         for path in Path().iterdir():
             if not path.is_dir():
                 continue

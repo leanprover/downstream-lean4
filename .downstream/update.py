@@ -40,6 +40,7 @@ def main() -> None:
     update_repos = [updater.subrepos_by_name[name] for name in sorted(update_names)]
     reset_repos = [updater.subrepos_by_name[name] for name in sorted(reset_names)]
 
+    updater.reset()
     if args.prune:
         updater.prune_subrepos()
     for subrepo in update_repos:

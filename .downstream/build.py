@@ -46,7 +46,7 @@ def do_phase(subrepos: list[Subrepo], report: list[str], command: str) -> bool:
 
     for subrepo in subrepos:
         # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#grouping-log-lines
-        print(f"::group::{subrepo.name}: lake {command}", flush=True)
+        print(f"::group::{command} {subrepo.name}", flush=True)
 
         noncritical = "" if subrepo.critical else " (non-critical)"
         if not check_cmd(subrepo, command):
