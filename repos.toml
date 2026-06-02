@@ -1,83 +1,104 @@
 [aesop]
 url = "https://github.com/leanprover-community/aesop"
 rev = "master"
+critical = true
 
 [batteries]
 url = "https://github.com/leanprover-community/batteries"
 rev = "main"
+critical = true
 
 [BibtexQuery]
 url = "https://github.com/dupuisf/BibtexQuery"
 rev = "master"
+critical = false
 
 [comparator]
 url = "https://github.com/leanprover/comparator"
 rev = "master"
+critical = false
 
 [cslib]
 url = "https://github.com/leanprover/cslib"
 rev = "main"
+critical = false
 
 [doc-gen4]
 url = "https://github.com/leanprover/doc-gen4"
 rev = "main"
+critical = false
 
 [illuminate]
 url = "https://github.com/leanprover/illuminate"
 rev = "main"
+critical = false
 
 [import-graph]
 url = "https://github.com/leanprover-community/import-graph"
 rev = "main"
+critical = true
 
 [lean4-cli]
 url = "https://github.com/leanprover/lean4-cli"
 rev = "main"
+critical = true
 
 [lean4-unicode-basic]
 url = "https://github.com/fgdorais/lean4-unicode-basic"
 rev = "main"
+critical = false
 
 [lean4export]
 url = "https://github.com/leanprover/lean4export"
 rev = "master"
+critical = false
 
 [LeanSearchClient]
 url = "https://github.com/leanprover-community/LeanSearchClient"
 rev = "main"
+critical = false
 
 [leansqlite]
 url = "https://github.com/leanprover/leansqlite"
 rev = "main"
+critical = false
 
 [mathlib4]
 url = "https://github.com/leanprover-community/mathlib4"
 rev = "master"
+critical = true
 
 [plausible]
 url = "https://github.com/leanprover-community/plausible"
 rev = "main"
+critical = true
 
 [ProofWidgets4]
 url = "https://github.com/leanprover-community/ProofWidgets4"
 rev = "main"
+critical = true
 
 [quote4]
 url = "https://github.com/leanprover-community/quote4"
 rev = "master"
+critical = true
 
 [repl]
 url = "https://github.com/leanprover-community/repl"
 rev = "master"
+critical = false
 
 [verso]
 url = "https://github.com/leanprover/verso"
 rev = "main"
+critical = false
 
 [verso-slides]
 url = "https://github.com/leanprover/verso-slides"
 rev = "main"
+critical = false
 
 [verso-web-components]
 url = "https://github.com/leanprover/verso-web-components"
 rev = "main"
+critical = false
