@@ -1,37 +1,31 @@
-name: Regular update
+name: Update subrepos
 
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
-  group: update-downstream
+  group: update-subrepos
   cancel-in-progress: false
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # For git subtree
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+          token: ${{ secrets.PUSH_TOKEN }}
+          fetch-depth: 0
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update downstream
-        run: |
-          git subtree pull -P .downstream https://github.com/leanprover/downstream master -m "chore: update downstream"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
 
       - name: Update subrepos
         run: |

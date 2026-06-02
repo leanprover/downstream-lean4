@@ -25,5 +25,6 @@ jobs:
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Build, test, lint
+        # TODO Reenable -l (linting) once it is compatible with lake's artifact cache
         run: |
-          uv --project .downstream run .downstream/build.py . -tl --report "$GITHUB_STEP_SUMMARY"
+          uv --project .downstream run .downstream/build.py . -t --report "$GITHUB_STEP_SUMMARY"
