@@ -2,6 +2,7 @@ import json
 import re
 import shutil
 from pathlib import Path
+from subprocess import CalledProcessError
 
 from downstream.merge_tree_theirs import merge_tree_theirs
 from downstream.util import Subrepo, load_subrepos, normalize_url, run
@@ -25,7 +26,13 @@ class Updater:
         run("git", "restore", "--staged", "--worktree", ".")
 
     def fetch_sha_tree(self, url: str, rev: str) -> tuple[str, str]:
-        run("git", "fetch", "--depth=1", url, rev)
+        try:
+            run("git", "fetch", "--depth=1", url, rev)
+        except CalledProcessError:
+            # Retrying once since this command occasionally fails with the error
+            # "fatal: shallow file has changed since we read it".
+            run("git", "fetch", "--depth=1", url, rev)
+
         sha = run("git", "rev-parse", "FETCH_HEAD", capture=True).stdout.strip()
         tree = run("git", "rev-parse", "FETCH_HEAD^{tree}", capture=True).stdout.strip()
         return sha, tree
