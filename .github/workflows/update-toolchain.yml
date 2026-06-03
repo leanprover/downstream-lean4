@@ -20,9 +20,7 @@ jobs:
           token: ${{ secrets.PUSH_TOKEN }}
 
       - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+        uses: ./.github/actions/configure-git
 
       - name: Find latest nightly release
         id: find-nightly
