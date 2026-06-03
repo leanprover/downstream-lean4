@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 module
 
-public import Lean.Elab.Tactic.Basic
 public meta import Aesop.Util.Unfold
 
 public section

@@ -1,7 +1,6 @@
 module
 
-import Lean
-public import Lean.Data.Options
+public import Lean
 
 public section
 

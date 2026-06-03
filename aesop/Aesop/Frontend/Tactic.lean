@@ -5,7 +5,6 @@ Authors: Jannis Limperg
 -/
 module
 
-import Lean
 public import Aesop.Frontend.RuleExpr
 public import Aesop.Options
 public import Batteries.Linter.UnreachableTactic

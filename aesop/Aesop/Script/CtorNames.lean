@@ -1,6 +1,5 @@
 module
 
-public import Lean.Meta.Tactic.Induction
 public import Aesop.Util.Basic
 
 public section

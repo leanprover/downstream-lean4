@@ -5,9 +5,7 @@ Authors: Jannis Limperg
 -/
 module
 
-import Lean
-public import Lean.Meta.Basic
-public import Lean.Meta.DiscrTree.Types
+public import Lean
 
 public section
 

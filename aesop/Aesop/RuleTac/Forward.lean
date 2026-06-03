@@ -5,13 +5,12 @@ Authors: Jannis Limperg
 -/
 module
 
-import Lean
 public import Aesop.Forward.Match
 public import Aesop.RuleTac.Basic
 public import Aesop.RuleTac.ElabRuleTerm
 public import Aesop.RuleTac.Forward.Basic
 public import Aesop.Script.SpecificTactics
-import Batteries.Lean.Meta.UnusedNames
+public import Batteries.Lean.Meta.UnusedNames
 
 public section
 

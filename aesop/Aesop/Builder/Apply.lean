@@ -6,7 +6,6 @@ Authors: Jannis Limperg
 module
 
 public import Aesop.Builder.Basic
-import Batteries.Lean.Expr
 
 public section
 

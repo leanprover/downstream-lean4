@@ -5,10 +5,7 @@ Authors: Jannis Limperg
 -/
 module
 
-import Lean
-public import Lean.Expr
-public import Lean.Meta.Basic
-public import Lean.Elab.Term.TermElabM
+public import Lean
 
 public section
 

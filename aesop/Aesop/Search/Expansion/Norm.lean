@@ -14,8 +14,7 @@ public import Aesop.Search.Expansion.Simp
 public import Aesop.Search.RuleSelection
 public import Aesop.Search.SearchM
 public import Aesop.Tree.State
-import Batteries.Lean.HashSet
-public import Batteries.Lean.Meta.SavedState
+public import Batteries.Lean.HashSet
 
 public section
 

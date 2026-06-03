@@ -1,7 +1,6 @@
 module
 
-import Lean
-public import Lean.Meta.Basic
+public import Lean
 
 public section
 
