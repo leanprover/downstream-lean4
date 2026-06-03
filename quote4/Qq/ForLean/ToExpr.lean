@@ -1,6 +1,6 @@
 module
 
-public import Lean.ToExpr
+public import Lean
 
 public section
 

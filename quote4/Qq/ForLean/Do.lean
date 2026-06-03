@@ -1,6 +1,6 @@
 module
 
-public import Lean.Elab.Do.Legacy
+public import Lean
 
 public section
 

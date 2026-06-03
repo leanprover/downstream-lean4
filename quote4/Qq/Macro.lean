@@ -1,10 +1,12 @@
 module
 
+public import Lean
 public meta import Qq.ForLean.ReduceEval
 public meta import Qq.ForLean.ToExpr
 public meta import Qq.Typ
-public meta import Lean.Meta.CollectFVars
-public meta import Lean.Elab.SyntheticMVars
+meta import Lean.Elab.Term.TermElabM
+meta import Lean.Util.CollectLevelParams
+meta import Lean.Elab.SyntheticMVars
 
 public section
 /-!

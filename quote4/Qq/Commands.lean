@@ -1,7 +1,10 @@
 module
 
 public import Qq.Macro
-public meta import Lean.Meta.Eval
+public import Lean
+meta import Lean.Elab.Term.TermElabM
+meta import Qq.Macro
+meta import Qq.AssertInstancesCommute
 
 public section
 /-!

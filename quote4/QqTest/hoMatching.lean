@@ -1,5 +1,4 @@
 import Qq
-import Lean.Elab.Command
 open Qq Lean
 
 -- TODO: this linter crashes on the `def` below

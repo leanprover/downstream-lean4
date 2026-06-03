@@ -1,6 +1,6 @@
 module
 
-public import Lean.Meta.ReduceEval
+public import Lean
 
 public section
 open Lean Meta
