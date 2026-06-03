@@ -53,7 +53,7 @@ class Updater:
             url = normalize_url(package["url"])
 
             if repo := self.overrides_by_url.get(url):
-                sha, _ = self.fetch_sha_tree(repo.url, repo.rev)
+                sha, _ = self.fetch_sha_tree(repo.fetch_url, repo.rev)
                 package["input_rev"] = repo.rev
                 package["rev"] = sha
                 packages.append(package)
@@ -84,7 +84,7 @@ class Updater:
             f"downstream: {msg}",
             "",
             f"downstream-repo: {subrepo.name}",
-            f"downstream-url: {subrepo.url}",
+            f"downstream-url: {subrepo.fetch_url}",
             f"downstream-rev: {subrepo.rev}",
             f"downstream-sha: {sha}",
         ])
@@ -114,7 +114,7 @@ class Updater:
         print(f"::group::add {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"add repo {subrepo.name}")
         print("::endgroup::", flush=True)
@@ -123,7 +123,7 @@ class Updater:
         print(f"::group::reset {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
         shutil.rmtree(subrepo.path)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"reset repo {subrepo.name}")
@@ -133,10 +133,10 @@ class Updater:
         print(f"::group::update {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
         our_tree = self.get_tree_in_head(subrepo.name)
         base_sha = self.find_latest_subrepo_sha(subrepo)
-        _, base_tree = self.fetch_sha_tree(subrepo.url, base_sha)
+        _, base_tree = self.fetch_sha_tree(subrepo.fetch_url, base_sha)
         merged_tree = merge_tree_theirs(base_tree, our_tree, rev_tree)
 
         self.restore_tree_to(merged_tree, subrepo.path)
@@ -150,6 +150,12 @@ class Updater:
         run("git", "rm", "-rf", path)
         self.commit(f"downstream: remove repo {path.name}")
         print("::endgroup::", flush=True)
+
+    def add_or_reset_subrepo(self, subrepo: Subrepo) -> None:
+        if subrepo.path.exists():
+            self.reset_subrepo(subrepo)
+        else:
+            self.add_subrepo(subrepo)
 
     def add_or_update_subrepo(self, subrepo: Subrepo) -> None:
         if subrepo.path.exists():
@@ -171,7 +177,7 @@ class Updater:
 
         our_tree = self.get_tree_in_head(subrepo.name)
         base_sha = self.find_latest_subrepo_sha(subrepo)
-        self.fetch_sha_tree(subrepo.url, base_sha)
+        self.fetch_sha_tree(subrepo.fetch_url, base_sha)
 
         run("git", "switch", "-C", branch, base_sha)
         self.restore_tree_to(our_tree, Path())

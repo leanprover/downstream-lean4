@@ -46,7 +46,7 @@ def main() -> None:
     for subrepo in update_repos:
         updater.add_or_update_subrepo(subrepo)
     for subrepo in reset_repos:
-        updater.reset_subrepo(subrepo)
+        updater.add_or_reset_subrepo(subrepo)
 
 
 if __name__ == "__main__":
