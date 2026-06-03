@@ -141,7 +141,7 @@ admit. If it gives up or finds a counter-example, it reports an error.
 For more information on writing your own `Sampleable` and `Testable`
 instances, see `Testing.Plausible.Testable`.
 
-Optional arguments given with `plausible (config := { ... })`
+Optional arguments given with `plausible (config : { ... })`
 * `numInst` (default 100): number of examples to test properties with
 * `maxSize` (default 100): final size argument
 
@@ -172,11 +172,7 @@ elab_rules : tactic | `(tactic| plausible $[$cfg]?) => withMainContext do
       || (← isTracingEnabledFor `plausible.shrink.candidates) }
   let inst ← try
     synthInstance (← mkAppM ``Testable #[tgt'])
-  catch _ =>
-    if cfg.sorryIfNoTestable then
-      admitGoal g
-      return
-    throwError "\
+  catch _ => throwError "\
       Failed to create a `testable` instance for `{tgt}`.\
     \nWhat to do:\
     \n1. make sure that the types you are using have `Plausible.SampleableExt` instances\

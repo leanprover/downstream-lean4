@@ -136,20 +136,15 @@ structure Configuration where
   Disable output.
   -/
   quiet : Bool := false
-  /--
-  If `true`, when the `Testable` instance required to begin testing cannot be synthesized,
-  silently admit the goal with `sorry` instead of throwing an error.
-  -/
-  sorryIfNoTestable : Bool := false
   deriving Inhabited
 
 open Lean in
 instance : ToExpr Configuration where
   toTypeExpr := mkConst `Configuration
-  toExpr cfg := mkApp10 (mkConst ``Configuration.mk)
+  toExpr cfg := mkApp9 (mkConst ``Configuration.mk)
     (toExpr cfg.numInst) (toExpr cfg.maxSize) (toExpr cfg.numRetries) (toExpr cfg.traceDiscarded)
     (toExpr cfg.traceSuccesses) (toExpr cfg.traceShrink) (toExpr cfg.traceShrinkCandidates)
-    (toExpr cfg.randomSeed) (toExpr cfg.quiet) (toExpr cfg.sorryIfNoTestable)
+    (toExpr cfg.randomSeed) (toExpr cfg.quiet)
 
 /--
 Allow elaboration of `Configuration` arguments to tactics.
@@ -381,7 +376,7 @@ partial def minimizeAux [SampleableExt α] {β : α → Prop} [∀ x, Testable (
       if cfg.traceShrink then
         slimTrace s!"{var} shrunk to {repr candidate} from {repr x}"
       let currentStep := OptionT.lift <| return Sigma.mk candidate (addShrinks (n + 1) res)
-      let nextStep := minimizeAux cfg var candidate (n + 1)
+      let nextStep := minimizeAux (β := β) cfg var candidate (n + 1)
       return ← (nextStep <|> currentStep)
   if cfg.traceShrink then
     slimTrace s!"No shrinking possible for {var} := {repr x}"

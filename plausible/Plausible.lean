@@ -14,4 +14,3 @@ public import Plausible.Attr
 public import Plausible.Tactic
 public import Plausible.Arbitrary
 public import Plausible.DeriveArbitrary
-public import Plausible.DeriveShrinkable
