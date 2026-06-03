@@ -1,11 +1,11 @@
 [aesop]
 url = "https://github.com/leanprover-community/aesop"
-rev = "master"
+rev = "nightly-testing"
 critical = true
 
 [batteries]
 url = "https://github.com/leanprover-community/batteries"
-rev = "main"
+rev = "nightly-testing"
 critical = true
 
 [BibtexQuery]
@@ -65,12 +65,13 @@ critical = false
 
 [mathlib4]
 url = "https://github.com/leanprover-community/mathlib4"
-rev = "master"
+fetch_url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
+rev = "nightly-testing"
 critical = true
 
 [plausible]
 url = "https://github.com/leanprover-community/plausible"
-rev = "main"
+rev = "nightly-testing"
 critical = true
 
 [ProofWidgets4]
@@ -80,7 +81,7 @@ critical = true
 
 [quote4]
 url = "https://github.com/leanprover-community/quote4"
-rev = "master"
+rev = "nightly-testing"
 critical = true
 
 [repl]
