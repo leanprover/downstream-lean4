@@ -545,16 +545,14 @@ theorem setLIntegral_eq_const {f : α → ℝ≥0∞} (hf : Measurable f) (r : �
   · rw [lintegral_const, Measure.restrict_apply MeasurableSet.univ, Set.univ_inter]
   · exact hf (measurableSet_singleton r)
 
-@[to_fun lintegral_indicator_fun_one_le]
 theorem lintegral_indicator_one_le (s : Set α) : ∫⁻ a, s.indicator 1 a ∂μ ≤ μ s :=
   (lintegral_indicator_const_le _ _).trans <| (one_mul _).le
 
-@[to_fun (attr := simp) lintegral_indicator_fun_one₀]
+@[simp]
 theorem lintegral_indicator_one₀ {s : Set α} (hs : NullMeasurableSet s μ) :
     ∫⁻ a, s.indicator 1 a ∂μ = μ s :=
   (lintegral_indicator_const₀ hs _).trans <| one_mul _
 
-@[to_fun lintegral_indicator_fun_one]
 theorem lintegral_indicator_one {s : Set α} (hs : MeasurableSet s) :
     ∫⁻ a, s.indicator 1 a ∂μ = μ s := by
   simp [hs]

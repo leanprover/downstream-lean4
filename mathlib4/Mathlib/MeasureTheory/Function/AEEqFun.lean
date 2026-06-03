@@ -658,12 +658,6 @@ theorem coeFn_const_eq [NeZero μ] (b : β) (x : α) : (const α b : α →ₘ[�
   simp_rw [const, mk_eq_mk, EventuallyEq, ← const_def, eventually_const] at this
   rw [Function.const, this]
 
-theorem coeFn_const_eq' (b : β) : ∃ b', ((const α b : α →ₘ[μ] β) : α → β) = fun _ ↦ b' := by
-  simp only [cast]
-  split_ifs with h
-  case neg => exact h.elim ⟨b, rfl⟩
-  exact ⟨Classical.choose h, by ext; simp⟩
-
 variable {α}
 
 instance instInhabited [Inhabited β] : Inhabited (α →ₘ[μ] β) :=
@@ -787,24 +781,6 @@ end Monoid
 @[to_additive existing]
 instance instCommMonoid [CommMonoid γ] [ContinuousMul γ] : CommMonoid (α →ₘ[μ] γ) :=
   toGerm_injective.commMonoid toGerm one_toGerm mul_toGerm pow_toGerm
-
-@[to_additive]
-theorem coeFn_finsetProd [CommMonoid γ] [ContinuousMul γ]
-    {ι : Type*} (s : Finset ι) (f : ι → α →ₘ[μ] γ) :
-    ⇑(∏ i ∈ s, f i) =ᵐ[μ] ∏ i ∈ s, ⇑(f i) := by
-  classical
-  induction s using Finset.induction with
-  | empty => simp [coeFn_one]
-  | insert a s ha ih =>
-    simp only [ha, not_false_eq_true, Finset.prod_insert]
-    grw [coeFn_mul, ih]
-
-@[to_additive]
-theorem coeFn_fun_finsetProd [CommMonoid γ] [ContinuousMul γ]
-    {ι : Type*} (s : Finset ι) (f : ι → α →ₘ[μ] γ) :
-    ⇑(∏ i ∈ s, f i) =ᵐ[μ] fun x ↦ ∏ i ∈ s, f i x := by
-  grw [coeFn_finsetProd]
-  filter_upwards with x using by simp
 
 section Group
 
