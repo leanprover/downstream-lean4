@@ -1,0 +1,60 @@
+name: Post-build on master
+
+on:
+  workflow_run:
+    workflows: [Build subrepos]
+    types: [completed]
+    branches: [master]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-post
+  cancel-in-progress: false
+
+jobs:
+  nightly-branch:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-slim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine nightly tag
+        id: find-nightly
+        run: |
+          NIGHTLY_TAG="$(grep -P '(?<=leanprover/lean4:)nightly-.*' lean-toolchain -o)"
+          echo "::notice::Found nightly tag $NIGHTLY_TAG"
+          echo "nightly-tag=$NIGHTLY_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Update nightly branch
+        if: steps.find-nightly.outputs.nightly-tag != ''
+        env:
+          NIGHTLY_TAG: ${{ steps.find-nightly.outputs.nightly-tag }}
+          SHA: ${{ github.sha }}
+        run: |
+          # Create the branch if it doesn't exist already.
+          if git branch "$NIGHTLY_TAG" "$SHA"; then
+            git push origin "$NIGHTLY_TAG"
+            echo "::notice::Created branch $NIGHTLY_TAG at $SHA"
+            exit 0
+          fi
+
+          # Update the branch, but only if it can be fast-forwarded.
+          # Otherwise, we may accidentally move it backwards again.
+          git switch "$NIGHTLY_TAG"
+          if git merge --ff-only "$SHA"; then
+            git push origin "$NIGHTLY_TAG"
+            echo "::notice::Updated branch $NIGHTLY_TAG to $SHA"
+            exit 0
+          fi
+
+          echo "::warning::Did not update branch $NIGHTLY_TAG to $SHA"

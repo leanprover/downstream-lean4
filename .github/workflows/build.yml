@@ -1,4 +1,4 @@
-name: Build all subrepos
+name: Build subrepos
 
 on:
   pull_request:
