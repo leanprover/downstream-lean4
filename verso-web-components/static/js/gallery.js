@@ -188,48 +188,39 @@ function initTabContentPanels(tabsContainer, contentContainer) {
     });
 }
 
+function setBackgroundPosition(activeBackground, tab) {
+    tab.offsetHeight; // force reflow
+    activeBackground.style.left = `${tab.offsetLeft}px`;
+    activeBackground.style.top = `${tab.offsetTop}px`;
+    activeBackground.style.width = `${tab.offsetWidth}px`;
+    activeBackground.style.height = `${tab.offsetHeight}px`;
+}
+
+function springBackgroundPosition(activeBackground, tab) {
+    const animate = window.Motion?.animate;
+    if (!animate) {
+        setBackgroundPosition(activeBackground, tab);
+        return;
+    }
+    animate(
+        activeBackground,
+        { left: tab.offsetLeft, top: tab.offsetTop, width: tab.offsetWidth, height: tab.offsetHeight },
+        { type: 'spring', stiffness: 400, damping: 28 }
+    );
+}
+
 function updateTabBackgroundIndicator(tabGroup, activeTab) {
     const activeBackground = tabGroup.querySelector('.active-background');
     if (!activeBackground || !activeTab) return;
 
-    function updateBackgroundPosition(tab, set = false) {
-        tab.offsetHeight
+    activeBackground.style.opacity = '1';
 
-        if ((tab.offsetLeft === 0 || tab.offsetWidth === 0) && !set) {
-            observeUntilVisible(tab, () => {
-                const currentTransition = activeBackground.style.transition;
-                activeBackground.style.transition = 'none';
-                updateBackgroundPosition(tab, true);
-
-                requestAnimationFrame(() => {
-                    activeBackground.style.transition = currentTransition;
-                });
-            });
-            return;
-        }
-
-        const tabLeft = tab.offsetLeft;
-        const tabTop = tab.offsetTop;
-        const tabWidth = tab.offsetWidth;
-        const tabHeight = tab.offsetHeight;
-
-        activeBackground.style.left = `${tabLeft}px`;
-        activeBackground.style.top = `${tabTop}px`;
-        activeBackground.style.width = `${tabWidth}px`;
-        activeBackground.style.height = `${tabHeight}px`;
+    if ((activeTab.offsetLeft === 0 || activeTab.offsetWidth === 0)) {
+        observeUntilVisible(activeTab, () => setBackgroundPosition(activeBackground, activeTab));
+        return;
     }
 
-    activeBackground.style.opacity = '1';
-    activeBackground.style.transition = '';
-
-    const currentTransition = activeBackground.style.transition;
-    activeBackground.style.transition = 'none';
-
-    updateBackgroundPosition(activeTab, true);
-
-    requestAnimationFrame(() => {
-        activeBackground.style.transition = currentTransition;
-    });
+    setBackgroundPosition(activeBackground, activeTab);
 }
 
 function initTabBackgroundIndicator(tabGroup) {
@@ -240,36 +231,26 @@ function initTabBackgroundIndicator(tabGroup) {
     activeBackground.classList.add('active-background');
     tabGroup.appendChild(activeBackground);
 
-    function updateBackgroundPosition(tab, set = false) {
-        if (tab.offsetLeft === 0 && !set) {
-            observeUntilVisible(tab, () => {
-                const currentTransition = activeBackground.style.transition;
-                activeBackground.style.transition = 'none';
-                updateBackgroundPosition(tab, true);
+    let initialized = false;
 
-                requestAnimationFrame(() => {
-                    activeBackground.style.transition = currentTransition;
-                });
-            });
+    function positionBackground(tab, instant = false) {
+        if (tab.offsetLeft === 0 && !instant) {
+            observeUntilVisible(tab, () => positionBackground(tab, true));
             return;
         }
-
-        const tabLeft = tab.offsetLeft;
-        const tabTop = tab.offsetTop;
-        const tabWidth = tab.offsetWidth;
-        const tabHeight = tab.offsetHeight;
-
-        activeBackground.style.left = `${tabLeft}px`;
-        activeBackground.style.top = `${tabTop}px`;
-        activeBackground.style.width = `${tabWidth}px`;
-        activeBackground.style.height = `${tabHeight}px`;
+        if (!initialized || instant) {
+            setBackgroundPosition(activeBackground, tab);
+            initialized = true;
+        } else {
+            springBackgroundPosition(activeBackground, tab);
+        }
     }
 
     let activeTab = tabGroup.querySelector(':scope > .selector-button.active');
 
     window.addEventListener('resize', () => {
-        updateBackgroundPosition(activeTab)
-    })
+        if (activeTab) positionBackground(activeTab, true);
+    });
 
     tabButtons.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -278,14 +259,11 @@ function initTabBackgroundIndicator(tabGroup) {
                 button.setAttribute('aria-selected', 'false');
             });
 
-            activeTab = tab
-
+            activeTab = tab;
             tab.classList.add('active');
             tab.setAttribute('aria-selected', 'true');
 
-            requestAnimationFrame(() => {
-                updateBackgroundPosition(tab);
-            });
+            requestAnimationFrame(() => positionBackground(tab));
         });
     });
 
@@ -294,9 +272,8 @@ function initTabBackgroundIndicator(tabGroup) {
 
     if (shouldChangeDefault) {
         activeBackground.style.opacity = '0';
-        activeBackground.style.transition = 'none';
     } else if (activeTab) {
-        updateBackgroundPosition(activeTab);
+        positionBackground(activeTab);
     }
 }
 

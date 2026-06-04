@@ -6,6 +6,10 @@ def theme.js := include_str "../../static/js/theme.js"
 
 def copy.js := include_str "../../static/js/copy.js"
 
+def motion.js := include_str "../../static/js/motion.js"
+
+def navbar.js := include_str "../../static/js/navbar.js"
+
 def reset.css := include_str "../../static/css/reset.css"
 
 def navbar.css := include_str "../../static/css/navbar.css"
@@ -37,4 +41,6 @@ def allJS := #[
   ("dark.js", dark.js),
   ("theme.js", theme.js),
   ("copy.js", copy.js),
+  ("motion.js", motion.js),
+  ("navbar.js", navbar.js),
 ]

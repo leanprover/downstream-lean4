@@ -84,6 +84,11 @@ structure NavBarItem where
   Whether this item should be visible on desktop and/or mobile
   -/
   display : Display := .all
+
+  /--
+  Optional short description shown below the title in dropdown panels
+  -/
+  description : Option String := none
 deriving Repr
 
 /--
@@ -124,6 +129,16 @@ structure NavBarGroup where
   Whether this group should appear on desktop, mobile, or both
   -/
   display : Display := .all
+
+  /--
+  Whether to render this group as a desktop dropdown instead of inline items.
+  -/
+  isDropdown : Bool := false
+
+  /--
+  Number of columns in the dropdown panel (only used when isDropdown is true).
+  -/
+  columns : Nat := 1
 
   /--
   Items belonging to this group
@@ -199,6 +214,26 @@ private def renderDivider (classes : Option String) : Html :=
   let cls := classes.map (s!" {·}") |>.getD ""
   {{ <li class=s!"nav-item nav-divider{cls}" aria-hidden="true"><span class="divider" /></li> }}
 
+private def chevronDownSvg : Html :=
+  {{
+    <svg
+      class="dropdown-arrow"
+      width="4"
+      height="4"
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M4 5l2 2 2-2"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  }}
+
 private def renderDesktopGroup (group : NavBarGroup) : Html :=
   let desktopItems := group.items.filter (fun i => i.display.in .desktop)
   let labelEl :=
@@ -211,6 +246,42 @@ private def renderDesktopGroup (group : NavBarGroup) : Html :=
       {{ labelEl }}
       <ul class="nav-group-items">
         {{ desktopItems.map renderItem }}
+      </ul>
+    </li>
+  }}
+
+private def renderDropdownItem (item : NavBarItem) : Html :=
+  let classes := item.classes.map (s!" {·}") |>.getD ""
+  let inner : Html :=
+    match item.description with
+    | some desc =>
+      {{ <span class="dropdown-item-title">{{item.title}}</span>
+         <span class="dropdown-item-desc">{{desc}}</span> }}
+    | none => item.title
+  {{
+    <li class=s!"nav-item{ if item.active then " active" else ""}">
+      {{
+        if let some url := item.url then
+          {{ <a href={{url}} class=s!"nav-link dropdown-item{classes}" aria-label={{item.alt.getD ""}} target={{if item.blank then "_blank" else "_self"}}>{{inner}}</a> }}
+        else
+          {{ <button class=s!"nav-link dropdown-item{classes}" aria-label={{item.alt.getD ""}}>{{inner}}</button> }}
+      }}
+    </li>
+  }}
+
+private def renderDesktopDropdown (group : NavBarGroup) : Html :=
+  let desktopItems := group.items.filter (fun i => i.display.in .desktop)
+  let trigger :=
+    if let some url := group.url then
+      {{ <a href={{url}} class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={{group.alt.getD group.label}}>{{group.label}}{{ chevronDownSvg }}</a> }}
+    else
+      {{ <button class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={{group.alt.getD group.label}}>{{group.label}}{{ chevronDownSvg }}</button> }}
+  let colStyle := if group.columns > 1 then s!"grid-template-columns: repeat({group.columns}, 1fr)" else ""
+  {{
+    <li class="nav-item nav-dropdown-wrapper">
+      {{ trigger }}
+      <ul class=s!"nav-dropdown-panel{ if group.columns > 1 then " nav-dropdown-grid" else ""}" role="menu" style={{colStyle}}>
+        {{ desktopItems.map renderDropdownItem }}
       </ul>
     </li>
   }}
@@ -237,7 +308,7 @@ private def renderMobileGroup (group : NavBarGroup) : Html :=
 private def renderDesktopEntry (entry : NavBarEntry) : Html :=
   match entry with
   | .item    item        => renderItem item
-  | .group   group       => renderDesktopGroup group
+  | .group   group       => if group.isDropdown then renderDesktopDropdown group else renderDesktopGroup group
   | .divider _ classes   => renderDivider classes
 
 private def renderMobileEntry (entry : NavBarEntry) : Html :=

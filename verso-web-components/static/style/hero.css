@@ -135,6 +135,7 @@
     left: calc((1070px - 600px) / 2 * -1);
     top: calc((900px - 500px) / 2 * -1);
     opacity: 60%;
+    pointer-events: none;
 }
 
 .page-content {

@@ -98,6 +98,5 @@
     height: 34px;
     background: var(--color-primary);
     border-radius: var(--radius-md);
-    transition: left var(--transition-base), top var(--transition-base), width var(--transition-base);
     z-index: var(--z-normal);
 }

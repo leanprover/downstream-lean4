@@ -89,6 +89,8 @@ def primaryTemplate (config : SiteConfig) (extraHead : Html := .empty) (beforeNa
 
         <script src="-verso-data/theme.js" />
         <script src="-verso-data/copy.js" />
+        <script src="-verso-data/motion.js" />
+        <script src="-verso-data/navbar.js" />
         <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
       </body>
