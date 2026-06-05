@@ -30,25 +30,21 @@ jobs:
             exit 1
           fi
 
-      - name: Update nightly branch
-        env:
-          GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
-          NIGHTLY: ${{ steps.nightly.outputs.nightly }}
-        run: |
-          # Create the branch if it doesn't exist already.
-          if gh api "repos/$GITHUB_REPOSITORY/git/refs" -X POST -f ref="refs/heads/$NIGHTLY" -f sha="$GITHUB_SHA" --silent; then
-            echo "::notice::Created branch $NIGHTLY at $GITHUB_SHA"
-            exit 0
-          fi
+      - name: Update nightly-YYYY-MM-DD branch
+        uses: ./.github/actions/update-branch
+        with:
+          token: ${{ secrets.PUSH_TOKEN }}
+          repo: ${{ github.repository }}
+          branch: ${{ steps.nightly.outputs.nightly }}
+          sha: ${{ github.sha }}
 
-          # Update the branch, but only if it can be fast-forwarded.
-          # Otherwise, we may accidentally move it backwards again.
-          if gh api "repos/$GITHUB_REPOSITORY/git/refs/heads/$NIGHTLY" -X PATCH -f sha="$GITHUB_SHA" --silent; then
-            echo "::notice::Updated branch $NIGHTLY to $GITHUB_SHA"
-            exit 0
-          fi
-
-          echo "::warning::Did not update branch $NIGHTLY to $GITHUB_SHA"
+      - name: Update nightly-latest branch
+        uses: ./.github/actions/update-branch
+        with:
+          token: ${{ secrets.PUSH_TOKEN }}
+          repo: ${{ github.repository }}
+          branch: nightly-latest
+          sha: ${{ github.sha }}
 
       - name: Determine lean4 nightly sha
         id: lean4-nightly
@@ -65,23 +61,9 @@ jobs:
           fi
 
       - name: Update lean4 downstream branch
-        env:
-          GH_TOKEN: ${{ secrets.PUSH_LEAN4_TOKEN }}
-          REPO: leanprover/lean4
-          BRANCH: downstream
-          SHA: ${{ steps.lean4-nightly.outputs.sha }}
-        run: |
-          # Create the branch if it doesn't exist already.
-          if gh api "repos/$REPO/git/refs" -X POST -f ref="refs/heads/$BRANCH" -f sha="$SHA" --silent; then
-            echo "::notice::Created branch $BRANCH in $REPO at $SHA"
-            exit 0
-          fi
-
-          # Update the branch, but only if it can be fast-forwarded.
-          # Otherwise, we may accidentally move it backwards again.
-          if gh api "repos/$REPO/git/refs/heads/$BRANCH" -X PATCH -f sha="$SHA" --silent; then
-            echo "::notice::Updated branch $BRANCH in $REPO to $SHA"
-            exit 0
-          fi
-
-          echo "::warning::Did not update branch $BRANCH in $REPO to $SHA"
+        uses: ./.github/actions/update-branch
+        with:
+          token: ${{ secrets.PUSH_LEAN4_TOKEN }}
+          repo: leanprover/lean4
+          branch: downstream
+          sha: ${{ steps.lean4-nightly.outputs.sha }}

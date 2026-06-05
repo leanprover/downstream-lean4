@@ -1,0 +1,42 @@
+name: Update branch
+description: Create or fast-forward a branch in a repository to a given commit.
+
+inputs:
+  token:
+    description: GitHub token with permission to push to the repository.
+    required: true
+  repo:
+    description: Full repository name (i.e. owner/name).
+    required: true
+  branch:
+    description: Branch name to create or fast-forward.
+    required: true
+  sha:
+    description: Commit SHA to fast-forward the branch to.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Update branch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        BRANCH: ${{ inputs.branch }}
+        SHA: ${{ inputs.sha }}
+      run: |
+        # Create the branch if it doesn't exist already.
+        if gh api "repos/$REPO/git/refs" -X POST -f ref="refs/heads/$BRANCH" -f sha="$SHA" --silent; then
+          echo "::notice::Created branch $BRANCH in $REPO at $SHA"
+          exit 0
+        fi
+
+        # Update the branch, but only if it can be fast-forwarded.
+        # Otherwise, we may accidentally move it backwards again.
+        if gh api "repos/$REPO/git/refs/heads/$BRANCH" -X PATCH -f sha="$SHA" --silent; then
+          echo "::notice::Fast-forwarded branch $BRANCH in $REPO to $SHA"
+          exit 0
+        fi
+
+        echo "::warning::Did not update branch $BRANCH in $REPO to $SHA"
