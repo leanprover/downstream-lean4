@@ -39,6 +39,9 @@ class Updater:
 
     def restore_tree_to(self, tree: str, path: Path) -> None:
         path.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(path)
+        path.mkdir(parents=True, exist_ok=True)
+
         run(
             *("git", f"--work-tree={path}"),
             *("restore", "--worktree", f"--source={tree}", "."),
@@ -131,7 +134,6 @@ class Updater:
         self.reset()
 
         rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
-        shutil.rmtree(subrepo.path)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"reset repo {subrepo.name}")
         print("::endgroup::", flush=True)
