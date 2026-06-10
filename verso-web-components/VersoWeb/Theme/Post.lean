@@ -59,14 +59,14 @@ def postTemplate (config : PostConfig) : Template := do
   let metadata ← param? "metadata"
   let title ← param "title"
   let path ← currentPath
-  let nav := collectH1 content path.link
+  let nav := collectH1 content path.relativeLink
 
   let containerClass := s!"container {config.hasSpecialStyling path |>.map (" " ++ ·) |>.getD ""}"
 
   pure {{
     <main class={{containerClass}}>
     <div class=s!"{if nav.isSome then "post-grid" else "post-center"} post-page" role="main">
-      {{ articleContent title content metadata path.link }}
+      {{ articleContent title content metadata path.relativeLink }}
       {{
         if let some nav := nav then
           {{

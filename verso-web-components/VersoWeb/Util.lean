@@ -134,8 +134,9 @@ def createSlug (str : String) : String :=
 
 /--
 Add ID slugs to heading elements for navigation, with permalink widgets on h2–h4.
-`page` must be the absolute path of the current page (e.g. `"/faq/"`) so that
-the permalink href resolves correctly against the Verso `<base>` tag.
+`page` must be the site-root-relative path of the current page (e.g. `"faq/"`, with
+no leading slash) so that the permalink href resolves correctly against the Verso
+`<base>` tag.
 -/
 partial def addSlug (page : String) : Html → Html
   | .seq h => .seq (h.map (addSlug page))

@@ -22,7 +22,7 @@ def markdownPageTemplate (layout : LayoutConfig) : TemplateM Html := do
   let content ← param "content"
   let title ← param "title"
   let path ← currentPath
-  let nav := collectH1 content ("/" ++ path.relativeLink)
+  let nav := collectH1 content path.relativeLink
 
   let postPageContent := if nav.isSome ∧ layout.isIndexPage path then "post-grid" else "post-center"
   let sectionTitle := {{ <h1 class="page-title"> {{ ← param "title"}} </h1> }}
@@ -40,7 +40,7 @@ def markdownPageTemplate (layout : LayoutConfig) : TemplateM Html := do
           <div class="post-content">
             {{ if layout.needsTitle path then sectionTitle else .empty }}
             {{ postList }}
-            {{ addSlug path.link content }}
+            {{ addSlug path.relativeLink content }}
           </div>
         </article>
         {{ aside }}
