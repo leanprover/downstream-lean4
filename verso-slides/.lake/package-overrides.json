@@ -5,21 +5,21 @@
       "type": "path",
       "subDir": null,
       "scope": "",
-      "name": "illuminate",
-      "manifestFile": "lake-manifest.json",
-      "inherited": false,
-      "configFile": "lakefile.lean",
-      "dir": "../illuminate"
-    },
-    {
-      "type": "path",
-      "subDir": null,
-      "scope": "",
       "name": "verso",
       "manifestFile": "lake-manifest.json",
       "inherited": false,
       "configFile": "lakefile.lean",
       "dir": "../verso"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "illuminate",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../illuminate"
     },
     {
       "type": "path",
