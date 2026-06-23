@@ -30,20 +30,20 @@ jobs:
             exit 1
           fi
 
-      - name: Update nightly-YYYY-MM-DD branch
+      - name: Update green-nightly-YYYY-MM-DD branch
         uses: ./.github/actions/update-branch
         with:
           token: ${{ secrets.PUSH_TOKEN }}
           repo: ${{ github.repository }}
-          branch: ${{ steps.nightly.outputs.nightly }}
+          branch: green-${{ steps.nightly.outputs.nightly }}
           sha: ${{ github.sha }}
 
-      - name: Update nightly-latest branch
+      - name: Update green branch
         uses: ./.github/actions/update-branch
         with:
           token: ${{ secrets.PUSH_TOKEN }}
           repo: ${{ github.repository }}
-          branch: nightly-latest
+          branch: green
           sha: ${{ github.sha }}
 
       - name: Determine lean4 nightly sha

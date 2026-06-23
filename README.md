@@ -19,9 +19,9 @@ Inside this repository, the following branches exist:
 
 - `master`: Follows lean4 nightly releases. Both the toolchain and the subrepos
   are kept up-to-date by CI.
-- `nightly-YYYY-MM-DD`: For every nightly release, a branch of this form points
-  to the latest commit with green CI on `master` using this release.
-- `nightly-latest`: Points to the latest commit with green CI on `master`.
+- `green-nightly-YYYY-MM-DD`: For every nightly release, a branch of this form
+  points to the latest commit with green CI on `master` using this release.
+- `green`: Points to the latest commit with green CI on `master`.
 
 In the [Lean 4 repository](https://github.com/leanprover/lean4), the following
 branch exists:
