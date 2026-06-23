@@ -1,0 +1,25 @@
+name: Find the original PR
+
+description: >
+  Determine the original PR that a workflow is running for, along with some of
+  its metadata. Supports the events `pull_request`, `pull_request_target`, and
+  `workflow_run`. Fails if no PR could be found.
+
+inputs:
+  token:
+    description: GitHub token used to search for pull requests.
+    default: ${{ github.token }}
+
+outputs:
+  number:
+    description: The PR number.
+  repo:
+    description: The repository the PR originates from (owner/repo).
+  branch:
+    description: The branch the PR originates from.
+  sha:
+    description: The commit SHA of the PR.
+
+runs:
+  using: node24
+  main: dist/index.js

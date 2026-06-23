@@ -152,6 +152,14 @@ class Updater:
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"update repo {subrepo.name}")
         print("::endgroup::", flush=True)
 
+    def fixup_subrepo(self, subrepo: Subrepo) -> None:
+        print(f"::group::fixup {subrepo.name}", flush=True)
+        self.reset()
+
+        base_sha = self.find_latest_subrepo_sha(subrepo)
+        self.fixup_subrepo_and_commit(subrepo, base_sha, f"fixup repo {subrepo.name}")
+        print("::endgroup::", flush=True)
+
     def remove_subrepo(self, path: Path) -> None:
         print(f"::group::prune {path.name}", flush=True)
         self.reset()

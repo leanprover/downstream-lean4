@@ -1,0 +1,63 @@
+name: Create an adaptation PR
+
+inputs:
+  app-token:
+    description: GitHub app token.
+    required: true
+
+  app-slug:
+    description: GitHub app slug.
+    required: true
+
+  upstream-pr:
+    description: >
+      The upstream PR number to create the adaptation PR for.
+    required: true
+
+  upstream-ci-green:
+    description: >
+      Whether the upstream PR CI is considered green. If it is not green, the
+      action will not attempt to create an adaptation PR.
+    default: true
+
+  upstream-branch:
+    description: >
+      Branch in the upstream repo that marks the latest commit with green
+      downstream CI.
+    default: downstream-green
+
+  upstream-label:
+    description: >
+      Label to add to an upstream PR to trigger adaptation PR creation.
+    default: downstream
+
+  downstream-repo:
+    description: >
+      The downstream repository to search for adaptation PRs and dispatch the
+      downstream action in, in "owner/repo" format.
+    required: true
+
+  downstream-clone:
+    description: >
+      Path to a (potentially treeless) clone of the downstream repository.
+    required: true
+
+  downstream-branch:
+    description: >
+      The branch in the downstream repo to create the adaptation PR against.
+    default: green
+
+  downstream-label:
+    description: >
+      Label to attach to all adaptation PRs created by this action.
+
+  override-toolchain:
+    description: >
+      Override the toolchain in the adaptation PR with this value. If not set,
+      the toolchain will not be modified.
+
+  # TODO Support repo overrides
+
+runs:
+  using: node24
+  main: dist/index.js

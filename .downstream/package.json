@@ -1,0 +1,25 @@
+{
+  "name": "downstream-actions",
+  "version": "0.0.0",
+  "private": true,
+  "description": "GitHub Actions for the adaptation PR process. See doc/adaptation_prs.md.",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "prettier --check . && tsc --noEmit",
+    "fmt": "prettier --write ."
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/exec": "^3.0.0",
+    "@actions/github": "^6.0.1",
+    "@octokit/request-error": "^5.1.1"
+  },
+  "devDependencies": {
+    "@octokit/types": "^16.0.0",
+    "@types/node": "^22.19.20",
+    "esbuild": "^0.24.2",
+    "prettier": "^3.8.4",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@11.3.0"
+}
