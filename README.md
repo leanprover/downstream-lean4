@@ -26,5 +26,5 @@ Inside this repository, the following branches exist:
 In the [Lean 4 repository](https://github.com/leanprover/lean4), the following
 branch exists:
 
-- `downstream`: Points to the latest commit tagged with `nightly-YYYY-MM-DD` for
-  which this repository has a commit with green CI.
+- `downstream-green`: Points to the latest commit tagged with
+  `nightly-YYYY-MM-DD` for which this repository has a commit with green CI.

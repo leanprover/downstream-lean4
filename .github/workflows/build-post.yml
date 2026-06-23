@@ -60,10 +60,10 @@ jobs:
             exit 1
           fi
 
-      - name: Update lean4 downstream branch
+      - name: Update lean4 downstream-green branch
         uses: ./.github/actions/update-branch
         with:
           token: ${{ secrets.PUSH_LEAN4_TOKEN }}
           repo: leanprover/lean4
-          branch: downstream
+          branch: downstream-green
           sha: ${{ steps.lean4-nightly.outputs.sha }}
