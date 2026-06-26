@@ -4,15 +4,63 @@ on:
   workflow_run:
     workflows: [Build subrepos]
     types: [completed]
-    branches: [master]
 
 concurrency:
-  group: build-post
+  group: build-post-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
 jobs:
-  main:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  upload-cache:
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    env:
+      LAKE_ARTIFACT_CACHE: 1
+      LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Set cache directory
+        run: echo "LAKE_CACHE_DIR=$RUNNER_TEMP/cache" >> "$GITHUB_ENV"
+
+      - name: Download build mappings
+        uses: actions/download-artifact@v8
+        with:
+          name: build-mappings
+          path: ${{ runner.temp }}/mappings
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download build cache
+        uses: actions/download-artifact@v8
+        with:
+          name: build-cache
+          path: ${{ runner.temp }}/cache
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Upload artifacts to cache
+        env:
+          LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+        run: |
+          python3 .downstream/list.py . | while IFS= read -r repo; do
+            echo "::group::cache put $repo"
+            ( cd "$repo" && lake cache put --scope "$repo" "$RUNNER_TEMP/mappings/$repo.jsonl" ) || true
+            echo "::endgroup::"
+          done
+
+  update-branches:
+    if:
+      ${{ github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-slim
     steps:
       - name: Create GitHub App token

@@ -1,0 +1,14 @@
+cache.defaultService = "download"
+cache.defaultUploadService = "upload"
+
+[[cache.service]]
+name = "download"
+kind = "s3"
+artifactEndpoint = "https://downstream-lean4.lean-cache.cloud/a0"
+revisionEndpoint = "https://downstream-lean4.lean-cache.cloud/r0"
+
+[[cache.service]]
+name = "upload"
+kind = "s3"
+artifactEndpoint = "https://a09a7664adc082e00f294ac190827820.r2.cloudflarestorage.com/downstream-lean4/a0"
+revisionEndpoint = "https://a09a7664adc082e00f294ac190827820.r2.cloudflarestorage.com/downstream-lean4/r0"

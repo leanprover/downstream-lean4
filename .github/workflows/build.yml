@@ -12,7 +12,7 @@ jobs:
     env:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_RESTORE_ARTIFACTS: 1
-
+      LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -22,6 +22,33 @@ jobs:
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
+      - name: Set cache directory
+        run: echo "LAKE_CACHE_DIR=$RUNNER_TEMP/cache" >> "$GITHUB_ENV"
+
+      - name: Restore cache
+        run: |
+          python3 .downstream/list.py . | while IFS= read -r repo; do
+            echo "::group::cache get $repo"
+            ( cd "$repo" && lake cache get --scope "$repo" ) || true
+            echo "::endgroup::"
+          done
+
       - name: Build
         run: |
-          python3 .downstream/build.py . -tl --report "$GITHUB_STEP_SUMMARY"
+          python3 .downstream/build.py . -tl \
+            --report "$GITHUB_STEP_SUMMARY" \
+            --mappings "$RUNNER_TEMP/mappings"
+
+      - name: Upload build mappings
+        if: ${{ !cancelled() }} # Upload even if build fails
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-mappings
+          path: ${{ runner.temp }}/mappings/
+
+      - name: Upload build cache
+        if: ${{ !cancelled() }} # Upload even if build fails
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-cache
+          path: ${{ runner.temp }}/cache/
