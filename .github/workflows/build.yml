@@ -17,9 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
-
       - name: Install elan
         run: |
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
@@ -27,4 +24,4 @@ jobs:
 
       - name: Build
         run: |
-          uv --project .downstream run .downstream/build.py . -tl --report "$GITHUB_STEP_SUMMARY"
+          python3 .downstream/build.py . -tl --report "$GITHUB_STEP_SUMMARY"

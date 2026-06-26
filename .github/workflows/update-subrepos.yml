@@ -23,12 +23,9 @@ jobs:
       - name: Configure git
         uses: ./.github/actions/configure-git
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
-
       - name: Update subrepos
         run: |
-          uv --project .downstream run .downstream/update.py . -pU
+          python3 .downstream/update.py . -pU
 
       - name: Push
         run: |
