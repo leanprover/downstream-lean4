@@ -23877,7 +23877,7 @@ var require_github = __commonJS({
   }
 });
 
-// actions/adaptation-pr/main.ts
+// actions/adaptation-pr-create/main.ts
 var fs2 = __toESM(require("node:fs/promises"));
 var path4 = __toESM(require("node:path"));
 var core2 = __toESM(require_core());
@@ -24597,7 +24597,7 @@ function exec(commandLine, args, options) {
   });
 }
 
-// actions/adaptation-pr/main.ts
+// actions/adaptation-pr-create/main.ts
 var github = __toESM(require_github());
 var import_request_error = __toESM(require_dist_node4());
 
@@ -24669,7 +24669,7 @@ function parseRepo(input) {
   return { owner: match[1], repo: match[2] };
 }
 
-// actions/adaptation-pr/main.ts
+// actions/adaptation-pr-create/main.ts
 var appToken = getInput2("app-token");
 var appSlug = getInput2("app-slug");
 var upstreamRepo = github.context.repo;
@@ -24837,7 +24837,7 @@ async function createAdaptationPrFor(uPr, aBranchName) {
     ...downstreamRepo,
     base: defaultBranch,
     head: aBranchName,
-    title: `Adaptations for ${uPrRef}: ${uPr.title}`,
+    title: `[#${uPr.number}] ${uPr.title}`,
     body: `This is the adaptation PR for ${uPrRef}.`
   });
   core2.info(`Created adaptation PR #${data.number}`);

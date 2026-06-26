@@ -1,8 +1,5 @@
 name: Create an adaptation PR
 
-# This action was renamed to `adaptation-pr-create`. This is a thin wrapper that
-# forwards to the new action, kept for backwards compatibility.
-
 inputs:
   app-token:
     description: GitHub app token.
@@ -59,19 +56,8 @@ inputs:
       Override the toolchain in the adaptation PR with this value. If not set,
       the toolchain will not be modified.
 
+  # TODO Support repo overrides
+
 runs:
-  using: composite
-  steps:
-    - uses: ./actions/adaptation-pr-create
-      with:
-        app-token: ${{ inputs.app-token }}
-        app-slug: ${{ inputs.app-slug }}
-        upstream-pr: ${{ inputs.upstream-pr }}
-        upstream-ci-green: ${{ inputs.upstream-ci-green }}
-        upstream-branch: ${{ inputs.upstream-branch }}
-        upstream-label: ${{ inputs.upstream-label }}
-        downstream-repo: ${{ inputs.downstream-repo }}
-        downstream-clone: ${{ inputs.downstream-clone }}
-        downstream-branch: ${{ inputs.downstream-branch }}
-        downstream-label: ${{ inputs.downstream-label }}
-        override-toolchain: ${{ inputs.override-toolchain }}
+  using: node24
+  main: dist/index.js

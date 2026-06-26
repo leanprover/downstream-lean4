@@ -1,6 +1,7 @@
 import json
 import re
 import shutil
+from graphlib import TopologicalSorter
 from pathlib import Path
 from subprocess import CalledProcessError
 
@@ -20,6 +21,22 @@ class Updater:
         self.subrepos = [r for r in subrepos if not r.override_only]
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {r.url: r for r in self.subrepos}
+
+    def topo_subrepos(self) -> list[Subrepo]:
+        graph: dict[str, set[str]] = {}
+        for subrepo in self.subrepos:
+            deps: set[str] = set()
+            manifest = json.loads(subrepo.manifest_path.read_text())
+            for package in manifest["packages"]:
+                if package["type"] != "git":
+                    continue
+                url = normalize_url(package["url"])
+                if dep := self.subrepos_by_url.get(url):
+                    deps.add(dep.name)
+            graph[subrepo.name] = deps
+
+        order = TopologicalSorter(graph).static_order()
+        return [self.subrepos_by_name[name] for name in order]
 
     def reset(self) -> None:
         run("git", "clean", "-dffx")

@@ -65,3 +65,14 @@ corresponding package definitions in the manifest.
 When a PR branch is split off for a specific package, the `.lake` directory
 contents are ignored. The `lake-manifest.json` file inside the branch will
 contain changes made to it inside the monorepo.
+
+## GitHub App
+
+The adaptation PR actions contained in this repository expect to be used in
+conjunction with a GitHub App that has access to both the upstream and the
+downstream repositories. The app requires the following permissions:
+
+- **Read** access to actions.
+- **Read** and **write** access to content (code).
+- **Read** and **write** access to issues.
+- **Read** and **write** access to pull requests.
