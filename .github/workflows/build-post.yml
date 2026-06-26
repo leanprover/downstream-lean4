@@ -14,8 +14,15 @@ jobs:
   main:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-slim
-    environment: master
     steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: lean4,downstream-lean4
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -33,7 +40,7 @@ jobs:
       - name: Update green-nightly-YYYY-MM-DD branch
         uses: ./.github/actions/update-branch
         with:
-          token: ${{ secrets.PUSH_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green-${{ steps.nightly.outputs.nightly }}
           sha: ${{ github.sha }}
@@ -41,7 +48,7 @@ jobs:
       - name: Update green branch
         uses: ./.github/actions/update-branch
         with:
-          token: ${{ secrets.PUSH_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green
           sha: ${{ github.sha }}
@@ -63,7 +70,7 @@ jobs:
       - name: Update lean4 downstream-green branch
         uses: ./.github/actions/update-branch
         with:
-          token: ${{ secrets.PUSH_LEAN4_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           repo: leanprover/lean4
           branch: downstream-green
           sha: ${{ steps.lean4-nightly.outputs.sha }}
