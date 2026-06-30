@@ -14,10 +14,11 @@ import {
   addAndCommit,
   assert,
   exit,
-  findOpenPrFor,
+  findPrFor,
   getInput,
   getInputOpt,
   getPr,
+  type ListPr,
   type Octokit,
   parseBool,
   parseRepo,
@@ -50,12 +51,9 @@ async function dRun(
   return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
 }
 
-function ensurePrIsOpen(pr: Pr): void {
-  if (pr.state === "open") {
-    core.info("PR is open, continuing...");
-    return;
-  }
-  exit("PR is not open");
+function ensurePrIsUnmerged(pr: Pr): void {
+  if (pr.merged_at !== null) exit("PR is merged, exiting...");
+  core.info("PR is unmerged, continuing...");
 }
 
 function ensurePrTargetsDefaultBranch(pr: Pr): void {
@@ -64,7 +62,7 @@ function ensurePrTargetsDefaultBranch(pr: Pr): void {
     core.info(`PR is targeting "${defaultBranch}", continuing...`);
     return;
   }
-  exit(`PR is not targeting "${defaultBranch}"`);
+  exit(`PR is not targeting "${defaultBranch}", exiting...`);
 }
 
 function ensurePrIsLabeled(pr: Pr, label: string): void {
@@ -73,7 +71,7 @@ function ensurePrIsLabeled(pr: Pr, label: string): void {
     core.info(`PR is labeled "${label}", continuing...`);
     return;
   }
-  exit(`PR is not labeled "${label}"`);
+  exit(`PR is not labeled "${label}", exiting...`);
 }
 
 function statusPrefix(aPr: number | undefined): string {
@@ -198,6 +196,51 @@ async function getDownstreamDefaultBranch(): Promise<string> {
   return data.default_branch;
 }
 
+async function syncState(uPr: Pr, aPr: ListPr): Promise<void> {
+  // If any of the PRs is merged, there is not really any state left to sync.
+  if (uPr.merged_at !== null) exit("PR is merged, exiting...");
+  if (aPr.merged_at !== null) exit("Adaptation PR is merged, exiting...");
+
+  if (uPr.state === "open" && aPr.state !== "open") {
+    core.info(`Reopening adaptation PR #${aPr.number}...`);
+    await octo.rest.pulls.update({
+      ...downstreamRepo,
+      pull_number: aPr.number,
+      state: "open",
+    });
+  } else if (uPr.state !== "open" && aPr.state === "open") {
+    core.info(`Closing adaptation PR #${aPr.number}...`);
+    await octo.rest.pulls.update({
+      ...downstreamRepo,
+      pull_number: aPr.number,
+      state: "closed",
+    });
+  }
+
+  // Don't modify draft state on a closed PR, GitHub doesn't like that.
+  if (uPr.state !== "open") return;
+
+  if (uPr.draft && !aPr.draft) {
+    await octo.graphql(
+      `mutation($id: ID!) {
+        convertPullRequestToDraft(input: { pullRequestId: $id }) {
+          clientMutationId
+        }
+      }`,
+      { id: aPr.node_id },
+    );
+  } else if (!uPr.draft && aPr.draft) {
+    await octo.graphql(
+      `mutation($id: ID!) {
+        markPullRequestReadyForReview(input: { pullRequestId: $id }) {
+          clientMutationId
+        }
+      }`,
+      { id: aPr.node_id },
+    );
+  }
+}
+
 async function createAdaptationPrFor(
   uPr: Pr,
   aBranchName: string,
@@ -211,6 +254,7 @@ async function createAdaptationPrFor(
     head: aBranchName,
     title: `[#${uPr.number}] ${uPr.title}`,
     body: `This is the adaptation PR for ${uPrRef}.`,
+    draft: uPr.draft,
   });
   core.info(`Created adaptation PR #${data.number}`);
 
@@ -226,14 +270,26 @@ async function createAdaptationPrFor(
 
 async function run(): Promise<void> {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
-  ensurePrIsOpen(uPr);
-  ensurePrTargetsDefaultBranch(uPr);
+
+  ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
+  ensurePrTargetsDefaultBranch(uPr);
 
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
-  const aPr = await findOpenPrFor(octo, downstreamRepo, aBranchName);
+
+  // If there's no adaptation branch, then there can't be any open adaptation
+  // PR, and instead of attempting to re-use any existing closed adaptation PRs,
+  // we should just create a new one.
+  const aPr =
+    aBranch === undefined
+      ? undefined
+      : await findPrFor(octo, downstreamRepo, aBranchName);
+
   const prefix = statusPrefix(aPr?.number);
+
+  if (aPr !== undefined) await syncState(uPr, aPr);
+  if (uPr.state !== "open") exit("PR is closed, exiting...");
 
   if (aBranch === undefined)
     core.info(`Adaptation branch "${aBranchName}" does not exist`);

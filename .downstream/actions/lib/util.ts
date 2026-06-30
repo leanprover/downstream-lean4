@@ -57,17 +57,20 @@ export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
   return data;
 }
 
-export async function findOpenPrFor(
+export async function findPrFor(
   octo: Octokit,
   repo: Repo,
   branchName: string,
 ): Promise<ListPr | undefined> {
-  const prs = await octo.paginate(octo.rest.pulls.list, {
+  const { data } = await octo.rest.pulls.list({
     ...repo,
     head: `${repo.owner}:${branchName}`,
-    per_page: 100,
+    state: "all",
+    sort: "created",
+    direction: "desc",
+    per_page: 1,
   });
-  return prs[0];
+  return data[0];
 }
 
 export function adaptationBranchNameFor(uPr: Pr): string {

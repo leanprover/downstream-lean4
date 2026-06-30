@@ -24675,13 +24675,16 @@ async function getPr(octo2, repo, n) {
   });
   return data;
 }
-async function findOpenPrFor(octo2, repo, branchName) {
-  const prs = await octo2.paginate(octo2.rest.pulls.list, {
+async function findPrFor(octo2, repo, branchName) {
+  const { data } = await octo2.rest.pulls.list({
     ...repo,
     head: `${repo.owner}:${branchName}`,
-    per_page: 100
+    state: "all",
+    sort: "created",
+    direction: "desc",
+    per_page: 1
   });
-  return prs[0];
+  return data[0];
 }
 function adaptationBranchNameFor(uPr) {
   return `adaptation-${uPr.number}`;
@@ -24715,12 +24718,9 @@ var octo = github.getOctokit(appToken);
 async function dRun(cmd, args, options) {
   return await exec(cmd, args, { ...options, cwd: downstreamClone });
 }
-function ensurePrIsOpen(pr) {
-  if (pr.state === "open") {
-    core2.info("PR is open, continuing...");
-    return;
-  }
-  exit("PR is not open");
+function ensurePrIsUnmerged(pr) {
+  if (pr.merged_at !== null) exit("PR is merged, exiting...");
+  core2.info("PR is unmerged, continuing...");
 }
 function ensurePrTargetsDefaultBranch(pr) {
   const defaultBranch = pr.base.repo.default_branch;
@@ -24728,7 +24728,7 @@ function ensurePrTargetsDefaultBranch(pr) {
     core2.info(`PR is targeting "${defaultBranch}", continuing...`);
     return;
   }
-  exit(`PR is not targeting "${defaultBranch}"`);
+  exit(`PR is not targeting "${defaultBranch}", exiting...`);
 }
 function ensurePrIsLabeled(pr, label) {
   const labeled = pr.labels.some((l) => l.name === label);
@@ -24736,7 +24736,7 @@ function ensurePrIsLabeled(pr, label) {
     core2.info(`PR is labeled "${label}", continuing...`);
     return;
   }
-  exit(`PR is not labeled "${label}"`);
+  exit(`PR is not labeled "${label}", exiting...`);
 }
 function statusPrefix(aPr) {
   if (aPr === void 0) return "";
@@ -24834,6 +24834,45 @@ async function getDownstreamDefaultBranch() {
   core2.info(`Downstream default branch is "${data.default_branch}"`);
   return data.default_branch;
 }
+async function syncState(uPr, aPr) {
+  if (uPr.merged_at !== null) exit("PR is merged, exiting...");
+  if (aPr.merged_at !== null) exit("Adaptation PR is merged, exiting...");
+  if (uPr.state === "open" && aPr.state !== "open") {
+    core2.info(`Reopening adaptation PR #${aPr.number}...`);
+    await octo.rest.pulls.update({
+      ...downstreamRepo,
+      pull_number: aPr.number,
+      state: "open"
+    });
+  } else if (uPr.state !== "open" && aPr.state === "open") {
+    core2.info(`Closing adaptation PR #${aPr.number}...`);
+    await octo.rest.pulls.update({
+      ...downstreamRepo,
+      pull_number: aPr.number,
+      state: "closed"
+    });
+  }
+  if (uPr.state !== "open") return;
+  if (uPr.draft && !aPr.draft) {
+    await octo.graphql(
+      `mutation($id: ID!) {
+        convertPullRequestToDraft(input: { pullRequestId: $id }) {
+          clientMutationId
+        }
+      }`,
+      { id: aPr.node_id }
+    );
+  } else if (!uPr.draft && aPr.draft) {
+    await octo.graphql(
+      `mutation($id: ID!) {
+        markPullRequestReadyForReview(input: { pullRequestId: $id }) {
+          clientMutationId
+        }
+      }`,
+      { id: aPr.node_id }
+    );
+  }
+}
 async function createAdaptationPrFor(uPr, aBranchName) {
   core2.info("Creating adaptation PR...");
   const defaultBranch = await getDownstreamDefaultBranch();
@@ -24843,7 +24882,8 @@ async function createAdaptationPrFor(uPr, aBranchName) {
     base: defaultBranch,
     head: aBranchName,
     title: `[#${uPr.number}] ${uPr.title}`,
-    body: `This is the adaptation PR for ${uPrRef}.`
+    body: `This is the adaptation PR for ${uPrRef}.`,
+    draft: uPr.draft
   });
   core2.info(`Created adaptation PR #${data.number}`);
   core2.info(`Adding label "${downstreamLabel}" to adaptation PR...`);
@@ -24856,13 +24896,15 @@ async function createAdaptationPrFor(uPr, aBranchName) {
 }
 async function run() {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
-  ensurePrIsOpen(uPr);
-  ensurePrTargetsDefaultBranch(uPr);
+  ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
+  ensurePrTargetsDefaultBranch(uPr);
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
-  const aPr = await findOpenPrFor(octo, downstreamRepo, aBranchName);
+  const aPr = aBranch === void 0 ? void 0 : await findPrFor(octo, downstreamRepo, aBranchName);
   const prefix = statusPrefix(aPr?.number);
+  if (aPr !== void 0) await syncState(uPr, aPr);
+  if (uPr.state !== "open") exit("PR is closed, exiting...");
   if (aBranch === void 0)
     core2.info(`Adaptation branch "${aBranchName}" does not exist`);
   else core2.info(`Adaptation branch "${aBranchName}" exists`);
