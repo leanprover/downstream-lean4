@@ -10,19 +10,22 @@ import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit
 import { postOrUpdateStatus } from "../lib/status-message";
 import {
   abort,
+  adaptationBranchNameFor,
+  addAndCommit,
   assert,
   exit,
+  findOpenPrFor,
   getInput,
   getInputOpt,
-  Octokit,
+  getPr,
+  type Octokit,
   parseBool,
   parseRepo,
-  Repo,
+  type Pr,
+  type Repo,
 } from "../lib/util";
 
-type Pr = Response<Octokit["rest"]["pulls"]["get"]>;
 type Branch = Response<Octokit["rest"]["repos"]["getBranch"]>;
-type ListPr = Response<Octokit["rest"]["pulls"]["list"]>[number];
 
 const appToken = getInput("app-token");
 const appSlug = getInput("app-slug");
@@ -34,16 +37,17 @@ const upstreamLabel = getInput("upstream-label");
 const downstreamRepo = parseRepo(getInput("downstream-repo"));
 const downstreamClone = getInput("downstream-clone");
 const downstreamBranch = getInput("downstream-branch");
-const downstreamLabel = getInputOpt("downstream-label");
+const downstreamLabel = getInput("downstream-label");
+const downstreamLabelMerge = getInput("downstream-label-merge");
 const overrideToolchain = getInputOpt("override-toolchain");
 const octo = github.getOctokit(appToken);
 
-async function getUpstreamPr(): Promise<Pr> {
-  const { data } = await octo.rest.pulls.get({
-    ...upstreamRepo,
-    pull_number: upstreamPr,
-  });
-  return data;
+async function dRun(
+  cmd: string,
+  args: string[],
+  options?: exec.ExecOptions,
+): Promise<number> {
+  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
 }
 
 function ensurePrIsOpen(pr: Pr): void {
@@ -112,23 +116,6 @@ async function getBranch(
   }
 }
 
-function adaptationBranchNameFor(uPr: Pr): string {
-  return `adaptation-${uPr.number}`;
-}
-
-async function findAdaptationPrFor(
-  aBranchName: string,
-): Promise<ListPr | undefined> {
-  const prs = await octo.paginate(octo.rest.pulls.list, {
-    ...downstreamRepo,
-    state: "all",
-    head: `${downstreamRepo.owner}:${aBranchName}`,
-    per_page: 100,
-  });
-  const pr = prs.find((pr) => pr.state === "open" || pr.merged_at !== null);
-  return pr;
-}
-
 async function ensureCorrectMergeBase(prefix: string, uPr: Pr): Promise<void> {
   const uBranch = await getBranch(upstreamRepo, upstreamBranch);
   assert(
@@ -167,14 +154,6 @@ async function ensureUpstreamCiGreen(prefix: string, uPr: Pr): Promise<void> {
   exit("upstream CI is not green");
 }
 
-async function dRun(
-  cmd: string,
-  args: string[],
-  options?: exec.ExecOptions,
-): Promise<number> {
-  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
-}
-
 async function switchToAdaptationBranch(
   aBranchName: string,
   aBranchExists: boolean,
@@ -198,17 +177,11 @@ async function applyOverridesAndCommit(): Promise<void> {
     await fs.writeFile(toolchainPath, `${overrideToolchain}\n`);
   }
 
-  await dRun("git", ["add", "."]);
-
-  const returnCode = await dRun("git", ["diff", "--cached", "--quiet"], {
-    ignoreReturnCode: true,
-  });
-  if (returnCode === 0) {
-    core.info("No changes to commit, skipping commit.");
-    return;
-  }
-
-  await dRun("git", ["commit", "-m", "downstream: follow upstream PR"]);
+  const committed = await addAndCommit(
+    downstreamClone,
+    "downstream: follow upstream PR",
+  );
+  if (!committed) return;
 
   core.info("Running downstream updater...");
   await dRun("python", [".downstream/update.py", ".", "--fixup-all"]);
@@ -241,27 +214,25 @@ async function createAdaptationPrFor(
   });
   core.info(`Created adaptation PR #${data.number}`);
 
-  if (downstreamLabel !== null) {
-    core.info(`Adding label "${downstreamLabel}" to adaptation PR...`);
-    await octo.rest.issues.addLabels({
-      ...downstreamRepo,
-      issue_number: data.number,
-      labels: [downstreamLabel],
-    });
-  }
+  core.info(`Adding label "${downstreamLabel}" to adaptation PR...`);
+  await octo.rest.issues.addLabels({
+    ...downstreamRepo,
+    issue_number: data.number,
+    labels: [downstreamLabel],
+  });
 
   return data.number;
 }
 
 async function run(): Promise<void> {
-  const uPr = await getUpstreamPr();
+  const uPr = await getPr(octo, upstreamRepo, upstreamPr);
   ensurePrIsOpen(uPr);
   ensurePrTargetsDefaultBranch(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
 
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
-  const aPr = await findAdaptationPrFor(aBranchName);
+  const aPr = await findOpenPrFor(octo, downstreamRepo, aBranchName);
   const prefix = statusPrefix(aPr?.number);
 
   if (aBranch === undefined)
@@ -269,6 +240,15 @@ async function run(): Promise<void> {
   else core.info(`Adaptation branch "${aBranchName}" exists`);
   if (aPr === undefined) core.info("Adaptation PR does not exist");
   else core.info(`Adaptation PR #${aPr.number} exists`);
+
+  // At this point, the overrides should've already been reset by the merge
+  // action, so we shouldn't clobber those changes again.
+  if (
+    aPr !== undefined &&
+    aPr.labels.some((l) => l.name === downstreamLabelMerge)
+  ) {
+    exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
+  }
 
   // We want to check the merge base before checking the CI status so users
   // don't wait for green CI only to then be told to rebase, which they could've

@@ -1,7 +1,15 @@
 import * as core from "@actions/core";
+import * as exec from "@actions/exec";
 import { getOctokit } from "@actions/github";
+import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
 
 export type Octokit = ReturnType<typeof getOctokit>;
+export type Pr = Response<Octokit["rest"]["pulls"]["get"]>;
+export type ListPr = Response<Octokit["rest"]["pulls"]["list"]>[number];
+
+export function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function exit(reason: string): never {
   core.info(`Exiting: ${reason}`);
@@ -39,4 +47,51 @@ export function parseRepo(input: string): Repo {
   const match = /^([^/]+)\/([^/]+)$/.exec(input);
   assert(match !== null, `Expected "owner/repo", not "${input}"`);
   return { owner: match[1], repo: match[2] };
+}
+
+export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
+  const { data } = await octo.rest.pulls.get({
+    ...repo,
+    pull_number: n,
+  });
+  return data;
+}
+
+export async function findOpenPrFor(
+  octo: Octokit,
+  repo: Repo,
+  branchName: string,
+): Promise<ListPr | undefined> {
+  const prs = await octo.paginate(octo.rest.pulls.list, {
+    ...repo,
+    head: `${repo.owner}:${branchName}`,
+    per_page: 100,
+  });
+  return prs[0];
+}
+
+export function adaptationBranchNameFor(uPr: Pr): string {
+  return `adaptation-${uPr.number}`;
+}
+
+// Inverse of `adaptationBranchNameFor`
+export function upstreamPrNumberFor(branchName: string): number | undefined {
+  const match = /^adaptation-(\d+)$/.exec(branchName);
+  return match === null ? undefined : parseInt(match[1], 10);
+}
+
+export async function addAndCommit(
+  cwd: string,
+  message: string,
+): Promise<boolean> {
+  await exec.exec("git", ["add", "."], { cwd });
+
+  const returnCode = await exec.exec("git", ["diff", "--cached", "--quiet"], {
+    cwd,
+    ignoreReturnCode: true,
+  });
+  if (returnCode === 0) return false;
+
+  await exec.exec("git", ["commit", "-m", message], { cwd });
+  return true;
 }

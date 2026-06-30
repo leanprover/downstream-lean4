@@ -21095,7 +21095,7 @@ var require_dist_node8 = __commonJS({
     var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
     var index_exports = {};
     __export(index_exports, {
-      Octokit: () => Octokit2
+      Octokit: () => Octokit
     });
     module2.exports = __toCommonJS(index_exports);
     var import_universal_user_agent = require_dist_node();
@@ -21124,7 +21124,7 @@ var require_dist_node8 = __commonJS({
       return logger;
     }
     var userAgentTrail = `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
-    var Octokit2 = class {
+    var Octokit = class {
       static {
         this.VERSION = VERSION;
       }
@@ -24668,6 +24668,34 @@ function parseRepo(input) {
   assert(match !== null, `Expected "owner/repo", not "${input}"`);
   return { owner: match[1], repo: match[2] };
 }
+async function getPr(octo2, repo, n) {
+  const { data } = await octo2.rest.pulls.get({
+    ...repo,
+    pull_number: n
+  });
+  return data;
+}
+async function findOpenPrFor(octo2, repo, branchName) {
+  const prs = await octo2.paginate(octo2.rest.pulls.list, {
+    ...repo,
+    head: `${repo.owner}:${branchName}`,
+    per_page: 100
+  });
+  return prs[0];
+}
+function adaptationBranchNameFor(uPr) {
+  return `adaptation-${uPr.number}`;
+}
+async function addAndCommit(cwd, message) {
+  await exec("git", ["add", "."], { cwd });
+  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
+    cwd,
+    ignoreReturnCode: true
+  });
+  if (returnCode === 0) return false;
+  await exec("git", ["commit", "-m", message], { cwd });
+  return true;
+}
 
 // actions/adaptation-pr-create/main.ts
 var appToken = getInput2("app-token");
@@ -24680,15 +24708,12 @@ var upstreamLabel = getInput2("upstream-label");
 var downstreamRepo = parseRepo(getInput2("downstream-repo"));
 var downstreamClone = getInput2("downstream-clone");
 var downstreamBranch = getInput2("downstream-branch");
-var downstreamLabel = getInputOpt("downstream-label");
+var downstreamLabel = getInput2("downstream-label");
+var downstreamLabelMerge = getInput2("downstream-label-merge");
 var overrideToolchain = getInputOpt("override-toolchain");
 var octo = github.getOctokit(appToken);
-async function getUpstreamPr() {
-  const { data } = await octo.rest.pulls.get({
-    ...upstreamRepo,
-    pull_number: upstreamPr
-  });
-  return data;
+async function dRun(cmd, args, options) {
+  return await exec(cmd, args, { ...options, cwd: downstreamClone });
 }
 function ensurePrIsOpen(pr) {
   if (pr.state === "open") {
@@ -24745,19 +24770,6 @@ async function getBranch(repo, branch) {
     throw error;
   }
 }
-function adaptationBranchNameFor(uPr) {
-  return `adaptation-${uPr.number}`;
-}
-async function findAdaptationPrFor(aBranchName) {
-  const prs = await octo.paginate(octo.rest.pulls.list, {
-    ...downstreamRepo,
-    state: "all",
-    head: `${downstreamRepo.owner}:${aBranchName}`,
-    per_page: 100
-  });
-  const pr = prs.find((pr2) => pr2.state === "open" || pr2.merged_at !== null);
-  return pr;
-}
 async function ensureCorrectMergeBase(prefix, uPr) {
   const uBranch = await getBranch(upstreamRepo, upstreamBranch);
   assert(
@@ -24786,9 +24798,6 @@ async function ensureUpstreamCiGreen(prefix, uPr) {
   );
   exit("upstream CI is not green");
 }
-async function dRun(cmd, args, options) {
-  return await exec(cmd, args, { ...options, cwd: downstreamClone });
-}
 async function switchToAdaptationBranch(aBranchName, aBranchExists) {
   if (aBranchExists) {
     await dRun("git", ["switch", "-c", aBranchName, `origin/${aBranchName}`]);
@@ -24808,15 +24817,11 @@ async function applyOverridesAndCommit() {
     await fs2.writeFile(toolchainPath, `${overrideToolchain}
 `);
   }
-  await dRun("git", ["add", "."]);
-  const returnCode = await dRun("git", ["diff", "--cached", "--quiet"], {
-    ignoreReturnCode: true
-  });
-  if (returnCode === 0) {
-    core2.info("No changes to commit, skipping commit.");
-    return;
-  }
-  await dRun("git", ["commit", "-m", "downstream: follow upstream PR"]);
+  const committed = await addAndCommit(
+    downstreamClone,
+    "downstream: follow upstream PR"
+  );
+  if (!committed) return;
   core2.info("Running downstream updater...");
   await dRun("python", [".downstream/update.py", ".", "--fixup-all"]);
 }
@@ -24841,30 +24846,31 @@ async function createAdaptationPrFor(uPr, aBranchName) {
     body: `This is the adaptation PR for ${uPrRef}.`
   });
   core2.info(`Created adaptation PR #${data.number}`);
-  if (downstreamLabel !== null) {
-    core2.info(`Adding label "${downstreamLabel}" to adaptation PR...`);
-    await octo.rest.issues.addLabels({
-      ...downstreamRepo,
-      issue_number: data.number,
-      labels: [downstreamLabel]
-    });
-  }
+  core2.info(`Adding label "${downstreamLabel}" to adaptation PR...`);
+  await octo.rest.issues.addLabels({
+    ...downstreamRepo,
+    issue_number: data.number,
+    labels: [downstreamLabel]
+  });
   return data.number;
 }
 async function run() {
-  const uPr = await getUpstreamPr();
+  const uPr = await getPr(octo, upstreamRepo, upstreamPr);
   ensurePrIsOpen(uPr);
   ensurePrTargetsDefaultBranch(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
-  const aPr = await findAdaptationPrFor(aBranchName);
+  const aPr = await findOpenPrFor(octo, downstreamRepo, aBranchName);
   const prefix = statusPrefix(aPr?.number);
   if (aBranch === void 0)
     core2.info(`Adaptation branch "${aBranchName}" does not exist`);
   else core2.info(`Adaptation branch "${aBranchName}" exists`);
   if (aPr === void 0) core2.info("Adaptation PR does not exist");
   else core2.info(`Adaptation PR #${aPr.number} exists`);
+  if (aPr !== void 0 && aPr.labels.some((l) => l.name === downstreamLabelMerge)) {
+    exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
+  }
   if (aBranch === void 0) await ensureCorrectMergeBase(prefix, uPr);
   await ensureUpstreamCiGreen(prefix, uPr);
   assert(overrideToolchain !== null, "at least one override is required");

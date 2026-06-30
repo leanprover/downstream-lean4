@@ -1,0 +1,44 @@
+name: Merge zero or more adaptation PRs
+
+inputs:
+  app-token:
+    description: GitHub app token.
+    required: true
+
+  app-slug:
+    description: GitHub app slug.
+    required: true
+
+  upstream-repo:
+    description: >
+      The upstream repository, in "owner/repo" format.
+    required: true
+
+  upstream-rev:
+    description: >
+      The upstream revision (ideally a commit hash) that is currently in use by
+      the downstream repo's main branch. Using this, the action determines which
+      adaptation PRs are ready to be merged.
+    required: true
+
+  downstream-clone:
+    description: >
+      Path to a (potentially treeless) clone of the downstream repository.
+    required: true
+
+  downstream-label:
+    description: >
+      Label that is attached to all adaptation PRs. Must match the label applied
+      by the adaptation-pr-create action.
+    default: adaptation
+
+  downstream-label-merge:
+    description: >
+      Label to attach to all adaptation PRs that could not be merged
+      automatically. Must match the label configured by the adaptation-pr-create
+      action.
+    default: merge-required
+
+runs:
+  using: node24
+  main: dist/index.js

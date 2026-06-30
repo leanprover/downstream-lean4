@@ -49,7 +49,16 @@ inputs:
 
   downstream-label:
     description: >
-      Label to attach to all adaptation PRs created by this action.
+      Label to attach to all adaptation PRs created by this action. Must match
+      the label configured by the adaptation-pr-merge action.
+    default: adaptation
+
+  downstream-label-merge:
+    description: >
+      Label that is attached to all adaptation PRs that could not be merged
+      automatically. Must match the label applied by the adaptation-pr-merge
+      action.
+    default: merge-required
 
   override-toolchain:
     description: >
