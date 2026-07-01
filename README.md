@@ -50,10 +50,9 @@ this repository to benefit from cross-project caching:
 ## I'm a Lean developer and want to use this repo.
 
 If you suspect or know that a Lean PR will break downstream packages, tag the PR
-with the label https://github.com/leanprover/lean4/labels/downstream. This will
-cause CI to create an **adaptation PR** in this repository corresponding to your
-Lean PR. You may need to modify your PR before the adaptation PR can be created;
-the bot will tell you what to do.
+with the label `downstream`. This will cause CI to create an **adaptation PR**
+in this repository corresponding to your Lean PR. You may need to modify your PR
+before the adaptation PR can be created; the bot will tell you what to do.
 
 The adaptation PR will have its toolchain automatically updated to the Lean PR's
 latest successful CI run. In here, you can fix any packages that your original
