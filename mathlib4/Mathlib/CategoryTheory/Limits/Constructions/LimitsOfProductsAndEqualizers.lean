@@ -32,7 +32,6 @@ Show the analogous results for functors which reflect or create (co)limits.
 
 @[expose] public section
 
-
 open CategoryTheory
 
 open Opposite

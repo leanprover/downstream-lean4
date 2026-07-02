@@ -12,6 +12,8 @@ public import Mathlib.Topology.Sheaves.SheafCondition.Sites
 public import Mathlib.Topology.Sheaves.Functors
 public import Mathlib.Algebra.Module.LocalizedModule.Basic
 
+meta import Lean.PostprocessTraces
+
 /-!
 # $Spec$ as a functor to locally ringed spaces.
 
@@ -34,12 +36,16 @@ The adjunction `Γ ⊣ Spec` is constructed in `Mathlib/AlgebraicGeometry/GammaS
 
 -/
 
+set_option backward.isDefEq.instanceTypes "mark"
+
 @[expose] public section
 
 
 -- Explicit universe annotations were used in this file to improve performance https://github.com/leanprover-community/mathlib4/issues/12737
 
 noncomputable section
+
+open Lean.PostprocessTraces
 
 universe u v
 
@@ -237,12 +243,106 @@ theorem localRingHom_comp_stalkIso {R S : CommRingCat.{u}} (f : R ⟶ S) (p : Pr
   simp only [AlgEquiv.commutes, RingEquiv.symm_apply_eq, AlgEquiv.coe_ringEquiv]
   exact stalkMap_toStalk_apply f p x
 
+/-! # Issue -/
+
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 /--
 The induced map of a ring homomorphism on the prime spectra, as a morphism of locally ringed spaces.
 -/
 @[simps! toHom]
 def Spec.locallyRingedSpaceMap {R S : CommRingCat.{u}} (f : R ⟶ S) :
+    Spec.locallyRingedSpaceObj S ⟶ Spec.locallyRingedSpaceObj R :=
+  LocallyRingedSpace.Hom.mk (Spec.sheafedSpaceMap f).hom fun p =>
+    IsLocalHom.mk fun a ha => by
+    rw [← localRingHom_comp_stalkIso] at ha
+    dsimp at ha
+    have : IsLocalHom (stalkIso S p) := isLocalHom_equiv _
+    have : IsLocalHom (stalkIso R (p.comap f.hom)).symm := isLocalHom_equiv _
+    exact ((ha.of_map (stalkIso S p)).of_map _).of_map (stalkIso R (p.comap f.hom)).symm
+
+/-! ## Explanation -/
+
+private meta partial def elideBelow (p : TracePattern) : TracePostprocessor :=
+  fun trees => trees.mapM go
+where
+  go (t : TraceTree) : Lean.CoreM TraceTree := do
+    match t with
+    | .leaf msg => return .leaf msg
+    | .node data msg children wrap =>
+      if ← p t then
+        return .node data m!"{msg} (truncated)" #[] wrap
+      else
+        return .node data msg (← children.mapM go) wrap
+
+/- Synthesizing `IsLocalHom (Localization.localRingHom …)` unifies the goal with the conclusion of
+`Localization.isLocalHom_localRingHom`, forcing the propositional instance-typed argument
+  `(?m : (PrimeSpectrum.comap f p).asIdeal.IsPrime)
+     := ((PrimeSpectrum.comap f p).isPrime : (Ideal.comap f p.asIdeal).IsPrime)`.
+The two `IsPrime` types are not equal at `.instances` (neither `Ideal.comap` nor
+`PrimeSpectrum.comap`
+unfolds there), so the direct `checkTypes` fails (`❌`). Under `"mark"` that ends the assignment and
+synthesis fails outright; under `"markOrSynth"` the fallback re-synthesizes the instance at the
+mvar's type (`✅`, truncated below) and the assignment goes through — which is why the real
+declaration above compiles. -/
+set_option linter.style.longLine false in
+/--
+trace: [Meta.synthInstance] ✅️ IsLocalHom
+      (Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal) p.asIdeal (CommRingCat.Hom.hom f) ⋯)
+  [Meta.synthInstance.apply] ✅️ apply @Localization.isLocalHom_localRingHom to IsLocalHom
+        (Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal) p.asIdeal (CommRingCat.Hom.hom f) ⋯)
+    [Meta.synthInstance.tryResolve] ✅️ IsLocalHom
+          (Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal) p.asIdeal (CommRingCat.Hom.hom f)
+            ⋯) ≟ IsLocalHom
+          (Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal) p.asIdeal (CommRingCat.Hom.hom f)
+            ⋯)
+      [Meta.isDefEq] ✅️ [instances] IsLocalHom
+            (Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal) p.asIdeal (CommRingCat.Hom.hom f)
+              ⋯) =?= IsLocalHom (Localization.localRingHom ?m.108 ?m.110 ?m.112 ?m.113)
+        [Meta.isDefEq] ✅️ [instances] Localization.localRingHom (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal)
+              p.asIdeal (CommRingCat.Hom.hom f) ⋯ =?= Localization.localRingHom ?m.108 ?m.110 ?m.112 ?m.113
+          [Meta.isDefEq] ✅️ [instances] (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).isPrime =?= ?m.109
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.109 : (Ideal.comap (CommRingCat.Hom.hom f)
+                    p.asIdeal).IsPrime) := ((PrimeSpectrum.comap (CommRingCat.Hom.hom f)
+                    p).isPrime : (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime)
+              [Meta.isDefEq] ❌️ [instances] (Ideal.comap (CommRingCat.Hom.hom f)
+                      p.asIdeal).IsPrime =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime
+                [Meta.isDefEq] ❌️ [instances] Ideal.comap (CommRingCat.Hom.hom f)
+                      p.asIdeal =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal
+                  [Meta.isDefEq] ❌️ [instances] Ideal.comap (CommRingCat.Hom.hom f)
+                        p.asIdeal =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).1
+                    [Meta.isDefEq.onFailure] ❌️ Ideal.comap (CommRingCat.Hom.hom f)
+                          p.asIdeal =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).1
+                [Meta.isDefEq.onFailure] ❌️ (Ideal.comap (CommRingCat.Hom.hom f)
+                        p.asIdeal).IsPrime =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime
+                [Meta.isDefEq.onFailure] ❌️ (Ideal.comap (CommRingCat.Hom.hom f)
+                        p.asIdeal).IsPrime =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime
+              [Meta.synthInstance] ✅️ (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal).IsPrime (truncated)
+              [Meta.isDefEq] ✅️ [instances] (PrimeSpectrum.comap (CommRingCat.Hom.hom f)
+                      p).isPrime =?= Ideal.IsPrime.comap (CommRingCat.Hom.hom f) (truncated)
+---
+warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option trace.Meta.synthInstance'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+-/
+#guard_msgs in
+postprocess_traces
+  filterSubtrees (fun x => (ofClass `Meta.synthInstance x) <&&> (containsString "IsLocalHom" x))
+  >=> filterSubtrees (containsString "isLocalHom_localRingHom")
+  >=> filterSubtrees (fun x => (ofClass `Meta.isDefEq.assign.checkTypes x) <&&>
+    (containsString "Ideal.comap" x) <&&> (containsString "IsPrime" x))
+  >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> (succeeded x) <&&>
+    (containsString "IsPrime" x))
+  >=> elideBelow (fun x => (ofClass `Meta.isDefEq x) <&&> (succeeded x) <&&>
+    (containsString "Ideal.IsPrime.comap" x))
+in
+set_option trace.Meta.synthInstance true in
+set_option trace.Meta.isDefEq true in
+set_option trace.Meta.isDefEq.printTransparency true in
+set_option trace.Meta.isDefEq.assign.checkTypes true in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+set_option backward.isDefEq.respectTransparency false in
+example {R S : CommRingCat.{u}} (f : R ⟶ S) :
     Spec.locallyRingedSpaceObj S ⟶ Spec.locallyRingedSpaceObj R :=
   LocallyRingedSpace.Hom.mk (Spec.sheafedSpaceMap f).hom fun p =>
     IsLocalHom.mk fun a ha => by

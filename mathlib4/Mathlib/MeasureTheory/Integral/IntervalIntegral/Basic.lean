@@ -529,6 +529,7 @@ theorem MonotoneOn.intervalIntegrable {u : ℝ → E} {a b : ℝ} (hu : Monotone
   exact (hu.integrableOn_isCompact isCompact_uIcc).mono_set Ioc_subset_Icc_self
 
 set_option backward.isDefEq.respectTransparency.types false in
+-- set_option backward.isDefEq.instanceTypes "none" in
 theorem AntitoneOn.intervalIntegrable {u : ℝ → E} {a b : ℝ} (hu : AntitoneOn u (uIcc a b)) :
     IntervalIntegrable u μ a b :=
   hu.dual_right.intervalIntegrable

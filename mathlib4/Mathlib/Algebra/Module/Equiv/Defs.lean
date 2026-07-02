@@ -7,6 +7,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro, Anne 
 module
 
 public import Mathlib.Algebra.Module.LinearMap.Defs
+meta import Lean.PostprocessTraces
 
 /-!
 # (Semi)linear equivalences
@@ -36,6 +37,8 @@ linear equiv, linear equivalences, linear isomorphism, linear isomorphic
 -/
 
 @[expose] public section
+
+set_option backward.isDefEq.instanceTypes "mark"
 
 assert_not_exists Field Pi.module
 
@@ -584,10 +587,129 @@ def _root_.RingEquiv.toSemilinearEquiv (f : R ≃+* S) :
     toFun := f
     map_smul' := f.map_mul }
 
+open Lean.PostprocessTraces
+
+/-! # Issue -/
+
 set_option backward.isDefEq.respectTransparency false in
+-- Verdict: Rightly fails if we enforce the type at instance transparency.
+set_option backward.isDefEq.instanceTypes "none" in
 @[simp]
 lemma _root_.RingEquiv.symm_toSemilinearEquiv_symm_apply (f : R ≃+* S) (x : R) :
   f.symm.toSemilinearEquiv.symm (σ' := RingHomClass.toRingHom f) x = f x := rfl
+
+/-!
+## Explanation
+
+"markOrSynth":
+
+`RingInvHomPair` instance cannot be unified because types don't match at instances (`.symm.symm`),
+and it can't be synthesized either.
+-/
+
+example (f : R ≃+* S) : (↑f : R →+* S) = ↑f.symm.symm := by rfl
+
+open Lean.PostprocessTraces
+
+/--
+error: Function expected at
+  f.symm.toSemilinearEquiv.symm
+but this term has type
+  R ≃ₛₗ[↑f] S
+
+Note: Expected a function because this term is being applied to the argument
+  x
+---
+trace: [Meta.synthInstance] ❌️ CoeFun (R ≃ₛₗ[↑f] S) ?m.35
+  [Meta.synthInstance.apply] ❌️ apply @instEquivLike to EquivLike (R ≃ₛₗ[↑f] S) ?m.43 ?m.44
+    [Meta.synthInstance.tryResolve] ❌️ EquivLike (R ≃ₛₗ[↑f] S) ?m.43
+          ?m.44 ≟ EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
+      [Meta.isDefEq] ❌️ [instances] EquivLike (R ≃ₛₗ[↑f] S) ?m.43
+            ?m.44 =?= EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
+        [Meta.isDefEq] ❌️ [instances] R ≃ₛₗ[↑f] S =?= ?m.48 ≃ₛₗ[?m.56] ?m.49
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ✅️ [implicit] R =?= ?m.46
+            [Meta.isDefEq] R [nonassignable] =?= ?m.46 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.46 : Type ?u.43) := (R : Type u_1)
+              [Meta.isDefEq] ✅️ [implicit] Type ?u.43 =?= Type u_1
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ✅️ [implicit] S =?= ?m.47
+            [Meta.isDefEq] S [nonassignable] =?= ?m.47 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.47 : Type ?u.44) := (S : Type u_6)
+              [Meta.isDefEq] ✅️ [implicit] Type ?u.44 =?= Type u_6
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ✅️ [implicit] inst✝¹ =?= ?m.50
+            [Meta.isDefEq] inst✝¹ [nonassignable] =?= ?m.50 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.50 : Semiring R) := (inst✝¹ : Semiring R)
+              [Meta.isDefEq] ✅️ [instances] Semiring R =?= Semiring R
+                [Meta.isDefEq] ✅️ [instances] R =?= R
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ✅️ [implicit] inst✝ =?= ?m.51
+            [Meta.isDefEq] inst✝ [nonassignable] =?= ?m.51 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.51 : Semiring S) := (inst✝ : Semiring S)
+              [Meta.isDefEq] ✅️ [instances] Semiring S =?= Semiring S
+                [Meta.isDefEq] ✅️ [instances] S =?= S
+          [Meta.isDefEq] ✅️ [instances] ↑f =?= ?m.56
+            [Meta.isDefEq] ↑f [nonassignable] =?= ?m.56 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.56 : R →+* S) := (↑f : R →+* S)
+              [Meta.isDefEq.transparency] raising transparency instances → implicit
+              [Meta.isDefEq] ✅️ [implicit] R →+* S =?= R →+* S
+                [Meta.isDefEq] ✅️ [implicit] R =?= R
+                [Meta.isDefEq] ✅️ [implicit] S =?= S
+                [Meta.isDefEq] ✅️ [implicit] inst✝¹.toNonAssocSemiring =?= inst✝¹.toNonAssocSemiring
+                [Meta.isDefEq] ✅️ [implicit] inst✝.toNonAssocSemiring =?= inst✝.toNonAssocSemiring
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ✅️ [implicit] ↑f.symm =?= ?m.57
+            [Meta.isDefEq] ↑f.symm [nonassignable] =?= ?m.57 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.57 : S →+* R) := (↑f.symm : S →+* R)
+              [Meta.isDefEq] ✅️ [implicit] S →+* R =?= S →+* R
+                [Meta.isDefEq] ✅️ [implicit] S =?= S
+                [Meta.isDefEq] ✅️ [implicit] R =?= R
+                [Meta.isDefEq] ✅️ [implicit] inst✝.toNonAssocSemiring =?= inst✝.toNonAssocSemiring
+                [Meta.isDefEq] ✅️ [implicit] inst✝¹.toNonAssocSemiring =?= inst✝¹.toNonAssocSemiring
+          [Meta.isDefEq.transparency] raising transparency instances → implicit
+          [Meta.isDefEq] ❌️ [implicit] RingHomInvPair.symm ↑f.symm ↑f.symm.symm =?= ?m.58
+            [Meta.isDefEq] RingHomInvPair.symm ↑f.symm ↑f.symm.symm [nonassignable] =?= ?m.58 [assignable]
+            [Meta.isDefEq.assign.checkTypes] ❌️ (?m.58 : RingHomInvPair ↑f
+                  ↑f.symm) := (RingHomInvPair.symm ↑f.symm ↑f.symm.symm : RingHomInvPair ↑f.symm.symm ↑f.symm)
+              [Meta.isDefEq] ❌️ [instances] RingHomInvPair ↑f ↑f.symm =?= RingHomInvPair ↑f.symm.symm ↑f.symm
+                [Meta.isDefEq] ❌️ [instances] ↑f =?= ↑f.symm.symm
+                  [Meta.isDefEq] ❌️ [instances] f =?= f.symm.symm
+                    [Meta.isDefEq.onFailure] ❌️ f =?= f.symm.symm
+                  [Meta.isDefEq.onFailure] ❌️ ↑f =?= ↑f.symm.symm
+                  [Meta.isDefEq.onFailure] ❌️ ↑f =?= ↑f.symm.symm
+                [Meta.isDefEq.onFailure] ❌️ RingHomInvPair ↑f ↑f.symm =?= RingHomInvPair ↑f.symm.symm ↑f.symm
+                [Meta.isDefEq.onFailure] ❌️ RingHomInvPair ↑f ↑f.symm =?= RingHomInvPair ↑f.symm.symm ↑f.symm
+              [Meta.synthInstance] ❌️ RingHomInvPair ↑f ↑f.symm
+                [Meta.synthInstance] ✅️ no instances for RingHomInvPair (↑f) _tc.0
+                  [Meta.synthInstance.instances] #[]
+                [Meta.synthInstance] result <not-available>
+          [Meta.isDefEq.onFailure] ❌️ R ≃ₛₗ[↑f] S =?= ?m.48 ≃ₛₗ[?m.56] ?m.49
+          [Meta.isDefEq.onFailure] ❌️ R ≃ₛₗ[↑f] S =?= ?m.48 ≃ₛₗ[?m.56] ?m.49
+        [Meta.isDefEq.onFailure] ❌️ EquivLike (R ≃ₛₗ[↑f] S) ?m.43
+              ?m.44 =?= EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
+        [Meta.isDefEq.onFailure] ❌️ EquivLike (R ≃ₛₗ[↑f] S) ?m.43
+              ?m.44 =?= EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
+-/
+#guard_msgs in
+postprocess_traces
+  filterSubtrees (fun x => (ofClass `Meta.synthInstance.apply x)
+    <&&> (containsString "LinearEquiv.instEquivLike" x))
+in
+attribute [local implicit_reducible]
+  MulEquiv.symm
+  RingEquiv.symm in
+set_option trace.Meta.isDefEq true in
+set_option trace.Meta.isDefEq.printTransparency true in
+set_option trace.Meta.synthInstance true in
+set_option trace.Meta.isDefEq.assign.checkTypes true in
+-- set_option backward.isDefEq.respectTransparency false in
+-- Verdict: Rightly fails if we enforce the type at instance transparency.
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+@[simp]
+example (f : R ≃+* S) (x : R) :
+  f.symm.toSemilinearEquiv.symm (σ' := RingHomClass.toRingHom f) x = f x := by
+  rfl
 
 variable [AddCommMonoid M]
 

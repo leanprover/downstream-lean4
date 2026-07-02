@@ -15,6 +15,11 @@ public section
 
 variable {α : Type*}
 
+set_option allowUnsafeReducibility true
+-- attribute [implicit_reducible] Additive Multiplicative
+
+-- set_option backward.isDefEq.instanceTypes "none"
+
 instance [LE α] : LE (Multiplicative α) :=
   inferInstanceAs <| LE α
 

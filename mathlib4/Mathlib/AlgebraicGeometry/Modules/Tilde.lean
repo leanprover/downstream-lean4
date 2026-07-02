@@ -12,6 +12,8 @@ public import Mathlib.Algebra.Module.LocalizedModule.Away
 public import Mathlib.AlgebraicGeometry.Modules.Sheaf
 public import Mathlib.Data.Fintype.Order
 
+meta import Lean.PostprocessTraces
+
 /-!
 
 # Construction of M^~
@@ -24,6 +26,10 @@ such that `M^~(U)` is the set of dependent functions that are locally fractions.
 * `AlgebraicGeometry.tilde.adjunction` : `~` is left adjoint to taking global sections.
 
 -/
+
+set_option backward.isDefEq.instanceTypes "mark"
+
+open Lean.PostprocessTraces
 
 @[expose] public noncomputable section
 
@@ -468,6 +474,10 @@ instance : (tilde M).IsQuasicoherent :=
 instance : ((tilde.functor R).obj M).IsQuasicoherent :=
   inferInstanceAs <| (tilde M).IsQuasicoherent
 
+/-! # Issue -/
+
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+-- attribute [local instance_reducible] Scheme.Modules in
 set_option backward.isDefEq.respectTransparency false in
 lemma isIso_fromTildeΓ_of_presentation (M : (Spec R).Modules) (P : M.Presentation) :
     IsIso M.fromTildeΓ := by
@@ -480,6 +490,85 @@ lemma isIso_fromTildeΓ_of_presentation (M : (Spec R).Modules) (P : M.Presentati
     simp
   exact ⟨cokernel g, ⟨PreservesCokernel.iso (tilde.functor R) g ≪≫ iso ≪≫
     IsColimit.coconePointUniqueUpToIso (colimit.isColimit _) P.isColimit⟩⟩
+
+set_option linter.style.longLine false
+/-! ## Explanation
+
+The `iso` equivalence in the proof mixes the two spellings of the same category: its cokernels are
+built by `tilde.functor R` (target `Scheme.Modules`) while `P.relations` lives in `SheafOfModules`.
+Unifying them forces the instance-typed assignment
+`(?inst : Category (Spec R).Modules) := (SheafOfModules.instCategory : Category (SheafOfModules …))`.
+Under `"mark"` this check runs at `.instances`, where `Scheme.Modules` does not unfold, and it is
+rejected — synthesizing `HasZeroMorphisms`/`Preadditive`/`Category` on `(Spec R).Modules` then fails.
+Under `"markOrSynth"` the check runs at `.default`, unfolding `(Spec R).Modules` to
+`SheafOfModules (Spec R).ringCatSheaf`, so the assignment is accepted and the proof goes through.
+(The step recurs during the `rw`; the trace below shows one representative occurrence, keeping the
+enclosing `synthInstance`/`apply` ancestry so the reader sees which instance search triggers it.)
+-/
+
+private meta def keepFirst : TracePostprocessor := fun roots => return roots.extract 0 1
+
+private meta partial def maxDepth (depth : Nat) : TracePostprocessor := fun trees =>
+  let rec truncateTree (t : TraceTree) (depth : Nat) : TraceTree :=
+    match t with
+    | .leaf msg => TraceTree.leaf msg
+    | .node data msg children wrap =>
+      match depth with
+      | 0 => .node data m!"{msg} (truncated)" #[] wrap
+      | depth' + 1 => .node data msg (children.map (truncateTree · depth')) wrap
+  return trees.map (truncateTree · depth)
+
+set_option linter.style.longLine false in
+/--
+trace: [Meta.synthInstance] ✅️ HasZeroMorphisms (Spec (CommRingCat.of ↑R)).Modules
+  [Meta.synthInstance.apply] ✅️ apply @NonPreadditiveAbelian.toHasZeroMorphisms to HasZeroMorphisms
+        (Spec (CommRingCat.of ↑R)).Modules
+    [Meta.synthInstance.tryResolve] ✅️ HasZeroMorphisms
+          (Spec (CommRingCat.of ↑R)).Modules ≟ HasZeroMorphisms (Spec (CommRingCat.of ↑R)).Modules
+      [Meta.isDefEq] ✅️ [instances] HasZeroMorphisms (Spec (CommRingCat.of ↑R)).Modules =?= HasZeroMorphisms ?m.69
+        [Meta.isDefEq] ✅️ [instances] SheafOfModules.instCategory =?= ?m.70
+          [Meta.isDefEq.assign.checkTypes] ✅️ (?m.70 : Category.{?u.41, u + 1}
+                (Spec
+                    (CommRingCat.of
+                      ↑R)).Modules) := (SheafOfModules.instCategory : Category.{u, u + 1}
+                (SheafOfModules (Spec R).ringCatSheaf))
+            [Meta.isDefEq] ✅️ [default] Category.{?u.41, u + 1}
+                  (Spec (CommRingCat.of ↑R)).Modules =?= Category.{u, u + 1} (SheafOfModules (Spec R).ringCatSheaf)
+              [Meta.isDefEq] ✅️ [default] (Spec (CommRingCat.of ↑R)).Modules =?= SheafOfModules (Spec R).ringCatSheaf
+                [Meta.isDefEq] ✅️ [default] SheafOfModules
+                      (Spec (CommRingCat.of ↑R)).ringCatSheaf =?= SheafOfModules (Spec R).ringCatSheaf (truncated)
+---
+warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option trace.Meta.synthInstance'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+-/
+#guard_msgs in
+postprocess_traces
+  filterSubtrees (fun x => (ofClass `Meta.synthInstance.apply x) <&&>
+    (containsString "NonPreadditiveAbelian.toHasZeroMorphisms" x))
+  >=> keepFirst
+  >=> filterSubtrees (fun x => (ofClass `Meta.isDefEq.assign.checkTypes x) <&&>
+    (containsString "SheafOfModules.instCategory" x) <&&> (containsString ".Modules)" x))
+  >=> maxDepth 8
+in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+set_option backward.isDefEq.respectTransparency false in
+example (M : (Spec R).Modules) (P : M.Presentation) :
+    IsIso M.fromTildeΓ := by
+  set_option trace.Meta.synthInstance true in
+  set_option trace.Meta.isDefEq true in
+  set_option trace.Meta.isDefEq.printTransparency true in
+  set_option trace.Meta.isDefEq.assign.checkTypes true in
+  rw [isIso_fromTildeΓ_iff]
+  let g := (tilde.functor _).preimage <| (tildeFinsupp _).hom ≫ P.relations.π ≫ kernel.ι _ ≫
+    (tildeFinsupp _).inv
+  let iso : cokernel ((tilde.functor R).map g) ≅ cokernel (P.relations.π ≫ kernel.ι _) := by
+    refine cokernel.mapIso _ _ (tildeFinsupp _) (tildeFinsupp _) ?_
+    simp only [g, (tilde.functor R).map_preimage]
+    simp
+  exact ⟨cokernel g, ⟨PreservesCokernel.iso (tilde.functor R) g ≪≫ iso ≪≫
+    IsColimit.coconePointUniqueUpToIso (colimit.isColimit _) P.isColimit⟩⟩
+
 
 section IsLocalizing
 

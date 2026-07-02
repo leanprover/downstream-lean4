@@ -41,7 +41,6 @@ This file defines the space of complete types over a first-order theory.
 @[expose] public section
 
 
-
 universe u v w w'
 
 open Cardinal Set FirstOrder
@@ -237,6 +236,7 @@ def realizedTypes (α : Type w) : Set (T.CompleteType α) :=
 
 section
 
+set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 theorem exists_modelType_is_realized_in (p : T.CompleteType α) :
     ∃ M : Theory.ModelType.{u, v, max u v w} T, p ∈ T.realizedTypes M α := by

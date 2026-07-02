@@ -188,6 +188,7 @@ def universalFactorizationMapLiftEquiv (p : MonicDegreeEq S n) :
   right_inv q := by ext <;> simp
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.instanceTypes "none" in
 lemma ker_eval₂Hom_universalFactorizationMap :
     RingHom.ker (eval₂Hom (S₁ := MvPolynomial (Fin m) R ⊗[R] MvPolynomial (Fin k) R)
       (universalFactorizationMap R n m k hn) (Sum.elim (.X · ⊗ₜ 1) (1 ⊗ₜ .X ·))) =
@@ -515,6 +516,7 @@ def UniversalFactorizationRing.presentation :
   (MvPolynomial.universalFactorizationMapPresentation R n m k hn).baseChange _
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.instanceTypes "none" in
 lemma UniversalFactorizationRing.jacobian_resentation :
     (presentation m k hn p).jacobian =
       (-1) ^ n * (factor₁ m k hn p).1.resultant (factor₂ m k hn p).1 := by

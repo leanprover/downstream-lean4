@@ -9,6 +9,7 @@ public import Mathlib.Algebra.CharP.Invertible
 public import Mathlib.Algebra.Order.Module.Synonym
 public import Mathlib.LinearAlgebra.AffineSpace.Midpoint
 public import Mathlib.LinearAlgebra.AffineSpace.Slope
+meta import Lean.PostprocessTraces
 
 /-!
 # Ordered modules as affine spaces
@@ -27,6 +28,8 @@ for an ordered module interpreted as an affine space.
 
 affine space, ordered module, slope
 -/
+
+set_option backward.isDefEq.instanceTypes "mark"
 
 public section
 
@@ -95,15 +98,85 @@ set_option backward.isDefEq.respectTransparency false in
 theorem left_lt_lineMap_iff_lt (h : 0 < r) : a < lineMap a b r ↔ a < b :=
   Iff.trans (by rw [lineMap_apply_zero]) (lineMap_lt_lineMap_iff_of_lt h)
 
+/-! # Issue -/
+
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
 theorem lineMap_lt_left_iff_lt (h : 0 < r) : lineMap a b r < a ↔ b < a :=
   left_lt_lineMap_iff_lt (E := Eᵒᵈ) h
+
+/-! ## Explanation -/
+
+open Lean.PostprocessTraces
+
+set_option linter.style.longLine false
+-- The `(E := Eᵒᵈ)` transport assigns the goal's `Module k E` data to the lemma's `Eᵒᵈ`-typed
+-- binder mvars at default transparency, then synthesizes the leftover `PosSMulReflectLT k Eᵒᵈ` by
+-- type. Its `OrderDual.instPosSMulReflectLT` candidate leaves an instance-typed `SMul k E` mvar
+-- that has to swallow the goal's `SMul k Eᵒᵈ`-typed slot; the direct `.instances` check fails
+-- (`OrderDual` is opaque there). `"mark"` would reject and synthesis would fail — `"markOrSynth"`
+-- re-synthesizes `SMul k E` and unifies, rescuing the site. (A fresh `#synth PosSMulReflectLT k Eᵒᵈ`
+-- succeeds; only the transport-baked goal is poisoned.)
+private meta partial def elideBelow (p : TracePattern) : TracePostprocessor :=
+  fun trees => trees.mapM go
+where
+  go (t : TraceTree) : Lean.CoreM TraceTree := do
+    match t with
+    | .leaf msg => return .leaf msg
+    | .node data msg children wrap =>
+      if ← p t then
+        return .node data m!"{msg} (truncated)" #[] wrap
+      else
+        return .node data msg (← children.mapM go) wrap
+
+set_option linter.style.longLine false in
+/--
+trace: [Meta.synthInstance] ✅️ PosSMulReflectLT k Eᵒᵈ
+  [Meta.synthInstance.apply] ✅️ apply @OrderDual.instPosSMulReflectLT to PosSMulReflectLT k Eᵒᵈ
+    [Meta.synthInstance.tryResolve] ✅️ PosSMulReflectLT k Eᵒᵈ ≟ PosSMulReflectLT k Eᵒᵈ
+      [Meta.isDefEq] ✅️ [instances] PosSMulReflectLT k Eᵒᵈ =?= PosSMulReflectLT ?m.47 ?m.48ᵒᵈ
+        [Meta.isDefEq] ✅️ [default] DistribMulAction.toDistribSMul.toSMul =?= OrderDual.instSMul
+          [Meta.isDefEq] ✅️ [default] DistribMulAction.toDistribSMul.toSMul =?= ?m.51
+            [Meta.isDefEq.assign.checkTypes] ✅️ (?m.51 : SMul k
+                  E) := (DistribMulAction.toDistribSMul.toSMul : SMul k Eᵒᵈ)
+              [Meta.isDefEq] ❌️ [instances] SMul k E =?= SMul k Eᵒᵈ
+                [Meta.isDefEq] ✅️ [instances] k =?= k
+                [Meta.isDefEq] ❌️ [instances] E =?= Eᵒᵈ
+                  [Meta.isDefEq.onFailure] ❌️ E =?= Eᵒᵈ
+                [Meta.isDefEq.onFailure] ❌️ SMul k E =?= SMul k Eᵒᵈ
+                [Meta.isDefEq.onFailure] ❌️ SMul k E =?= SMul k Eᵒᵈ
+              [Meta.synthInstance] ✅️ SMul k E (truncated)
+              [Meta.isDefEq] ✅️ [default] DistribMulAction.toDistribSMul.toSMul =?= DistribMulAction.toDistribSMul.toSMul (truncated)
+---
+warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option trace.Meta.synthInstance'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
+-/
+#guard_msgs in
+postprocess_traces
+  filterSubtrees (fun x => (ofClass `Meta.isDefEq.assign.checkTypes x)
+    <&&> (containsString "toDistribSMul.toSMul :" x))
+  >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> succeeded x
+    <&&> containsString "SMul k E" x)
+  >=> elideBelow (fun x => (ofClass `Meta.isDefEq x) <&&> succeeded x
+    <&&> containsString "toSMul =?= DistribMulAction" x)
+in
+set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+example (h : 0 < r) : lineMap a b r < a ↔ b < a := by
+  set_option trace.Meta.synthInstance true in
+  set_option trace.Meta.isDefEq true in
+  set_option trace.Meta.isDefEq.printTransparency true in
+  set_option trace.Meta.isDefEq.assign.checkTypes true in
+  exact left_lt_lineMap_iff_lt (E := Eᵒᵈ) h
 
 set_option backward.isDefEq.respectTransparency false in
 theorem lineMap_lt_right_iff_lt (h : r < 1) : lineMap a b r < b ↔ a < b :=
   Iff.trans (by rw [lineMap_apply_one]) (lineMap_lt_lineMap_iff_of_lt h)
 
+-- Same `OrderDual` transport as `lineMap_lt_left_iff_lt`; see the Explanation above.
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
 theorem right_lt_lineMap_iff_lt (h : r < 1) : b < lineMap a b r ↔ b < a :=
   lineMap_lt_right_iff_lt (E := Eᵒᵈ) h
 

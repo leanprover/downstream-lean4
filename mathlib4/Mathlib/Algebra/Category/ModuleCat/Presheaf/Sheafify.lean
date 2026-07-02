@@ -338,6 +338,7 @@ noncomputable def toSheafify : M₀ ⟶ (restrictScalars α).obj (sheafify α φ
 lemma toSheafify_app_apply (X : Cᵒᵖ) (x : M₀.obj X) :
     ((toSheafify α φ).app X).hom x = φ.app X x := rfl
 
+set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `toSheafify_app_apply`. -/
 @[simp]

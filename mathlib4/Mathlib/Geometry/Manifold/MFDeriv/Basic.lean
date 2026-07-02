@@ -493,6 +493,7 @@ theorem writtenInExtChartAt_comp (h : ContinuousWithinAt f s x) :
 variable {f' f₀' f₁' : TangentSpace% x →L[𝕜] TangentSpace% (f x)}
   {g' : TangentSpace% (f x) →L[𝕜] TangentSpace% (g (f x))}
 
+set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 /-- `UniqueMDiffWithinAt` achieves its goal: it implies the uniqueness of the derivative. -/
 protected nonrec theorem UniqueMDiffWithinAt.eq (U : UniqueMDiffAt[s] x)

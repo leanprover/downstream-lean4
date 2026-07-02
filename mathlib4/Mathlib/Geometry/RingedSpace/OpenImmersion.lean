@@ -195,6 +195,7 @@ theorem inv_naturality {U V : (Opens X)ᵒᵖ} (i : U ⟶ V) :
   congr 1
 
 set_option backward.isDefEq.respectTransparency.types false in
+-- set_option backward.isDefEq.instanceTypes "none" in
 instance (U : Opens X) : IsIso (invApp f U) := by delta invApp; infer_instance
 
 set_option backward.isDefEq.respectTransparency.types false in
