@@ -1,0 +1,34 @@
+name: Post status message
+
+description: >
+  Post or update a comment on an issue or pull request.
+
+inputs:
+  app-token:
+    description: GitHub app token.
+    required: true
+
+  app-slug:
+    description: GitHub app slug.
+    required: true
+
+  issue:
+    description: The issue or pull request to post the status message on.
+    required: true
+
+  body:
+    description: The message to post.
+
+  body-path:
+    description: >
+      Path to a file containing the message to post. Takes precedence over
+      `body` if both are given.
+
+  marker:
+    description: >
+      A marker embedded in the message to find it again for in-place updates.
+      Defaults to a marker shared across all status messages.
+
+runs:
+  using: node24
+  main: dist/index.js

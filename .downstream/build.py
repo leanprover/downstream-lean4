@@ -30,9 +30,9 @@ def do_phase(
 ) -> dict[str, Status]:
     report = {}
 
-    print("#" * (len(command) + 4), flush=True)
-    print(f"# {command} #", flush=True)
-    print("#" * (len(command) + 4), flush=True)
+    print("#" * (len(command) + 6), flush=True)
+    print(f"## {command} ##", flush=True)
+    print("#" * (len(command) + 6), flush=True)
     for subrepo in subrepos:
         # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#grouping-log-lines
         print(f"::group::{command} {subrepo.name}", flush=True)
