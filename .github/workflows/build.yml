@@ -38,8 +38,19 @@ jobs:
       - name: Build
         run: |
           python3 .downstream/build.py . -tl \
-            --report "$GITHUB_STEP_SUMMARY" \
+            --report "$RUNNER_TEMP/report.md" \
             --mappings "$RUNNER_TEMP/mappings"
+
+      - name: Add report to job summary
+        if: ${{ !cancelled() }} # Report even if build fails
+        run: cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build report
+        if: ${{ !cancelled() }} # Upload even if build fails
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report.md
 
       - name: Upload build mappings
         if: ${{ !cancelled() }} # Upload even if build fails

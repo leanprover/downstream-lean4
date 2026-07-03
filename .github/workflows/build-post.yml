@@ -57,6 +57,47 @@ jobs:
             echo "::endgroup::"
           done
 
+  post-report:
+    if:
+      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Find original PR
+        id: original-pr
+        uses: ./.downstream/actions/find-original-pr
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Post build report
+        uses: ./.downstream/actions/status-message
+        with:
+          app-token: ${{ steps.app-token.outputs.token }}
+          app-slug: ${{ steps.app-token.outputs.app-slug }}
+          issue: ${{ steps.original-pr.outputs.number }}
+          body-path: ${{ runner.temp }}/report/report.md
+          marker: build-report
+
   update-branches:
     if:
       ${{ github.event.workflow_run.conclusion == 'success' &&
