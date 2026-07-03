@@ -1,13 +1,16 @@
 import os
 from argparse import ArgumentParser
+from enum import StrEnum
 from pathlib import Path
 
 from downstream.updater import Updater
 from downstream.util import Subrepo, run
 
-SKIPPED = "⏭️"
-SUCCESS = "✅"
-FAILURE = "🟥"
+
+class Status(StrEnum):
+    SKIPPED = "⏭️"
+    SUCCESS = "✅"
+    FAILURE = "🟥"
 
 
 def check_cmd(subrepo: Subrepo, command: str) -> bool:
@@ -22,14 +25,14 @@ def run_cmd(subrepo: Subrepo, command: str, *args: str) -> bool | None:
 
 def do_phase(
     subrepos: list[Subrepo],
-    report: list[str],
     command: str,
     mappings_dir: Path | None = None,
-) -> bool:
-    report.append("")
-    report.append(f"## `lake {command}`")
-    critical_failed = False
+) -> dict[str, Status]:
+    report = {}
 
+    print("#" * (len(command) + 4), flush=True)
+    print(f"# {command} #", flush=True)
+    print("#" * (len(command) + 4), flush=True)
     for subrepo in subrepos:
         # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#grouping-log-lines
         print(f"::group::{command} {subrepo.name}", flush=True)
@@ -38,19 +41,17 @@ def do_phase(
         if mappings_dir is not None:
             args += ["-o", str(mappings_dir / f"{subrepo.name}.jsonl")]
 
-        noncritical = "" if subrepo.critical else " (non-critical)"
         if not check_cmd(subrepo, command):
-            report.append(f"- {SKIPPED} {subrepo.name}{noncritical}")
+            report[subrepo.name] = Status.SKIPPED
             continue
         if run_cmd(subrepo, command, *args):
-            report.append(f"- {SUCCESS} {subrepo.name}{noncritical}")
+            report[subrepo.name] = Status.SUCCESS
         else:
-            report.append(f"- {FAILURE} {subrepo.name}{noncritical}")
-            critical_failed |= subrepo.critical
+            report[subrepo.name] = Status.FAILURE
 
         print("::endgroup::", flush=True)
 
-    return critical_failed
+    return report
 
 
 class Args:
@@ -95,18 +96,52 @@ def main() -> None:
     updater = Updater()
     subrepos = updater.topo_subrepos()
 
-    report = ["# Build report"]
-    critical_failed = False
+    run("lake", "--version")
 
+    report_build = {}
     if not args.no_build:
-        critical_failed |= do_phase(subrepos, report, "build", mappings_dir)
+        report_build = do_phase(subrepos, "build", mappings_dir)
+
+    report_test = {}
     if args.test:
-        critical_failed |= do_phase(subrepos, report, "test")
+        report_test = do_phase(subrepos, "test")
+
+    report_lint = {}
     if args.lint:
-        critical_failed |= do_phase(subrepos, report, "lint")
+        report_lint = do_phase(subrepos, "lint")
+
+    # Sorted by name, but all critical repos first
+    subrepos.sort(key=lambda subrepo: (-subrepo.critical, subrepo.name))
+
+    report = []
+    report.append("# Build Report")
+    report.append("")
+    report.append("| Repo | Critical | Build | Test | Lint |")
+    report.append("|------|----------|-------|------|------|")
+    for subrepo in subrepos:
+        name = subrepo.name
+        critical = "✅" if subrepo.critical else ""
+        build = report_build.get(subrepo.name, Status.SKIPPED)
+        test = report_test.get(subrepo.name, Status.SKIPPED)
+        lint = report_lint.get(subrepo.name, Status.SKIPPED)
+        report.append(f"| {name} | {critical} | {build} | {test} | {lint} |")
 
     if report_path is not None:
         report_path.write_text("\n".join(report) + "\n")
+
+    critical_failed = False
+    for subrepo in subrepos:
+        if not subrepo.critical:
+            continue
+        if report_build.get(subrepo.name) == Status.FAILURE:
+            critical_failed = True
+            print(f"Critical repo {subrepo.name} failed to build.", flush=True)
+        if report_test.get(subrepo.name) == Status.FAILURE:
+            critical_failed = True
+            print(f"Critical repo {subrepo.name} failed to test.", flush=True)
+        if report_lint.get(subrepo.name) == Status.FAILURE:
+            critical_failed = True
+            print(f"Critical repo {subrepo.name} failed to lint.", flush=True)
 
     if critical_failed:
         raise SystemExit("At least one critical repo failed.")

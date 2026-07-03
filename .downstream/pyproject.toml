@@ -10,3 +10,9 @@ dependencies = [
 
 [tool.ruff]
 preview = true
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
