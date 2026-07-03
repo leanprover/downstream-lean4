@@ -65,8 +65,9 @@ break due to unrelated breakages from other PRs.
 
 Once the original Lean PR is merged and has made its way into the nightly
 release used by this repo's `master` branch, the adaptation PR will also be
-automatically merged. If this is not possible due to merge conflicts, the bot
-will yell at you to merge the adaptation PR manually.
+automatically merged (regardless of whether its CI is green or not). If this is
+not possible due to merge conflicts, the bot will yell at you to merge the
+adaptation PR manually.
 
 ## I'm a maintainer of a Lean package featured in this repo.
 
