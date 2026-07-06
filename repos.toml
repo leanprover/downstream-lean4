@@ -91,7 +91,7 @@ critical = false
 
 [verso]
 url = "https://github.com/leanprover/verso"
-rev = "main"
+rev = "nightly-testing"
 critical = false
 
 [verso-slides]
