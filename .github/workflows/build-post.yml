@@ -60,7 +60,8 @@ jobs:
   post-report:
     if:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
-      github.event.workflow_run.event == 'pull_request' }}
+      github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'adaptation-') }}
     runs-on: ubuntu-slim
     permissions:
       actions: read
