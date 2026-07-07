@@ -1,10 +1,10 @@
 name: Build subrepos
 
 on:
-  pull_request:
   push:
     branches:
       - master
+      - adaptation-*
 
 jobs:
   main:
