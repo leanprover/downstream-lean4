@@ -1,4 +1,4 @@
-name: Post-build on master
+name: Post-build
 
 on:
   workflow_run:
