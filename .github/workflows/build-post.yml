@@ -89,6 +89,12 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Add run link to build report
+        env:
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          echo -e "\n[View run]($RUN_URL)" >> "${{ runner.temp }}/report/report.md"
+
       - name: Post build report
         uses: ./.downstream/actions/status-message
         with:
