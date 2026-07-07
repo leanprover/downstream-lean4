@@ -6,7 +6,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 
 from downstream.merge_tree_theirs import merge_tree_theirs
-from downstream.util import Subrepo, load_subrepos, normalize_url, run
+from downstream.util import Subrepo, github_full_name, load_subrepos, normalize_url, run
 
 
 class Updater:
@@ -22,7 +22,7 @@ class Updater:
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {r.url: r for r in self.subrepos}
 
-    def dep_graph(self) -> dict[str, set[str]]:
+    def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
         graph: dict[str, set[str]] = {}
         for subrepo in self.subrepos:
             deps: set[str] = set()
@@ -33,6 +33,8 @@ class Updater:
                 url = normalize_url(package["url"])
                 if dep := self.subrepos_by_url.get(url):
                     deps.add(dep.name)
+                elif external:
+                    deps.add(github_full_name(url) or url)
             graph[subrepo.name] = deps
         return graph
 

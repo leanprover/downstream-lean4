@@ -7,7 +7,7 @@ from downstream.updater import Updater
 
 def transitive_deps(graph: dict[str, set[str]], name: str) -> set[str]:
     result: set[str] = set()
-    for dep in graph[name]:
+    for dep in graph.get(name, set()):
         result.add(dep)
         result |= transitive_deps(graph, dep)
     return result
@@ -15,7 +15,7 @@ def transitive_deps(graph: dict[str, set[str]], name: str) -> set[str]:
 
 def indirect_deps(graph: dict[str, set[str]], name: str) -> set[str]:
     result: set[str] = set()
-    for dep in graph[name]:
+    for dep in graph.get(name, set()):
         result |= transitive_deps(graph, dep)
     return result
 
@@ -29,6 +29,7 @@ def attrs_str(**kwargs: str) -> str:
 class Args:
     downstream: Path
     prune: bool
+    external: bool
 
 
 def main() -> None:
@@ -40,11 +41,24 @@ def main() -> None:
         action="store_true",
         help="omit edges already implied transitively",
     )
+    parser.add_argument(
+        "-e",
+        "--external",
+        action="store_true",
+        help="also graph dependencies not listed in repos.toml",
+    )
     args = parser.parse_args(namespace=Args())
 
     os.chdir(args.downstream)
     updater = Updater()
-    graph = updater.dep_graph()
+    graph = updater.dep_graph(external=args.external)
+
+    external = {
+        dep
+        for deps in graph.values()
+        for dep in deps
+        if dep not in updater.subrepos_by_name
+    }
 
     print("digraph G {")
     print("  rankdir=LR;")
@@ -61,6 +75,10 @@ def main() -> None:
         for dep in sorted(graph[subrepo.name]):
             comment = "// " if dep in indirect else ""
             print(f'  {comment}"{dep}" -> "{subrepo.name}";')
+
+    for name in sorted(external):
+        attrs = {"label": name, "style": "dashed", "color": "gray", "fontcolor": "gray"}
+        print(f'  "{name}"{attrs_str(**attrs)};')
 
     print("}")
 
