@@ -1,0 +1,1569 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+
+import VersoManual
+
+import Lean.Parser.Command
+
+import Manual.Meta
+
+open Manual
+open Verso.Genre
+open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
+open Verso.Code.External (lit)
+
+
+open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
+
+#doc (Manual) "Command-Line Interface" =>
+%%%
+tag := "lake-cli"
+%%%
+
+
+```lakeHelp
+USAGE:
+  lake [OPTIONS] <COMMAND>
+
+COMMANDS:
+  new <name> <temp>     create a Lean package in a new directory
+  init <name> <temp>    create a Lean package in the current directory
+  build <targets>...    build targets
+  query <targets>...    build targets and output results
+  exe <exe> <args>...   build an exe and run it in Lake's environment
+  check-build           check if any default build targets are configured
+  test                  test the package using the configured test driver
+  check-test            check if there is a properly configured test driver
+  lint                  lint the package
+  check-lint            check if there is a properly configured lint driver
+  clean                 remove build outputs
+  shake                 minimize imports in source files
+  env <cmd> <args>...   execute a command in Lake's environment
+  lean <file>           elaborate a Lean file in Lake's context
+  update                update dependencies and save them to the manifest
+  pack                  pack build artifacts into an archive for distribution
+  unpack                unpack build artifacts from an distributed archive
+  upload <tag>          upload build artifacts to a GitHub release
+  cache                 manage the Lake cache
+  script                manage and run workspace scripts
+  scripts               shorthand for `lake script list`
+  run <script>          shorthand for `lake script run`
+  translate-config      change language of the package configuration
+  serve                 start the Lean language server
+
+BASIC OPTIONS:
+  --version             print version and exit
+  --help, -h            print help of the program or a command and exit
+  --dir, -d=file        use the package configuration in a specific directory
+  --file, -f=file       use a specific file for the package configuration
+  -K key[=value]        set the configuration file option named key
+  --old                 only rebuild modified modules (ignore transitive deps)
+  --rehash, -H          hash all files for traces (do not trust `.hash` files)
+  --update              update dependencies on load (e.g., before a build)
+  --packages=file       JSON file of package entries that override the manifest
+  --reconfigure, -R     elaborate configuration files instead of using OLeans
+  --keep-toolchain      do not update toolchain on workspace update
+  --allow-empty         accept bare builds with no default targets configured
+  --no-build            exit immediately if a build target is not up-to-date
+  --no-cache            build packages locally; do not download build caches
+  --try-cache           attempt to download build caches for supported packages
+  --json, -J            output JSON-formatted results (in `lake query`)
+  --text                output results as plain text (in `lake query`)
+
+OUTPUT OPTIONS:
+  --quiet, -q           hide informational logs and the progress indicator
+  --verbose, -v         show trace logs (command invocations) and built targets
+  --ansi, --no-ansi     toggle the use of ANSI escape codes to prettify output
+  --log-level=lv        minimum log level to output on success
+                        (levels: trace, info, warning, error)
+  --fail-level=lv       minimum log level to fail a build (default: error)
+  --iofail              fail build if any I/O or other info is logged
+                        (same as --fail-level=info)
+  --wfail               fail build if warnings are logged
+                        (same as --fail-level=warning)
+
+
+See `lake help <command>` for more information on a specific command.
+```
+
+Lake's command-line interface is structured into a series of subcommands.
+All of the subcommands share the ability to be configured by certain environment variables and global command-line options.
+Each subcommand should be understood as a utility in its own right, with its own required argument syntax and documentation.
+
+:::paragraph
+Some of Lake's commands delegate to other command-line utilities that are not included in a Lean distribution.
+These utilities must be available on the `PATH` in order to use the corresponding features:
+
+ * `git` is required in order to access Git dependencies.
+ * `tar` is required to create or extract cloud build archives, and `curl` is required to fetch them.
+ * `gh` is required to upload build artifacts to GitHub releases.
+
+Lean distributions include a C compiler toolchain.
+:::
+
+# Environment Variables
+%%%
+tag := "lake-environment"
+%%%
+
+```lakeHelp "env"
+Execute a command in Lake's environment
+
+USAGE:
+  lake env [<cmd>] [<args>...]
+
+Spawns a new process executing `cmd` with the given `args` and with
+the environment set based on the detected Lean/Lake installations and
+the workspace configuration (if it exists).
+
+Specifically, this command sets the following environment variables:
+
+  LAKE                  set to the detected Lake executable
+  LAKE_HOME             set to the detected Lake home
+  LEAN_SYSROOT          set to the detected Lean toolchain directory
+  LEAN_AR               set to the detected Lean `ar` binary
+  LEAN_CC               set to the detected `cc` (if not using the bundled one)
+  LEAN_PATH             adds Lake's and the workspace's Lean library dirs
+  LEAN_SRC_PATH         adds Lake's and the workspace's source dirs
+  PATH                  adds Lean's, Lake's, and the workspace's binary dirs
+  PATH                  adds Lean's and the workspace's library dirs (Windows)
+  DYLD_LIBRARY_PATH     adds Lean's and the workspace's library dirs (MacOS)
+  LD_LIBRARY_PATH       adds Lean's and the workspace's library dirs (other)
+
+A bare `lake env` will print out the variables set and their values,
+using the form NAME=VALUE like the POSIX `env` command.
+```
+
+
+When invoking the Lean compiler or other tools, Lake sets or modifies a number of environment variables.{index}[environment variables]
+These values are system-dependent.
+Invoking {lake}`env` without any arguments displays the environment variables and their values.
+Otherwise, the provided command is invoked in Lake's environment.
+
+::::paragraph
+The following variables are set, overriding previous values:
+:::table (align := left) -header
+*
+  * {envVar +def}`LAKE`
+  * The detected Lake executable
+*
+  * {envVar}`LAKE_HOME`
+  * The detected {tech}[Lake home]
+*
+  * {envVar}`LEAN_SYSROOT`
+  * The detected Lean {tech}[toolchain] directory
+*
+ * {envVar}`LEAN_AR`
+ * The detected Lean `ar` binary
+*
+  * {envVar}`LEAN_CC`
+  * The detected C compiler (if not using the bundled one)
+:::
+::::
+
+::::paragraph
+The following variables are augmented with additional information:
+:::table (align := left) -header
+*
+  * {envVar}`LEAN_PATH`
+  * Lake's and the {tech}[workspace]'s Lean {tech}[library directories] are added.
+*
+  * {envVar}`LEAN_SRC_PATH`
+  * Lake's and the {tech}[workspace]'s {tech}[source directories] are added.
+*
+  * {envVar}`PATH`
+  * Lean's, Lake's, and the {tech}[workspace]'s {tech}[binary directories] are added.
+    On Windows, Lean's and the {tech}[workspace]'s {tech}[library directories] are also added.
+*
+  * {envVar}`DYLD_LIBRARY_PATH`
+  * On macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
+*
+  * {envVar}`LD_LIBRARY_PATH`
+  * On platforms other than Windows and macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
+:::
+::::
+
+::::paragraph
+Lake itself can be configured with the following environment variables:
+:::table (align := left) -header
+*
+  * {envVar +def}`ELAN_HOME`
+  * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
+
+*
+  * {envVar +def}`ELAN`
+  * The location of the `elan` binary, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
+    If it is not set, an occurrence of `elan` must exist on the {envVar}`PATH`.
+
+*
+  * {envVar +def}`LAKE_HOME`
+  * The location of the Lake installation.
+    This environment variable is only consulted when Lake is unable to determine its installation path from the location of the `lake` executable that's currently running.
+*
+  * {envVar +def}`LEAN_SYSROOT`
+  * The location of the Lean installation, used to find the Lean compiler, the standard library, and other bundled tools.
+    Lake first checks whether its binary is colocated with a Lean install, using that installation if so.
+    If not, or if {envVar +def}`LAKE_OVERRIDE_LEAN` is true, then Lake consults {envVar}`LEAN_SYSROOT`.
+    If this is not set, Lake consults the {envVar +def}`LEAN` environment variable to find the Lean compiler, and attempts to find the Lean installation relative to the compiler.
+    If {envVar}`LEAN` is set but empty, Lake considers Lean to be disabled.
+    If {envVar}`LEAN_SYSROOT` and {envVar}`LEAN` are unset, the first occurrence of `lean` on the {envVar}`PATH` is used to find the installation.
+*
+  * {envVar +def}`LEAN_CC` and {envVar +def}`LEAN_AR`
+  * If {envVar}`LEAN_CC` and/or {envVar}`LEAN_AR` is set, its value is used as the C compiler or `ar` command when building libraries.
+    If not, Lake will fall back to the bundled tool in the Lean installation.
+    If the bundled tool is not found, the value of {envVar +def}`CC` or {envVar +def}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
+*
+  * {envVar +def}`LAKE_NO_CACHE`
+  * If true, Lake does not use cached builds from [Reservoir](https://reservoir.lean-lang.org/) or {ref "lake-github"}[GitHub].
+    This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
+
+*
+  * {envVar +def}`LAKE_ARTIFACT_CACHE`
+  * If true, Lake uses the artifact cache.
+    This is an experimental feature.
+
+*
+  * {envVar +def}`LAKE_CACHE_KEY`
+  * Defines an authentication key for the {ref "lake-cache-remote"}[remote artifact cache].
+
+*
+  * {envVar +def}`LAKE_CACHE_ARTIFACT_ENDPOINT`
+  * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used for artifact uploads.
+    If set, then {envVar}`LAKE_CACHE_REVISION_ENDPOINT` must also be set.
+    If neither of these are set, Lake will use Reservoir instead.
+
+*
+  * {envVar +def}`LAKE_CACHE_REVISION_ENDPOINT`
+  * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used to upload the {tech (key := "mappings file")}[input/output mappings] for each artifact.
+    If set, then {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` must also be set.
+    If neither of these are set, Lake will use Reservoir instead.
+
+:::
+::::
+
+Lake considers an environment variable to be true when its value is `y`, `yes`, `t`, `true`, `on`, or `1`, compared case-insensitively.
+It considers a variable to be false when its value is `n`, `no`, `f`, `false`, `off`, or `0`, compared case-insensitively.
+If the variable is unset, or its value is neither true nor false, a default value is used.
+
+```lean -show
+-- Test the claim above
+/--
+info: def Lake.envToBool? : String → Option Bool :=
+fun o =>
+  if ["y", "yes", "t", "true", "on", "1"].contains o.toLower = true then some true
+  else if ["n", "no", "f", "false", "off", "0"].contains o.toLower = true then some false else none
+-/
+#guard_msgs in
+#print Lake.envToBool?
+```
+
+# Options
+
+Lake's command-line interface provides a number of global options as well as subcommands that perform important tasks.
+Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
+
+: {lakeOptDef flag}`--version`
+
+  Lake outputs its version and exits without doing anything else.
+
+: {lakeOptDef flag}`--help` or {lakeOptDef flag}`-h`
+
+  Lake outputs its version along with usage information and exits without doing anything else.
+  Subcommands may be used with {lakeOpt}`--help`, in which case usage information for the subcommand is output.
+
+: {lakeOptDef option}`--dir DIR` or {lakeOptDef option}`-d=DIR`
+
+  Use the provided directory as location of the package instead of the current working directory.
+  This is not always equivalent to changing to the directory first, because the version of `lake` indicated by the current directory's {tech}[toolchain file] will be used, rather than that of `DIR`.
+
+: {lakeOptDef option}`--file FILE` or {lakeOptDef option}`-f=FILE`
+
+  Use the specified {tech}[package configuration] file instead of the default.
+
+: {lakeOptDef flag}`--old`
+
+  Only rebuild modified modules, ignoring transitive dependencies.
+  Modules that import the modified module will not be rebuilt.
+  In order to accomplish this, file modification times are used instead of hashes to determine whether a module has changed.
+
+: {lakeOptDef flag}`--rehash` or {lakeOptDef flag}`-H`
+
+  Ignore cached file hashes, recomputing them.
+  Lake uses hashes of dependencies to determine whether to rebuild an artifact.
+  These hashes are cached on disk whenever a module is built.
+  To save time during builds, these cached hashes are used instead of recomputing each hash unless {lakeOpt}`--rehash` is specified.
+
+: {lakeOptDef flag}`--allow-empty`
+
+  Accept builds that produce no output when no {tech}[default targets] are configured.
+
+: {lakeOptDef flag}`--update`
+
+  Update dependencies after the {tech}[package configuration] is loaded but prior to performing other tasks, such as a build.
+  This is equivalent to running `lake update` before the selected command, but it may be faster due to not having to load the configuration twice.
+
+: {lakeOptDef option}`--packages=FILE`
+
+  Uses the specified {tech}[package overrides] file.
+  Can be specified multiple times to add more overrides (with later overrides taking precedence).
+  The complete set of package overrides will also include those from `.lake/package-overrides.json` (if any).
+  However, the ones provided by this option take precedence.
+
+:  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
+
+  Normally, the {tech}[package configuration] file is {tech (key := "elaborator") -normalize}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
+  Providing this flag causes the configuration file to be re-elaborated.
+
+: {lakeOptDef flag}`--keep-toolchain`
+
+  By default, Lake attempts to update the local {tech}[workspace]'s {tech}[toolchain file].
+  Providing this flag disables {ref "automatic-toolchain-updates"}[automatic toolchain updates].
+
+: {lakeOptDef flag}`--no-build`
+
+  Lake exits immediately if a build target is not up-to-date, returning a non-zero exit code.
+
+: {lakeOptDef flag}`--no-cache`
+
+  Instead of using available cloud build caches, build all packages locally.
+  Build caches are not downloaded.
+
+: {lakeOptDef flag}`--try-cache`
+
+  attempt to download build caches for supported packages
+
+# Controlling Output
+
+These options provide allow control over the {tech}[log] that is produced while building.
+In addition to showing or hiding messages, a build can be made to fail when warnings or even information is emitted; this can be used to enforce a style guide that disallows output during builds.
+
+: {lakeOptDef flag}`--quiet`, {lakeOptDef flag}`-q`
+
+  Hides informational logs and the progress indicator.
+
+: {lakeOptDef flag}`--verbose`, {lakeOptDef flag}`-v`
+
+  Shows trace logs (typically command invocations) and built {tech}[targets].
+
+:  {lakeOptDef flag}`--ansi`, {lakeOptDef flag}`--no-ansi`
+
+  Enables or disables the use of [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) that add colors and animations to Lake's output.
+
+:  {lakeOptDef option}`--log-level=LV`
+
+  Sets the minimum level of {tech}[logs] to be shown when builds succeed.
+  `LV` may be `trace`, `info`, `warning`, or `error`, compared case-insensitively.
+  When a build fails, all levels are shown.
+  The default log level is `info`.
+
+:  {lakeOptDef option}`--fail-level=LV`
+
+  Sets the threshold at which a message in the {tech}[log] causes a build to be considered a failure.
+  If a message is emitted to the log with a level that is greater than or equal to the threshold, the build fails.
+  `LV` may be `trace`, `info`, `warning`, or `error`, compared case-insensitively; it is `error` by default.
+
+
+: {lakeOptDef flag}`--iofail`
+
+  Causes builds to fail if any I/O or other info is logged.
+  This is equivalent to {lakeOpt}`--fail-level=info`.
+
+: {lakeOptDef flag}`--wfail`
+
+  Causes builds to fail if any warnings are logged.
+  This is equivalent to {lakeOpt}`--fail-level=warning`.
+
+# Automatic Toolchain Updates
+%%%
+tag := "automatic-toolchain-updates"
+%%%
+
+The {lake}`update` command checks for changes to dependencies, fetching their sources and updating the {tech}[manifest] accordingly.
+By default, {lake}`update` also attempts to update the {tech}[root package]'s {tech}[toolchain file] when a new version of a dependency specifies an updated toolchain.
+This behavior can be disabled with the {lakeOpt}`--keep-toolchain` flag.
+
+:::paragraph
+If multiple dependencies specify newer toolchains, Lake selects the newest compatible toolchain, if it exists.
+To determine the newest compatible toolchain, Lake parses the toolchain listed in the packages' `lean-toolchain` files into four categories:
+
+ * Releases, which are compared by version number (e.g., `v4.4.0` < `v4.8.0` and `v4.6.0-rc1` < `v4.6.0`)
+ * Nightly builds, which are compared by date (e.g., `nightly-2024-01-10` < `nightly-2024-10-01`)
+ * Builds from pull requests to the Lean compiler, which are incomparable
+ * Other versions, which are also incomparable
+
+Toolchain versions from multiple categories are incomparable.
+If there is not a single newest toolchain, Lake will print a warning and continue updating without changing the toolchain.
+:::
+
+If Lake does find a new toolchain, then it updates the {tech}[workspace]'s `lean-toolchain` file accordingly and restarts the {lake}`update` using the new toolchain's Lake.
+If {ref "elan"}[Elan] is detected, it will spawn the new Lake process via `elan run` with the same arguments Lake was initially run with.
+If Elan is missing, it will prompt the user to restart Lake manually and exit with a special error code (namely, `4`).
+The Elan executable used by Lake can be configured using the {envVar}`ELAN` environment variable.
+
+
+# Creating Packages
+
+```lakeHelp "new"
+Create a Lean package in a new directory
+
+USAGE:
+  lake [+<lean-version>] new <name> [<template>][.<language>]
+
+If you are using Lake through Elan (which is standard), you can create a
+package with a specific Lean version via the `+` option.
+
+The initial configuration and starter files are based on the template:
+
+  std                   library and executable; default
+  exe                   executable only
+  lib                   library only
+  math-lax              library only with a Mathlib dependency
+  math                  library with Mathlib standards for linting and workflows
+
+Templates can be suffixed with `.lean` or `.toml` to produce a Lean or TOML
+version of the configuration file, respectively. The default is TOML.
+```
+
+:::lake new "name [template][\".\"language]"
+
+Running {lake}`new` creates an initial Lean package in a new directory.
+This command is equivalent to creating a directory named {lakeMeta}`name` and then running {lake}`init`
+
+:::
+
+:::lake init "name [template][\".\"language]"
+
+Running {lake}`init` creates an initial Lean package in the current directory.
+The package's contents are based on a template, with the names of the {tech}[package], its {tech}[targets], and their {tech}[module roots] derived from the name of the current directory.
+
+The {lakeMeta}`template` may be:
+
+: `std` (default)
+
+  Creates a package that contains a library and an executable.
+
+: `exe`
+
+  Creates a package that contains only an executable.
+
+: `lib`
+
+  Creates a package that contains only a library.
+
+: `math`
+
+  Creates a package that contains a library that depends on [Mathlib](https://github.com/leanprover-community/mathlib4).
+
+The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` (the default) or `toml`.
+:::
+
+:::TODO
+Example of `lake init` or `lake new`
+:::
+
+# Building and Running
+
+```lakeHelp "build"
+Build targets
+
+USAGE:
+  lake build [<targets>...] [-o <mappings>]
+
+A target is specified with a string of the form:
+
+  [@[<package>]/][<target>|[+]<module>][:<facet>]
+
+You can also use the source path of a module as a target. For example,
+
+  lake build Foo/Bar.lean:o
+
+will build the Lean module (within the workspace) whose source file is
+`Foo/Bar.lean` and compile the generated C file into a native object file.
+
+The `@` and `+` markers can be used to disambiguate packages and modules
+from file paths or other kinds of targets (e.g., executables or libraries).
+
+LIBRARY FACETS:         build the library's ...
+  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  static                static artifact (*.a file)
+  shared                shared artifact (*.so, *.dll, or *.dylib file)
+
+MODULE FACETS:          build the module's ...
+  deps                  dependencies (e.g., imports, shared libraries, etc.)
+  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  olean                 OLean (binary blob of Lean data for importers)
+  ilean                 ILean (binary blob of metadata for the Lean LSP server)
+  c                     compiled C file
+  bc                    compiled LLVM bitcode file
+  c.o                   compiled object file (of its C file)
+  bc.o                  compiled object file (of its LLVM bitcode file)
+  o                     compiled object file (of its configured backend)
+  dynlib                shared library (e.g., for `--load-dynlib`)
+
+TARGET EXAMPLES:        build the ...
+  a                     default facet(s) of target `a`
+  @a                    default target(s) of package `a`
+  +A                    default facet(s) of module `A`
+  @/a                   default facet(s) of target `a` of the root package
+  @a/b                  default facet(s) of target `b` of package `a`
+  @a/+A:c               C file of module `A` of package `a`
+  :foo                  facet `foo` of the root package
+
+A bare `lake build` command will build the default target(s) of the root
+package. Package dependencies are not updated during a build.
+
+With the Lake cache enabled, the `-o` option will cause Lake to track the
+input-to-outputs mappings of targets in the root package touched during the
+build and write them to the specified file at the end of the build. These
+mappings can then be used to upload build artifacts to a remote cache with
+`lake cache put`.
+```
+
+::::lake build "[targets...] [\"-o\" mappings]"
+
+Builds the specified facts of the specified targets.
+
+Each of the {lakeMeta}`targets` is specified by a string of the form:
+
+{lakeArgs}`[["@"]package["/"]][target|["+"]module][":"facet]`
+
+The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from file paths as well as executables, and libraries, which are specified by name as {lakeMeta}`target`.
+If not provided, {lakeMeta}`package` defaults to the {tech}[workspace]'s {tech}[root package].
+If the same target name exists in multiple packages in the workspace, then the first occurrence of the target name found in a topological sort of the package dependency graph is selected.
+Module targets may also be specified by their filename, with an optional facet after a colon.
+
+The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
+They are listed in {ref "lake-facets"}[the section on facets].
+
+When using the {ref "lake-cache"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
+This file can be used with {lake}`cache get` and {lake}`cache put` to interact with a remote cache.
+The mappings file is in JSON Lines format, with one valid JSON object per line, and its filename extension is conventionally `.jsonl`.
+::::
+
+::::example "Target and Facet Specifications"
+
+:::table
+*
+  - `a`
+  - The {tech}[default facet](s) of target `a`
+*
+  - `@a`
+  - The {tech}[default targets] of {tech}[package] `a`
+*
+  - `+A`
+  -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
+*
+  - `@a/b`
+  - The default facet of target `b` of package `a`
+*
+  - `@a/+A:c`
+  - The C file compiled from module `A` of package `a`
+*
+  - `:foo`
+  - The {tech}[root package]'s facet `foo`
+*
+  - `A/B/C.lean:o`
+  - The compiled object code for the module in the file `A/B/C.lean`
+:::
+::::
+
+```lakeHelp "check-build"
+Check if any default build targets are configured
+
+USAGE:
+  lake check-build
+
+Exits with code 0 if the workspace's root package has any
+default targets configured. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured default targets are valid.
+It merely verifies that some are specified.
+
+```
+
+:::lake «check-build»
+Exits with code 0 if the {tech}[workspace]'s {tech}[root package] has any {tech}[default targets] configured.
+Errors (with exit code 1) otherwise.
+
+{lake}`check-build` does *not* verify that the configured default targets are valid.
+It merely verifies that at least one is specified.
+:::
+
+```lakeHelp "exe"
+Build an executable target and run it in Lake's environment
+
+USAGE:
+  lake exe <exe-target> [<args>...]
+
+ALIAS: lake exec
+
+Looks for the executable target in the workspace (see `lake help build` to
+learn how to specify targets), builds it if it is out of date, and then runs
+it with the given `args` in Lake's environment (see `lake help env` for how
+the environment is set up).
+```
+
+```lakeHelp "query"
+Build targets and output results
+
+USAGE:
+  lake query [<targets>...]
+
+Builds a set of targets, reporting progress on standard error and outputting
+the results on standard out. Target results are output in the same order they
+are listed and end with a newline. If `--json` is set, results are formatted as
+JSON. Otherwise, they are printed as raw strings. Targets which do not have
+output configured will be printed as an empty string or `null`.
+
+See `lake help build` for information on and examples of targets.
+```
+
+:::lake query "[targets...]"
+Builds a set of targets, reporting progress on standard error and outputting the results on standard out.
+Target results are output in the same order they are listed and end with a newline.
+If `--json` is set, results are formatted as JSON.
+Otherwise, they are printed as raw strings.
+
+Targets which do not have output configured will be printed as an empty string or `null`.
+For executable targets, the output is the path to the built executable.
+
+Targets are specified using the same syntax as in {lake}`build`.
+:::
+
+:::lake exe "«exe-target» [args...]" (alias := exec)
+
+Looks for the executable target {lakeMeta}`exe-target` in the workspace, builds it if it is out of date, and then runs
+it with the given {lakeMeta}`args` in Lake's environment.
+
+See {lake}`build` for the syntax of target specifications and {lake}`env` for a description of how the environment is set up.
+
+:::
+
+```lakeHelp "clean"
+Remove build outputs
+
+USAGE:
+  lake clean [<package>...]
+
+If no package is specified, deletes the build directories of every package in
+the workspace. Otherwise, just deletes those of the specified packages.
+```
+
+:::lake clean "[packages...]"
+
+If no package is specified, deletes the {tech}[build directories] of every package in the workspace.
+Otherwise, it just deletes those of the specified {lakeMeta}`packages`.
+
+:::
+
+```lakeHelp "env"
+Execute a command in Lake's environment
+
+USAGE:
+  lake env [<cmd>] [<args>...]
+
+Spawns a new process executing `cmd` with the given `args` and with
+the environment set based on the detected Lean/Lake installations and
+the workspace configuration (if it exists).
+
+Specifically, this command sets the following environment variables:
+
+  LAKE                  set to the detected Lake executable
+  LAKE_HOME             set to the detected Lake home
+  LEAN_SYSROOT          set to the detected Lean toolchain directory
+  LEAN_AR               set to the detected Lean `ar` binary
+  LEAN_CC               set to the detected `cc` (if not using the bundled one)
+  LEAN_PATH             adds Lake's and the workspace's Lean library dirs
+  LEAN_SRC_PATH         adds Lake's and the workspace's source dirs
+  PATH                  adds Lean's, Lake's, and the workspace's binary dirs
+  PATH                  adds Lean's and the workspace's library dirs (Windows)
+  DYLD_LIBRARY_PATH     adds Lean's and the workspace's library dirs (MacOS)
+  LD_LIBRARY_PATH       adds Lean's and the workspace's library dirs (other)
+
+A bare `lake env` will print out the variables set and their values,
+using the form NAME=VALUE like the POSIX `env` command.
+```
+
+::::lake env "[cmd [args...]]"
+
+When {lakeMeta}`cmd` is provided, it is executed in {ref "lake-environment"}[the Lake environment] with arguments {lakeMeta}`args`.
+
+If {lakeMeta}`cmd` is not provided, Lake prints the environment in which it runs tools.
+This environment is system-specific.
+::::
+
+```lakeHelp "lean"
+Elaborate a Lean file in the context of the Lake workspace
+
+USAGE:
+  lake lean <file> [-- <args>...]
+
+Build the imports of the given file and then runs `lean` on it using
+the workspace's root package's additional Lean arguments and the given args
+(in that order). The `lean` process is executed in Lake's environment like
+`lake env lean` (see `lake help env` for how the environment is set up).
+```
+
+:::lake lean "file [\"--\" args...]"
+
+Builds the imports of the given {lakeMeta}`file` and then runs `lean` on it using the {tech}[workspace]'s {tech}[root package]'s additional Lean arguments and the given {lakeMeta}`args`, in that order.
+The `lean` process is executed in {ref "lake-environment"}[Lake's environment].
+:::
+
+# Module Imports
+
+```lakeHelp shake
+Minimize imports in Lean source files
+
+USAGE:
+  lake shake [OPTIONS] [<MODULE>...]
+
+Checks the current project for unused imports by analyzing generated `.olean`
+files to deduce required imports and ensuring that every import contributes
+some constant or other elaboration dependency.
+
+ARGUMENTS:
+  <MODULE>              A module path like `Mathlib`. All files transitively
+                        reachable from the provided module(s) will be checked.
+                        If not specified, uses the package's default targets.
+
+OPTIONS:
+  --force               Skip the `lake build --no-build` sanity check
+  --keep-implied        Preserve imports implied by other imports
+  --keep-prefix         Prefer parent module imports over specific submodules
+  --keep-public         Preserve all `public` imports for API stability
+  --add-public          Add new imports as `public` if they were in the
+                        original public closure
+  --explain             Show which constants require each import
+  --fix                 Apply suggested fixes directly to source files
+  --gh-style            Output in GitHub problem matcher format
+
+ANNOTATIONS:
+  Source files can contain special comments to control shake behavior:
+
+  * `module -- shake: keep-downstream`
+    Preserves this module in all downstream modules
+
+  * `module -- shake: keep-all`
+    Preserves all existing imports in this module
+
+  * `import X -- shake: keep`
+    Preserves this specific import
+```
+
+::::lake shake "[options...] [module ...]"
+
+Checks the current project for unused imports by analyzing generated {tech}[`.olean` files] to deduce required imports, ensuring that every import contributes some constant or other elaboration dependency.
+
+If a {lakeMeta}`module` is specified, then it and all files that are transitively reachable from it are checked. Otherwise, the package's {tech}[default targets] are checked.
+
+:::paragraph
+Source files can contain special comments to control the behavior of {lake}`shake`:
+
+: `module -- shake: keep-downstream`
+
+  Preserves this module in all downstream modules.
+
+: `module -- shake: keep-all`
+
+  Preserves all existing imports in this module.
+
+: `import X -- shake: keep`
+
+  Preserves this specific import.
+:::
+
+:::paragraph
+The {lakeMeta}`options` may be:
+
+: `--force`
+
+  Skip the `lake build --no-build` sanity check
+
+: `--keep-implied`
+
+  Preserve imports implied by other imports
+
+: `--keep-prefix`
+
+  Prefer parent module imports over specific submodules
+
+: `--keep-public`
+
+  Preserve all `public` imports for API stability
+
+: `--add-public`
+
+  Add new imports as `public` if they were in the original public closure
+
+: `--explain`
+
+  Show which constants require each import
+
+: `--fix`
+
+  Apply suggested fixes directly to source files
+
+: `--gh-style`
+
+  Output in GitHub problem matcher format
+:::
+
+::::
+
+# Development Tools
+
+Lake includes support for specifying standard development tools and workflows.
+On the command line, these tools can be invoked using the appropriate `lake` subcommands.
+
+## Tests and Linters
+
+```lakeHelp test
+Test the workspace's root package using its configured test driver
+
+USAGE:
+  lake test [-- <args>...]
+
+A test driver can be configured by either setting the 'testDriver'
+package configuration option or by tagging a script, executable, or library
+`@[test_driver]`. A definition in a dependency can be used as a test driver
+by using the `<pkg>/<name>` syntax for the 'testDriver' configuration option.
+
+A script test driver will be run with the  package configuration's
+`testDriverArgs` plus the CLI `args`. An executable test driver will be
+built and then run like a script. A library test driver will just be built.
+
+```
+
+:::lake test " [\"--\" args...]"
+Test the workspace's root package using its configured {tech}[test driver].
+
+A test driver that is an executable will be built and then run with the package configuration's `testDriverArgs` plus the CLI {lakeMeta}`args`.
+A test driver that is a {tech}[Lake script] is run with the same arguments as an executable test driver.
+A library test driver will just be built; it is expected that tests are implemented such that failures cause the build to fail via elaboration-time errors.
+:::
+
+```lakeHelp lint
+Lint the workspace's root package
+
+USAGE:
+  lake lint [OPTIONS] [<MODULE>...] [-- <args>...]
+
+By default, runs the package's configured lint driver. If `builtinLint` is
+set to `true` in the package configuration, builtin lints also run.
+
+Builtin linting (`--builtin-lint`, `--builtin-only`, `--linters`,
+`--lint-only`, or `builtinLint = true` in the package configuration) drives a
+build of the targeted modules with the requested linter options enabled.
+The lint driver path on its own does not trigger a build.
+
+Which environment linters run on a declaration is determined by the linter
+options in effect when that declaration was built (e.g. via `set_option` in
+the source, or via `--linters`/`--lint-only` below). Both override those
+options for the lint build; `--lint-only` additionally restricts the reported
+output to exactly the linters its spec enables.
+
+Positional `MODULE` arguments narrow only the builtin lints; if omitted,
+the workspace's default target roots are used. The lint driver is invoked
+with `lintDriverArgs` from the package config plus any arguments after
+`--`; the `MODULE` list is not passed to it.
+
+OPTIONS:
+  --builtin-lint        run builtin environment and text linters
+  --builtin-only        run only builtin linters, skip the lint driver
+  --linters <spec>      override linter options for the lint build; <spec> is a
+                        comma-separated list of linter option names, each
+                        optionally prefixed with `-` to disable it. A name
+                        beginning with `.` is shorthand for the `linter.`
+                        prefix, so `.foo` means `linter.foo`. E.g.
+                        `--linters=.foo,-linter.bar`. Repeatable; later
+                        entries override earlier ones for the same linter
+  --lint-only <spec>    like `--linters`, but report ONLY the linters the spec
+                        positively enables, suppressing every other linter
+                        (including default-on linters that are not named).
+                        Expands `linter.all` and linter sets. Uses the same
+                        `<spec>` syntax as `--linters`; switching between
+                        `--linters` and `--lint-only` replaces the prior spec
+  --record-exceptions   record each linter warning as a
+                        `set_option <linter> false in` exception by editing the
+                        offending source files in place, silencing the warning
+                        for that declaration. Implies `--builtin-lint`.
+
+A lint driver can be configured by either setting the `lintDriver` package
+configuration option or by tagging a script or executable `@[lint_driver]`.
+A definition in a dependency can be used as a lint driver by using the
+`<pkg>/<name>` syntax for the 'lintDriver' configuration option.
+
+A script lint driver will be run with the package configuration's
+`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
+built and then run like a script.
+
+```
+
+:::lake lint "[options...] [module...] [\"--\" args...]"
+
+By default, lint the workspace's root package using its configured lint driver.
+If `builtinLint` is set to {name}`true` in the package configuration, builtin lints also run.
+
+Positional {lakeMeta}`module` arguments narrow only the builtin lints; if omitted,
+the workspace's default target roots are used. The lint driver is invoked
+with `lintDriverArgs` from the package config plus any arguments after
+`--`; the {lakeMeta}`module` list is not passed to it.
+
+A script lint driver will be run with the  package configuration's
+`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
+built and then run like a script.
+
+The builtin linters are a set of linters that can run as part of a build. Some of them are run by default; these linters are run when `--builtin-lint` is specified. Other linters are extra linters; these linters are run only when `--extra` is specified.
+
+The {lakeMeta}`options` may be:
+
+: `--builtin-lint`
+
+  Run default builtin environment and text linters
+
+: `--builtin-only`
+
+  Run only default builtin linters, skip the lint driver
+
+: `--extra`
+
+  Run only non-default (extra) builtin linters
+
+: `--lint-all`
+
+  Run all registered linters, including defaults, extra,
+  and any other disabled-by-default linters
+
+: `--lint-only` `<name>`
+
+  Run only the specified linter (repeatable).
+
+
+
+A lint driver can be configured by either setting the `lintDriver` package
+configuration option or by tagging a script or executable `@[lint_driver]`.
+A definition in a dependency can be used as a lint driver by using the
+`<pkg>/<name>` syntax for the 'lintDriver' configuration option.
+
+A script lint driver will be run with the package configuration's
+`lintDriverArgs` plus the CLI `args`. An executable lint driver will be
+built and then run like a script.
+:::
+
+```lakeHelp "check-test"
+Check if there is a properly configured test driver
+
+USAGE:
+  lake check-test
+
+Exits with code 0 if the workspace's root package has a properly
+configured lint driver. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured test driver actually exists in the
+package or its dependencies. It merely verifies that one is specified.
+
+```
+
+:::lake «check-test»
+
+Check if there is a properly configured test driver
+
+Exits with code 0 if the workspace's root package has a properly
+configured lint driver. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured test driver actually exists in the
+package or its dependencies. It merely verifies that one is specified.
+
+This is useful for distinguishing between failing tests and incorrectly configured packages.
+:::
+
+```lakeHelp "check-lint"
+Check if there is a properly configured lint driver
+
+USAGE:
+  lake check-lint
+
+Exits with code 0 if the workspace's root package has a properly
+configured lint driver. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured lint driver actually exists in the
+package or its dependencies. It merely verifies that one is specified.
+
+```
+
+:::lake «check-lint»
+Check if there is a properly configured lint driver
+
+Exits with code 0 if the workspace's root package has a properly
+configured lint driver. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured lint driver actually exists in the
+package or its dependencies. It merely verifies that one is specified.
+
+This is useful for distinguishing between failing lints and incorrectly configured packages.
+:::
+
+
+## Scripts
+
+```lakeHelp script
+Manage Lake scripts
+
+USAGE:
+  lake script <COMMAND>
+
+COMMANDS:
+  list                  list available scripts
+  run <script>          run a script
+  doc <script>          print the docstring of a given script
+
+See `lake script help <command>` for more information on a specific command.
+```
+
+```lakeHelp scripts
+List available scripts
+
+USAGE:
+  lake script list
+
+ALIAS: lake scripts
+
+This command prints the list of all available scripts in the workspace.
+```
+
+:::lake script list (alias := scripts)
+Lists the available {ref "lake-scripts"}[scripts] in the workspace.
+:::
+
+```lakeHelp run
+Run a script
+
+USAGE:
+  lake script run [[<package>/]<script>] [<args>...]
+
+ALIAS: lake run
+
+This command runs the `script` of the workspace (or the specific `package`),
+passing `args` to it.
+
+A bare `lake run` command will run the default script(s) of the root package
+(with no arguments).
+```
+
+:::lake script run "[[package\"/\"]script [args...]]" (alias := run)
+This command runs the {lakeMeta}`script` of the workspace (or the specified {lakeMeta}`package`),
+passing {lakeMeta}`args` to it.
+
+A bare {lake}`run` command will run the default script(s) of the root package(with no arguments).
+:::
+
+:::lake script doc "script"
+Prints the documentation comment for {lakeMeta}`script`.
+:::
+
+
+
+## Language Server
+
+```lakeHelp serve
+Start the Lean language server
+
+USAGE:
+  lake serve [-- <args>...]
+
+Run the language server of the Lean installation (i.e., via `lean --server`)
+with the package configuration's `moreServerArgs` field and `args`.
+
+```
+
+:::lake serve "[\"--\" args...]"
+Runs the Lean language server in the workspace's root project with the {tech}[package configuration]'s `moreServerArgs` field and {lakeMeta}`args`.
+
+This command is typically invoked by editors or other tooling, rather than manually.
+:::
+
+# Dependency Management
+
+```lakeHelp update
+Update dependencies and save them to the manifest
+
+USAGE:
+  lake update [<package>...]
+
+ALIAS: lake upgrade
+
+Updates the Lake package manifest (i.e., `lake-manifest.json`),
+downloading and upgrading packages as needed. For each new (transitive) git
+dependency, the appropriate commit is cloned into a subdirectory of
+`packagesDir`. No copy is made of local dependencies.
+
+If a set of packages are specified, said dependencies are upgraded to
+the latest version compatible with the package's configuration (or removed if
+removed from the configuration). If there are dependencies on multiple versions
+of the same package, the version materialized is undefined.
+
+A bare `lake update` will upgrade all dependencies.
+```
+
+:::lake update "[packages...]"
+Updates the Lake package {tech}[manifest] (i.e., `lake-manifest.json`), downloading and upgrading packages as needed.
+For each new (transitive) {tech}[Git dependency], the appropriate commit is cloned into a subdirectory of the workspace's {tech}[package directory].
+No copy is made of local dependencies.
+
+If a set of packages {lakeMeta}`packages` is specified, then these dependencies are upgraded to the latest version compatible with the package's configuration (or removed if removed from the configuration).
+If there are dependencies on multiple versions of the same package, an arbitrary version is selected.
+
+A bare {lake}`update` will upgrade all dependencies.
+:::
+
+# Packaging and Distribution
+
+```lakeHelp "upload"
+Upload build artifacts to a GitHub release
+
+USAGE:
+  lake upload <tag>
+
+Packs the root package's `buildDir` into a `tar.gz` archive using `tar` and
+then uploads the asset to the pre-existing GitHub release `tag` using `gh`.
+```
+
+:::lake upload "tag"
+Packs the root package's `buildDir` into a `tar.gz` archive using `tar` and then uploads the asset to the pre-existing [GitHub](https://github.com) release {lakeMeta}`tag` using [`gh`](https://cli.github.com/).
+Other hosts are not yet supported.
+:::
+
+## Cached Cloud Builds
+
+*These commands are still experimental.*
+They are likely change in future versions of Lake based on user feedback.
+Packages that use Reservoir cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
+
+```lakeHelp "pack"
+Pack build artifacts into an archive for distribution
+
+USAGE:
+  lake pack [<file.tgz>]
+
+Packs the root package's `buildDir` into a gzip tar archive using `tar`.
+If a path for the archive is not specified, creates an archive in the package's
+Lake directory (`.lake`) named according to its `buildArchive` setting.
+
+Does NOT build any artifacts. It just packs the existing ones.
+```
+
+:::lake pack "[archive.tar.gz]"
+Packs the root package's {tech}[build directory] into a gzipped tar archive using `tar`.
+If a path for the archive is not specified, the archive in the package's Lake directory (`.lake`) and named according to its `buildArchive` setting.
+This command does not build any artifacts: it only archives what is present.
+Users should ensure that the desired artifacts are present before running this command.
+:::
+
+```lakeHelp "unpack"
+Unpack build artifacts from a distributed archive
+
+USAGE:
+  lake unpack [<file.tgz>]
+
+Unpack build artifacts from the gzip tar archive `file.tgz` into the root
+package's `buildDir`. If a path for the archive is not specified, uses the
+the package's `buildArchive` in its Lake directory (`.lake`).
+```
+
+:::lake unpack "[archive.tar.gz]"
+Unpacks the contents of the gzipped tar archive {lakeMeta}`archive.tgz` into the root package's {tech}[build directory].
+If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` setting is used to determine a filename, and the file is expected in package's Lake directory (`.lake`).
+:::
+
+
+# Local Caches
+
+{lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
+These commands are *experimental*, and are only useful if the {ref "lake-cache"}[local cache] is enabled.
+
+These commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of build outputs for a package.
+On Reservoir, scopes are currently identical with GitHub repositories, but may include toolchain and platform information in the future.
+Other remote caches may use any scope scheme that they want.
+Cache scopes are specified using the {lakeOptDef option}`--scope=` option.
+Cache scopes are not identical to the scopes used to require packages from Reservoir.
+
+```lakeCacheHelp
+Manage the Lake cache
+
+USAGE:
+  lake cache <COMMAND>
+
+COMMANDS:
+  get [<mappings>]      download build outputs into the local Lake cache
+  put <mappings>        upload build outputs to a remote cache
+  add <mappings>        add input-to-output mappings to the Lake cache
+  clean                 removes ALL from the local Lake cache
+  services              print configured remote cache services
+
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
+
+See `lake cache help <command>` for more information on a specific command.
+```
+
+```lakeCacheHelp get
+Download build outputs from a remote service into the Lake cache
+
+USAGE:
+  lake cache get [<mappings>]
+
+OPTIONS:
+  --max-revs=<n>                  backtrack up to n revisions (default: 100)
+  --rev=<commit-hash>             uses this exact revision to lookup artifacts
+  --service=<name>                cache service to fetch from
+  --repo=<github-repo>            GitHub repository of the package or a fork
+  --platform=<target-triple>      with Reservoir or --repo, sets the platform
+  --toolchain=<name>              with Reservoir or --repo, sets the toolchain
+  --scope=<remote-scope>          scope for a custom endpoint
+  --mappings-only                 only download mappings, delay artifacts
+  --force-download                redownload existing files
+
+Downloads build outputs for packages in the workspace from a remote cache
+service. The cache service used can be specified via the `--service` option.
+Otherwise, Lake will the system default, or, if none is configured, Reservoir.
+See `lake cache services` for more information on how to configure services.
+
+If an input-to-outputs mappings file, `--scope`, or `--repo` is provided,
+Lake will download build outputs for the root package. Otherwise, it will use
+Reservoir to download outputs for each dependency in the workspace (in order).
+Non-Reservoir dependencies will be skipped.
+
+To determine what to download, Lake searches for input-to-output mappings for
+a given build of the package via the cache service. This mapping is identified
+by a Git revision and prefixed with a scope derived from the package's name,
+GitHub repository, Lean toolchain, and current platform. The exact configuration
+can be customized using options.
+
+For Reservoir, setting `--repo` will cause Lake to lookup outputs for the root
+package by a repository name, rather than the package's. This can be used to
+download outputs for a fork of the Reservoir package (if such artifacts are
+available). The `--platform` and `--toolchain` options can be used to download
+artifacts for a different platform/toolchain configuration than Lake detects.
+For a custom endpoint, the full prefix Lake uses can be set via  `--scope`.
+
+If `--rev` is not set, Lake uses the package's current revision to lookup
+artifacts. If no mappings are found, Lake will backtrack the Git history up to
+`--max-revs`, looking for a revision with mappings. If `--max-revs` is 0, Lake
+will search the repository's entire history (or as far as Git will allow).
+
+By default, Lake will download both the input-to-output mappings and the
+output artifacts for a package. By using `--mappings-only`, Lake will only
+download the mappings and delay downloading artifacts until they are needed.
+
+If a download for an artifact fails or the download process for a whole
+package fails, Lake will report this and continue on to the next. Once done,
+if any download failed, Lake will exit with a nonzero status code.
+```
+
+:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
+Downloads build outputs for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
+The cache service used can be specified via the {lakeOpt}`--service` option.
+Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
+See {lake}`cache services` for more information on how to configure services.
+
+If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download build outputs for the root package.
+Otherwise, it will download outputs for each package in the root's dependency tree in order (using Reservoir).
+Non-Reservoir dependencies will be skipped.
+
+For Reservoir, setting {lakeOpt}`--repo` will cause Lake to look up outputs for the root package by a repository name, rather than the package's.
+This can be used to download outputs for a fork of the Reservoir package (if such artifacts are available).
+The {lakeOpt}`--platform` and {lakeOpt}`--toolchain` options can be used to download artifacts for a different platform/toolchain configuration than Lake detects.
+For a custom endpoint, the full prefix Lake uses can be set via {lakeOpt}`--scope`.
+
+If `--rev` is not set, Lake uses the package's current revision to look up artifacts.
+Lake will download the artifacts for the most recent commit with available mappings.
+It will backtrack up to {lakeOptDef option}`--max-revs`, which defaults to 100.
+If set to 0, Lake will search the repository's whole history, or as far back as Git will allow.
+
+By default, Lake will download both the input-to-output mappings and the output artifacts for packages.
+Using {lakeOptDef option}`--mappings-only` will cause Lake to only download the mappings and delay downloading artifacts until they are needed.
+Using {lakeOptDef option}`--force-download` will redownload existing files.
+
+While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
+However, it will report this and exit with a nonzero status code in such cases.
+:::
+
+
+```lakeCacheHelp put
+Upload build outputs from the Lake cache to a remote service
+
+USAGE:
+  lake cache put <mappings> <scope-option>
+
+Uploads the input-to-output mappings contained in the specified file along
+with the corresponding output artifacts to a remote cache. The cache service
+used can be specified via the `--service` option. If not specified, Lake will use
+the system default, or error if none is configured. See the help page of
+`lake cache services` for more information on how to configure services.
+
+Files are uploaded using the AWS Signature Version 4 authentication protocol
+via `curl`. Thus, the service should generally be an S3-compatible bucket. The
+authentication key is set via the `LAKE_CACHE_KEY` environment variable.
+
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
+clashes. This scope is configured with the following options:
+
+  --scope=<remote-scope>          sets a fixed scope
+  --repo=<github-repo>            uses the repository + toolchain & platform
+  --toolchain=<name>              with --repo, sets the toolchain
+  --platform=<target-triple>      with --repo, sets the platform
+
+At least one of `--scope` or `--repo` must be set. If `--repo` is used, Lake
+will produce a scope by augmenting the repository with toolchain and platform
+information as it deems necessary. If `--scope` is set, Lake will use the
+specified scope verbatim.
+
+Artifacts are uploaded to the artifact endpoint with a file name derived
+from their Lake content hash (and prefixed by the repository or scope).
+The mappings file is uploaded to the revision endpoint with a file name
+derived from the package's current Git revision (and prefixed by the
+full scope). As such, the command will warn if the work tree currently
+has changes.
+```
+
+::::lake cache put "mappings «scope-option»"
+Uploads the input-to-outputs mappings contained in the specified file along with the corresponding output artifacts to a remote cache.
+The cache service used can be specified via the {lakeOpt}`--service` option.
+If not specified, Lake will use the system default, or error if none is configured.
+See {lake}`cache services` for more information on how to configure services.
+
+Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`.
+Thus, the service should generally be an S3-compatible bucket.
+The authentication key is set via the {envVar}`LAKE_CACHE_KEY` environment variable.
+
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
+clashes. This scoped is configured with the following options:
+
+:::table -header
+*
+  * {lakeOpt}`--scope`{lit}`=`{lakeMeta}`<remote-scope>`
+  * Sets a fixed scope
+*
+  * {lakeOptDef option}`--repo`{lit}`=`{lakeMeta}`<github-repo>`
+  * Uses the repository + toolchain & platform
+*
+  * {lakeOptDef option}`--toolchain`{lit}`=`{lakeMeta}`<name>`
+  * With {lakeOpt}`--repo`, sets the toolchain
+*
+  * {lakeOptDef option}`--platform`{lit}`=`{lakeMeta}`<target-triple>`
+  * With {lakeOpt}`--repo`, sets the platform
+:::
+
+At least one of {lakeOpt}`--scope` or {lakeOpt}`--repo` must be set.
+If {lakeOpt}`--repo` is used, Lake will produce a scope by augmenting the repository with toolchain and platform information as it deems necessary.
+If {lakeOpt}`--scope` is set, Lake will use the specified scope verbatim.
+
+Artifacts are uploaded to the artifact endpoint with a file name derived from their Lake content hash (and prefixed by the repository or scope).
+The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
+As such, the command will warn if the work tree currently has changes.
+::::
+
+```lakeCacheHelp add
+Add input-to-output mappings to the Lake cache
+
+USAGE:
+  lake cache add <mappings>
+
+OPTIONS:
+  --service=<name>                cache service to fetch from on demand
+  --scope=<remote-scope>          the prefix of artifacts within the service
+  --repo=<github-repo>            for Reservoir, a GitHub repository scope
+  --no-overwrite                  do not overwrite existing mappings
+
+Reads a list of input-to-output mappings from the provided file and adds
+them to the local Lake cache. Mappings already in the cache are overwritten
+unless `--no-overwrite` is specified.
+
+If `--service` is provided, the output artifacts can then be fetched lazily
+from that service during a Lake build. The service must either be `reservoir`
+or be configured through the Lake system configuration (see the help page of
+`lake cache services` for details).
+
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, artifacts in a cache service are prefixed with a scope
+to avoid clashes. For Reservoir, this scope can either be a package (set via
+`--scope`) or a repository (set via `--repo`). For S3 services, both options
+are synonymous.
+```
+
+::::lake cache add "mappings [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»]"
+Reads a list of input-to-output mappings from the provided file and adds them to the local Lake cache.
+If {lakeOpt}`--service` is provided, the output artifacts can then be fetched lazily from that service during a Lake build.
+The service must either be `reservoir` or be configured through the Lake system configuration (see {lake}`cache services` for details).
+
+Since Lake does not currently use cryptographically secure hashes for artifacts and outputs, artifacts in a cache service are prefixed with a scope to avoid clashes.
+For Reservoir, this scope can either be a package (set via {lakeOpt}`--scope`) or a repository (set via {lakeOpt}`--repo`).
+For S3 services, both options are synonymous.
+::::
+
+```lakeCacheHelp clean
+Removes ALL files from the local Lake cache
+
+USAGE:
+  lake cache clean
+
+Deletes the configured Lake cache directory. If a workspace configuration
+exists, this will delete the cache directory it uses. Otherwise, it will
+delete the default Lake cache directory for the system.
+```
+
+:::lake cache clean
+Deletes the configured Lake {tech (key:="local cache")}[artifact cache] directory.
+If a workspace configuration exists, this will delete the cache directory it uses.
+Otherwise, it will delete the default Lake cache directory for the system.
+:::
+
+```lakeCacheHelp services
+Print configured remote cache services
+
+USAGE:
+  lake cache services
+
+Prints the name of each configured remote cache services (one per line).
+Additional services can be added by modifying the system Lake configuration.
+The exact location of the this configuration file is system dependent and can
+be set by `LAKE_CONFIG`, but it is usually located at `~/.lake/config.toml`.
+
+The configuration of the system cache could look something like the following:
+
+  cache.defaultService = "my-s3"
+  cache.defaultUploadService = "my-s3"
+
+  [[cache.service]]
+  name = "my-s3"
+  kind = "s3"
+  artifactEndpoint = "https://my-s3.com/a0"
+  revisionEndpoint = "https://my-s3.com/r0"
+
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+```
+
+::::lake cache services
+Prints the name of each configured remote cache service (one per line).
+Additional services can be added by modifying the system Lake configuration file, which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
+
+:::paragraph
+The configuration of the system cache could look something like the following:
+```toml -link
+cache.defaultService = "my-s3"
+cache.defaultUploadService = "my-s3"
+
+[[cache.service]]
+name = "my-s3"
+kind = "s3"
+artifactEndpoint = "https://my-s3.com/a0"
+revisionEndpoint = "https://my-s3.com/r0"
+```
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+:::
+::::
+
+```lakeCacheHelp stage
+Copy build outputs from the cache to a staging directory
+
+USAGE:
+  lake cache stage <mappings> <staging-directory> [--force-overwrite]
+
+Creates the staging directory and copies the mappings file to it. Then,
+it copies all artifacts described within the mappings file from the cache to
+the staging directory. Artifacts in the staging directory are not overwritten
+unless `--force-overwrite` is specified. Errors if any of the artifacts
+described cannot be found in the cache.
+```
+
+::::lake cache stage "mappings «staging-directory»"
+Creates {lakeMeta}`staging-directory` and copies the {lakeMeta}`mappings` file to it.
+After this, it copies all artifacts described within the mappings file from the cache to the
+staging directory.
+It is an error if any of the artifacts described cannot be found in the cache.
+::::
+
+```lakeCacheHelp unstage
+Cache build outputs from a staging directory
+
+USAGE:
+  lake cache unstage <staging-directory> [--force-overwrite]
+
+Copies the mappings and artifacts stored in staging directory (e.g., via
+`lake cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache. Mappings and
+artifacts already in the cache are not overwritten unless `--force-overwrite`
+is specified.
+```
+
+::::lake cache unstage "«staging-directory»"
+
+Copies the mappings and artifacts stored in {lakeMeta}`staging-directory` (e.g., via {lake}`cache stage`) back into the cache.
+
+Reads the mappings file located at `outputs.jsonl` within the staging
+directory and writes the mappings to the Lake cache. Then, it copies the
+described artifacts from the staging directory into the cache.
+::::
+
+
+```lakeCacheHelp "put-stage"
+Manage the Lake cache
+
+USAGE:
+  lake cache <COMMAND>
+
+COMMANDS:
+  get [<mappings>]      download build outputs into the local Lake cache
+  put <mappings>        upload build outputs to a remote cache
+  add <mappings>        add input-to-output mappings to the Lake cache
+  clean                 removes ALL from the local Lake cache
+  services              print configured remote cache services
+
+STAGING COMMANDS:
+  stage <map> <dir>     copy build outputs from the cache to a directory
+  unstage <dir>         cache build outputs from a staging directory
+  put-staged <dir>      upload build outputs from a staging directory
+
+See `lake cache help <command>` for more information on a specific command.
+```
+
+
+# Configuration Files
+
+
+```lakeHelp "translate-config"
+Translate a Lake configuration file into a different language
+
+USAGE:
+  lake translate-config <lang> [<out-file>]
+
+Translates the loaded package's configuration into another of
+Lake's supported configuration languages (i.e., either `lean` or `toml`).
+The produced file is written to `out-file` or, if not provided, the path of
+the configuration file with the new language's extension. If the output file
+already exists, Lake will error.
+
+Translation is lossy. It does not preserve comments or formatting and
+non-declarative configuration will be discarded.
+```
+
+:::lake «translate-config» "lang [«out-file»]"
+Translates the loaded package's configuration into another of Lake's supported configuration languages (i.e., either `lean` or `toml`).
+The produced file is written to `out-file` or, if not provided, the path of the configuration file with the new language's extension.
+If the output file already exists, Lake will error.
+
+Translation is lossy.
+It does not preserve comments or formatting and non-declarative configuration is discarded.
+:::
