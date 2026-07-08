@@ -84,6 +84,11 @@ url = "https://github.com/leanprover-community/quote4"
 rev = "nightly-testing"
 critical = true
 
+[reference-manual]
+url = "https://github.com/leanprover/reference-manual"
+rev = "nightly-testing"
+critical = false
+
 [repl]
 url = "https://github.com/leanprover-community/repl"
 rev = "master"
