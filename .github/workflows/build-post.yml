@@ -132,9 +132,9 @@ jobs:
           api-key: ${{ secrets.ZULIP_API_KEY }}
           email: ${{ vars.ZULIP_EMAIL }}
           organization-url: "https://leanprover.zulipchat.com"
-          type: "stream"
-          to: "nightly-testing"
-          topic: "downstream-lean4"
+          type: stream
+          to: ecosystem infrastructure
+          topic: downstream-lean4 build reports
           content: ${{ steps.read-report.outputs.content }}
 
   update-branches:
