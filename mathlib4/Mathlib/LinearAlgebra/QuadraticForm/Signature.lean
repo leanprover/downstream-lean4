@@ -55,7 +55,7 @@ variable {Q}
 
 end Equiv
 
-open Classical in
+open scoped Classical in
 /-- For quadratic forms on finite-dimensional spaces, the maximal finrank of a positive-definite
 subspace of `M`. (Defined as `0` if `M` is infinite-dimensional). -/
 /-
@@ -117,6 +117,7 @@ variable {Q}
 
 @[simp] lemma sigNeg_neg : sigNeg (-Q) = sigPos Q := by rw [← sigPos_neg, neg_neg]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma QuadraticMap.Equivalent.sigPos_eq (h : Equivalent Q Q') : sigPos Q = sigPos Q' := by
   obtain ⟨e⟩ := h
   unfold sigPos

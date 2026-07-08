@@ -52,8 +52,9 @@ noncomputable def ruzsaSzemerediNumber : ℕ := by
   exact Nat.findGreatest (fun m ↦ ∃ (G : SimpleGraph α) (_ : DecidableRel G.Adj),
     #(G.cliqueFinset 3) = m ∧ G.LocallyLinear) ((card α).choose 3)
 
-open scoped Classical in
-lemma ruzsaSzemerediNumber_le : ruzsaSzemerediNumber α ≤ (card α).choose 3 := Nat.findGreatest_le _
+lemma ruzsaSzemerediNumber_le : ruzsaSzemerediNumber α ≤ (card α).choose 3 := by
+  classical
+  exact Nat.findGreatest_le _
 
 lemma ruzsaSzemerediNumber_spec :
     ∃ (G : SimpleGraph α) (_ : DecidableRel G.Adj),
@@ -126,6 +127,7 @@ private def triangleIndices (s : Finset α) : Finset (α × α × α) :=
       obtain rfl := add_right_injective _ h.2.1
       rfl⟩
 
+set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 private lemma mem_triangleIndices :
     x ∈ triangleIndices s ↔ ∃ y, ∃ a ∈ s, (y, y + a, y + 2 * a) = x := by simp [triangleIndices]

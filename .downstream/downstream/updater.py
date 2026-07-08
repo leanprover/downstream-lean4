@@ -6,7 +6,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 
 from downstream.merge_tree_theirs import merge_tree_theirs
-from downstream.util import Subrepo, load_subrepos, normalize_url, run
+from downstream.util import Subrepo, github_full_name, load_subrepos, normalize_url, run
 
 
 class Updater:
@@ -22,7 +22,7 @@ class Updater:
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {r.url: r for r in self.subrepos}
 
-    def topo_subrepos(self) -> list[Subrepo]:
+    def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
         graph: dict[str, set[str]] = {}
         for subrepo in self.subrepos:
             deps: set[str] = set()
@@ -33,8 +33,13 @@ class Updater:
                 url = normalize_url(package["url"])
                 if dep := self.subrepos_by_url.get(url):
                     deps.add(dep.name)
+                elif external:
+                    deps.add(github_full_name(url) or url)
             graph[subrepo.name] = deps
+        return graph
 
+    def topo_subrepos(self) -> list[Subrepo]:
+        graph = self.dep_graph()
         order = TopologicalSorter(graph).static_order()
         return [self.subrepos_by_name[name] for name in order]
 
@@ -65,7 +70,10 @@ class Updater:
         )
 
     def fixup_subrepo_toolchain(self, subrepo: Subrepo) -> None:
+        subrepo_toolchain = (subrepo.path / "lean-toolchain").read_text().strip()
         for file in subrepo.path.glob("**/lean-toolchain"):
+            if file.read_text().strip() != subrepo_toolchain:
+                continue
             file.unlink()
             relative = Path("lean-toolchain").relative_to(file.parent, walk_up=True)
             file.symlink_to(relative)

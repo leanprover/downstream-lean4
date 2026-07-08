@@ -442,6 +442,7 @@ lemma index_extendMiddle_zero (c : OrderedFinpartition n) (i : Fin c.length) :
   contrapose! this
   exact (c.extendMiddle i).emb_ne_emb_of_ne (Ne.symm this)
 
+set_option backward.isDefEq.respectTransparency false in
 lemma range_emb_extendMiddle_ne_singleton_zero (c : OrderedFinpartition n) (i j : Fin c.length) :
     range ((c.extendMiddle i).emb j) ≠ {0} := by
   intro h
@@ -631,7 +632,6 @@ def eraseMiddle (c : OrderedFinpartition (n + 1)) (hc : range (c.emb 0) ≠ {0})
       exact ⟨i, Fin.cast A.symm j, by simp [hi, hij]⟩
 
 set_option backward.isDefEq.respectTransparency false in
-open Classical in
 /-- Extending the ordered partitions of `Fin n` bijects with the ordered partitions
 of `Fin (n+1)`. -/
 @[simps apply]

@@ -284,6 +284,7 @@ instance (S : Subtype (J.PropSetWithTop κ')) : HasTerminal S :=
 instance (S : Subtype (J.PropSetWithTop κ')) : IsCardinalFiltered S κ :=
   isCardinalFiltered_of_hasTerminal _ _
 
+set_option backward.isDefEq.respectTransparency.types false in
 instance : IsCardinalFiltered (Subtype (J.PropSetWithTop κ')) κ' :=
   isCardinalFiltered_preorder _ _ (fun K α hK ↦ by
     rw [← hasCardinalLT_iff_cardinal_mk_lt] at hK
@@ -292,7 +293,6 @@ instance : IsCardinalFiltered (Subtype (J.PropSetWithTop κ')) κ' :=
       hasCardinalLT_union hκ' (hasCardinalLT_iUnion _ hK (fun k ↦ (α k).property.left))
         (hasCardinalLT_of_finite _ _ hκ'), by simp⟩, fun k ↦ ?_⟩
     rw [Subtype.mk_le_mk]
-    simp only [Set.le_eq_subset]
     exact subset_trans (Set.subset_iUnion (fun i ↦ (α i).1) k) Set.subset_union_left)
 
 instance : IsFiltered (Subtype (J.PropSetWithTop κ')) :=
@@ -309,6 +309,7 @@ lemma propSetWithTop_pair (j : J.obj) : J.PropSetWithTop κ' {WithTop.some j, �
   ⟨hasCardinalLT_of_finite _ _ (Cardinal.IsRegular.aleph0_le Fact.out),
     Set.mem_insert_of_mem _ (by simp)⟩
 
+set_option backward.isDefEq.respectTransparency.types false in
 lemma exists_mem_propSetWithTop (a : J.withTop.obj) :
     ∃ S, J.PropSetWithTop κ' S ∧ a ∈ S := by
   induction a with
@@ -321,6 +322,7 @@ colimit of its subsets that are of cardinality `< κ'` and contain `⊤`. -/
 abbrev coconeWithTop : Cocone (functorOfPredicateSet (J.PropSetWithTop κ')) :=
   coconeOfPredicateSet (PropSetWithTop J κ')
 
+set_option backward.isDefEq.respectTransparency.types false in
 /-- If `J : CardinalDirectedPoset κ` and `κ'` is any regular cardinal,
 then `J.withTop` is the `κ'`-filtered colimit of its subsets that are of
 cardinality `< κ'` and contain `⊤`. -/
@@ -393,7 +395,7 @@ instance : IsCardinalFiltered (Subtype J.PropSet) κ :=
     · have hκ : Cardinal.aleph0 ≤ κ :=  Cardinal.IsRegular.aleph0_le Fact.out
       exact hasCardinalLT_union hκ (hasCardinalLT_iUnion _ hK (fun k ↦ (α k).2.1))
         (hasCardinalLT_of_finite _ _ hκ)
-    · simp only [← Subtype.coe_le_coe, Set.le_eq_subset]
+    · simp only [← Subtype.coe_le_coe]
       exact subset_trans (Set.subset_iUnion_of_subset k (subset_refl _)) Set.subset_union_left )
 
 instance : IsFiltered (Subtype J.PropSet) := isFiltered_of_isCardinalFiltered _ κ

@@ -61,6 +61,9 @@ class Args:
     lint: bool
     report: Path | None
     mappings: Path | None
+    gh_repo: str | None
+    gh_run_id: str | None
+    gh_run_attempt: str | None
 
 
 def main() -> None:
@@ -83,6 +86,19 @@ def main() -> None:
         metavar="DIR",
         help="write build mappings to DIR",
     )
+    parser.add_argument(
+        "--gh-repo",
+        metavar="OWNER/NAME",
+        help="GitHub repo full name, used in the build report",
+    )
+    parser.add_argument(
+        "--gh-run-id",
+        help="GitHub Actions run ID, used to link to the run in the build report",
+    )
+    parser.add_argument(
+        "--gh-run-attempt",
+        help="GitHub Actions run attempt, appended to the run link if given",
+    )
     args = parser.parse_args(namespace=Args())
 
     report_path = None if args.report is None else args.report.resolve()
@@ -95,6 +111,9 @@ def main() -> None:
     os.chdir(args.downstream)
     updater = Updater()
     subrepos = updater.topo_subrepos()
+
+    commit_sha = run("git", "rev-parse", "HEAD", capture=True).stdout.strip()
+    commit_message = run("git", "log", "-1", "--format=%s", capture=True).stdout.strip()
 
     run("lake", "--version")
 
@@ -116,6 +135,14 @@ def main() -> None:
     report = []
     report.append("# Build Report")
     report.append("")
+
+    if args.gh_repo is not None:
+        commit_url = f"https://github.com/{args.gh_repo}/commit/{commit_sha}"
+        report.append(f"For commit **[{commit_message}]({commit_url})**")
+    else:
+        report.append(f"For commit **{commit_message}** (`{commit_sha}`)")
+
+    report.append("")
     report.append("| Repo | Critical | Build | Test | Lint |")
     report.append("|------|----------|-------|------|------|")
     for subrepo in subrepos:
@@ -125,6 +152,13 @@ def main() -> None:
         test = report_test.get(subrepo.name, Status.SKIPPED)
         lint = report_lint.get(subrepo.name, Status.SKIPPED)
         report.append(f"| {name} | {critical} | {build} | {test} | {lint} |")
+
+    if args.gh_run_id is not None:
+        run_url = f"https://github.com/{args.gh_repo}/actions/runs/{args.gh_run_id}"
+        if args.gh_run_attempt is not None:
+            run_url += f"/attempts/{args.gh_run_attempt}"
+        report.append("")
+        report.append(f"[View run]({run_url})")
 
     if report_path is not None:
         report_path.write_text("\n".join(report) + "\n")

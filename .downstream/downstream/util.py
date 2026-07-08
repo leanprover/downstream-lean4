@@ -29,15 +29,18 @@ def run(
     )
 
 
-def normalize_url(url: str) -> str:
-    # GitHub URLs
-    if match := re.fullmatch(
+def github_full_name(url: str) -> str | None:
+    if m := re.fullmatch(
         r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/.]+?)(?:\.git)?/?",
         url,
     ):
-        full_name = match.group(1)
-        return f"https://github.com/{full_name}"
+        return m.group(1)
+    return None
 
+
+def normalize_url(url: str) -> str:
+    if full_name := github_full_name(url):
+        return f"https://github.com/{full_name}"
     return url
 
 

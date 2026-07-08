@@ -110,7 +110,8 @@ def SuccOrder.ofCore (succ : α → α) (hn : ∀ {a}, ¬IsMax a → ∀ b, a < 
 
 variable (α)
 
-open Classical in
+set_option backward.isDefEq.respectTransparency false in
+open scoped Classical in
 /-- A well-order is a `SuccOrder`. -/
 @[to_dual (attr := instance_reducible)
 /-- A linear order with well-founded greater-than relation is a `PredOrder`. -/]
@@ -185,6 +186,12 @@ theorem lt_succ_of_le_of_not_isMax (hab : b ≤ a) (ha : ¬IsMax a) : b < succ a
 @[to_dual le_pred_iff_of_not_isMin]
 theorem succ_le_iff_of_not_isMax (ha : ¬IsMax a) : succ a ≤ b ↔ a < b :=
   ⟨(lt_succ_of_not_isMax ha).trans_le, succ_le_of_lt⟩
+
+@[to_dual le_pred_iff_of_not_isMin']
+theorem succ_le_iff_of_not_isMax' (hb : ¬IsMax b) : succ a ≤ b ↔ a < b := by
+  by_cases ha : IsMax a
+  · grind [le_succ, IsMax.mono]
+  · exact succ_le_iff_of_not_isMax ha
 
 @[to_dual]
 lemma succ_lt_succ_of_not_isMax (h : a < b) (hb : ¬ IsMax b) : succ a < succ b :=
@@ -417,13 +424,19 @@ variable [LinearOrder α] [SuccOrder α] {a b : α}
 @[to_dual] lemma succ_min (a b : α) : succ (min a b) = min (succ a) (succ b) := succ_mono.map_min
 
 @[to_dual le_of_pred_lt]
-theorem le_of_lt_succ {a b : α} : a < succ b → a ≤ b := fun h ↦ by
-  by_contra! nh
-  exact (h.trans_le (succ_le_of_lt nh)).false
+theorem le_of_lt_succ {a b : α} : a < succ b → a ≤ b := by
+  contrapose!
+  exact succ_le_of_lt
 
 @[to_dual pred_lt_iff_of_not_isMin]
-theorem lt_succ_iff_of_not_isMax (ha : ¬IsMax a) : b < succ a ↔ b ≤ a :=
-  ⟨le_of_lt_succ, fun h => h.trans_lt <| lt_succ_of_not_isMax ha⟩
+theorem lt_succ_iff_of_not_isMax (ha : ¬IsMax a) : b < succ a ↔ b ≤ a := by
+  contrapose!
+  exact succ_le_iff_of_not_isMax ha
+
+@[to_dual pred_lt_iff_of_not_isMin']
+theorem lt_succ_iff_of_not_isMax' (hb : ¬IsMax b) : b < succ a ↔ b ≤ a := by
+  contrapose!
+  exact succ_le_iff_of_not_isMax' hb
 
 @[to_dual (reorder := ha hb)]
 theorem succ_lt_succ_iff_of_not_isMax (ha : ¬IsMax a) (hb : ¬IsMax b) :
@@ -899,12 +912,14 @@ noncomputable instance Set.OrdConnected.succOrder [SuccOrder α] :
   letI : PredOrder sᵒᵈ := inferInstanceAs (PredOrder (OrderDual.ofDual ⁻¹' s))
   inferInstanceAs (SuccOrder sᵒᵈᵒᵈ)
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp, norm_cast]
 lemma coe_succ_of_mem [SuccOrder α] {a : s} (h : succ ↑a ∈ s) :
     (succ a).1 = succ ↑a := by classical
   change Subtype.val (dite ..) = _
   split_ifs <;> trivial
 
+set_option backward.isDefEq.respectTransparency false in
 lemma isMax_of_succ_notMem [SuccOrder α] {a : s} (h : succ ↑a ∉ s) : IsMax a := by
   classical
   rw [← succ_eq_iff_isMax]

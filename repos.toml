@@ -76,7 +76,7 @@ critical = true
 
 [ProofWidgets4]
 url = "https://github.com/leanprover-community/ProofWidgets4"
-rev = "main"
+rev = "nightly-testing"
 critical = true
 
 [quote4]

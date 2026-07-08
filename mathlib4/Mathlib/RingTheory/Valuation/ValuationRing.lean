@@ -145,6 +145,7 @@ protected theorem le_total (a b : ValueGroup A K) : a ≤ b ∨ b ≤ a := by
     field_simp
     simp only [← map_mul]; congr 1; linear_combination h
 
+set_option backward.isDefEq.respectTransparency false in
 noncomputable instance linearOrder : LinearOrder (ValueGroup A K) where
   le_refl := by rintro ⟨⟩; use 1; rw [one_smul]
   le_trans := by rintro ⟨a⟩ ⟨b⟩ ⟨c⟩ ⟨e, rfl⟩ ⟨f, rfl⟩; use e * f; rw [mul_smul]
@@ -286,7 +287,7 @@ instance le_total_ideal : @Std.Total (Ideal A) (· ≤ ·) := by
   · exfalso; apply h₂; rw [← h]
     apply Ideal.mul_mem_right _ _ hb
 
-open Classical in
+open scoped Classical in
 /- Todo: get rid of the `DecidableLE` argument.
 Currently, this argument causes this instance to not be called often,
 which hides a loop in simp-lemmas. See

@@ -57,7 +57,7 @@ jobs:
             echo "::endgroup::"
           done
 
-  post-report:
+  post-report-pr:
     if:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -90,13 +90,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Add run link to build report
-        env:
-          RUN_URL: ${{ github.event.workflow_run.html_url }}
-        run: |
-          echo -e "\n[View run]($RUN_URL)" >> "${{ runner.temp }}/report/report.md"
-
-      - name: Post build report
+      - name: Post build report to PR
         uses: ./.downstream/actions/status-message
         with:
           app-token: ${{ steps.app-token.outputs.token }}
@@ -104,6 +98,44 @@ jobs:
           issue: ${{ steps.original-pr.outputs.number }}
           body-path: ${{ runner.temp }}/report/report.md
           marker: build-report
+
+  post-report-zulip:
+    if:
+      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' &&
+      github.event.workflow_run.run_attempt == 1 }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+    steps:
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Read build report
+        id: read-report
+        run: |
+          {
+            echo "content<<REPORT_EOF"
+            cat "${{ runner.temp }}/report/report.md"
+            echo "REPORT_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Post build report to Zulip
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: "stream"
+          to: "nightly-testing"
+          topic: "downstream-lean4"
+          content: ${{ steps.read-report.outputs.content }}
 
   update-branches:
     if:

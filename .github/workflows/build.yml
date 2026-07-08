@@ -39,7 +39,10 @@ jobs:
         run: |
           python3 .downstream/build.py . -tl \
             --report "$RUNNER_TEMP/report.md" \
-            --mappings "$RUNNER_TEMP/mappings"
+            --mappings "$RUNNER_TEMP/mappings" \
+            --gh-repo "${{ github.repository }}" \
+            --gh-run-id "${{ github.run_id }}" \
+            --gh-run-attempt "${{ github.run_attempt }}"
 
       - name: Add report to job summary
         if: ${{ !cancelled() }} # Even if build fails

@@ -706,6 +706,7 @@ lemma eq_setOf_le_sSup_and_isAtom {α} [CompleteAtomicBooleanAlgebra α] {S : Se
   · simpa using hatom.1
   assumption
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 Representation theorem for complete atomic boolean algebras:
 For a complete atomic Boolean algebra `α`, `toSetOfIsAtom` is an order isomorphism
@@ -898,7 +899,7 @@ end DecidableEq
 
 variable [Lattice α] [BoundedOrder α] [IsSimpleOrder α]
 
-open Classical in
+open scoped Classical in
 /-- A simple `BoundedOrder` is also complete. -/
 @[instance_reducible]
 protected noncomputable def completeLattice : CompleteLattice α :=
@@ -927,7 +928,7 @@ protected noncomputable def completeLattice : CompleteLattice α :=
           intro con
           exact top_ne_bot (eq_bot_iff.2 (h con)) }
 
-open Classical in
+open scoped Classical in
 /-- A simple `BoundedOrder` is also a `CompleteBooleanAlgebra`. -/
 @[instance_reducible]
 protected noncomputable def completeBooleanAlgebra : CompleteBooleanAlgebra α :=
@@ -1177,6 +1178,7 @@ theorem isAtomic_iff_isCoatomic : IsAtomic α ↔ IsCoatomic α :=
   ⟨fun _ => isCoatomic_of_isAtomic_of_complementedLattice_of_isModular,
    fun _ => isAtomic_of_isCoatomic_of_complementedLattice_of_isModular⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- A complemented modular atomic lattice is strongly atomic.
 Not an instance to prevent loops. -/
 theorem ComplementedLattice.isStronglyAtomic [IsAtomic α] : IsStronglyAtomic α where
