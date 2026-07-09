@@ -217,8 +217,7 @@ theorem eval_toStandardForm {p : Program} {inputs : List ℕ} :
   · simp only [Part.map_Dom]
     exact Halts.toStandardForm_iff
   · intro hp hq
-    simp only [Part.map_get, Function.comp_apply, Regs.output,
-               evalState_toStandardForm_regs hp hq]
+    exact congrArg Regs.output (evalState_toStandardForm_regs hp hq)
 
 /-- A program is equivalent to its standard form. -/
 theorem toStandardForm_equiv (p : Program) : p.toStandardForm ≈ p :=

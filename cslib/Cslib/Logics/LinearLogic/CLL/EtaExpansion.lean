@@ -113,7 +113,9 @@ private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
     rw [←h]
     congr 1
     · grind
-    · simp [dual, expand, rwConclusion, Logic.InferenceSystem.rwConclusion]
+    · simp only [dual, expand, rwConclusion, Logic.InferenceSystem.rwConclusion,
+        Multiset.insert_eq_cons]
+      exact eqRec_heq _ _
   | _ => grind [Proposition.expand, Proposition.dual_inj]
 
 open Proposition Proof in
