@@ -20,7 +20,7 @@ critical = false
 
 [cslib]
 url = "https://github.com/leanprover/cslib"
-rev = "main"
+rev = "nightly-testing"
 critical = false
 
 [doc-gen4]
