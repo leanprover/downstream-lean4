@@ -5,6 +5,16 @@
       "type": "path",
       "subDir": null,
       "scope": "",
+      "name": "mathlib",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../mathlib4"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
       "name": "plausible",
       "manifestFile": "lake-manifest.json",
       "inherited": true,
