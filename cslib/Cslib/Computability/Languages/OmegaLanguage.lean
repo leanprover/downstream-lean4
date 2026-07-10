@@ -278,9 +278,8 @@ theorem hmul_bot : l * (⊥ : ωLanguage α) = ⊥ := by
 
 @[simp, scoped grind =]
 theorem one_hmul : (1 : Language α) * p = p := by
-  rw [hmul_def]
-  ext : 1
-  simp [Language.one_def, Language.toSet, image2_singleton_left]
+  simp [hmul_def]
+  simp [Language.one_def, Language.toSet]
 
 theorem hmul_sup : l * (p ⊔ q) = l * p ⊔ l * q := by
   ext : 1
@@ -461,8 +460,9 @@ theorem omegaLim_zero : (0 : Language α)↗ω = ⊥ := by
 
 @[simp, scoped grind =]
 theorem map_id (p : ωLanguage α) : map id p = p := by
-  ext x
-  simp [map]
+  unfold map
+  change { toSet := id '' p.toSet } = p
+  simp
 
 @[scoped grind =]
 theorem map_map (g : β → γ) (f : α → β) (p : ωLanguage α) : map g (map f p) = map (g ∘ f) p := by
