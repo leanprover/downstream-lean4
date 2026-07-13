@@ -87,7 +87,7 @@ critical = true
 [reference-manual]
 url = "https://github.com/leanprover/reference-manual"
 rev = "nightly-testing"
-critical = false
+critical = true
 
 [repl]
 url = "https://github.com/leanprover-community/repl"
