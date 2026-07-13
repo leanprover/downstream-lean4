@@ -16,11 +16,15 @@ class Updater:
 
         self.overrides = [r for r in subrepos if r.override_only]
         self.overrides_by_name = {r.name: r for r in self.overrides}
-        self.overrides_by_url = {url: r for r in self.overrides for url in (r.url, r.fetch_url)}
+        self.overrides_by_url = {
+            url: r for r in self.overrides for url in (r.url, r.fetch_url)
+        }
 
         self.subrepos = [r for r in subrepos if not r.override_only]
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
-        self.subrepos_by_url = {url: r for r in self.subrepos for url in (r.url, r.fetch_url)}
+        self.subrepos_by_url = {
+            url: r for r in self.subrepos for url in (r.url, r.fetch_url)
+        }
 
     def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
         graph: dict[str, set[str]] = {}
@@ -214,7 +218,9 @@ class Updater:
             if path.name not in self.subrepos_by_name:
                 self.remove_subrepo(path)
 
-    def split_to_branch(self, subrepo: Subrepo, branch: str) -> None:
+    def split_to_branch(
+        self, subrepo: Subrepo, branch: str, message: str = "chore: nightly adaptations"
+    ) -> None:
         self.reset()
 
         our_tree = self.get_tree_in_head(subrepo.name)
@@ -222,13 +228,7 @@ class Updater:
         self.fetch_sha_tree(subrepo.fetch_url, base_sha)
 
         run("git", "switch", "-C", branch, base_sha)
-        self.restore_tree_to(our_tree, Path())
-
-        run(
-            *("git", "restore", "--worktree"),
-            f"--source={our_tree}",
-            ".",
-        )
+        run("git", "read-tree", "--reset", "-u", our_tree)
 
         # Remove our overrides
         for file in Path().glob("**/.lake/package-overrides.json"):
@@ -244,4 +244,4 @@ class Updater:
         )
 
         run("git", "add", ".")
-        self.commit("chore: nightly adaptations")
+        self.commit(message)
