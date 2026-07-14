@@ -61,7 +61,7 @@ jobs:
     if:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
-      startsWith(github.event.workflow_run.head_branch, 'adaptation-') }}
+      github.event.workflow_run.head_branch != 'master' }}
     runs-on: ubuntu-slim
     permissions:
       actions: read

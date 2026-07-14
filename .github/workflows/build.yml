@@ -3,8 +3,9 @@ name: Build subrepos
 on:
   push:
     branches:
-      - master
-      - adaptation-*
+      - "**"
+      - "!green"
+      - "!green-nightly-*"
 
 jobs:
   main:
