@@ -109,11 +109,13 @@ class Updater:
         subrepo.override_path.parent.mkdir(parents=True, exist_ok=True)
         subrepo.override_path.write_text(json.dumps(overrides, indent=2))
 
-    def commit(self, msg: str) -> None:
+    def commit(self, msg: str, allow_empty: bool = False) -> None:
         result = run("git", "diff", "--staged", "--quiet", "--exit-code", check=False)
-        if result.returncode == 0:
-            return
-        run("git", "commit", "-m", msg)
+        has_differences = result.returncode != 0
+        if has_differences:
+            run("git", "commit", "-m", msg)
+        elif allow_empty:
+            run("git", "commit", "--allow-empty", "-m", msg)
 
     def fixup_subrepo_and_commit(self, subrepo: Subrepo, sha: str, msg: str) -> None:
         self.fixup_subrepo_toolchain(subrepo)
@@ -128,9 +130,14 @@ class Updater:
             f"downstream-sha: {sha}",
         ])
 
+        try:
+            base_changed = self.find_latest_subrepo_sha(subrepo) != sha
+        except ValueError:
+            base_changed = True
+
         run("git", "add", subrepo.path)
         run("git", "add", "--force", subrepo.override_path)
-        self.commit(message)
+        self.commit(message, allow_empty=base_changed)
 
     def find_latest_subrepo_sha(self, subrepo: Subrepo) -> str:
         message = run(
