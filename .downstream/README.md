@@ -28,7 +28,7 @@ To use one of the scripts, execute it with the first argument pointing to the
 monorepo, e.g.
 
 ```bash
-python .downstream/update.py . -pU
+downstream/update.py . -pU
 ```
 
 ## Basic structure
