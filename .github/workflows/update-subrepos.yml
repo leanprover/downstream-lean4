@@ -33,7 +33,7 @@ jobs:
 
       - name: Update subrepos
         run: |
-          python3 .downstream/update.py . -pU
+          .downstream/update.py . -pU
 
       - name: Push
         run: |

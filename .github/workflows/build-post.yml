@@ -51,7 +51,7 @@ jobs:
         env:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
         run: |
-          python3 .downstream/list.py . | while IFS= read -r repo; do
+          .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::cache put $repo"
             ( cd "$repo" && lake cache put --scope "$repo" "$RUNNER_TEMP/mappings/$repo.jsonl" ) || true
             echo "::endgroup::"

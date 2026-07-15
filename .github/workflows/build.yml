@@ -30,7 +30,7 @@ jobs:
 
       - name: Restore cache
         run: |
-          python3 .downstream/list.py . | while IFS= read -r repo; do
+          .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::cache get $repo"
             ( cd "$repo" && lake cache get --scope "$repo" ) || true
             echo "::endgroup::"
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build
         run: |
-          python3 .downstream/build.py . -tl \
+          .downstream/build.py . -tl \
             --report "$RUNNER_TEMP/report.md" \
             --mappings "$RUNNER_TEMP/mappings" \
             --gh-repo "${{ github.repository }}" \
