@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+# Parse arguments
+RUN_MATHLIB=1
+for arg in "$@"; do
+    case "$arg" in
+        --no-mathlib)
+            RUN_MATHLIB=0
+            ;;
+        *)
+            echo "Unknown argument: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
 # Define the paths
 IN_DIR="test"
 EXPECTED_DIR="test"
@@ -42,5 +56,9 @@ for infile in $IN_DIR/*.in; do
 done
 
 # Run the Mathlib tests
-cp lean-toolchain test/Mathlib/
-cd test/Mathlib/ && ./test.sh
+if [[ $RUN_MATHLIB -eq 1 ]]; then
+    cp lean-toolchain test/Mathlib/
+    cd test/Mathlib/ && ./test.sh
+else
+    echo "Skipping Mathlib tests (--no-mathlib)"
+fi

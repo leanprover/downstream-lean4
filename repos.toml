@@ -93,6 +93,7 @@ critical = true
 url = "https://github.com/leanprover-community/repl"
 rev = "master"
 critical = false
+test_args = ["--no-mathlib"]
 
 [verso]
 url = "https://github.com/leanprover/verso"
