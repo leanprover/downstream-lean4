@@ -89,7 +89,8 @@ def do_test(
             report[subrepo.name] = Status.SKIPPED
             continue
 
-        report[subrepo.name] = do_subrepo(subrepo, "test")
+        args = ["--", *subrepo.test_args] if subrepo.test_args else []
+        report[subrepo.name] = do_subrepo(subrepo, "test", args=args)
 
     return report
 
@@ -108,7 +109,8 @@ def do_lint(
             report[subrepo.name] = Status.SKIPPED
             continue
 
-        report[subrepo.name] = do_subrepo(subrepo, "lint")
+        args = ["--", *subrepo.lint_args] if subrepo.lint_args else []
+        report[subrepo.name] = do_subrepo(subrepo, "lint", args=args)
 
     return report
 

@@ -53,6 +53,8 @@ class Subrepo:
     rev: str
     critical: bool
     override_only: bool
+    test_args: list[str]
+    lint_args: list[str]
 
     @property
     def path(self) -> Path:
@@ -80,4 +82,6 @@ def load_subrepos(path: Path) -> Generator[Subrepo]:
             rev=data["rev"],
             critical=data.get("critical", True),
             override_only=data.get("override_only", False),
+            test_args=data.get("test_args", []),
+            lint_args=data.get("lint_args", []),
         )
