@@ -104,6 +104,7 @@ critical = false
 url = "https://github.com/leanprover/verso-slides"
 rev = "main"
 critical = false
+test_args = ["--no-playwright"]
 
 [verso-web-components]
 url = "https://github.com/leanprover/verso-web-components"
