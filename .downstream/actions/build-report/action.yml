@@ -1,0 +1,32 @@
+name: Generate build report
+
+description: >
+  Generate a markdown build report from the JSON report produced by `build.py
+  --report`.
+
+inputs:
+  report-path:
+    description: Path to the JSON build report produced by `build.py --report`.
+    required: true
+
+  run-id:
+    description: >
+      The run ID to link to in the report. Defaults to the current workflow run,
+      which is wrong if this action runs in a workflow other than the one that
+      produced the report, e.g. one triggered by `workflow_run`.
+
+  run-attempt:
+    description: >
+      The run attempt to link to in the report. Defaults to the current workflow
+      run's attempt; see `run-id` for when to override it.
+
+  output-path:
+    description: If given, also write the markdown build report to this path.
+
+outputs:
+  report:
+    description: The markdown build report.
+
+runs:
+  using: node24
+  main: dist/index.js

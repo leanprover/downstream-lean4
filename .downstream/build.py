@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
+import dataclasses
+import json
 import os
+import time
 from argparse import ArgumentParser
-from enum import StrEnum
+from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 from downstream.updater import Updater
 from downstream.util import Subrepo, run
 
 
-class Status(StrEnum):
-    SKIPPED = "⏭️"
-    SUCCESS = "✅"
-    FAILURE = "🟥"
+@dataclass(frozen=True)
+class Phase:
+    success: bool | None = None  # None == skipped
+    duration: float | None = None
 
 
 def fprint(*args, **kwargs) -> None:
@@ -34,36 +38,38 @@ def print_banner(text: str) -> None:
     fprint("#" * (len(text) + 6))
 
 
-def do_subrepo(subrepo: Subrepo, command: str, args: list[str] | None = None) -> Status:
+def do_subrepo(subrepo: Subrepo, command: str, args: list[str] | None = None) -> Phase:
     args = args or []
     fprint(f"::group::{command} {subrepo.name}")
+    start = time.time()
 
     if not check_cmd(subrepo, command):
-        result = Status.SKIPPED
+        success = None
     elif run_cmd(subrepo, command, *args):
-        result = Status.SUCCESS
+        success = True
     else:
-        result = Status.FAILURE
+        success = False
 
+    end = time.time()
+    fprint(f"Took {end - start:.2f}s")
     fprint("::endgroup::")
-    return result
+    return Phase(success=success, duration=end - start)
 
 
 def do_build(
     subrepos: list[Subrepo],
+    report: defaultdict[str, Phase],
     graph: dict[str, set[str]],
     mappings_dir: Path | None,
-) -> dict[str, Status]:
+) -> None:
     print_banner("build")
-    report = {}
 
     for subrepo in subrepos:
+        # Only attempt build if all dependencies built
         deps = graph.get(subrepo.name, set())
-        failed = {dep for dep in deps if report.get(dep) != Status.SUCCESS}
-        failed_str = ", ".join(sorted(failed))
+        failed = {dep for dep in deps if not report[dep].success}
         if failed:
-            fprint(f"{subrepo.name}: skipped, no build for {failed_str}")
-            report[subrepo.name] = Status.SKIPPED
+            fprint(f"{subrepo.name}: skipped, no build for {', '.join(sorted(failed))}")
             continue
 
         args = []
@@ -72,47 +78,37 @@ def do_build(
 
         report[subrepo.name] = do_subrepo(subrepo, "build", args=args)
 
-    return report
-
 
 def do_test(
     subrepos: list[Subrepo],
-    graph: dict[str, set[str]],
-    build_report: dict[str, Status],
-) -> dict[str, Status]:
+    report: defaultdict[str, Phase],
+    report_build: dict[str, Phase],
+) -> None:
     print_banner("test")
-    report = {}
 
     for subrepo in subrepos:
-        if build_report.get(subrepo.name) != Status.SUCCESS:
+        if not report_build[subrepo.name].success:
             fprint(f"{subrepo.name}: skipped, no build")
-            report[subrepo.name] = Status.SKIPPED
             continue
 
         args = ["--", *subrepo.test_args] if subrepo.test_args else []
         report[subrepo.name] = do_subrepo(subrepo, "test", args=args)
 
-    return report
-
 
 def do_lint(
     subrepos: list[Subrepo],
-    graph: dict[str, set[str]],
-    build_report: dict[str, Status],
-) -> dict[str, Status]:
+    report: defaultdict[str, Phase],
+    report_build: dict[str, Phase],
+) -> None:
     print_banner("lint")
-    report = {}
 
     for subrepo in subrepos:
-        if build_report.get(subrepo.name) != Status.SUCCESS:
+        if not report_build[subrepo.name].success:
             fprint(f"{subrepo.name}: skipped, no build")
-            report[subrepo.name] = Status.SKIPPED
             continue
 
         args = ["--", *subrepo.lint_args] if subrepo.lint_args else []
         report[subrepo.name] = do_subrepo(subrepo, "lint", args=args)
-
-    return report
 
 
 class Args:
@@ -122,9 +118,6 @@ class Args:
     lint: bool
     report: Path | None
     mappings: Path | None
-    gh_repo: str | None
-    gh_run_id: str | None
-    gh_run_attempt: str | None
 
 
 def main() -> None:
@@ -147,19 +140,6 @@ def main() -> None:
         metavar="DIR",
         help="write build mappings to DIR",
     )
-    parser.add_argument(
-        "--gh-repo",
-        metavar="OWNER/NAME",
-        help="GitHub repo full name, used in the build report",
-    )
-    parser.add_argument(
-        "--gh-run-id",
-        help="GitHub Actions run ID, used to link to the run in the build report",
-    )
-    parser.add_argument(
-        "--gh-run-attempt",
-        help="GitHub Actions run attempt, appended to the run link if given",
-    )
     args = parser.parse_args(namespace=Args())
 
     report_path = None if args.report is None else args.report.resolve()
@@ -179,68 +159,50 @@ def main() -> None:
 
     run("lake", "--version")
 
-    report_build = {}
+    report_build = defaultdict(Phase)
+    report_test = defaultdict(Phase)
+    report_lint = defaultdict(Phase)
     if not args.no_build:
-        report_build = do_build(subrepos, graph, mappings_dir)
-
-    report_test = {}
+        do_build(subrepos, report_build, graph, mappings_dir)
     if args.test:
-        report_test = do_test(subrepos, graph, report_build)
-
-    report_lint = {}
+        do_test(subrepos, report_test, report_build)
     if args.lint:
-        report_lint = do_lint(subrepos, graph, report_build)
+        do_lint(subrepos, report_lint, report_build)
+
+    # A repo is considered green if there are no failures
+    green_repos = {
+        sub.name
+        for sub in subrepos
+        if report_build[sub.name].success is not False
+        and report_test[sub.name].success is not False
+        and report_lint[sub.name].success is not False
+    }
+
+    # The report is considered green if all critical repos are green
+    critical_repos = {sub.name for sub in subrepos if sub.critical}
+    green = critical_repos.issubset(green_repos)
 
     # Sorted by name, but all critical repos first
     subrepos.sort(key=lambda subrepo: (-subrepo.critical, subrepo.name))
-
-    report = []
-    report.append("# Build Report")
-    report.append("")
-
-    if args.gh_repo is not None:
-        commit_url = f"https://github.com/{args.gh_repo}/commit/{commit_sha}"
-        report.append(f"For commit **[{commit_message}]({commit_url})**")
-    else:
-        report.append(f"For commit **{commit_message}** (`{commit_sha}`)")
-
-    report.append("")
-    report.append("| Repo | Critical | Build | Test | Lint |")
-    report.append("|------|----------|-------|------|------|")
-    for subrepo in subrepos:
-        name = subrepo.name
-        critical = "✅" if subrepo.critical else ""
-        build = report_build.get(subrepo.name, Status.SKIPPED)
-        test = report_test.get(subrepo.name, Status.SKIPPED)
-        lint = report_lint.get(subrepo.name, Status.SKIPPED)
-        report.append(f"| {name} | {critical} | {build} | {test} | {lint} |")
-
-    if args.gh_run_id is not None:
-        run_url = f"https://github.com/{args.gh_repo}/actions/runs/{args.gh_run_id}"
-        if args.gh_run_attempt is not None:
-            run_url += f"/attempts/{args.gh_run_attempt}"
-        report.append("")
-        report.append(f"[View run]({run_url})")
+    report = {
+        "commit_sha": commit_sha,
+        "commit_message": commit_message,
+        "green": green,
+        "repos": [
+            {
+                "name": sub.name,
+                "critical": sub.critical,
+                "green": sub.name in green_repos,
+                "build": dataclasses.asdict(report_build[sub.name]),
+                "test": dataclasses.asdict(report_test[sub.name]),
+                "lint": dataclasses.asdict(report_lint[sub.name]),
+            }
+            for sub in subrepos
+        ],
+    }
 
     if report_path is not None:
-        report_path.write_text("\n".join(report) + "\n")
-
-    critical_failed = False
-    for subrepo in subrepos:
-        if not subrepo.critical:
-            continue
-        if report_build.get(subrepo.name) == Status.FAILURE:
-            critical_failed = True
-            fprint(f"Critical repo {subrepo.name} failed to build.")
-        if report_test.get(subrepo.name) == Status.FAILURE:
-            critical_failed = True
-            fprint(f"Critical repo {subrepo.name} failed to test.")
-        if report_lint.get(subrepo.name) == Status.FAILURE:
-            critical_failed = True
-            fprint(f"Critical repo {subrepo.name} failed to lint.")
-
-    if critical_failed:
-        raise SystemExit("At least one critical repo failed.")
+        report_path.write_text(json.dumps(report))
 
 
 if __name__ == "__main__":
