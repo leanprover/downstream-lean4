@@ -12246,21 +12246,21 @@ var require_response = __commonJS({
         return responseObject;
       }
       // Creates a redirect Response that redirects to url with status status.
-      static redirect(url, status = 302) {
+      static redirect(url, status2 = 302) {
         webidl.argumentLengthCheck(arguments, 1, "Response.redirect");
         url = webidl.converters.USVString(url);
-        status = webidl.converters["unsigned short"](status);
+        status2 = webidl.converters["unsigned short"](status2);
         let parsedURL;
         try {
           parsedURL = new URL(url, relevantRealm.settingsObject.baseUrl);
         } catch (err) {
           throw new TypeError(`Failed to parse URL from ${url}`, { cause: err });
         }
-        if (!redirectStatusSet.has(status)) {
-          throw new RangeError(`Invalid status code ${status}`);
+        if (!redirectStatusSet.has(status2)) {
+          throw new RangeError(`Invalid status code ${status2}`);
         }
         const responseObject = fromInnerResponse(makeResponse({}), "immutable");
-        responseObject[kState].status = status;
+        responseObject[kState].status = status2;
         const value = isomorphicEncode(URLSerializer(parsedURL));
         responseObject[kState].headersList.append("location", value, true);
         return responseObject;
@@ -14152,13 +14152,13 @@ var require_fetch = __commonJS({
         })();
       }
       try {
-        const { body, status, statusText, headersList, socket } = await dispatch({ body: requestBody });
+        const { body, status: status2, statusText, headersList, socket } = await dispatch({ body: requestBody });
         if (socket) {
-          response = makeResponse({ status, statusText, headersList, socket });
+          response = makeResponse({ status: status2, statusText, headersList, socket });
         } else {
           const iterator2 = body[Symbol.asyncIterator]();
           fetchParams.controller.next = () => iterator2.next();
-          response = makeResponse({ status, statusText, headersList });
+          response = makeResponse({ status: status2, statusText, headersList });
         }
       } catch (err) {
         if (err.name === "AbortError") {
@@ -14281,8 +14281,8 @@ var require_fetch = __commonJS({
             onResponseStarted() {
               timingInfo.finalNetworkResponseStartTime = coarsenedSharedCurrentTime(fetchParams.crossOriginIsolatedCapability);
             },
-            onHeaders(status, rawHeaders, resume, statusText) {
-              if (status < 200) {
+            onHeaders(status2, rawHeaders, resume, statusText) {
+              if (status2 < 200) {
                 return;
               }
               let location = "";
@@ -14293,8 +14293,8 @@ var require_fetch = __commonJS({
               location = headersList.get("location", true);
               this.body = new Readable({ read: resume });
               const decoders = [];
-              const willFollow = location && request2.redirect === "follow" && redirectStatusSet.has(status);
-              if (request2.method !== "HEAD" && request2.method !== "CONNECT" && !nullBodyStatus.includes(status) && !willFollow) {
+              const willFollow = location && request2.redirect === "follow" && redirectStatusSet.has(status2);
+              if (request2.method !== "HEAD" && request2.method !== "CONNECT" && !nullBodyStatus.includes(status2) && !willFollow) {
                 const contentEncoding = headersList.get("content-encoding", true);
                 const codings = contentEncoding ? contentEncoding.toLowerCase().split(",") : [];
                 const maxContentEncodings = 5;
@@ -14331,7 +14331,7 @@ var require_fetch = __commonJS({
               }
               const onError = this.onError.bind(this);
               resolve({
-                status,
+                status: status2,
                 statusText,
                 headersList,
                 body: decoders.length ? pipeline(this.body, ...decoders, (err) => {
@@ -14368,8 +14368,8 @@ var require_fetch = __commonJS({
               fetchParams.controller.terminate(error2);
               reject(error2);
             },
-            onUpgrade(status, rawHeaders, socket) {
-              if (status !== 101) {
+            onUpgrade(status2, rawHeaders, socket) {
+              if (status2 !== 101) {
                 return;
               }
               const headersList = new HeadersList();
@@ -14377,8 +14377,8 @@ var require_fetch = __commonJS({
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
               resolve({
-                status,
-                statusText: STATUS_CODES[status],
+                status: status2,
+                statusText: STATUS_CODES[status2],
                 headersList,
                 socket
               });
@@ -21145,7 +21145,7 @@ async function fetchWrapper(requestOptions) {
     requestError.cause = error2;
     throw requestError;
   }
-  const status = fetchResponse.status;
+  const status2 = fetchResponse.status;
   const url = fetchResponse.url;
   const responseHeaders = {};
   for (const [key, value] of fetchResponse.headers) {
@@ -21153,7 +21153,7 @@ async function fetchWrapper(requestOptions) {
   }
   const octokitResponse = {
     url,
-    status,
+    status: status2,
     headers: responseHeaders,
     data: ""
   };
@@ -21164,28 +21164,28 @@ async function fetchWrapper(requestOptions) {
       `[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${responseHeaders.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`
     );
   }
-  if (status === 204 || status === 205) {
+  if (status2 === 204 || status2 === 205) {
     return octokitResponse;
   }
   if (requestOptions.method === "HEAD") {
-    if (status < 400) {
+    if (status2 < 400) {
       return octokitResponse;
     }
-    throw new RequestError(fetchResponse.statusText, status, {
+    throw new RequestError(fetchResponse.statusText, status2, {
       response: octokitResponse,
       request: requestOptions
     });
   }
-  if (status === 304) {
+  if (status2 === 304) {
     octokitResponse.data = await getResponseData(fetchResponse);
-    throw new RequestError("Not modified", status, {
+    throw new RequestError("Not modified", status2, {
       response: octokitResponse,
       request: requestOptions
     });
   }
-  if (status >= 400) {
+  if (status2 >= 400) {
     octokitResponse.data = await getResponseData(fetchResponse);
-    throw new RequestError(toErrorMessage(octokitResponse.data), status, {
+    throw new RequestError(toErrorMessage(octokitResponse.data), status2, {
       response: octokitResponse,
       request: requestOptions
     });
@@ -24144,14 +24144,65 @@ function getInputOpt(name) {
 
 // actions/build-report/main.ts
 var reportPath = getInput2("report-path");
+var reportType = parseReportType(getInput2("report-type"));
+var reportStyle = parseReportStyle(getInput2("report-style"));
 var runId = getInputOpt("run-id") ?? String(context2.runId);
 var runAttempt = getInputOpt("run-attempt") ?? String(context2.runAttempt);
 var outputPath = getInputOpt("output-path");
-function statusIcon(phase) {
-  if (phase.success === null) return "\u23ED\uFE0F";
-  return phase.success ? "\u2705" : "\u{1F7E5}";
+function parseReportType(value) {
+  if (value === "full" || value === "compact") return value;
+  abort(`Invalid report-type "${value}", expected "full" or "compact"`);
 }
-function renderReport(report) {
+function parseReportStyle(value) {
+  if (value === "github" || value === "zulip") return value;
+  abort(`Invalid report-style "${value}", expected "github" or "zulip"`);
+}
+function status(phase) {
+  if (phase.success === null) return "\u23ED\uFE0F";
+  const icon = phase.success ? "\u2705" : "\u{1F7E5}";
+  if (phase.duration === null) return icon;
+  return `${icon} in ${Math.round(phase.duration / 60)}m`;
+}
+function renderTable(repos) {
+  const lines = [
+    "| Repo | Critical | Build | Test | Lint |",
+    "|------|----------|-------|------|------|"
+  ];
+  for (const repo of repos) {
+    const critical = repo.critical ? "\u2705" : "";
+    const build = status(repo.build);
+    const test = status(repo.test);
+    const lint = status(repo.lint);
+    lines.push(`| ${repo.name} | ${critical} | ${build} | ${test} | ${lint} |`);
+  }
+  return lines;
+}
+function renderSpoiler(style, summary2, contentLines) {
+  if (style === "zulip")
+    return [`\`\`\`spoiler ${summary2}`, ...contentLines, "```"];
+  return [
+    "<details>",
+    `<summary>${summary2}</summary>`,
+    "",
+    ...contentLines,
+    "",
+    "</details>"
+  ];
+}
+function renderBody(report, reportType2, reportStyle2) {
+  if (reportType2 === "full") return renderTable(report.repos);
+  const redRepos = report.repos.filter((repo) => !repo.green);
+  const greenRepos = report.repos.filter((repo) => repo.green);
+  const lines = redRepos.length === 0 ? ["All green! :)"] : renderTable(redRepos);
+  if (greenRepos.length > 0) {
+    lines.push(
+      "",
+      ...renderSpoiler(reportStyle2, "Green repos", renderTable(greenRepos))
+    );
+  }
+  return lines;
+}
+function renderReport(report, reportType2, reportStyle2) {
   const { context: context3 } = github_exports;
   const repoUrl = `${context3.serverUrl}/${context3.repo.owner}/${context3.repo.repo}`;
   const commitUrl = `${repoUrl}/commit/${report.commit_sha}`;
@@ -24161,22 +24212,16 @@ function renderReport(report) {
     "",
     `For commit **[${report.commit_message}](${commitUrl})**`,
     "",
-    "| Repo | Critical | Build | Test | Lint |",
-    "|------|----------|-------|------|------|"
+    ...renderBody(report, reportType2, reportStyle2),
+    "",
+    `[View run](${runUrl})`
   ];
-  for (const repo of report.repos) {
-    const critical = repo.critical ? "\u2705" : "";
-    lines.push(
-      `| ${repo.name} | ${critical} | ${statusIcon(repo.build)} | ${statusIcon(repo.test)} | ${statusIcon(repo.lint)} |`
-    );
-  }
-  lines.push("", `[View run](${runUrl})`);
   return lines.join("\n") + "\n";
 }
 async function run() {
   const raw = await fs3.readFile(reportPath, "utf8");
   const reportData = JSON.parse(raw);
-  const report = renderReport(reportData);
+  const report = renderReport(reportData, reportType, reportStyle);
   setOutput("report", report);
   if (outputPath !== null) await fs3.writeFile(outputPath, report);
 }

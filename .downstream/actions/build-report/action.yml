@@ -9,6 +9,18 @@ inputs:
     description: Path to the JSON build report produced by `build.py --report`.
     required: true
 
+  report-type:
+    description: >
+      "full" shows a table of all repos. "compact" shows a table of red repos
+      followed by the green repos in a spoiler.
+    default: full
+
+  report-style:
+    description: >
+      Markdown flavor to target. Controls the syntax used for the collapsible
+      section in a "compact" report.
+    default: github
+
   run-id:
     description: >
       The run ID to link to in the report. Defaults to the current workflow run,

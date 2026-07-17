@@ -183,7 +183,7 @@ def main() -> None:
     green = critical_repos.issubset(green_repos)
 
     # Sorted by name, but all critical repos first
-    subrepos.sort(key=lambda subrepo: (-subrepo.critical, subrepo.name))
+    subrepos.sort(key=lambda subrepo: (-subrepo.critical, subrepo.name.lower()))
     report = {
         "commit_sha": commit_sha,
         "commit_message": commit_message,
