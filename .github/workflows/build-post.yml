@@ -94,6 +94,7 @@ jobs:
         uses: ./.downstream/actions/build-report
         with:
           report-path: ${{ runner.temp }}/report/report.json
+          report-type: compact
           output-path: ${{ runner.temp }}/report/report.md
           run-id: ${{ github.event.workflow_run.id }}
           run-attempt: ${{ github.event.workflow_run.run_attempt }}
@@ -133,6 +134,8 @@ jobs:
         uses: ./.downstream/actions/build-report
         with:
           report-path: ${{ runner.temp }}/report/report.json
+          report-type: compact
+          report-style: zulip
           run-id: ${{ github.event.workflow_run.id }}
           run-attempt: ${{ github.event.workflow_run.run_attempt }}
 
