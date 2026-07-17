@@ -90,6 +90,14 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Render build report
+        uses: ./.downstream/actions/build-report
+        with:
+          report-path: ${{ runner.temp }}/report/report.json
+          output-path: ${{ runner.temp }}/report/report.md
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
       - name: Post build report to PR
         uses: ./.downstream/actions/status-message
         with:
@@ -109,6 +117,9 @@ jobs:
     permissions:
       actions: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Download build report
         uses: actions/download-artifact@v8
         with:
@@ -117,14 +128,13 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Read build report
-        id: read-report
-        run: |
-          {
-            echo "content<<REPORT_EOF"
-            cat "${{ runner.temp }}/report/report.md"
-            echo "REPORT_EOF"
-          } >> "$GITHUB_OUTPUT"
+      - name: Render build report
+        id: build-report
+        uses: ./.downstream/actions/build-report
+        with:
+          report-path: ${{ runner.temp }}/report/report.json
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
 
       - name: Post build report to Zulip
         uses: zulip/github-actions-zulip/send-message@v2
@@ -135,7 +145,7 @@ jobs:
           type: stream
           to: ecosystem infrastructure
           topic: downstream-lean4 build reports
-          content: ${{ steps.read-report.outputs.content }}
+          content: ${{ steps.build-report.outputs.report }}
 
   update-branches:
     if:
