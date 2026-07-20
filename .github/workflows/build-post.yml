@@ -90,10 +90,10 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Render build report
-        uses: ./.downstream/actions/build-report
+      - name: Render report
+        uses: ./.downstream/actions/render-report
         with:
-          report-path: ${{ runner.temp }}/report/report.json
+          build-report-path: ${{ runner.temp }}/report/build-report.json
           report-type: compact
           output-path: ${{ runner.temp }}/report/report.md
           run-id: ${{ github.event.workflow_run.id }}
@@ -129,11 +129,11 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Render build report
+      - name: Render report
         id: build-report
-        uses: ./.downstream/actions/build-report
+        uses: ./.downstream/actions/render-report
         with:
-          report-path: ${{ runner.temp }}/report/report.json
+          build-report-path: ${{ runner.temp }}/report/build-report.json
           report-type: compact
           report-style: zulip
           run-id: ${{ github.event.workflow_run.id }}

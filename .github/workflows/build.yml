@@ -39,13 +39,13 @@ jobs:
       - name: Build
         run: |
           .downstream/build.py . -tl \
-            --report "$RUNNER_TEMP/report.json" \
+            --report "$RUNNER_TEMP/build-report.json" \
             --mappings "$RUNNER_TEMP/mappings"
 
-      - name: Render build report
-        uses: ./.downstream/actions/build-report
+      - name: Render report
+        uses: ./.downstream/actions/render-report
         with:
-          report-path: ${{ runner.temp }}/report.json
+          build-report-path: ${{ runner.temp }}/build-report.json
           output-path: ${{ runner.temp }}/report.md
 
       - name: Add report to job summary
@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: build-report
-          path: ${{ runner.temp }}/report.json
+          path: ${{ runner.temp }}/build-report.json
 
       - name: Upload build mappings
         uses: actions/upload-artifact@v7
@@ -71,7 +71,7 @@ jobs:
 
       - name: Fail if critical repos are not green
         run: |
-          if ! jq .green "$RUNNER_TEMP/report.json" -e > /dev/null; then
+          if ! jq .green "$RUNNER_TEMP/build-report.json" -e > /dev/null; then
             echo "::error::At least one critical repo failed."
             exit 1
           fi
