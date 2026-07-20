@@ -1,0 +1,43 @@
+name: Update build status branches
+
+description: >
+  Fast-forward the red/green build status branches based on a build report:
+  always the overall `red`/`green` branches, and optionally per-repo, per-date,
+  and per-toolchain breakdowns. Reports which color each repo's branches
+  previously pointed to.
+
+inputs:
+  report-path:
+    description: Path to the JSON build report produced by `build.py --report`.
+    required: true
+
+  downstream-clone:
+    description: >
+      Path to a (potentially treeless) clone of the downstream repository.
+    required: true
+
+  by-repo:
+    description: >
+      Track per-repo branches at `green-repo/<repo>` and `red-repo/<repo>`.
+    default: false
+
+  by-date:
+    description: >
+      Track a branch for the commit's UTC date at `green-on/YYYY-MM-DD` and
+      `red-on/YYYY-MM-DD`.
+    default: false
+
+  by-toolchain:
+    description: >
+      Track a branch for the toolchain at `green-tc/<toolchain>` and
+      `red-tc/<toolchain>`. The "leanprover/lean4:" prefix is stripped from the
+      toolchain name.
+    default: false
+
+outputs:
+  report:
+    description: Branch status report, in JSON.
+
+runs:
+  using: node24
+  main: dist/index.js

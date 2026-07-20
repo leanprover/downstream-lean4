@@ -6,6 +6,7 @@ import time
 from argparse import ArgumentParser
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 from downstream.updater import Updater
@@ -156,6 +157,12 @@ def main() -> None:
 
     commit_sha = run("git", "rev-parse", "HEAD", capture=True).stdout.strip()
     commit_message = run("git", "log", "-1", "--format=%s", capture=True).stdout.strip()
+    commit_date_iso = run(
+        "git", "log", "-1", "--format=%cI", capture=True
+    ).stdout.strip()
+    commit_date = (
+        datetime.fromisoformat(commit_date_iso).astimezone(UTC).date().isoformat()
+    )
 
     run("lake", "--version")
 
@@ -187,6 +194,8 @@ def main() -> None:
     report = {
         "commit_sha": commit_sha,
         "commit_message": commit_message,
+        "commit_date": commit_date,
+        "toolchain": updater.toolchain,
         "green": green,
         "repos": [
             {

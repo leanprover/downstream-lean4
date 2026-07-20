@@ -1,18 +1,25 @@
-name: Generate build report
+name: Render report
 
 description: >
-  Generate a markdown build report from the JSON report produced by `build.py
-  --report`.
+  Generate a markdown report from the JSON build report produced by `build.py
+  --report`, and optionally the JSON branch report produced by the
+  `update-branches` action.
 
 inputs:
-  report-path:
+  build-report-path:
     description: Path to the JSON build report produced by `build.py --report`.
     required: true
+
+  branch-report-path:
+    description: >
+      Path to the JSON branch report produced by the `update-branches` action.
+      Required when report-type is "delta".
 
   report-type:
     description: >
       "full" shows a table of all repos. "compact" shows a table of red repos
-      followed by the green repos in a spoiler.
+      followed by the green repos in a spoiler. "delta" shows only repos that
+      recently changed color, per `branch-report-path`.
     default: full
 
   report-style:
