@@ -142,6 +142,8 @@ jobs:
     runs-on: ubuntu-slim
     permissions:
       actions: read
+      contents: read
+      statuses: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -154,7 +156,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
-      - name: Render report
+      - name: Render build report
         id: build-report
         uses: ./.downstream/actions/render-report
         with:
@@ -174,6 +176,49 @@ jobs:
           to: ecosystem infrastructure
           topic: downstream-lean4 build reports
           content: ${{ steps.build-report.outputs.report }}
+
+      - name: Determine parent commit
+        id: parent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if SHA="$(gh api "repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_sha }}" -q '.parents[0].sha')"; then
+            echo "::notice::Found parent commit $SHA"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Failed to determine parent commit"
+            exit 1
+          fi
+
+      - name: Get statuses at parent commit
+        uses: ./.downstream/actions/statuses-get
+        with:
+          commit-sha: ${{ steps.parent.outputs.sha }}
+          output-path: ${{ runner.temp }}/report/status-report.json
+
+      - name: Render breakage report
+        id: breakage-report
+        continue-on-error: true
+        uses: ./.downstream/actions/render-report
+        with:
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          status-report-path: ${{ runner.temp }}/report/status-report.json
+          report-type: delta
+          report-style: zulip
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
+      - name: Post breakage report to Zulip
+        if: steps.breakage-report.outcome == 'success'
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: ecosystem infrastructure
+          topic: downstream-lean4 breakages
+          content: ${{ steps.breakage-report.outputs.report }}
 
   update-branches:
     if:
