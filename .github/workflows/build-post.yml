@@ -195,7 +195,7 @@ jobs:
           organization-url: "https://leanprover.zulipchat.com"
           type: stream
           to: ecosystem infrastructure
-          topic: downstream-lean4 build reports
+          topic: downstream-lean4 builds
           content: ${{ steps.build-report.outputs.report }}
 
       - name: Determine parent commit
