@@ -198,6 +198,28 @@ jobs:
           topic: downstream-lean4 builds
           content: ${{ steps.build-report.outputs.report }}
 
+      - name: Render cslib build report
+        id: build-report-cslib
+        uses: ./.downstream/actions/render-report
+        with:
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          report-type: compact
+          report-style: zulip
+          limited-to: cslib
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
+      - name: Post cslib build report to Zulip
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 builds
+          content: ${{ steps.build-report-cslib.outputs.report }}
+
       - name: Determine parent commit
         id: parent
         env:
@@ -239,6 +261,30 @@ jobs:
           to: ecosystem infrastructure
           topic: downstream-lean4 breakages
           content: ${{ steps.breakage-report.outputs.report }}
+
+      - name: Render cslib breakage report
+        id: breakage-report-cslib
+        uses: ./.downstream/actions/render-report
+        with:
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          status-report-path: ${{ runner.temp }}/report/status-report.json
+          report-type: delta
+          report-style: zulip
+          limited-to: cslib
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
+      - name: Post cslib breakage report to Zulip
+        if: ${{ !fromJSON(steps.breakage-report-cslib.outputs.empty) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 breakages
+          content: ${{ steps.breakage-report-cslib.outputs.report }}
 
   update-branches:
     if:
