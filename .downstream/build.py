@@ -176,11 +176,12 @@ def main() -> None:
     if args.lint:
         do_lint(subrepos, report_lint, report_build)
 
-    # A repo is considered green if there are no failures
+    # A repo is considered green if there is a green build and no failures in
+    # the other categories.
     green_repos = {
         sub.name
         for sub in subrepos
-        if report_build[sub.name].success is not False
+        if report_build[sub.name].success is True
         and report_test[sub.name].success is not False
         and report_lint[sub.name].success is not False
     }
