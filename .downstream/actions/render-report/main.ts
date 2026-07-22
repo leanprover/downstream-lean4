@@ -78,10 +78,15 @@ function renderSpoiler(
   ];
 }
 
+interface RenderedBody {
+  lines: string[];
+  empty: boolean; // Whether the report contains no noteworthy information.
+}
+
 function renderCompact(
   report: BuildReport,
   reportStyle: ReportStyle,
-): string[] {
+): RenderedBody {
   const redRepos = report.repos.filter((repo) => !repo.green);
   const greenRepos = report.repos.filter((repo) => repo.green);
 
@@ -95,7 +100,7 @@ function renderCompact(
     );
   }
 
-  return lines;
+  return { lines, empty: redRepos.length === 0 };
 }
 
 // `statusReport` holds each repo's color *before* this build (from the
@@ -104,14 +109,17 @@ function renderCompact(
 function renderDelta(
   report: BuildReport,
   statusReport: StatusReport,
-): string[] {
+  reportStyle: ReportStyle,
+): RenderedBody {
   const turnedRed: BuildReportRepo[] = [];
   const turnedGreen: BuildReportRepo[] = [];
+  const unchanged: BuildReportRepo[] = [];
 
   for (const repo of report.repos) {
     const wasGreen = statusReport[repo.name];
     if (wasGreen === true && !repo.green) turnedRed.push(repo);
     else if (wasGreen === false && repo.green) turnedGreen.push(repo);
+    else unchanged.push(repo);
   }
 
   const lines: string[] = [];
@@ -125,18 +133,25 @@ function renderDelta(
     lines.push("**Recently turned green:**", "", ...renderTable(turnedGreen));
   }
 
-  return lines;
+  if (unchanged.length > 0) {
+    if (lines.length > 0) lines.push("");
+    lines.push(
+      ...renderSpoiler(reportStyle, "Unchanged", renderTable(unchanged)),
+    );
+  }
+
+  return { lines, empty: turnedRed.length === 0 && turnedGreen.length === 0 };
 }
 
-async function renderBody(
+function renderBody(
   buildReport: BuildReport,
   statusReport: StatusReport | null,
   reportType: ReportType,
   reportStyle: ReportStyle,
-): Promise<string[]> {
+): RenderedBody {
   switch (reportType) {
     case "full":
-      return renderTable(buildReport.repos);
+      return { lines: renderTable(buildReport.repos), empty: false };
     case "compact":
       return renderCompact(buildReport, reportStyle);
     case "delta":
@@ -144,13 +159,11 @@ async function renderBody(
         statusReport !== null,
         'status report is required for "delta" report type',
       );
-      return renderDelta(buildReport, statusReport);
+      return renderDelta(buildReport, statusReport, reportStyle);
   }
 }
 
 function renderReport(report: BuildReport, bodyLines: string[]): string {
-  assert(bodyLines.length > 0, "Report must not be empty");
-
   const { context } = github;
   const repoUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}`;
   const commitUrl = `${repoUrl}/commit/${report.commit_sha}`;
@@ -178,7 +191,7 @@ async function run(): Promise<void> {
     ? await loadReport<StatusReport>(statusReportPath)
     : null;
 
-  const lines = await renderBody(
+  const { lines, empty } = renderBody(
     buildReport,
     statusReport,
     reportType,
@@ -187,6 +200,7 @@ async function run(): Promise<void> {
   const rendered = renderReport(buildReport, lines);
 
   core.setOutput("report", rendered);
+  core.setOutput("empty", String(empty));
   if (outputPath !== null) await fs.writeFile(outputPath, rendered);
 }
 

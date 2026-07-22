@@ -46,6 +46,11 @@ outputs:
   report:
     description: The markdown report.
 
+  empty:
+    description: >
+      "true" if the report body is empty, e.g. a "delta" report where nothing
+      changed. "false" otherwise.
+
 runs:
   using: node24
   main: dist/index.js
