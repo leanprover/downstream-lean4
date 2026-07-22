@@ -305,6 +305,8 @@ grindExt
 grindFunCC
 grindFwd
 grindGen
+grindHom
+grindHomPred
 grindInj
 grindIntro
 grindLR
