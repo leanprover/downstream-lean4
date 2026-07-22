@@ -92,6 +92,7 @@ jobs:
       actions: read
       contents: read
       pull-requests: read
+      statuses: read
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3
@@ -115,16 +116,36 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Determine merge base
+        id: merge-base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if SHA="$(gh api "repos/${{ github.repository }}/compare/master...${{ github.event.workflow_run.head_sha }}" -q .merge_base_commit.sha)"; then
+            echo "::notice::Found merge base $SHA"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Failed to determine merge base"
+            exit 1
+          fi
+
+      - name: Get statuses at merge base
+        uses: ./.downstream/actions/statuses-get
+        with:
+          commit-sha: ${{ steps.merge-base.outputs.sha }}
+          output-path: ${{ runner.temp }}/report/status-report.json
+
       - name: Render report
         uses: ./.downstream/actions/render-report
         with:
           build-report-path: ${{ runner.temp }}/report/build-report.json
-          report-type: compact
+          status-report-path: ${{ runner.temp }}/report/status-report.json
+          report-type: delta
           output-path: ${{ runner.temp }}/report/report.md
           run-id: ${{ github.event.workflow_run.id }}
           run-attempt: ${{ github.event.workflow_run.run_attempt }}
 
-      - name: Post build report to PR
+      - name: Post report to PR
         uses: ./.downstream/actions/status-message
         with:
           app-token: ${{ steps.app-token.outputs.token }}
