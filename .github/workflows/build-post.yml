@@ -57,6 +57,31 @@ jobs:
             echo "::endgroup::"
           done
 
+  update-statuses:
+    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+      statuses: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Update commit statuses
+        uses: ./.downstream/actions/statuses-add
+        with:
+          report-path: ${{ runner.temp }}/report/build-report.json
+          target-url: ${{ github.event.workflow_run.html_url }}
+
   post-report-pr:
     if:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
