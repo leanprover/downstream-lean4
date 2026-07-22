@@ -203,7 +203,6 @@ jobs:
         uses: ./.downstream/actions/render-report
         with:
           build-report-path: ${{ runner.temp }}/report/build-report.json
-          report-type: compact
           report-style: zulip
           limited-to: cslib
           run-id: ${{ github.event.workflow_run.id }}
