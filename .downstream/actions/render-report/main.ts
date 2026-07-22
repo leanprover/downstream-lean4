@@ -4,15 +4,15 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import type {
-  BranchReport,
   BuildReport,
   BuildReportPhase,
   BuildReportRepo,
+  StatusReport,
 } from "../lib/reports";
 import { abort, assert, getInput, getInputOpt } from "../lib/util";
 
 const buildReportPath = getInput("build-report-path");
-const branchReportPath = getInputOpt("branch-report-path");
+const statusReportPath = getInputOpt("status-report-path");
 const reportType = parseReportType(getInput("report-type"));
 const reportStyle = parseReportStyle(getInput("report-style"));
 const runId = getInputOpt("run-id") ?? String(github.context.runId);
@@ -98,18 +98,18 @@ function renderCompact(
   return lines;
 }
 
-// `branchReport.by_repo` holds each repo's color *before* this build, so
-// comparing it against `report.repos[].green` (the color *after*) tells us
-// which repos flipped.
+// `statusReport` holds each repo's color *before* this build (from the
+// nearest ancestor commit with `subrepo/*` statuses), so comparing it against
+// `report.repos[].green` (the color *after*) tells us which repos flipped.
 function renderDelta(
   report: BuildReport,
-  branchReport: BranchReport,
+  statusReport: StatusReport,
 ): string[] {
   const turnedRed: BuildReportRepo[] = [];
   const turnedGreen: BuildReportRepo[] = [];
 
   for (const repo of report.repos) {
-    const wasGreen = branchReport.by_repo[repo.name];
+    const wasGreen = statusReport[repo.name];
     if (wasGreen === true && !repo.green) turnedRed.push(repo);
     else if (wasGreen === false && repo.green) turnedGreen.push(repo);
   }
@@ -130,7 +130,7 @@ function renderDelta(
 
 async function renderBody(
   buildReport: BuildReport,
-  branchReport: BranchReport | null,
+  statusReport: StatusReport | null,
   reportType: ReportType,
   reportStyle: ReportStyle,
 ): Promise<string[]> {
@@ -141,10 +141,10 @@ async function renderBody(
       return renderCompact(buildReport, reportStyle);
     case "delta":
       assert(
-        branchReport !== null,
-        'branch report is required for "delta" report type',
+        statusReport !== null,
+        'status report is required for "delta" report type',
       );
-      return renderDelta(buildReport, branchReport);
+      return renderDelta(buildReport, statusReport);
   }
 }
 
@@ -174,13 +174,13 @@ async function loadReport<T>(path: string): Promise<T> {
 
 async function run(): Promise<void> {
   const buildReport = await loadReport<BuildReport>(buildReportPath);
-  const branchReport = branchReportPath
-    ? await loadReport<BranchReport>(branchReportPath)
+  const statusReport = statusReportPath
+    ? await loadReport<StatusReport>(statusReportPath)
     : null;
 
   const lines = await renderBody(
     buildReport,
-    branchReport,
+    statusReport,
     reportType,
     reportStyle,
   );

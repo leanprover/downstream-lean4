@@ -24147,7 +24147,7 @@ function getInputOpt(name) {
 
 // actions/render-report/main.ts
 var buildReportPath = getInput2("build-report-path");
-var branchReportPath = getInputOpt("branch-report-path");
+var statusReportPath = getInputOpt("status-report-path");
 var reportType = parseReportType(getInput2("report-type"));
 var reportStyle = parseReportStyle(getInput2("report-style"));
 var runId = getInputOpt("run-id") ?? String(context2.runId);
@@ -24208,11 +24208,11 @@ function renderCompact(report, reportStyle2) {
   }
   return lines;
 }
-function renderDelta(report, branchReport) {
+function renderDelta(report, statusReport) {
   const turnedRed = [];
   const turnedGreen = [];
   for (const repo of report.repos) {
-    const wasGreen = branchReport.by_repo[repo.name];
+    const wasGreen = statusReport[repo.name];
     if (wasGreen === true && !repo.green) turnedRed.push(repo);
     else if (wasGreen === false && repo.green) turnedGreen.push(repo);
   }
@@ -24226,7 +24226,7 @@ function renderDelta(report, branchReport) {
   }
   return lines;
 }
-async function renderBody(buildReport, branchReport, reportType2, reportStyle2) {
+async function renderBody(buildReport, statusReport, reportType2, reportStyle2) {
   switch (reportType2) {
     case "full":
       return renderTable(buildReport.repos);
@@ -24234,10 +24234,10 @@ async function renderBody(buildReport, branchReport, reportType2, reportStyle2) 
       return renderCompact(buildReport, reportStyle2);
     case "delta":
       assert(
-        branchReport !== null,
-        'branch report is required for "delta" report type'
+        statusReport !== null,
+        'status report is required for "delta" report type'
       );
-      return renderDelta(buildReport, branchReport);
+      return renderDelta(buildReport, statusReport);
   }
 }
 function renderReport(report, bodyLines) {
@@ -24261,10 +24261,10 @@ async function loadReport(path) {
 }
 async function run() {
   const buildReport = await loadReport(buildReportPath);
-  const branchReport = branchReportPath ? await loadReport(branchReportPath) : null;
+  const statusReport = statusReportPath ? await loadReport(statusReportPath) : null;
   const lines = await renderBody(
     buildReport,
-    branchReport,
+    statusReport,
     reportType,
     reportStyle
   );

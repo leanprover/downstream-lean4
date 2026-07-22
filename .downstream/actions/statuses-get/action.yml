@@ -1,0 +1,34 @@
+name: Get commit statuses
+
+description: >
+  Find the nearest ancestor commit (following first parents) starting at
+  `commit-sha` that has `subrepo/*` commit statuses, as added by the
+  `statuses-add` action, and return them.
+
+inputs:
+  token:
+    description: GitHub token with permission to read commit statuses.
+    default: ${{ github.token }}
+
+  commit-sha:
+    description: The commit to start looking from.
+    required: true
+
+  max-commits:
+    description: >
+      How many commits to walk backwards (following first parents) looking for
+      `subrepo/*` statuses before giving up.
+    default: "50"
+
+  output-path:
+    description: If given, also write the JSON status report to this path.
+
+outputs:
+  statuses:
+    description: >
+      JSON object mapping each subrepo name to its green (true) or red (false)
+      status, as found on the nearest ancestor commit that has any.
+
+runs:
+  using: node24
+  main: dist/index.js

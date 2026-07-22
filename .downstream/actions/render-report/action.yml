@@ -2,24 +2,24 @@ name: Render report
 
 description: >
   Generate a markdown report from the JSON build report produced by `build.py
-  --report`, and optionally the JSON branch report produced by the
-  `update-branches` action.
+  --report`, and optionally the JSON status report produced by the
+  `statuses-get` action.
 
 inputs:
   build-report-path:
     description: Path to the JSON build report produced by `build.py --report`.
     required: true
 
-  branch-report-path:
+  status-report-path:
     description: >
-      Path to the JSON branch report produced by the `update-branches` action.
+      Path to the JSON status report produced by the `statuses-get` action.
       Required when report-type is "delta".
 
   report-type:
     description: >
       "full" shows a table of all repos. "compact" shows a table of red repos
       followed by the green repos in a spoiler. "delta" shows only repos that
-      recently changed color, per `branch-report-path`.
+      recently changed color, per `status-report-path`.
     default: full
 
   report-style:
@@ -40,11 +40,11 @@ inputs:
       run's attempt; see `run-id` for when to override it.
 
   output-path:
-    description: If given, also write the markdown build report to this path.
+    description: If given, also write the markdown report to this path.
 
 outputs:
   report:
-    description: The markdown build report.
+    description: The markdown report.
 
 runs:
   using: node24

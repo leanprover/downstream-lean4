@@ -73,6 +73,7 @@ conjunction with a GitHub App that has access to both the upstream and the
 downstream repositories. The app requires the following permissions:
 
 - **Read** access to actions.
+- **Read** and **write** access to commit statuses.
 - **Read** and **write** access to content (code).
 - **Read** and **write** access to issues.
 - **Read** and **write** access to pull requests.
