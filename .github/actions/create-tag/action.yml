@@ -1,0 +1,42 @@
+name: Create tag
+description: >
+  Create a tag in a repository pointing at a given commit, unless it already
+  exists.
+
+inputs:
+  token:
+    description: GitHub token with permission to push to the repository.
+    required: true
+  repo:
+    description: Full repository name (i.e. owner/name).
+    required: true
+  tag:
+    description: Tag name to create.
+    required: true
+  sha:
+    description: Commit SHA to tag.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create tag
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        TAG: ${{ inputs.tag }}
+        SHA: ${{ inputs.sha }}
+      run: |
+        # Do nothing if the tag already exists.
+        if gh api "repos/$REPO/git/refs/tags/$TAG" --silent 2>/dev/null; then
+          echo "::notice::Tag $TAG already exists in $REPO"
+          exit 0
+        fi
+
+        if gh api "repos/$REPO/git/refs" -X POST -f ref="refs/tags/$TAG" -f sha="$SHA" --silent; then
+          echo "::notice::Created tag $TAG in $REPO at $SHA"
+          exit 0
+        fi
+
+        echo "::warning::Failed to create tag $TAG in $REPO"
