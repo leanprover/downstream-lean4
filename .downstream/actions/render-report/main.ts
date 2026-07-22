@@ -15,6 +15,7 @@ const buildReportPath = getInput("build-report-path");
 const statusReportPath = getInputOpt("status-report-path");
 const reportType = parseReportType(getInput("report-type"));
 const reportStyle = parseReportStyle(getInput("report-style"));
+const limitedTo = parseLimitedTo(getInputOpt("limited-to"));
 const runId = getInputOpt("run-id") ?? String(github.context.runId);
 const runAttempt =
   getInputOpt("run-attempt") ?? String(github.context.runAttempt);
@@ -34,6 +35,16 @@ function parseReportType(value: string): ReportType {
 function parseReportStyle(value: string): ReportStyle {
   if (value === "github" || value === "zulip") return value;
   abort(`Invalid report-style "${value}", expected "github" or "zulip"`);
+}
+
+function parseLimitedTo(value: string | null): Set<string> | null {
+  if (value === null) return null;
+  return new Set(
+    value
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0),
+  );
 }
 
 function status(phase: BuildReportPhase): string {
@@ -190,6 +201,12 @@ async function run(): Promise<void> {
   const statusReport = statusReportPath
     ? await loadReport<StatusReport>(statusReportPath)
     : null;
+
+  if (limitedTo !== null) {
+    buildReport.repos = buildReport.repos.filter((repo) =>
+      limitedTo.has(repo.name),
+    );
+  }
 
   const { lines, empty } = renderBody(
     buildReport,

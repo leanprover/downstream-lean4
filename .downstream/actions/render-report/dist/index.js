@@ -24150,6 +24150,7 @@ var buildReportPath = getInput2("build-report-path");
 var statusReportPath = getInputOpt("status-report-path");
 var reportType = parseReportType(getInput2("report-type"));
 var reportStyle = parseReportStyle(getInput2("report-style"));
+var limitedTo = parseLimitedTo(getInputOpt("limited-to"));
 var runId = getInputOpt("run-id") ?? String(context2.runId);
 var runAttempt = getInputOpt("run-attempt") ?? String(context2.runAttempt);
 var outputPath = getInputOpt("output-path");
@@ -24163,6 +24164,12 @@ function parseReportType(value) {
 function parseReportStyle(value) {
   if (value === "github" || value === "zulip") return value;
   abort(`Invalid report-style "${value}", expected "github" or "zulip"`);
+}
+function parseLimitedTo(value) {
+  if (value === null) return null;
+  return new Set(
+    value.split(",").map((name) => name.trim()).filter((name) => name.length > 0)
+  );
 }
 function status(phase) {
   if (phase.success === null) return "\u23ED\uFE0F";
@@ -24269,6 +24276,11 @@ async function loadReport(path) {
 async function run() {
   const buildReport = await loadReport(buildReportPath);
   const statusReport = statusReportPath ? await loadReport(statusReportPath) : null;
+  if (limitedTo !== null) {
+    buildReport.repos = buildReport.repos.filter(
+      (repo) => limitedTo.has(repo.name)
+    );
+  }
   const { lines, empty } = renderBody(
     buildReport,
     statusReport,

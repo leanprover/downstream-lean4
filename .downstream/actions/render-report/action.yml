@@ -28,6 +28,11 @@ inputs:
       section in a "compact" report.
     default: github
 
+  limited-to:
+    description: >
+      Comma-separated list of repo names. If given, the report is restricted to
+      just these repos.
+
   run-id:
     description: >
       The run ID to link to in the report. Defaults to the current workflow run,
