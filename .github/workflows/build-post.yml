@@ -198,7 +198,6 @@ jobs:
 
       - name: Render breakage report
         id: breakage-report
-        continue-on-error: true
         uses: ./.downstream/actions/render-report
         with:
           build-report-path: ${{ runner.temp }}/report/build-report.json
@@ -209,7 +208,7 @@ jobs:
           run-attempt: ${{ github.event.workflow_run.run_attempt }}
 
       - name: Post breakage report to Zulip
-        if: steps.breakage-report.outcome == 'success'
+        if: ${{ !fromJSON(steps.breakage-report.outputs.empty) }}
         uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ZULIP_API_KEY }}
