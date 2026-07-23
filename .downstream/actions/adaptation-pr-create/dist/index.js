@@ -24912,14 +24912,6 @@ function ensurePrIsUnmerged(pr) {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   info("PR is unmerged, continuing...");
 }
-function ensurePrTargetsDefaultBranch(pr) {
-  const defaultBranch = pr.base.repo.default_branch;
-  if (pr.base.ref === defaultBranch) {
-    info(`PR is targeting "${defaultBranch}", continuing...`);
-    return;
-  }
-  exit(`PR is not targeting "${defaultBranch}", exiting...`);
-}
 function ensurePrIsLabeled(pr, label) {
   const labeled = pr.labels.some((l) => l.name === label);
   if (labeled) {
@@ -25088,7 +25080,6 @@ async function run() {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
   ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
-  ensurePrTargetsDefaultBranch(uPr);
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
   const aPr = aBranch === void 0 ? void 0 : await findPrFor(octo, downstreamRepo, aBranchName);

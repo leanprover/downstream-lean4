@@ -56,15 +56,6 @@ function ensurePrIsUnmerged(pr: Pr): void {
   core.info("PR is unmerged, continuing...");
 }
 
-function ensurePrTargetsDefaultBranch(pr: Pr): void {
-  const defaultBranch = pr.base.repo.default_branch;
-  if (pr.base.ref === defaultBranch) {
-    core.info(`PR is targeting "${defaultBranch}", continuing...`);
-    return;
-  }
-  exit(`PR is not targeting "${defaultBranch}", exiting...`);
-}
-
 function ensurePrIsLabeled(pr: Pr, label: string): void {
   const labeled = pr.labels.some((l) => l.name === label);
   if (labeled) {
@@ -273,7 +264,6 @@ async function run(): Promise<void> {
 
   ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
-  ensurePrTargetsDefaultBranch(uPr);
 
   const aBranchName = adaptationBranchNameFor(uPr);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
