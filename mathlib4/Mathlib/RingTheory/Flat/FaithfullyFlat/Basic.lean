@@ -81,8 +81,8 @@ lemma iff_flat_and_proper_ideal :
 lemma iff_flat_and_ideal_smul_eq_top :
     FaithfullyFlat R M ↔
     (Flat R M ∧ ∀ (I : Ideal R), I • (⊤ : Submodule R M) = ⊤ → I = ⊤) :=
-  iff_flat_and_proper_ideal R M |>.trans <| and_congr_right_iff.2 fun _ => iff_of_eq <|
-    forall_congr fun I => eq_iff_iff.2 <| by tauto
+  iff_flat_and_proper_ideal R M |>.trans <| and_congr_right_iff.2 fun _ =>
+    forall_congr' fun I => by tauto
 
 end proper_ideal
 
@@ -151,8 +151,8 @@ lemma iff_flat_and_rTensor_reflects_triviality :
     (Flat R M ∧
       ∀ (N : Type max u v) [AddCommGroup N] [Module R N],
         Subsingleton (N ⊗[R] M) → Subsingleton N) :=
-  iff_flat_and_rTensor_faithful R M |>.trans <| and_congr_right_iff.2 fun _ => iff_of_eq <|
-    forall_congr fun N => forall_congr fun _ => forall_congr fun _ => iff_iff_eq.1 <| by
+  iff_flat_and_rTensor_faithful R M |>.trans <| and_congr_right_iff.2 fun _ =>
+    forall_congr' fun N => forall_congr' fun _ => forall_congr' fun _ => by
       simp only [← not_subsingleton_iff_nontrivial]; tauto
 
 lemma iff_flat_and_lTensor_faithful :
@@ -171,8 +171,8 @@ lemma iff_flat_and_lTensor_reflects_triviality :
     (Flat R M ∧
       ∀ (N : Type max u v) [AddCommGroup N] [Module R N],
         Subsingleton (M ⊗[R] N) → Subsingleton N) :=
-  iff_flat_and_lTensor_faithful R M |>.trans <| and_congr_right_iff.2 fun _ => iff_of_eq <|
-    forall_congr fun N => forall_congr fun _ => forall_congr fun _ => iff_iff_eq.1 <| by
+  iff_flat_and_lTensor_faithful R M |>.trans <| and_congr_right_iff.2 fun _ =>
+    forall_congr' fun N => forall_congr' fun _ => forall_congr' fun _ => by
       simp only [← not_subsingleton_iff_nontrivial]; tauto
 
 end faithful
