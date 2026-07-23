@@ -58,6 +58,12 @@ The adaptation PR will have its toolchain automatically updated to the Lean PR's
 latest successful CI run. In here, you can fix any packages that your original
 PR breaks, or try out new features you added in your PR.
 
+If merge conflicts prevent CI from running in your Lean PR, causing the
+adaptation PR not to be created either, then temporarily change its target from
+`master` to the `downstream-green` branch. You may also need to rebase your PR
+onto the `downstream-green` branch, or merge it into your PR. Make sure to
+switch back to `master` before merging your PR!
+
 If you have a long-running PR, don't update it by merging `master`. Instead,
 merge the `downstream-green` branch into your Lean PR, and at the same time,
 merge the `green` branch into your adaptation PR. This way, your PR should not
