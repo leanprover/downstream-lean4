@@ -641,7 +641,8 @@ theorem isSuccLimitRecOn_succ [NoMaxOrder α] (b : α) :
 @[to_dual]
 theorem isSuccLimitRecOn_of_isMin (hb : IsMin b) :
     isSuccLimitRecOn b isMin succ isSuccLimit = isMin b hb := by
-  rw [isSuccLimitRecOn, isSuccPrelimitRecOn_of_isSuccPrelimit _ _ hb.isSuccPrelimit, dite_eq_left hb]
+  rw [isSuccLimitRecOn, isSuccPrelimitRecOn_of_isSuccPrelimit _ _ hb.isSuccPrelimit,
+    dite_eq_left hb]
 
 end LinearOrder
 
@@ -735,7 +736,8 @@ theorem limitRecOn_isMin (hb : IsMin b) : limitRecOn b isMin succ isSuccLimit = 
 theorem limitRecOn_of_isSuccLimit (hb : IsSuccLimit b) :
     limitRecOn b isMin succ isSuccLimit =
       isSuccLimit b hb fun x _ ↦ limitRecOn x isMin succ isSuccLimit := by
-  rw [limitRecOn, prelimitRecOn_of_isSuccPrelimit _ _ hb.isSuccPrelimit, dite_eq_right hb.not_isMin]; rfl
+  rw [limitRecOn, prelimitRecOn_of_isSuccPrelimit _ _ hb.isSuccPrelimit,
+    dite_eq_right hb.not_isMin]; rfl
 
 end PartialOrder
 

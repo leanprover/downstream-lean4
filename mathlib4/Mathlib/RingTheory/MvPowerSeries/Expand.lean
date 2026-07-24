@@ -210,8 +210,8 @@ theorem trunc'_expand [DecidableEq σ] {n : σ →₀ ℕ} (φ : MvPowerSeries �
         have : ¬ p • m i ≤ p • n i := by
           simp [Nat.mul_lt_mul_of_pos_left hi (p.ne_zero_iff_zero_lt.mp hp)]
         exact Not.intro fun a ↦ this (a i)
-      rw [coeff_trunc', ← hm, ite_eq_right not_le, MvPolynomial.coeff_expand_smul _ hp, coeff_trunc',
-        ite_eq_right h_le]
+      rw [coeff_trunc', ← hm, ite_eq_right not_le, MvPolynomial.coeff_expand_smul _ hp,
+        coeff_trunc', ite_eq_right h_le]
   · obtain ⟨i, hi⟩ := h
     rw [MvPolynomial.coeff_expand_of_not_dvd _ hi]
     by_cases hd : d ≤ p • n

@@ -141,8 +141,10 @@ theorem LSeries_eq_mul_integral (f : ℕ → ℂ) {r : ℝ} (hr : 0 ≤ r) {s : 
   rw [← LSeriesSummable_congr' s (f := fun n ↦ if n = 0 then 0 else f n)
     (by filter_upwards [eventually_ne_atTop 0] with n h using ite_eq_right h)] at hS
   have (n : _) : ∑ k ∈ Icc 1 n, (if k = 0 then 0 else f k) = ∑ k ∈ Icc 1 n, f k :=
-    Finset.sum_congr rfl fun k hk ↦ by rw [ite_eq_right (zero_lt_one.trans_le (mem_Icc.mp hk).1).ne']
-  rw [← LSeries_congr fun _ ↦ ite_eq_right _, LSeries_eq_mul_integral_aux (ite_eq_left rfl) hr hs hS] <;>
+    Finset.sum_congr rfl fun k hk ↦ by
+      rw [ite_eq_right (zero_lt_one.trans_le (mem_Icc.mp hk).1).ne']
+  rw [← LSeries_congr fun _ ↦ ite_eq_right _,
+    LSeries_eq_mul_integral_aux (ite_eq_left rfl) hr hs hS] <;>
   simp_all
 
 /-- A version of `LSeries_eq_mul_integral` where we use the stronger condition that the partial sums

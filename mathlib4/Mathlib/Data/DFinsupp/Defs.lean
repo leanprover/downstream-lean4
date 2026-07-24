@@ -721,14 +721,16 @@ theorem single_add_erase (i : ι) (f : Π₀ i, β i) : single i (f i) + f.erase
     if h : i = i' then by
       subst h; simp only [add_apply, single_apply, erase_apply, add_zero, dite_eq_ite, ite_true]
     else by
-      simp only [add_apply, single_apply, erase_apply, dite_eq_right h, ite_eq_right (Ne.symm h), zero_add]
+      simp only [add_apply, single_apply, erase_apply, dite_eq_right h, ite_eq_right (Ne.symm h),
+        zero_add]
 
 theorem erase_add_single (i : ι) (f : Π₀ i, β i) : f.erase i + single i (f i) = f :=
   ext fun i' =>
     if h : i = i' then by
       subst h; simp only [add_apply, single_apply, erase_apply, zero_add, dite_eq_ite, ite_true]
     else by
-      simp only [add_apply, single_apply, erase_apply, dite_eq_right h, ite_eq_right (Ne.symm h), add_zero]
+      simp only [add_apply, single_apply, erase_apply, dite_eq_right h, ite_eq_right (Ne.symm h),
+        add_zero]
 
 protected theorem induction {p : (Π₀ i, β i) → Prop} (f : Π₀ i, β i) (h0 : p 0)
     (ha : ∀ (i b) (f : Π₀ i, β i), f i = 0 → b ≠ 0 → p f → p (single i b + f)) : p f := by

@@ -95,7 +95,7 @@ theorem trailingDegree_mul : (p * q).trailingDegree = p.trailingDegree + q.trail
   by_cases hq : q = 0
   · rw [hq, mul_zero, trailingDegree_zero, add_top]
   · rw [trailingDegree_eq_natTrailingDegree hp, trailingDegree_eq_natTrailingDegree hq,
-    trailingDegree_eq_natTrailingDegree (mul_ne_zero hp hq), natTrailingDegree_mul hp hq]
+      trailingDegree_eq_natTrailingDegree (mul_ne_zero hp hq), natTrailingDegree_mul hp hq]
     apply WithTop.coe_add
 
 end NoZeroDivisors
@@ -293,7 +293,8 @@ theorem rootMultiplicity_mul {p q : R[X]} {x : R} (hpq : p * q ≠ 0) :
   classical
   have hp : p ≠ 0 := left_ne_zero_of_mul hpq
   have hq : q ≠ 0 := right_ne_zero_of_mul hpq
-  rw [rootMultiplicity_eq_multiplicity (p * q), ite_eq_right hpq, rootMultiplicity_eq_multiplicity p,
+  rw [rootMultiplicity_eq_multiplicity (p * q), ite_eq_right hpq,
+    rootMultiplicity_eq_multiplicity p,
     ite_eq_right hp, rootMultiplicity_eq_multiplicity q, ite_eq_right hq,
     multiplicity_mul (prime_X_sub_C x) (finiteMultiplicity_X_sub_C _ hpq)]
 

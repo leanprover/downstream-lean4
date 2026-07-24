@@ -694,7 +694,8 @@ theorem isPullback_of_cofan_isVanKampen [HasInitial C] {ι : Type*} {X : ι → 
         else eqToHom (ite_eq_right h) ≫ initial.to (X j))
       (Cofan.inj c i) (Cofan.inj c j) := by
   refine (hc (Cofan.mk (X i) (f := fun k ↦ if k = i then X i else ⊥_ C)
-    (fun k ↦ if h : k = i then (eqToHom <| ite_eq_left h) else (eqToHom <| ite_eq_right h) ≫ initial.to _))
+    (fun k ↦ if h : k = i then (eqToHom <| ite_eq_left h) else (eqToHom <| ite_eq_right h) ≫
+        initial.to _))
     (Discrete.natTrans (fun k ↦ if h : k.1 = i then (eqToHom <| (ite_eq_left h).trans
       (congr_arg X h.symm)) else (eqToHom <| ite_eq_right h) ≫ initial.to _))
     (c.inj i) ?_ (.of_discrete _)).mp ⟨?_⟩ ⟨j⟩

@@ -142,7 +142,8 @@ lemma ofJ_0_of_three_eq_zero (h3 : (3 : F) = 0) : ofJ 0 = ofJ1728 F := by
   rw [ofJ, ite_eq_left rfl, ite_eq_left h3]
 
 lemma ofJ_0_of_two_eq_zero (h2 : (2 : F) = 0) : ofJ 0 = ofJ0 F := by
-  rw [ofJ, ite_eq_left rfl, ite_eq_right ((show (3 : F) = 1 by linear_combination h2) ▸ one_ne_zero)]
+  rw [ofJ, ite_eq_left rfl,
+    ite_eq_right ((show (3 : F) = 1 by linear_combination h2) ▸ one_ne_zero)]
 
 lemma ofJ_1728_of_three_eq_zero (h3 : (3 : F) = 0) : ofJ 1728 = ofJ1728 F := by
   rw [ofJ, ite_eq_left (by linear_combination 576 * h3), ite_eq_left h3]

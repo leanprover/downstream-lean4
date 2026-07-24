@@ -385,7 +385,8 @@ lemma preNormEDS'_four : preNormEDS' b c d 4 = d := by
 lemma preNormEDS'_even (m : ℕ) : preNormEDS' b c d (2 * (m + 3)) =
     preNormEDS' b c d (m + 2) ^ 2 * preNormEDS' b c d (m + 3) * preNormEDS' b c d (m + 5) -
       preNormEDS' b c d (m + 1) * preNormEDS' b c d (m + 3) * preNormEDS' b c d (m + 4) ^ 2 := by
-  rw [show 2 * (m + 3) = 2 * m + 1 + 5 by rfl, preNormEDS', dite_eq_right m.not_even_two_mul_add_one]
+  rw [show 2 * (m + 3) = 2 * m + 1 + 5 by rfl, preNormEDS',
+    dite_eq_right m.not_even_two_mul_add_one]
   simp [Nat.mul_add_div two_pos]
 
 lemma preNormEDS'_odd (m : ℕ) : preNormEDS' b c d (2 * (m + 2) + 1) =
@@ -567,7 +568,8 @@ lemma normEDS_even (m : ℤ) : normEDS b c d (2 * m) * b =
 lemma normEDS_odd (m : ℤ) : normEDS b c d (2 * m + 1) =
     normEDS b c d (m + 2) * normEDS b c d m ^ 3 -
       normEDS b c d (m - 1) * normEDS b c d (m + 1) ^ 3 := by
-  simp_rw [normEDS, preNormEDS_odd, ite_eq_right m.not_even_two_mul_add_one, Int.even_add, Int.even_sub,
+  simp_rw [normEDS, preNormEDS_odd, ite_eq_right m.not_even_two_mul_add_one, Int.even_add,
+    Int.even_sub,
     even_two, iff_true, Int.not_even_one, iff_false]
   split_ifs <;> ring1
 

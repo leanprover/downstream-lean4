@@ -65,8 +65,8 @@ theorem iSup_iInf_eq_top_iff_pairwise {t : Finset ι} (h : t.Nonempty) (I : ι �
       intro j hj ij
       exact this _ (Finset.subset_cons _ hj) ij
     case a3 =>
-      rw [← @ite_eq_left _ _ h.choose_spec R (μ a) 0, ← Finset.sum_pi_single', ← Finset.sum_add_distrib]
-        at hμ
+      rw [← @ite_eq_left _ _ h.choose_spec R (μ a) 0, ← Finset.sum_pi_single',
+        ← Finset.sum_add_distrib] at hμ
       convert! hμ
       rename_i i _
       rw [Pi.add_apply, Submodule.coe_add, Submodule.coe_mk]

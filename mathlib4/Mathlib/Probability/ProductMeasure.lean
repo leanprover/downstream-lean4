@@ -69,7 +69,8 @@ lemma isProjectiveMeasureFamily_pi :
   simp_rw [Measure.map_apply (measurable_restrict₂ hJI) (.univ_pi ms), restrict₂_preimage hJI,
     Measure.pi_pi, prod_eq_prod_extend]
   refine (prod_subset_one_on_sdiff hJI (fun x hx ↦ ?_) (fun x hx ↦ ?_)).symm
-  · rw [Function.extend_val_apply (mem_sdiff.1 hx).1, dite_eq_right (mem_sdiff.1 hx).2, measure_univ]
+  · rw [Function.extend_val_apply (mem_sdiff.1 hx).1, dite_eq_right (mem_sdiff.1 hx).2,
+      measure_univ]
   · rw [Function.extend_val_apply hx, Function.extend_val_apply (hJI hx), dite_eq_left hx]
 
 /-- Consider a family of probability measures. You can take their products for any finite

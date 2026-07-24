@@ -499,7 +499,8 @@ theorem prod_alternatingWord_eq_prod_alternatingWord_sub (i i' : B) (m : ℕ) (h
   clear hm
   push_cast
   rcases Int.even_or_odd' m' with ⟨k, rfl | rfl⟩
-  · rw [ite_eq_left (by use k; ring), ite_eq_left (by use -k + (M i i'); ring), mul_comm 2 k, ← sub_mul]
+  · rw [ite_eq_left (by use k; ring), ite_eq_left (by use -k + (M i i'); ring), mul_comm 2 k,
+      ← sub_mul]
     repeat rw [Int.mul_ediv_cancel _ (by simp)]
     rw [zpow_sub, zpow_natCast, simple_mul_simple_pow' cs i i', ← inv_zpow]
     simp

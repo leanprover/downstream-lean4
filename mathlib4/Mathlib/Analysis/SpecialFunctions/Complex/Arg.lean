@@ -99,13 +99,13 @@ theorem arg_mul_cos_add_sin_mul_I {r : ℝ} (hr : 0 < r) {θ : ℝ} (hθ : θ �
         rw [← neg_pos, ← Real.cos_add_pi]
         refine Real.cos_pos_of_mem_Ioo ⟨?_, ?_⟩ <;> linarith
       have hsin : Real.sin θ < 0 := Real.sin_neg_of_neg_of_neg_pi_lt (by linarith) hθ
-      rw [ite_eq_right, ite_eq_right, ← Real.sin_add_pi, Real.arcsin_sin, add_sub_cancel_right] <;> [linarith;
-        linarith; exact hsin.not_ge; exact hcos.not_ge]
+      rw [ite_eq_right, ite_eq_right, ← Real.sin_add_pi, Real.arcsin_sin,
+        add_sub_cancel_right] <;> [linarith; linarith; exact hsin.not_ge; exact hcos.not_ge]
     · replace hθ := hθ.2
       have hcos : Real.cos θ < 0 := Real.cos_neg_of_pi_div_two_lt_of_lt h₁ (by linarith)
       have hsin : 0 ≤ Real.sin θ := Real.sin_nonneg_of_mem_Icc ⟨by linarith, hθ⟩
-      rw [ite_eq_right, ite_eq_left, ← Real.sin_sub_pi, Real.arcsin_sin, sub_add_cancel] <;> [linarith;
-        linarith; exact hsin; exact hcos.not_ge]
+      rw [ite_eq_right, ite_eq_left, ← Real.sin_sub_pi, Real.arcsin_sin,
+        sub_add_cancel] <;> [linarith; linarith; exact hsin; exact hcos.not_ge]
 
 theorem arg_cos_add_sin_mul_I {θ : ℝ} (hθ : θ ∈ Set.Ioc (-π) π) : arg (cos θ + sin θ * I) = θ := by
   rw [← one_mul (_ + _), ← ofReal_one, arg_mul_cos_add_sin_mul_I zero_lt_one hθ]
@@ -339,7 +339,7 @@ lemma norm_eq_one_iff' : ‖x‖ = 1 ↔ ∃ θ ∈ Set.Ioc (-π) π, exp (θ * 
     · convert! toIocMod_mem_Ioc _ _ _
       ring
     · rw [eq_sub_of_add_eq <| toIocMod_add_toIocDiv_zsmul _ _ θ, ofReal_sub,
-      ofReal_zsmul, ofReal_mul, ofReal_ofNat, exp_mul_I_periodic.sub_zsmul_eq]
+        ofReal_zsmul, ofReal_mul, ofReal_ofNat, exp_mul_I_periodic.sub_zsmul_eq]
   · rintro ⟨θ, _, rfl⟩
     exact ⟨θ, rfl⟩
 
@@ -529,7 +529,7 @@ theorem arg_coe_angle_eq_iff {x y : ℂ} : (arg x : Real.Angle) = arg y ↔ arg 
 lemma arg_mul_eq_add_arg_iff {x y : ℂ} (hx₀ : x ≠ 0) (hy₀ : y ≠ 0) :
     (x * y).arg = x.arg + y.arg ↔ arg x + arg y ∈ Set.Ioc (-π) π := by
   rw [← arg_coe_angle_toReal_eq_arg, arg_mul_coe_angle hx₀ hy₀, ← Real.Angle.coe_add,
-      Real.Angle.toReal_coe_eq_self_iff_mem_Ioc]
+    Real.Angle.toReal_coe_eq_self_iff_mem_Ioc]
 
 alias ⟨_, arg_mul⟩ := arg_mul_eq_add_arg_iff
 

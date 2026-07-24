@@ -49,7 +49,8 @@ noncomputable def DividedPowers.ofInjective (f : A →+* B) (hf : Injective f)
   dpow_one hx := by
     simpa only [dite_eq_left hx, ← hf.eq_iff, (Exists.choose_spec (_ : ∃ a, ∃ _, f a = _)).2]
       using hJ.dpow_one (hIJ ▸ Ideal.mem_map_of_mem f hx)
-  dpow_mem {n x} hn hx := by simpa only [dite_eq_left hx] using (Exists.choose_spec (hmem n hx)).1 hn
+  dpow_mem {n x} hn hx := by
+    simpa only [dite_eq_left hx] using (Exists.choose_spec (hmem n hx)).1 hn
   dpow_add {n x y} hx hy := by
     have hxy : x + y ∈ I := Ideal.add_mem _ hx hy
     simpa only [dite_eq_left hxy, dite_eq_left hx, dite_eq_left hy, ← hf.eq_iff, map_sum, map_mul,
@@ -58,7 +59,7 @@ noncomputable def DividedPowers.ofInjective (f : A →+* B) (hf : Injective f)
   dpow_mul {n a x} hx := by
     have hax : a * x ∈ I := Ideal.mul_mem_left _ _ hx
     simpa only [(Exists.choose_spec (_ : ∃ a, ∃ _, f a = _)).2, dite_eq_left hax, dite_eq_left hx,
-    ← hf.eq_iff, map_mul, map_pow] using hJ.dpow_mul (hIJ ▸ I.mem_map_of_mem f hx)
+      ← hf.eq_iff, map_mul, map_pow] using hJ.dpow_mul (hIJ ▸ I.mem_map_of_mem f hx)
   mul_dpow hx := by simpa only [dite_eq_left hx, ← hf.eq_iff, (Exists.choose_spec (hmem _ hx)).2,
     map_mul, map_natCast] using hJ.mul_dpow (hIJ ▸ I.mem_map_of_mem f hx)
   dpow_comp {n m x} hm hx := by

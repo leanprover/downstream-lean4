@@ -95,7 +95,8 @@ theorem inftyValuation.C {k : F} (hk : k ≠ 0) :
 
 @[simp]
 theorem inftyValuation.X : inftyValuation F RatFunc.X = exp 1 := by
-  simp [inftyValuation_apply, inftyValuationDef, ite_eq_right RatFunc.X_ne_zero, RatFunc.intDegree_X]
+  simp [inftyValuation_apply, inftyValuationDef, ite_eq_right RatFunc.X_ne_zero,
+    RatFunc.intDegree_X]
 
 lemma inftyValuation.X_zpow (m : ℤ) : inftyValuation F (RatFunc.X ^ m) = exp m := by simp
 

@@ -860,7 +860,8 @@ theorem insertNth_apply_same (i : Fin (n + 1)) (x : α i) (p : ∀ j, α (i.succ
 @[simp]
 theorem insertNth_apply_succAbove (i : Fin (n + 1)) (x : α i) (p : ∀ j, α (i.succAbove j))
     (j : Fin n) : insertNth i x p (i.succAbove j) = p j := by
-  simp only [insertNth, succAboveCases, dite_eq_right (succAbove_ne _ _), succAbove_lt_iff_castSucc_lt]
+  simp only [insertNth, succAboveCases, dite_eq_right (succAbove_ne _ _),
+    succAbove_lt_iff_castSucc_lt]
   split_ifs with hlt
   · generalize_proofs H₁ H₂; revert H₂
     generalize hk : castPred ((succAbove i) j) H₁ = k

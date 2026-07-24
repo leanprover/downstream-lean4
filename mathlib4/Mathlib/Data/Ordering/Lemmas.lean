@@ -47,7 +47,8 @@ attribute [local simp] cmpUsing
 
 @[simp]
 theorem cmpUsing_eq_lt (a b : α) : (cmpUsing lt a b = Ordering.lt) = lt a b := by
-  simp only [cmpUsing, Ordering.ite_eq_lt_distrib, ite_self, ite_false_right, and_true, reduceCtorEq]
+  simp only [cmpUsing, Ordering.ite_eq_lt_distrib, ite_self, ite_false_right, and_true,
+    reduceCtorEq]
 
 @[simp]
 theorem cmpUsing_eq_gt [IsStrictOrder α lt] (a b : α) : cmpUsing lt a b = Ordering.gt ↔ lt b a := by

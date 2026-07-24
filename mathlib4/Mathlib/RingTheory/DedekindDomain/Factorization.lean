@@ -212,7 +212,8 @@ theorem iInf_maxPowDividing_eq {I : Ideal R} (h0 : I ≠ 0) :
     ⨅ i : HeightOneSpectrum R, i.maxPowDividing I = I := by
   nth_rw 2 [← Ideal.finprod_heightOneSpectrum_factorization h0]
   classical
-  rw [finprod_def, dite_eq_left (Ideal.hasFiniteMulSupport h0), Ideal.prod_eq_iInf_of_pairwise_isCoprime]
+  rw [finprod_def, dite_eq_left (Ideal.hasFiniteMulSupport h0),
+    Ideal.prod_eq_iInf_of_pairwise_isCoprime]
   · ext x
     constructor
     · aesop

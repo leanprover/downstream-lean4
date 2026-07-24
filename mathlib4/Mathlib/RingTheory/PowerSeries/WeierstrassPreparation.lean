@@ -245,8 +245,8 @@ theorem coeff_seq_mem (k : ℕ) {i : ℕ} (hi : i ≥ (g.map (Ideal.Quotient.mk 
       nth_rw 1 [g.eq_X_pow_mul_shift_add_trunc n]
       rw [add_mul, mul_assoc, IsUnit.mul_val_inv, hs]
       ring
-    rw [key, map_sub, Polynomial.coeff_coe, coeff_trunc, ite_eq_right hi.not_gt, zero_sub, neg_mem_iff,
-      pow_succ']
+    rw [key, map_sub, Polynomial.coeff_coe, coeff_trunc, ite_eq_right hi.not_gt, zero_sub,
+      neg_mem_iff, pow_succ']
     refine coeff_mul_mem_ideal_of_coeff_left_mem_ideal' (fun i ↦ ?_) i
     refine coeff_mul_mem_ideal_mul_ideal_of_coeff_mem_ideal'
       (by simp [n, g.coeff_trunc_order_mem]) (fun i ↦ ?_) i
@@ -765,9 +765,11 @@ theorem IsWeierstrassDivision.isWeierstrassFactorization
     rw [Polynomial.degree_sub_eq_left_of_degree_lt H1, Polynomial.degree_X_pow]
   refine ⟨⟨⟨fun {i} hi ↦ ?_⟩, .sub_of_left (Polynomial.monic_X_pow _) H1⟩, Units.isUnit _, ?_⟩
   · rw [hfdeg] at hi
-    simp_rw [f, Polynomial.coeff_sub, Polynomial.coeff_X_pow, ite_eq_right hi.ne, zero_sub, neg_mem_iff]
+    simp_rw [f, Polynomial.coeff_sub, Polynomial.coeff_X_pow, ite_eq_right hi.ne, zero_sub,
+      neg_mem_iff]
     have := H.coeff_f_sub_r_mem hi
-    rwa [map_sub, coeff_X_pow, ite_eq_right hi.ne, zero_sub, neg_mem_iff, Polynomial.coeff_coe] at this
+    rwa [map_sub, coeff_X_pow, ite_eq_right hi.ne, zero_sub, neg_mem_iff,
+      Polynomial.coeff_coe] at this
   · have := congr($(H.2) * ↑(H.isUnit_of_map_ne_zero hg).unit⁻¹)
     rw [add_mul, mul_assoc, IsUnit.mul_val_inv, mul_one, ← sub_eq_iff_eq_add] at this
     simp_rw [← this, f, Polynomial.coe_sub, Polynomial.coe_pow, Polynomial.coe_X, sub_mul]

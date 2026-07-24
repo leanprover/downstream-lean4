@@ -164,7 +164,8 @@ lemma reciprocalFactors_odd {n : ℕ} (h1 : n ≠ 1) (h2 : Odd n) :
   have h0 : n ≠ 0 := by
     rintro rfl
     norm_num [← Nat.not_even_iff_odd] at h2
-  rw [reciprocalFactors, dite_eq_right h0, dite_eq_right h1, ite_eq_right (Nat.not_even_iff_odd.2 h2)]
+  rw [reciprocalFactors, dite_eq_right h0, dite_eq_right h1,
+    ite_eq_right (Nat.not_even_iff_odd.2 h2)]
 
 /-- A finite product of Dihedral groups. -/
 abbrev Product (l : List ℕ) : Type :=
@@ -189,7 +190,7 @@ theorem commProb_reciprocal (n : ℕ) :
   · rw [h1, reciprocalFactors_one, commProb_nil, Nat.cast_one, div_one]
   rcases Nat.even_or_odd n with h2 | h2
   · rw [reciprocalFactors_even h0 h2, commProb_cons, commProb_reciprocal (n / 2),
-        commProb_odd (by decide)]
+      commProb_odd (by decide)]
     simp [field, h2.two_dvd]
     norm_num
   · rw [reciprocalFactors_odd h1 h2, commProb_cons, commProb_reciprocal (n / 4 + 1)]

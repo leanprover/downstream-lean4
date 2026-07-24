@@ -222,14 +222,15 @@ lemma resolution_quasiIso (g : G) (hg : ∀ x, x ∈ Subgroup.zpowers g) :
         simp [ChainComplex.toSingle₀Equiv]
     | succ m _ =>
       rw [quasiIsoAt_iff_exactAt' (hL := ChainComplex.exactAt_succ_single_obj ..),
-          HomologicalComplex.exactAt_iff' _ (m + 2) (m + 1) m (by simp) (by simp)]
+        HomologicalComplex.exactAt_iff' _ (m + 2) (m + 1) m (by simp) (by simp)]
       apply (forget₂ _ (ModuleCat k)).reflects_exact_of_faithful
       rw [ShortComplex.moduleCat_exact_iff_range_eq_ker]
       by_cases hm : Odd (m + 1)
       · simpa [ite_eq_left (Nat.even_add_one.2 (Nat.not_even_iff_odd.2 hm)),
           ite_eq_right (Nat.not_even_iff_odd.2 hm)]
           using! leftRegular.range_norm_eq_ker_applyAsHom_sub k g hg
-      · simpa [ShortComplex.moduleCat_exact_iff_range_eq_ker, ite_eq_left (Nat.not_odd_iff_even.1 hm),
+      · simpa [ShortComplex.moduleCat_exact_iff_range_eq_ker,
+          ite_eq_left (Nat.not_odd_iff_even.1 hm),
           ite_eq_right (Nat.not_even_iff_odd.2 <| Nat.odd_add_one.2 hm)]
         using! leftRegular.range_applyAsHom_sub_eq_ker_norm k g hg
 

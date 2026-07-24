@@ -486,7 +486,7 @@ theorem tprod_fintype [L.LeAtTop] [Fintype β] (f : β → α) : ∏'[L] b, f b 
 theorem prod_eq_tprod_mulIndicator (f : β → α) (s : Finset β) (L := unconditional β) [L.LeAtTop] :
     ∏ x ∈ s, f x = ∏'[L] x, Set.mulIndicator (↑s) f x := by
   rw [tprod_eq_prod' (Set.mulSupport_mulIndicator_subset),
-      Finset.prod_mulIndicator_subset _ Finset.Subset.rfl]
+    Finset.prod_mulIndicator_subset _ Finset.Subset.rfl]
 
 @[to_additive]
 theorem tprod_bool (f : Bool → α) : ∏' i : Bool, f i = f false * f true := by
@@ -742,7 +742,8 @@ protected theorem Multipliable.tprod_eq_mul_tprod_ite' [DecidableEq β] [L.LeAtT
     ∏'[L] x, f x = ∏'[L] x, (ite (x = b) (f x) 1 * update f b 1 x) :=
       tprod_congr fun n ↦ by split_ifs with h <;> simp [h]
     _ = (∏'[L] x, ite (x = b) (f x) 1) * ∏'[L] x, update f b 1 x :=
-      Multipliable.tprod_mul ⟨ite (b = b) (f b) 1, hasProd_single b (fun _ hb ↦ ite_eq_right hb) L⟩ hf
+      Multipliable.tprod_mul
+        ⟨ite (b = b) (f b) 1, hasProd_single b (fun _ hb ↦ ite_eq_right hb) L⟩ hf
     _ = ite (b = b) (f b) 1 * ∏'[L] x, update f b 1 x := by
       congr
       exact tprod_eq_mulSingle b fun b' hb' ↦ ite_eq_right hb'

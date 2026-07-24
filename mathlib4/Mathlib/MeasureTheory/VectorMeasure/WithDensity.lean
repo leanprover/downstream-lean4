@@ -58,7 +58,9 @@ open Measure
 variable {f g : α → E}
 
 theorem withDensityᵥ_apply (hf : Integrable f μ) {s : Set α} (hs : MeasurableSet s) :
-    μ.withDensityᵥ f s = ∫ x in s, f x ∂μ := by rw [withDensityᵥ, dite_eq_left hf]; exact dite_eq_left hs
+    μ.withDensityᵥ f s = ∫ x in s, f x ∂μ := by
+  rw [withDensityᵥ, dite_eq_left hf]
+  exact dite_eq_left hs
 
 @[simp]
 theorem withDensityᵥ_zero : μ.withDensityᵥ (0 : α → E) = 0 := by

@@ -96,7 +96,8 @@ decreasing_by
   obtain _ | n := n; · exact (n0 rfl).elim
   obtain _ | n := n; · simp
   have : (n + 1 + 1) >>> 1 ≠ 0 := Nat.div_ne_zero_iff.mpr ⟨by decide, le_add_left ..⟩
-  simpa only [ite_eq_right n0, ite_eq_right this, log2_eq_succ_log2_shiftRight this] using lt_succ_self _
+  simpa only [ite_eq_right n0, ite_eq_right this, log2_eq_succ_log2_shiftRight this]
+      using lt_succ_self _
 
 /-- The same as `binaryRec`, but the induction step can assume that if `n=0`,
   the bit being appended is `true` -/

@@ -114,8 +114,8 @@ lemma map_comp (i₁ i₂ i₃ : J) (h₁₂ : i₁ ≤ i₂) (h₂₃ : i₂ �
     · rw [Order.lt_succ_iff_of_not_isMax hj] at h₂
       rw [map_eq hj F τ i₁ i₂ _ h₂]
       dsimp [map]
-      rw [dite_eq_right h₁, dite_eq_left (h₁₂.trans h₂), dite_eq_right h₁, dite_eq_left h₂, assoc, assoc,
-        Iso.inv_hom_id_assoc, comp_id, ← Functor.map_comp_assoc, homOfLE_comp]
+      rw [dite_eq_right h₁, dite_eq_left (h₁₂.trans h₂), dite_eq_right h₁, dite_eq_left h₂,
+        assoc, assoc, Iso.inv_hom_id_assoc, comp_id, ← Functor.map_comp_assoc, homOfLE_comp]
     · rw [map_id, comp_id]
 
 end extendToSucc

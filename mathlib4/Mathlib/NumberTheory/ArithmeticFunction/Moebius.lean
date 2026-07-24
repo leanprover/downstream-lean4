@@ -269,7 +269,8 @@ theorem prod_eq_iff_prod_pow_moebius_eq_of_nonzero [CommGroupWithZero R] {f g : 
   · rw [dite_eq_left hn, ← Units.val_inj, ← Units.coeHom_apply, map_prod, Units.val_mk0,
       prod_congr rfl _]
     intro x hx
-    rw [dite_eq_left (pos_of_mem_divisors (snd_mem_divisors_of_mem_antidiagonal hx)), Units.coeHom_apply,
+    rw [dite_eq_left (pos_of_mem_divisors (snd_mem_divisors_of_mem_antidiagonal hx)),
+      Units.coeHom_apply,
       Units.val_zpow_eq_zpow_val, Units.val_mk0]
 
 /-- Möbius inversion for functions to an `AddCommGroup`, where the equalities only hold on a

@@ -60,7 +60,8 @@ lemma auxMat_toSquareBlock_ne : (auxMat M k).toSquareBlock (· ≠ k) True = M k
 lemma auxMat_toSquareBlock_eq : (auxMat M k).toSquareBlock (· ≠ k) False = 1 := by
   ext ⟨i, hi⟩ ⟨j, hj⟩
   rw [eq_iff_iff, iff_false, not_not] at hi hj
-  simp [auxMat, toSquareBlock_def, ite_eq_left hi, ite_eq_left hj, Matrix.one_apply, ite_eq_left (hj ▸ hi)]
+  simp [auxMat, toSquareBlock_def, ite_eq_left hi, ite_eq_left hj, Matrix.one_apply,
+    ite_eq_left (hj ▸ hi)]
 
 variable [Fintype m]
 

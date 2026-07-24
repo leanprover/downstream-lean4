@@ -70,7 +70,7 @@ private theorem integralmulsum (hf_diff : ∀ t ∈ Set.Icc a b, DifferentiableA
     Set.uIoc_of_le h ▸ Set.Ioc_subset_Icc_self.trans <| Set.Icc_subset_Icc h₁ h₂
   have h_inc₂ : Set.uIcc t₁ t₂ ⊆ Set.Icc a b := Set.uIcc_of_le h ▸ Set.Icc_subset_Icc h₃ h₄
   rw [← integral_deriv_eq_sub (fun t ht ↦ hf_diff t (h_inc₂ ht)),
-      ← intervalIntegral.integral_mul_const]
+    ← intervalIntegral.integral_mul_const]
   · refine integral_congr_ae ?_
     filter_upwards [sumlocc c n] with t h h'
     rw [h (h_inc₁ h')]
@@ -386,7 +386,8 @@ theorem summable_mul_of_bigO_atTop'
     intro n
     rw [Icc_eq_cons_Ioc n.zero_le, sum_cons, ← Icc_add_one_left_eq_Ioc, zero_add]
     simp_rw [ite_eq_left, norm_zero, zero_add]
-    exact Finset.sum_congr rfl fun _ h ↦ by rw [ite_eq_right (zero_lt_one.trans_le (mem_Icc.mp h).1).ne']
+    exact Finset.sum_congr rfl fun _ h ↦ by
+      rw [ite_eq_right (zero_lt_one.trans_le (mem_Icc.mp h).1).ne']
   simp_rw [h] at h_bdd hg₁
   refine Summable.congr_atTop (summable_mul_of_bigO_atTop_aux (fun n ↦ if n = 0 then 0 else c n) 1
     h_bdd (by rwa [Nat.cast_one]) (fun n ↦ ?_) hg₁ hg₂) ?_

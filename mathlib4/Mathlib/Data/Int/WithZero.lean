@@ -54,7 +54,8 @@ def toNNReal {e : ℝ≥0} (he : e ≠ 0) : ℤᵐ⁰ →*₀ ℝ≥0 where
       · rw [dite_eq_left hxy, dite_eq_left hy, mul_zero]
     · obtain ⟨hx, hy⟩ := mul_ne_zero_iff.mp hxy
       -- x ≠ 0 and y ≠ 0
-      rw [dite_eq_right hxy, dite_eq_right hx, dite_eq_right hy, ← zpow_add' (Or.inl he), ← toAdd_mul]
+      rw [dite_eq_right hxy, dite_eq_right hx, dite_eq_right hy, ← zpow_add' (Or.inl he),
+        ← toAdd_mul]
       congr
       rw [← WithZero.coe_inj, WithZero.coe_mul, coe_unzero hx, coe_unzero hy, coe_unzero hxy]
 

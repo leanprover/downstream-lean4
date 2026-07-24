@@ -219,8 +219,8 @@ theorem prod_add_ordered [LinearOrder ι] (s : Finset ι) (f g : ι → R) :
     exact (forall_mem_insert _ _ _).2 ⟨lt_irrefl a, fun i hi => (ha i hi).not_gt⟩
   · rw [mul_sum]
     refine sum_congr rfl fun i hi => ?_
-    rw [filter_insert, ite_eq_right (ha i hi).not_gt, filter_insert, ite_eq_left (ha i hi), prod_insert,
-      mul_left_comm]
+    rw [filter_insert, ite_eq_right (ha i hi).not_gt, filter_insert, ite_eq_left (ha i hi),
+      prod_insert, mul_left_comm]
     exact mt (fun ha => (mem_filter.1 ha).1) ha'
 
 theorem prod_one_add_ordered [LinearOrder ι] (s : Finset ι) (f : ι → R) :

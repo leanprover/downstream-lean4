@@ -134,7 +134,8 @@ theorem log_inv_eq_ite (x : ℂ) : log x⁻¹ = if x.arg = π then -conj (log x)
   · rwa [inv_pos, Complex.normSq_pos]
   · rwa [map_ne_zero]
 
-theorem log_inv (x : ℂ) (hx : x.arg ≠ π) : log x⁻¹ = -log x := by rw [log_inv_eq_ite, ite_eq_right hx]
+theorem log_inv (x : ℂ) (hx : x.arg ≠ π) : log x⁻¹ = -log x := by
+  rw [log_inv_eq_ite, ite_eq_right hx]
 
 theorem two_pi_I_ne_zero : (2 * π * I : ℂ) ≠ 0 := by simp [Real.pi_ne_zero, I_ne_zero]
 
@@ -186,7 +187,7 @@ theorem countable_preimage_exp {s : Set ℂ} : (exp ⁻¹' s).Countable ↔ s.Co
   refine ⟨fun hs => ?_, fun hs => ?_⟩
   · refine ((hs.image exp).insert 0).mono ?_
     rw [Set.image_preimage_eq_inter_range, range_exp, ← Set.sdiff_eq, ← Set.union_singleton,
-        Set.sdiff_union_self]
+      Set.sdiff_union_self]
     exact Set.subset_union_left
   · rw [← Set.biUnion_preimage_singleton]
     refine hs.biUnion fun z hz => ?_

@@ -296,7 +296,8 @@ lemma eraseLead_mul_eq_mul_eraseLead_of_nextCoeff_zero {R : Type*} [Ring R] [NoZ
     have hd₁ : n < ((X - C x) * P).eraseLead.natDegree := by
       linarith [natDegree_eraseLead_add_one h₂]
     rw [← self_sub_monomial_natDegree_leadingCoeff, coeff_sub, coeff_monomial, ite_eq_right hd₁.ne']
-    rw [← self_sub_monomial_natDegree_leadingCoeff, coeff_sub, coeff_monomial, ite_eq_right (by lia)]
+    rw [← self_sub_monomial_natDegree_leadingCoeff, coeff_sub, coeff_monomial,
+      ite_eq_right (by lia)]
     rw [← self_sub_monomial_natDegree_leadingCoeff, mul_sub, coeff_sub,
       sub_zero, sub_zero, eq_sub_iff_add_eq, add_eq_left]
     rcases hn₂ : n

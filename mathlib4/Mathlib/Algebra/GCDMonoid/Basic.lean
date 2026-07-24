@@ -1066,7 +1066,8 @@ def strongNormalizationMonoidOfMonoidHomRightInverse [DecidableEq α] (f : Assoc
     else Classical.choose (Associates.mk_eq_mk_iff_associated.1 (hinv (Associates.mk a)).symm)
   normUnit_zero := ite_eq_left rfl
   normUnit_mul {a b} ha hb := by
-    simp_rw [ite_eq_right (mul_ne_zero ha hb), ite_eq_right ha, ite_eq_right hb, Units.ext_iff, Units.val_mul]
+    simp_rw [ite_eq_right (mul_ne_zero ha hb), ite_eq_right ha, ite_eq_right hb, Units.ext_iff,
+      Units.val_mul]
     suffices a * b * ↑(Classical.choose (associated_map_mk hinv (a * b))) =
         a * ↑(Classical.choose (associated_map_mk hinv a)) *
         (b * ↑(Classical.choose (associated_map_mk hinv b))) by
@@ -1369,8 +1370,16 @@ instance (priority := 100) : StrongNormalizedGCDMonoid G₀ where
   lcm_zero_left _ := ite_eq_left (Or.inl rfl)
   lcm_zero_right _ := ite_eq_left (Or.inr rfl)
   -- `split_ifs` wants to split `normalize`, so handle the cases manually
-  normalize_gcd a b := if h : a = 0 ∧ b = 0 then by simp [ite_eq_left h] else by simp [ite_eq_right h]
-  normalize_lcm a b := if h : a = 0 ∨ b = 0 then by simp [ite_eq_left h] else by simp [ite_eq_right h]
+  normalize_gcd a b :=
+    if h : a = 0 ∧ b = 0 then by
+      simp [ite_eq_left h]
+    else by
+      simp [ite_eq_right h]
+  normalize_lcm a b :=
+    if h : a = 0 ∨ b = 0 then by
+      simp [ite_eq_left h]
+    else by
+      simp [ite_eq_right h]
 
 @[simp]
 theorem coe_normUnit {a : G₀} (h0 : a ≠ 0) : (↑(normUnit a) : G₀) = a⁻¹ := by

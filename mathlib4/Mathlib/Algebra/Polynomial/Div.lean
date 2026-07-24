@@ -69,7 +69,7 @@ theorem finiteMultiplicity_of_degree_pos_of_monic (hp : (0 : WithBot ℕ) < degr
     have hpn0' : leadingCoeff p ^ (natDegree q + 1) ≠ 0 := hpn1.symm ▸ zn0.symm
     have hpnr0 : leadingCoeff (p ^ (natDegree q + 1)) * leadingCoeff r ≠ 0 := by
       simp only [leadingCoeff_pow' hpn0', leadingCoeff_eq_zero, hpn1, one_mul, Ne,
-          hr0, not_false_eq_true]
+        hr0, not_false_eq_true]
     have hnp : 0 < natDegree p := Nat.cast_lt.1 <| by
       rw [← degree_eq_natDegree hp0]; exact hp
     have := congr_arg natDegree hr
@@ -210,7 +210,9 @@ theorem modByMonic_eq_of_not_monic (p : R[X]) (hq : ¬Monic q) : p %ₘ q = p :=
 theorem modByMonic_eq_self_iff [Nontrivial R] (hq : Monic q) : p %ₘ q = p ↔ degree p < degree q :=
   ⟨fun h => h ▸ degree_modByMonic_lt _ hq, fun h => by
     have : ¬degree q ≤ degree p := not_le_of_gt h
-    unfold modByMonic divModByMonicAux; dsimp; rw [dite_eq_left hq, ite_eq_right (mt And.left this)]⟩
+    unfold modByMonic divModByMonicAux
+    dsimp
+    rw [dite_eq_left hq, ite_eq_right (mt And.left this)]⟩
 
 theorem degree_modByMonic_le (p : R[X]) {q : R[X]} (hq : Monic q) : degree (p %ₘ q) ≤ degree q := by
   nontriviality R
@@ -247,7 +249,8 @@ theorem modByMonic_eq_sub_mul_div :
         rw [dite_eq_left hq, dite_eq_left h]
         rw [modByMonic, dite_eq_left hq] at ih
         refine ih.trans ?_
-        rw [divByMonic, dite_eq_left hq, dite_eq_left hq, dite_eq_left h, mul_add, sub_add_eq_sub_sub]
+        rw [divByMonic, dite_eq_left hq, dite_eq_left hq, dite_eq_left h, mul_add,
+          sub_add_eq_sub_sub]
       else by
         unfold modByMonic divByMonic divModByMonicAux
         dsimp
@@ -273,7 +276,9 @@ theorem divByMonic_eq_zero_iff [Nontrivial R] (hq : Monic q) : p /ₘ q = 0 ↔ 
     rwa [h, mul_zero, add_zero, modByMonic_eq_self_iff hq] at this,
   fun h => by
     have : ¬degree q ≤ degree p := not_le_of_gt h
-    unfold divByMonic divModByMonicAux; dsimp; rw [dite_eq_left hq, ite_eq_right (mt And.left this)]⟩
+    unfold divByMonic divModByMonicAux
+    dsimp
+    rw [dite_eq_left hq, ite_eq_right (mt And.left this)]⟩
 
 theorem degree_add_divByMonic (hq : Monic q) (h : degree q ≤ degree p) :
     degree q + degree (p /ₘ q) = degree p := by
@@ -465,7 +470,7 @@ theorem coeff_divByMonic_X_sub_C (p : R[X]) (a : R) (n : ℕ) :
   wlog h : p.natDegree ≤ n generalizing n
   · refine Nat.decreasingInduction' (fun n hn _ ih ↦ ?_) (le_of_not_ge h) ?_
     · rw [coeff_divByMonic_X_sub_C_rec, ih, eq_comm, Icc_eq_cons_Ioc (Nat.succ_le_iff.mpr hn),
-          sum_cons, Nat.sub_self, pow_zero, one_mul, mul_sum]
+        sum_cons, Nat.sub_self, pow_zero, one_mul, mul_sum]
       congr 1; refine sum_congr ?_ fun i hi ↦ ?_
       · ext; simp
       rw [← mul_assoc, ← pow_succ', eq_comm, i.sub_succ', Nat.sub_add_cancel]
@@ -714,7 +719,7 @@ lemma eval_divByMonic_eq_trailingCoeff_comp {p : R[X]} {t : R} :
   rw [← congr_arg (comp · <| X + C t) mul_eq, mul_comp, pow_comp, sub_comp, X_comp, C_comp,
     add_sub_cancel_right, ← reverse_leadingCoeff, reverse_X_pow_mul, reverse_leadingCoeff,
     trailingCoeff, Nat.le_zero.1 (natTrailingDegree_le_of_ne_zero <|
-      this ▸ eval_divByMonic_pow_rootMultiplicity_ne_zero t hp), this]
+    this ▸ eval_divByMonic_pow_rootMultiplicity_ne_zero t hp), this]
 
 /-- The multiplicity of `a` as root of a nonzero polynomial `p` is at least `n` iff
 `(X - a) ^ n` divides `p`. -/

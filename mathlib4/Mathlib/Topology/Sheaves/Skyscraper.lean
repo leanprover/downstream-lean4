@@ -60,7 +60,8 @@ point, then the skyscraper presheaf `𝓕` with value `A` is defined by `U ↦ A
 def skyscraperPresheaf : Presheaf C X where
   obj U := if p₀ ∈ unop U then A else terminal C
   map {U V} i :=
-    if h : p₀ ∈ unop V then eqToHom <| by rw [ite_eq_left h, ite_eq_left (by simpa using i.unop.le h)]
+    if h : p₀ ∈ unop V then eqToHom <| by
+      rw [ite_eq_left h, ite_eq_left (by simpa using i.unop.le h)]
     else ((ite_eq_right h).symm.ndrec terminalIsTerminal).from _
   map_id U :=
     (em (p₀ ∈ U.unop)).elim (fun h => dite_eq_left h) fun h =>
@@ -180,7 +181,8 @@ noncomputable def skyscraperPresheafStalkOfSpecializes [HasColimits C] {y : X} (
 @[reassoc (attr := simp)]
 lemma germ_skyscraperPresheafStalkOfSpecializes_hom [HasColimits C] {y : X} (h : p₀ ⤳ y) (U hU) :
     (skyscraperPresheaf p₀ A).germ U y hU ≫
-      (skyscraperPresheafStalkOfSpecializes p₀ A h).hom = eqToHom (ite_eq_left (h.mem_open U.2 hU)) :=
+      (skyscraperPresheafStalkOfSpecializes p₀ A h).hom =
+        eqToHom (ite_eq_left (h.mem_open U.2 hU)) :=
   colimit.isoColimitCocone_ι_hom _ _
 
 /-- The cocone at `*` for the stalk functor of `skyscraperPresheaf p₀ A` when `y ∉ closure {p₀}`
