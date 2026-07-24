@@ -12,7 +12,7 @@ concurrency:
 jobs:
   upload-cache:
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
       actions: read
       contents: read
