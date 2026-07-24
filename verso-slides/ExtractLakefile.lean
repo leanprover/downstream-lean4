@@ -4,6 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 import Lean
+/- This import has two important side-effects:
+- Initializes `Lake` builtins.
+- In combination with `supportInterpreter := true`,
+  includes Lake symbols in the executable's symbol table
+  that the interpreter can use when elaborating `lakefile`s. -/
+import Lake -- shake: keep
 import SubVerso.Compat
 import SubVerso.Highlighting.Code
 import SubVerso.Module
@@ -12,15 +18,9 @@ open SubVerso
 
 open Lean Elab System
 
-/-- Copied from `Lake.Util.NativeLib` -/
-public def sharedLibExt : String :=
-  if Platform.isWindows then "dll"
-  else if Platform.isOSX  then "dylib"
-  else "so"
-
 /-- Compute the path to Lake's shared library in the toolchain. -/
 def lakeSharedLib (sysroot : FilePath) : FilePath :=
-  sysroot / "lib" / "lean" / s!"libLake_shared.{sharedLibExt}"
+  sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}"
 
 /-- Returns the node kind of the command, skipping outer `in` nodes. -/
 partial def commandKind (cmd : Syntax) : SyntaxNodeKind :=
@@ -75,16 +75,12 @@ unsafe def main (args : List String) : IO UInt32 := do
 
   enableInitializersExecution
 
-  -- Load Lake as a plugin so its builtin_initialize functions (DSL macros, etc.) run.
-  -- This is the same approach the language server uses for lakefile.lean.
-  let lakePlugin := lakeSharedLib sysroot
-
   let contents ← IO.FS.readFile lakefile
   let ictx := Parser.mkInputContext contents lakefile
   let (headerStx, parserState, msgs) ← Parser.parseHeader ictx
   let imports := headerToImports headerStx
 
-  let env ← importModules imports {}  (plugins := #[lakePlugin]) (trustLevel := 1024) (loadExts := true)
+  let env ← importModules imports {} (trustLevel := 1024) (loadExts := true)
   let pctx : Elab.Frontend.Context := {inputCtx := ictx}
 
   let commandState : Command.State := { env, maxRecDepth := defaultMaxRecDepth, messages := msgs }
