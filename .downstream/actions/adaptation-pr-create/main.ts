@@ -265,7 +265,7 @@ async function run(): Promise<void> {
   ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
 
-  const aBranchName = adaptationBranchNameFor(uPr);
+  const aBranchName = adaptationBranchNameFor(uPr.number);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
 
   // If there's no adaptation branch, then there can't be any open adaptation
@@ -277,6 +277,7 @@ async function run(): Promise<void> {
       : await findPrFor(octo, downstreamRepo, aBranchName);
 
   const prefix = statusPrefix(aPr?.number);
+  if (aPr !== undefined) core.setOutput("number", String(aPr.number));
 
   if (aPr !== undefined) await syncState(uPr, aPr);
   if (uPr.state !== "open") exit("PR is closed, exiting...");
@@ -318,6 +319,7 @@ async function run(): Promise<void> {
 
   if (aPr === undefined) {
     const aPrNumber = await createAdaptationPrFor(uPr, aBranchName);
+    core.setOutput("number", String(aPrNumber));
     await updateStatus(uPr, statusPrefix(aPrNumber));
   } else {
     await updateStatus(uPr, prefix);

@@ -73,8 +73,8 @@ export async function findPrFor(
   return data[0];
 }
 
-export function adaptationBranchNameFor(uPr: Pr): string {
-  return `adaptation-${uPr.number}`;
+export function adaptationBranchNameFor(prNumber: number): string {
+  return `adaptation-${prNumber}`;
 }
 
 // Inverse of `adaptationBranchNameFor`

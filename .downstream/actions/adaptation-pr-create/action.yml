@@ -67,6 +67,11 @@ inputs:
 
   # TODO Support repo overrides
 
+outputs:
+  number:
+    description: >
+      The adaptation PR number, if one exists or was created.
+
 runs:
   using: node24
   main: dist/index.js
