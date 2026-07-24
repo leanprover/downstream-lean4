@@ -534,7 +534,7 @@ instance : Std.PRange.LawfulUpwardEnumerableLT Day where
     . intro ⟨steps, eq⟩
       have := Day.succMany?_steps eq
       cases d1 <;> cases d2 <;>
-      simp only [if_false_right] at this <;>
+      simp only [ite_false_right] at this <;>
       cases this <;> first | decide | contradiction
 
 instance : Std.PRange.LawfulUpwardEnumerableLE Day where
@@ -549,7 +549,7 @@ instance : Std.PRange.LawfulUpwardEnumerableLE Day where
     . intro ⟨steps, eq⟩
       have := Day.succMany?_steps eq
       cases d1 <;> cases d2 <;>
-      simp only [if_false_right] at this <;>
+      simp only [ite_false_right] at this <;>
       cases this <;> grind
 ```
 :::

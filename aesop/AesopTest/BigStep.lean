@@ -31,9 +31,9 @@ inductive BigStep : Stmt → State → State → Prop where
   | protected assign (x : Variable) (a : State → Nat) (s : State) : BigStep (assign x a) s (s[x ↦ a s])
   | protected seq {S T : Stmt} {s t u : State} (hS : BigStep S s t) (hT : BigStep T t u) :
     BigStep (S;; T) s u
-  | protected if_true {B : State → Prop} {s t : State} (hcond : B s) (S T : Stmt) (hbody : BigStep S s t) :
+  | protected ite_true {B : State → Prop} {s t : State} (hcond : B s) (S T : Stmt) (hbody : BigStep S s t) :
     BigStep (ifThenElse B S T) s t
-  | protected if_false {B : State → Prop} {s t : State} (hcond : ¬ B s) (S T : Stmt) (hbody : BigStep T s t) :
+  | protected ite_false {B : State → Prop} {s t : State} (hcond : ¬ B s) (S T : Stmt) (hbody : BigStep T s t) :
     BigStep (ifThenElse B S T) s t
   | while_true {B S s t u} (hcond : B s) (hbody : BigStep S s t) (hrest : BigStep (whileDo B S) t u) :
     BigStep (whileDo B S) s u
@@ -44,8 +44,8 @@ notation:55 "(" S:55 "," s:55 ")" " ==> " t:55 => BigStep S s t
 add_aesop_rules safe [BigStep.skip, BigStep.assign, BigStep.seq, BigStep.while_false]
 add_aesop_rules 50% [apply BigStep.while_true]
 add_aesop_rules safe [
-  (by apply BigStep.if_true (hcond := by assumption) (hbody := by assumption)),
-  (by apply BigStep.if_false (hcond := by assumption) (hbody := by assumption))
+  (by apply BigStep.ite_true (hcond := by assumption) (hbody := by assumption)),
+  (by apply BigStep.ite_false (hcond := by assumption) (hbody := by assumption))
 ]
 
 namespace BigStep

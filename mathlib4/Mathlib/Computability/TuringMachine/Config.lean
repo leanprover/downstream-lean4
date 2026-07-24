@@ -378,7 +378,7 @@ theorem exists_code {n} {f : List.Vector ℕ n →. ℕ} (hf : Nat.Partrec' f) :
       | succ n IH =>
         refine IH (fun {m} h' => hm (Nat.lt_succ_of_lt h'))
           (PFun.mem_fix_iff.2 (Or.inr ⟨_, ?_, this⟩))
-        simp only [hf, hm n.lt_succ_self, Part.bind_some, List.headI, if_false,
+        simp only [hf, hm n.lt_succ_self, Part.bind_some, List.headI, ite_false,
           Part.mem_some_iff, List.tail_cons]
 
 end Code
@@ -631,7 +631,7 @@ theorem cont_eval_fix {f k v} (fok : Code.Ok f) :
       refine ⟨v', h₁, ?_⟩
       rw [stepRet] at h
       revert h
-      by_cases he : v'.headI = 0 <;> simp only [if_pos, if_false, he] <;> intro h
+      by_cases he : v'.headI = 0 <;> simp only [ite_eq_left, ite_false, he] <;> intro h
       · refine ⟨_, Part.mem_some _, ?_⟩
         rw [reaches_eval]
         · exact h
@@ -641,7 +641,7 @@ theorem cont_eval_fix {f k v} (fok : Code.Ok f) :
         rw [e₀, Cont.then, Cfg.then] at e₁
         simp only [] at e₁
         obtain ⟨v₁, hv₁, v₂, hv₂, h₃⟩ :=
-          IH (stepRet (k₀.then (Cont.fix f k)) v₀) (by rw [stepRet, if_neg he, e₁]; rfl)
+          IH (stepRet (k₀.then (Cont.fix f k)) v₀) (by rw [stepRet, ite_eq_right he, e₁]; rfl)
             v'.tail _ stepRet_then (by apply ReflTransGen.single; rw [e₀]; rfl)
         refine ⟨_, PFun.mem_fix_iff.2 ?_, h₃⟩
         simp only [Part.eq_some_iff.2 hv₁, Part.map_some, Part.mem_some_iff]
@@ -661,7 +661,7 @@ theorem cont_eval_fix {f k v} (fok : Code.Ok f) :
       rw [reaches_eval]
       swap
       · exact ReflTransGen.single rfl
-      rwa [stepRet, if_pos h]
+      rwa [stepRet, ite_eq_left h]
     · obtain ⟨v₁, he₁, he₂⟩ := (Part.mem_map_iff _).1 he₁'
       split_ifs at he₂ with h; cases he₂
       clear he₁'
@@ -669,8 +669,8 @@ theorem cont_eval_fix {f k v} (fok : Code.Ok f) :
       rw [reaches_eval]
       swap
       · exact ReflTransGen.single rfl
-      rw [stepRet, if_neg h]
-      exact IH v₁.tail ((Part.mem_map_iff _).2 ⟨_, he₁, if_neg h⟩)
+      rw [stepRet, ite_eq_right h]
+      exact IH v₁.tail ((Part.mem_map_iff _).2 ⟨_, he₁, ite_eq_right h⟩)
 
 set_option backward.isDefEq.respectTransparency false in
 theorem code_is_ok (c) : Code.Ok c := by

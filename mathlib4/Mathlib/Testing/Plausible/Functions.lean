@@ -207,7 +207,7 @@ theorem List.applyId_zip_eq [DecidableEq α] {xs ys : List α} (h₀ : List.Nodu
       · cases h₁
       · obtain - | ⟨h₀, h₁⟩ := h₀
         simp only [getElem?_cons_succ, zip_cons_cons, applyId_cons] at h₂ ⊢
-        rw [if_neg]
+        rw [ite_eq_right]
         · apply xs_ih <;> solve_by_elim [Nat.succ.inj]
         · apply h₀; apply List.mem_of_getElem? h₂
 
