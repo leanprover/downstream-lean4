@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 import Lean
-import Lake.DSL
 import SubVerso.Compat
 import SubVerso.Highlighting.Code
 import SubVerso.Module
@@ -13,9 +12,15 @@ open SubVerso
 
 open Lean Elab System
 
+/-- Copied from `Lake.Util.NativeLib` -/
+public def sharedLibExt : String :=
+  if Platform.isWindows then "dll"
+  else if Platform.isOSX  then "dylib"
+  else "so"
+
 /-- Compute the path to Lake's shared library in the toolchain. -/
 def lakeSharedLib (sysroot : FilePath) : FilePath :=
-  sysroot / "lib" / "lean" / s!"libLake_shared.{Lake.sharedLibExt}"
+  sysroot / "lib" / "lean" / s!"libLake_shared.{sharedLibExt}"
 
 /-- Returns the node kind of the command, skipping outer `in` nodes. -/
 partial def commandKind (cmd : Syntax) : SyntaxNodeKind :=
