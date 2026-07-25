@@ -24218,25 +24218,33 @@ function renderCompact(report, reportStyle2) {
 function renderDelta(report, statusReport, reportStyle2) {
   const turnedRed = [];
   const turnedGreen = [];
-  const unchanged = [];
+  const stayedRed = [];
+  const stayedGreen = [];
   for (const repo of report.repos) {
     const wasGreen = statusReport[repo.name];
     if (wasGreen === true && !repo.green) turnedRed.push(repo);
     else if (wasGreen === false && repo.green) turnedGreen.push(repo);
-    else unchanged.push(repo);
+    else if (repo.green) stayedGreen.push(repo);
+    else stayedRed.push(repo);
   }
   const lines = [];
   if (turnedRed.length > 0) {
-    lines.push("**Recently turned red:**", "", ...renderTable(turnedRed));
+    lines.push("**Turned red:**", "", ...renderTable(turnedRed));
   }
   if (turnedGreen.length > 0) {
     if (lines.length > 0) lines.push("");
-    lines.push("**Recently turned green:**", "", ...renderTable(turnedGreen));
+    lines.push("**Turned green:**", "", ...renderTable(turnedGreen));
   }
-  if (unchanged.length > 0) {
+  if (stayedRed.length > 0) {
     if (lines.length > 0) lines.push("");
     lines.push(
-      ...renderSpoiler(reportStyle2, "Unchanged", renderTable(unchanged))
+      ...renderSpoiler(reportStyle2, "Stayed red", renderTable(stayedRed))
+    );
+  }
+  if (stayedGreen.length > 0) {
+    if (lines.length > 0) lines.push("");
+    lines.push(
+      ...renderSpoiler(reportStyle2, "Stayed green", renderTable(stayedGreen))
     );
   }
   return { lines, empty: turnedRed.length === 0 && turnedGreen.length === 0 };

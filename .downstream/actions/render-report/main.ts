@@ -124,30 +124,39 @@ function renderDelta(
 ): RenderedBody {
   const turnedRed: BuildReportRepo[] = [];
   const turnedGreen: BuildReportRepo[] = [];
-  const unchanged: BuildReportRepo[] = [];
+  const stayedRed: BuildReportRepo[] = [];
+  const stayedGreen: BuildReportRepo[] = [];
 
   for (const repo of report.repos) {
     const wasGreen = statusReport[repo.name];
     if (wasGreen === true && !repo.green) turnedRed.push(repo);
     else if (wasGreen === false && repo.green) turnedGreen.push(repo);
-    else unchanged.push(repo);
+    else if (repo.green) stayedGreen.push(repo);
+    else stayedRed.push(repo);
   }
 
   const lines: string[] = [];
 
   if (turnedRed.length > 0) {
-    lines.push("**Recently turned red:**", "", ...renderTable(turnedRed));
+    lines.push("**Turned red:**", "", ...renderTable(turnedRed));
   }
 
   if (turnedGreen.length > 0) {
     if (lines.length > 0) lines.push("");
-    lines.push("**Recently turned green:**", "", ...renderTable(turnedGreen));
+    lines.push("**Turned green:**", "", ...renderTable(turnedGreen));
   }
 
-  if (unchanged.length > 0) {
+  if (stayedRed.length > 0) {
     if (lines.length > 0) lines.push("");
     lines.push(
-      ...renderSpoiler(reportStyle, "Unchanged", renderTable(unchanged)),
+      ...renderSpoiler(reportStyle, "Stayed red", renderTable(stayedRed)),
+    );
+  }
+
+  if (stayedGreen.length > 0) {
+    if (lines.length > 0) lines.push("");
+    lines.push(
+      ...renderSpoiler(reportStyle, "Stayed green", renderTable(stayedGreen)),
     );
   }
 
