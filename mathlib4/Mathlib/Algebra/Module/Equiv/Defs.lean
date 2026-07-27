@@ -38,8 +38,6 @@ linear equiv, linear equivalences, linear isomorphism, linear isomorphic
 
 @[expose] public section
 
-set_option backward.isDefEq.instanceTypes "mark"
-
 assert_not_exists Field Pi.module
 
 open Function

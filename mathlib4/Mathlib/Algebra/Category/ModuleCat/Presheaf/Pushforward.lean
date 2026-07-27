@@ -108,6 +108,8 @@ lemma pushforward_obj_map_apply (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f
     (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
       (((pushforward φ).obj M).map f).hom m = M.map (F.map f.unop).op m := rfl
 
+/-! # Issue (Low Severity) -/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `pushforward_obj_map_apply`. -/
@@ -119,15 +121,49 @@ lemma pushforward_obj_map_apply' (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (
           ↑((ModuleCat.restrictScalars (S.map f).hom).obj ((ModuleCat.restrictScalars _).obj _)))
         (((pushforward φ).obj M).map f).hom m = M.map (F.map f.unop).op m := rfl
 
+/-!
+# Fix
+
+Add implicit-reducibility attrs, remove `respectTransparency.types false`
+-/
+
+attribute [local implicit_reducible]
+  pushforward
+  PresheafOfModules.restrictScalars PresheafOfModules.restrictScalarsObj
+in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+example (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f : X ⟶ Y)
+    (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
+      DFunLike.coe
+        (F := ↑((ModuleCat.restrictScalars _).obj _) →ₗ[_]
+          ↑((ModuleCat.restrictScalars (S.map f).hom).obj ((ModuleCat.restrictScalars _).obj _)))
+        (((pushforward φ).obj M).map f).hom m = M.map (F.map f.unop).op m := rfl
+
 lemma pushforward_map_app_apply {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (X : Cᵒᵖ)
     (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
     (((pushforward φ).map α).app X).hom m = α.app (Opposite.op (F.obj X.unop)) m := rfl
+
+/-! # Issue 2 (Low Severity, same fix) -/
 
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `pushforward_map_app_apply`. -/
 @[simp]
 lemma pushforward_map_app_apply' {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (X : Cᵒᵖ)
+    (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
+    DFunLike.coe
+      (F := ↑((ModuleCat.restrictScalars _).obj _) →ₗ[_] ↑((ModuleCat.restrictScalars _).obj _))
+      (((pushforward φ).map α).app X).hom m = α.app (Opposite.op (F.obj X.unop)) m := rfl
+
+/-! # Fix -/
+
+attribute [local implicit_reducible]
+  pushforward
+  PresheafOfModules.restrictScalars PresheafOfModules.restrictScalarsObj
+in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+/-- `@[simp]`-normal form of `pushforward_map_app_apply`. -/
+example {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (X : Cᵒᵖ)
     (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
     DFunLike.coe
       (F := ↑((ModuleCat.restrictScalars _).obj _) →ₗ[_] ↑((ModuleCat.restrictScalars _).obj _))

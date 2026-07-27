@@ -53,7 +53,6 @@ variable [Small.{v} R] {R' : Type u'} [Ring R'] [Small.{v'} R'] (e : R ≃+* R')
 variable {M : ModuleCat.{v} R} {N : ModuleCat.{v'} R'}
 
 set_option backward.isDefEq.respectTransparency.types false in
--- set_option backward.isDefEq.instanceTypes "none" in
 attribute [local instance] RingHomInvPair.of_ringEquiv in
 lemma hasProjectiveDimensionLE_of_semiLinearEquiv (e' : M ≃ₛₗ[RingHomClass.toRingHom e] N)
     (n : ℕ) [HasProjectiveDimensionLE M n] : HasProjectiveDimensionLE N n := by

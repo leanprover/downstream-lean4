@@ -37,8 +37,6 @@ We construct various limits and colimits in the category of schemes.
 
 open Lean.PostprocessTraces
 
-set_option backward.isDefEq.instanceTypes "mark"
-
 @[expose] public section
 
 suppress_compilation

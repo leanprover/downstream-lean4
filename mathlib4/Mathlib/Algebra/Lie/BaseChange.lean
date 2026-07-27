@@ -27,8 +27,6 @@ scalars.
 lie ring, lie algebra, extension of scalars, restriction of scalars, base change
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
-
 open Lean.PostprocessTraces
 
 @[expose] public section

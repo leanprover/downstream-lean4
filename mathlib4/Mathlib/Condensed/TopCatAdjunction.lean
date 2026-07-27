@@ -228,7 +228,7 @@ X✝ X : TopCat
 example (X : TopCat.{u + 1}) :
     X.toCondensedSet.toTopCat.str =
       (ContinuousMap.compactOpen : TopologicalSpace C(PUnit, X)) := by
-  with_unfolding_all apply_rfl
+  apply_rfl
 
 end
 

@@ -79,7 +79,12 @@ variable (d : M.Derivation φ)
 @[simp] lemma d_one (X : Dᵒᵖ) : d.d (X := X) 1 = 0 := by
   simpa using d.d_mul (X := X) 1 1
 
--- TODO: This one is cursed and fails in different places depending on the strategy
+/-!
+# Issue (Low Severity)
+
+Has uncontroversial fix.
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -91,6 +96,27 @@ def postcomp (f : M ⟶ N) : N.Derivation φ where
   d_app {X} a := by
     dsimp
     erw [d_app]
+    rw [map_zero]
+
+/-!
+# Fix
+
+Two harmless implicit_reducible annotations.
+Can even get rid of `erw`.
+-/
+set_option allowUnsafeReducibility true
+attribute [local implicit_reducible]
+  ModuleCat.restrictScalars
+  ModuleCat.RestrictScalars.obj'
+in
+set_option backward.isDefEq.instanceTypes "markOrSynth" in
+set_option backward.defeqAttrib.useBackward true in
+example (f : M ⟶ N) : N.Derivation φ where
+  d := (f.app _).hom.toAddMonoidHom.comp d.d
+  d_map {X Y} g x := by simpa using naturality_apply f g (d.d x)
+  d_app {X} a := by
+    dsimp
+    rw [d_app]
     rw [map_zero]
 
 /-- The universal property that a derivation `d : M.Derivation φ` must

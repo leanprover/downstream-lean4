@@ -338,11 +338,26 @@ noncomputable def toSheafify : M₀ ⟶ (restrictScalars α).obj (sheafify α φ
 lemma toSheafify_app_apply (X : Cᵒᵖ) (x : M₀.obj X) :
     ((toSheafify α φ).app X).hom x = φ.app X x := rfl
 
+/-! # Issue (Low Severity) -/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `toSheafify_app_apply`. -/
 @[simp]
 lemma toSheafify_app_apply' (X : Cᵒᵖ) (x : M₀.obj X) :
+    DFunLike.coe (F := (_ →ₗ[_] ↑((ModuleCat.restrictScalars (α.app X).hom).obj _)))
+    ((toSheafify α φ).app X).hom x = φ.app X x := rfl
+
+/-!
+# Fix
+
+implicit-reducible + respectTransparency.types
+-/
+
+attribute [local implicit_reducible]
+  PresheafOfModules.restrictScalars PresheafOfModules.restrictScalarsObj
+in
+example (X : Cᵒᵖ) (x : M₀.obj X) :
     DFunLike.coe (F := (_ →ₗ[_] ↑((ModuleCat.restrictScalars (α.app X).hom).obj _)))
     ((toSheafify α φ).app X).hom x = φ.app X x := rfl
 
