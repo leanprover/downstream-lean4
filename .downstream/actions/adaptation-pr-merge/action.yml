@@ -39,6 +39,12 @@ inputs:
       action.
     default: merge-required
 
+outputs:
+  report-zulip:
+    description: >
+      A Zulip-formatted message listing the adaptation PRs that could not be
+      merged automatically due to conflicts. Empty if there are none.
+
 runs:
   using: node24
   main: dist/index.js
