@@ -31,7 +31,9 @@ button to get to the "Build subrepos" workflow summary.
 
 Regardless of whether CI is green or red, the build results are uploaded into a
 public artifact cache. To download cached artifacts, execute the
-`.meta/get-cache.sh` script.
+`.meta/get-cache.sh` script. You can limit the script to a set of repos and
+their transitive dependencies by passing the repo names (without trailing `/`!),
+e.g. `.meta/get-cache.sh mathlib4 repl`.
 
 For every toolchain, a branch `green-nightly-YYYY-MM-DD` points to the latest
 green commit on `master` using said toolchain. In addition, the branch `green`
