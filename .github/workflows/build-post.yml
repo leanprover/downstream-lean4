@@ -24,22 +24,11 @@ jobs:
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Set cache directory
-        run: echo "LAKE_CACHE_DIR=$RUNNER_TEMP/cache" >> "$GITHUB_ENV"
-
-      - name: Download build mappings
+      - name: Download staged cache
         uses: actions/download-artifact@v8
         with:
-          name: build-mappings
-          path: ${{ runner.temp }}/mappings
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Download build cache
-        uses: actions/download-artifact@v8
-        with:
-          name: build-cache
-          path: ${{ runner.temp }}/cache
+          name: build-staging
+          path: ${{ runner.temp }}/staging
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -48,8 +37,10 @@ jobs:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
         run: |
           .downstream/list.py . | while IFS= read -r repo; do
-            echo "::group::cache put $repo"
-            ( cd "$repo" && lake cache put --scope "$repo" "$RUNNER_TEMP/mappings/$repo.jsonl" ) || true
+            echo "::group::cache put-staged $repo"
+            pushd "$repo"
+            lake cache put-staged "$RUNNER_TEMP/staging/$repo" --scope "$repo" || true
+            popd
             echo "::endgroup::"
           done
 
