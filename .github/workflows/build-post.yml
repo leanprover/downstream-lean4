@@ -12,6 +12,7 @@ jobs:
     permissions:
       actions: read
       contents: read
+      pull-requests: write
     env:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
@@ -45,6 +46,24 @@ jobs:
             popd
             echo "::endgroup::"
           done
+
+      - name: Find original PR
+        id: original-pr
+        if:
+          ${{ github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        continue-on-error: true # May not belong to a PR
+        uses: ./.downstream/actions/find-original-pr
+
+      - name: Add cache-available label to PR
+        if:
+          ${{ steps.original-pr.outcome == 'success' &&
+          steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit "${{ steps.original-pr.outputs.number }}" \
+            --repo "${{ github.repository }}" --add-label cache-available
 
   update-statuses:
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
