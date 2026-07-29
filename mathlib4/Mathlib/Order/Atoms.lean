@@ -682,7 +682,7 @@ instance {α} [CompleteAtomicBooleanAlgebra α] : IsAtomistic α :=
     have : (⨅ c : α, ⨆ x, b ⊓ cond x c (cᶜ)) = b := by simp [iSup_bool_eq]
     rw [← this]; clear this
     simp_rw [iInf_iSup_eq, iSup_le_iff]; intro g
-    if h : (⨅ a, b ⊓ cond (g a) a (aᶜ)) = ⊥ then simp [h] else
+    if h : (⨅ a, b ⊓ cond (g a) a (aᶜ)) = ⊥ then simp_all else
     refine le_sSup ⟨⟨h, fun c hc => ?_⟩, le_trans (by rfl) (le_iSup _ g)⟩; clear h
     have := lt_of_lt_of_le hc (le_trans (iInf_le _ c) inf_le_right)
     revert this

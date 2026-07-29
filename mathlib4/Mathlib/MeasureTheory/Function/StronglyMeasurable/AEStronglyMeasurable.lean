@@ -814,7 +814,8 @@ theorem _root_.aestronglyMeasurable_iUnion_iff [PseudoMetrizableSpace β] {s : �
 theorem _root_.aestronglyMeasurable_union_iff [PseudoMetrizableSpace β] {s t : Set α} :
     AEStronglyMeasurable f (μ.restrict (s ∪ t)) ↔
       AEStronglyMeasurable f (μ.restrict s) ∧ AEStronglyMeasurable f (μ.restrict t) := by
-  simp only [union_eq_iUnion, aestronglyMeasurable_iUnion_iff, Bool.forall_bool, cond, and_comm]
+  simp only [union_eq_iUnion, aestronglyMeasurable_iUnion_iff, Bool.forall_bool, and_comm]
+  simp
 
 theorem aestronglyMeasurable_uIoc_iff [LinearOrder α] [PseudoMetrizableSpace β] {f : α → β}
     {a b : α} :

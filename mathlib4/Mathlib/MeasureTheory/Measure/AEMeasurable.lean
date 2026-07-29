@@ -147,7 +147,8 @@ theorem _root_.aemeasurable_iUnion_iff [Countable ι] {s : ι → Set α} :
 theorem _root_.aemeasurable_union_iff {s t : Set α} :
     AEMeasurable f (μ.restrict (s ∪ t)) ↔
       AEMeasurable f (μ.restrict s) ∧ AEMeasurable f (μ.restrict t) := by
-  simp only [union_eq_iUnion, aemeasurable_iUnion_iff, Bool.forall_bool, cond, and_comm]
+  simp only [union_eq_iUnion, aemeasurable_iUnion_iff, Bool.forall_bool, Bool.false_eq_true,
+    and_comm, ↓reduceIte]
 
 @[fun_prop]
 theorem smul_measure [SMul R ℝ≥0∞] [IsScalarTower R ℝ≥0∞ ℝ≥0∞]

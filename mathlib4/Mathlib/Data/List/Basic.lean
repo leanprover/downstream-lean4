@@ -930,7 +930,9 @@ theorem filter_singleton {a : α} : [a].filter p = bif p a then [a] else [] :=
 
 theorem filter_eq_foldr (p : α → Bool) (l : List α) :
     filter p l = foldr (fun a out => bif p a then a :: out else out) [] l := by
-  induction l <;> simp [*, filter]; rfl
+  induction l with
+  | nil => simp
+  | cons hd tl ih => cases h : p hd <;> simp_all
 
 @[simp]
 theorem filter_subset_self (l : List α) : filter p l ⊆ l :=

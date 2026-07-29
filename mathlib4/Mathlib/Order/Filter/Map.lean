@@ -460,7 +460,7 @@ theorem comap_sSup {s : Set (Filter β)} {m : α → β} : comap m (sSup s) = �
   simp only [sSup_eq_iSup, comap_iSup]
 
 theorem comap_sup : comap m (g₁ ⊔ g₂) = comap m g₁ ⊔ comap m g₂ := by
-  rw [sup_eq_iSup, comap_iSup, iSup_bool_eq, Bool.cond_true, Bool.cond_false]
+  rw [sup_eq_iSup, comap_iSup, iSup_bool_eq]; simp
 
 theorem map_comap (f : Filter β) (m : α → β) : (f.comap m).map m = f ⊓ 𝓟 (range m) := by
   refine le_antisymm (le_inf map_comap_le <| le_principal_iff.2 range_mem_map) ?_

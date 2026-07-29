@@ -40,11 +40,12 @@ section Pairwise
 
 variable {f g : ι → α} {s t : Set α} {a b : α}
 
-theorem pairwise_on_bool [Std.Symm r] {a b : α} : Pairwise (r on fun c ↦ cond c a b) ↔ r a b := by
+theorem pairwise_on_bool [Std.Symm r] {a b : α} :
+    Pairwise (r on fun (c : Bool) ↦ if c then a else b) ↔ r a b := by
   simpa [Pairwise, Function.onFun] using symm
 
 theorem pairwise_disjoint_on_bool [PartialOrder α] [OrderBot α] {a b : α} :
-    Pairwise (Disjoint on fun c => cond c a b) ↔ Disjoint a b :=
+    Pairwise (Disjoint on fun (c : Bool) => if c then a else b) ↔ Disjoint a b :=
   pairwise_on_bool
 
 theorem Std.Symm.pairwise_on [LinearOrder ι] [Std.Symm r] (f : ι → α) :
