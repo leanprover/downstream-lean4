@@ -87,7 +87,7 @@ lemma hom₁_single (r : σ) :
 /-!
 # Issue (Low Severity)
 
-Fixed by making `Generators.toExtension` implicit-reducible and removing `respectTransparency false`.
+Fixed by making `Generators.toExtension` implicit-reducible and removing `respectTransparency false`
 -/
 
 set_option backward.isDefEq.instanceTypes "none" in

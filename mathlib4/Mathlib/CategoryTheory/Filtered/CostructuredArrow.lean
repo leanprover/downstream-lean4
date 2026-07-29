@@ -89,8 +89,6 @@ trace: [Meta.synthInstance] ❌️ HasColimitsOfShape (CostructuredArrow L (R.ob
                         (R.obj b) =?= (Cat.of (CostructuredArrow L (R.obj b))).1
               [Meta.isDefEq.onFailure] ❌️ Category.{?u.121, u₁}
                     (CostructuredArrow L (R.obj b)) =?= Category.{u₁, u₁} ↑(Cat.of (CostructuredArrow L (R.obj b)))
-              [Meta.isDefEq.onFailure] ❌️ Category.{?u.121, u₁}
-                    (CostructuredArrow L (R.obj b)) =?= Category.{u₁, u₁} ↑(Cat.of (CostructuredArrow L (R.obj b)))
             [Meta.synthInstance] ✅️ Category.{u₁, u₁} (CostructuredArrow L (R.obj b)) (truncated)
             [Meta.isDefEq] ❌️ [instances] (Cat.of
                     (CostructuredArrow L (R.obj b))).str =?= instCategoryCostructuredArrow_1 L (R.obj b) (truncated)
@@ -103,8 +101,6 @@ trace: [Meta.synthInstance] ❌️ HasColimitsOfShape (CostructuredArrow L (R.ob
                   (CostructuredArrow L (R.obj b)) =?= Category.{u₁, u₁} (Cat.of (CostructuredArrow L (R.obj b))).1
               [Meta.isDefEq] ❌️ [instances] CostructuredArrow L (R.obj b) =?= (Cat.of (CostructuredArrow L (R.obj b))).1
                 [Meta.isDefEq.onFailure] ❌️ CostructuredArrow L (R.obj b) =?= (Cat.of (CostructuredArrow L (R.obj b))).1
-              [Meta.isDefEq.onFailure] ❌️ Category.{?u.121, u₁}
-                    (CostructuredArrow L (R.obj b)) =?= Category.{u₁, u₁} (Cat.of (CostructuredArrow L (R.obj b))).1
               [Meta.isDefEq.onFailure] ❌️ Category.{?u.121, u₁}
                     (CostructuredArrow L (R.obj b)) =?= Category.{u₁, u₁} (Cat.of (CostructuredArrow L (R.obj b))).1
             [Meta.synthInstance] ✅️ Category.{u₁, u₁} (CostructuredArrow L (R.obj b)) (truncated)

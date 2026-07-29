@@ -303,11 +303,15 @@ namespace AddCommGrpCat
 
 open QuotientAddGroup
 
-/-! # Issue (Low Severity) -/
+/-!
+# Issue (Trivial Severity)
+
+Actually, the `respectTransparency false` "fixes it" already by *preventing* a bump.
+However, the sustainable fix would be to fix the `lift_mk` rfl lemma.
+-/
 
 set_option backward.isDefEq.respectTransparency false in
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.instanceTypes "none" in
 /-- The categorical cokernel of a morphism in `AddCommGrpCat`
 agrees with the usual group-theoretical quotient.
 -/
@@ -327,32 +331,6 @@ noncomputable def cokernelIsoQuotient {G H : AddCommGrpCat.{u}} (f : G ⟶ H) :
   inv_hom_id := by
     ext x
     dsimp only [hom_comp, hom_ofHom, hom_zero, AddMonoidHom.coe_comp, coe_mk', lift_mk,
-      Function.comp_apply, AddMonoidHom.zero_apply, id_eq, hom_id, AddMonoidHom.coe_id]
-    exact QuotientAddGroup.induction_on (α := H) x <| cokernel.π_desc_apply f _ _
-
-/-!
-# Fix
-
-Remove bad rfl lemma `lift_mk` from dsimp set.
- -/
-
-
-noncomputable example {G H : AddCommGrpCat.{u}} (f : G ⟶ H) :
-    cokernel f ≅ AddCommGrpCat.of (H ⧸ AddMonoidHom.range f.hom) where
-  hom := cokernel.desc f (ofHom (mk' _)) <| by
-        ext x
-        simp
-  inv := ofHom <|
-    QuotientAddGroup.lift _ (cokernel.π f).hom <| by
-      rintro _ ⟨x, rfl⟩
-      exact cokernel.condition_apply f x
-  hom_inv_id := by
-    refine coequalizer.hom_ext ?_
-    simp only [coequalizer_as_cokernel, cokernel.π_desc_assoc, Category.comp_id]
-    rfl
-  inv_hom_id := by
-    ext x
-    dsimp only [hom_comp, hom_ofHom, hom_zero, AddMonoidHom.coe_comp, coe_mk',
       Function.comp_apply, AddMonoidHom.zero_apply, id_eq, hom_id, AddMonoidHom.coe_id]
     exact QuotientAddGroup.induction_on (α := H) x <| cokernel.π_desc_apply f _ _
 

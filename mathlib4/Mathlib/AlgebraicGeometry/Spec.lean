@@ -315,8 +315,6 @@ trace: [Meta.synthInstance] ✅️ IsLocalHom
                           p.asIdeal =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).1
                 [Meta.isDefEq.onFailure] ❌️ (Ideal.comap (CommRingCat.Hom.hom f)
                         p.asIdeal).IsPrime =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime
-                [Meta.isDefEq.onFailure] ❌️ (Ideal.comap (CommRingCat.Hom.hom f)
-                        p.asIdeal).IsPrime =?= (PrimeSpectrum.comap (CommRingCat.Hom.hom f) p).asIdeal.IsPrime
               [Meta.synthInstance] ✅️ (Ideal.comap (CommRingCat.Hom.hom f) p.asIdeal).IsPrime (truncated)
               [Meta.isDefEq] ✅️ [instances] (PrimeSpectrum.comap (CommRingCat.Hom.hom f)
                       p).isPrime =?= Ideal.IsPrime.comap (CommRingCat.Hom.hom f) (truncated)
