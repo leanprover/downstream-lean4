@@ -1034,7 +1034,8 @@ set_option linter.unusedVariables false in
 The definition of `TangentSpace` is not reducible so that type class inference
 does not pick wrong instances.
 -/
-@[nolint unusedArguments, wikidata Q909601]
+-- TODO: The `implicit_reducible` causes issues in `SpecificFunctions` and `MFDeriv.NormedSpace`
+@[nolint unusedArguments, wikidata Q909601, implicit_reducible]
 def TangentSpace {𝕜 : Type*} [NontriviallyNormedField 𝕜]
     {E : Type u} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     {H : Type*} [TopologicalSpace H] (I : ModelWithCorners 𝕜 E H)

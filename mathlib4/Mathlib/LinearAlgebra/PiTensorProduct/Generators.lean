@@ -47,6 +47,14 @@ noncomputable def equivPiTensorComplSingletonTensor (i₀ : ι) :
 
 variable (i₀ : ι)
 
+/-!
+# Issue
+
+No fix found. 58 semireducible candidates tried singly and jointly;
+`respectTransparency.types false` is not enough and `instanceTypes "none"` is
+independently required.
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]

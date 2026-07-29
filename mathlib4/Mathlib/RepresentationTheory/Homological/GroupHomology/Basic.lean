@@ -139,7 +139,6 @@ theorem d_single (n : ℕ) (g : Fin (n + 1) → G) (a : A) :
 
 open ModuleCat.MonoidalCategory
 
-set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.defeqAttrib.useBackward true in
 theorem d_eq [DecidableEq G] :
     d A n = (coinvariantsTensorFreeLEquiv A (Fin (n + 1) → G)).toModuleIso.inv ≫

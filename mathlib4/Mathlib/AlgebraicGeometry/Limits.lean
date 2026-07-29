@@ -313,9 +313,6 @@ trace: [Meta.synthInstance] ❌️ Mono coprod.inl
                       [Meta.isDefEq] ❌️ [instances] (pair X Y).1 { as := WalkingPair.left } =?= X
                         [Meta.isDefEq.onFailure] ❌️ (pair X Y).1 { as := WalkingPair.left } =?= X
                     [Meta.isDefEq.onFailure] ❌️ pair ((pair X Y).obj { as := WalkingPair.left }) Y =?= pair X Y
-                    [Meta.isDefEq.onFailure] ❌️ pair ((pair X Y).obj { as := WalkingPair.left }) Y =?= pair X Y
-                  [Meta.isDefEq.onFailure] ❌️ HasColimit
-                        (pair ((pair X Y).obj { as := WalkingPair.left }) Y) =?= HasColimit (pair X Y)
                   [Meta.isDefEq.onFailure] ❌️ HasColimit
                         (pair ((pair X Y).obj { as := WalkingPair.left }) Y) =?= HasColimit (pair X Y)
               [Meta.synthInstance] ✅️ HasBinaryCoproduct ((pair X Y).obj { as := WalkingPair.left }) Y (truncated)
@@ -330,9 +327,6 @@ trace: [Meta.synthInstance] ❌️ Mono coprod.inl
                       [Meta.isDefEq] ❌️ [implicit] X =?= (pair X Y).1 { as := WalkingPair.left }
                         [Meta.isDefEq.onFailure] ❌️ X =?= (pair X Y).1 { as := WalkingPair.left }
                     [Meta.isDefEq.onFailure] ❌️ pair X Y =?= pair ((pair X Y).obj { as := WalkingPair.left }) Y
-                    [Meta.isDefEq.onFailure] ❌️ pair X Y =?= pair ((pair X Y).obj { as := WalkingPair.left }) Y
-                  [Meta.isDefEq.onFailure] ❌️ HasColimit
-                        (pair X Y) =?= HasColimit (pair ((pair X Y).obj { as := WalkingPair.left }) Y)
                   [Meta.isDefEq.onFailure] ❌️ HasColimit
                         (pair X Y) =?= HasColimit (pair ((pair X Y).obj { as := WalkingPair.left }) Y)
           [Meta.isDefEq] ❌️ [instances] colimit.ι (pair ((pair X Y).obj { as := WalkingPair.left }) Y)
@@ -353,9 +347,6 @@ trace: [Meta.synthInstance] ❌️ Mono coprod.inl
                         [Meta.isDefEq] ❌️ [instances] (pair X Y).1 { as := WalkingPair.left } =?= X
                           [Meta.isDefEq.onFailure] ❌️ (pair X Y).1 { as := WalkingPair.left } =?= X
                       [Meta.isDefEq.onFailure] ❌️ pair ((pair X Y).obj { as := WalkingPair.left }) Y =?= pair X Y
-                      [Meta.isDefEq.onFailure] ❌️ pair ((pair X Y).obj { as := WalkingPair.left }) Y =?= pair X Y
-                    [Meta.isDefEq.onFailure] ❌️ HasColimit
-                          (pair ((pair X Y).obj { as := WalkingPair.left }) Y) =?= HasColimit (pair X Y)
                     [Meta.isDefEq.onFailure] ❌️ HasColimit
                           (pair ((pair X Y).obj { as := WalkingPair.left }) Y) =?= HasColimit (pair X Y)
                 [Meta.synthInstance] ✅️ HasBinaryCoproduct ((pair X Y).obj { as := WalkingPair.left }) Y (truncated)
@@ -370,9 +361,6 @@ trace: [Meta.synthInstance] ❌️ Mono coprod.inl
                         [Meta.isDefEq] ❌️ [implicit] X =?= (pair X Y).1 { as := WalkingPair.left }
                           [Meta.isDefEq.onFailure] ❌️ X =?= (pair X Y).1 { as := WalkingPair.left }
                       [Meta.isDefEq.onFailure] ❌️ pair X Y =?= pair ((pair X Y).obj { as := WalkingPair.left }) Y
-                      [Meta.isDefEq.onFailure] ❌️ pair X Y =?= pair ((pair X Y).obj { as := WalkingPair.left }) Y
-                    [Meta.isDefEq.onFailure] ❌️ HasColimit
-                          (pair X Y) =?= HasColimit (pair ((pair X Y).obj { as := WalkingPair.left }) Y)
                     [Meta.isDefEq.onFailure] ❌️ HasColimit
                           (pair X Y) =?= HasColimit (pair ((pair X Y).obj { as := WalkingPair.left }) Y)
 -/

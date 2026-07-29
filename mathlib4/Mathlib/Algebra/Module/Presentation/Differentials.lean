@@ -84,6 +84,15 @@ lemma hom₁_single (r : σ) :
     hom₁ pres (Finsupp.single r 1) = Extension.Cotangent.mk ⟨pres.relation r, by simp⟩ := by
   simp [hom₁]
 
+/-!
+# Issue
+
+No fix found. 56 semireducible candidates tried as `implicit_reducible`, singly and
+jointly; `respectTransparency false` cannot be weakened to `.types false` either, and
+`instanceTypes "none"` is independently required. The 116 failing `assign.checkTypes`
+nodes are mostly backtracking noise, so no obvious culprit.
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in

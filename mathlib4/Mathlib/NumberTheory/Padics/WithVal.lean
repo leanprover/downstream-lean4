@@ -35,6 +35,15 @@ variable {p : ℕ} [Fact p.Prime]
 
 open NNReal WithZero UniformSpace
 
+/-!
+# Issue
+
+No fix found. 71 semireducible candidates tried as `implicit_reducible`, singly and in
+the trace-guided groups; none removes `respectTransparency.types false`, and
+`instanceTypes "none"` is independently required. 435 failing `assign.checkTypes` nodes,
+almost all backtracking noise.
+-/
+
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in
 open MonoidWithZeroHom.ValueGroup₀ in

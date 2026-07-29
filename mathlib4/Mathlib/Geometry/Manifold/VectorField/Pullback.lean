@@ -208,7 +208,7 @@ lemma mpullbackWithin_eq_pullbackWithin {f : E → E'} {V : E' → E'} {s : Set 
     mpullbackWithin 𝓘(𝕜, E) 𝓘(𝕜, E') f V s = pullbackWithin 𝕜 f V s := by
   ext x
   simp only [mpullbackWithin, mfderivWithin_eq_fderivWithin, pullbackWithin]
-  rfl
+  -- rfl
 
 set_option backward.isDefEq.respectTransparency false in
 lemma mpullback_eq_pullback {f : E → E'} {V : E' → E'} :

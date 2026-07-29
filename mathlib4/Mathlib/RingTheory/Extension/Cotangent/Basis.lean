@@ -236,10 +236,24 @@ set_option backward.isDefEq.respectTransparency false in
 def basisRight : Module.Basis Unit S D.presRight.toExtension.Cotangent :=
   Generators.basisCotangentAway S D.gbar
 
+/-!
+# Issue (Low Severity)
+
+Uncontroversial fix, shared by the three `instanceTypes "none"` sites in this file.
+Making `Algebra.Generators.toExtension` implicit-reducible obsoletes both
+`respectTransparency(.types) false` and `instanceTypes "none"`.
+-/
+
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in
 /-- The basis on the cotangent space of the constructed presentation. -/
 def basis [Nontrivial S] : Module.Basis (Unit ⊕ σ) S D.pres.toExtension.Cotangent :=
+  (Module.Basis.prod D.basisRight D.basisLeft).map D.cotangentEquivProd.symm
+
+/-! # Fix -/
+
+attribute [local implicit_reducible] toExtension in
+example [Nontrivial S] : Module.Basis (Unit ⊕ σ) S D.pres.toExtension.Cotangent :=
   (Module.Basis.prod D.basisRight D.basisLeft).map D.cotangentEquivProd.symm
 
 set_option backward.isDefEq.respectTransparency false in
@@ -248,9 +262,18 @@ lemma basis_inl [Nontrivial S] :
       D.cotangentEquivProd.symm (Generators.cMulXSubOneCotangent S D.gbar, 0) := by
   simpa [basis] using! Generators.basisCotangentAway_apply _ _
 
+/-! # Issue 2 (Low Severity, same fix) -/
+
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in
 lemma basis_inr [Nontrivial S] (i : σ) :
+    D.basis (.inr i) = D.cotangentEquivProd.symm (0, D.basisLeft i) := by
+  simp [basis]
+
+/-! # Fix -/
+
+attribute [local implicit_reducible] toExtension in
+example [Nontrivial S] (i : σ) :
     D.basis (.inr i) = D.cotangentEquivProd.symm (0, D.basisLeft i) := by
   simp [basis]
 
@@ -274,6 +297,14 @@ lemma basis_apply [Nontrivial S] (r : Unit ⊕ σ) :
 end PresentationOfFreeCotangent.Aux
 
 end
+
+/-!
+# Issue 3 (Low Severity, same fix)
+
+`attribute [local implicit_reducible] Algebra.Generators.toExtension` also lets both
+`respectTransparency false` and `instanceTypes "none"` go here; no `example` since the
+proof is long.
+-/
 
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.defeqAttrib.useBackward true in

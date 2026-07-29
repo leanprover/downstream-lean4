@@ -176,10 +176,6 @@ trace: [Meta.synthInstance] ❌️ DFunLike C(C(PUnit.{?u.16 + 1}, ↑X), ↑X) 
                           [Meta.isDefEq.onFailure] ❌️ ContinuousMap =?= X.toCondensedSet.obj.1
                         [Meta.isDefEq.onFailure] ❌️ C(PUnit.{?u.16 + 1},
                               ↑X) =?= X.toCondensedSet.obj.1 (Opposite.op (of PUnit.{?u.16 + 1}))
-                        [Meta.isDefEq.onFailure] ❌️ C(PUnit.{?u.16 + 1},
-                              ↑X) =?= X.toCondensedSet.obj.1 (Opposite.op (of PUnit.{?u.16 + 1}))
-                [Meta.isDefEq.onFailure] ❌️ TopologicalSpace
-                      C(PUnit.{?u.16 + 1}, ↑X) =?= TopologicalSpace ↑X.toCondensedSet.toTopCat
                 [Meta.isDefEq.onFailure] ❌️ TopologicalSpace
                       C(PUnit.{?u.16 + 1}, ↑X) =?= TopologicalSpace ↑X.toCondensedSet.toTopCat
               [Meta.synthInstance] ✅️ TopologicalSpace C(PUnit.{?u.16 + 1}, ↑X) (truncated)

@@ -236,6 +236,10 @@ def realizedTypes (α : Type w) : Set (T.CompleteType α) :=
 
 section
 
+/-!
+# Issue (Mid Severity)
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 theorem exists_modelType_is_realized_in (p : T.CompleteType α) :
@@ -247,6 +251,29 @@ theorem exists_modelType_is_realized_in (p : T.CompleteType α) :
   refine
     (@Formula.realize_equivSentence_symm_con _
       ((M.subtheoryModel p.subset).reduct (L.lhomWithConstants α)) _ _ M.struc _ φ).trans
+      (_root_.trans (_root_.trans ?_ (p.isMaximal.isComplete.realize_sentence_iff φ M))
+        (p.isMaximal.mem_iff_models φ).symm)
+  rfl
+
+/-!
+# Fix (partial: `instanceTypes "none"` stays)
+
+Add `implicit_reducible` attributes, and `cast` the `M.struct` instance to the correct expected
+type.
+
+`cast rfl` is a quick and dirty fix. It would be better to find a more sustainable solution.
+-/
+
+attribute [local implicit_reducible] ModelType.reduct ModelType.subtheoryModel in
+example (p : T.CompleteType α) :
+    ∃ M : Theory.ModelType.{u, v, max u v w} T, p ∈ T.realizedTypes M α := by
+  obtain ⟨M⟩ := p.isMaximal.1
+  refine ⟨(M.subtheoryModel p.subset).reduct (L.lhomWithConstants α), fun a => (L.con a : M), ?_⟩
+  refine SetLike.ext fun φ => ?_
+  simp only [CompleteType.mem_typeOf]
+  refine
+    (@Formula.realize_equivSentence_symm_con _
+      ((M.subtheoryModel p.subset).reduct (L.lhomWithConstants α)) _ _ (cast rfl M.struc) _ φ).trans
       (_root_.trans (_root_.trans ?_ (p.isMaximal.isComplete.realize_sentence_iff φ M))
         (p.isMaximal.mem_iff_models φ).symm)
   rfl

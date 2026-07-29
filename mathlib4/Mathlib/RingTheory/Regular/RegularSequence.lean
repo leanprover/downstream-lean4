@@ -571,6 +571,14 @@ lemma map_first_exact_on_four_term_right_exact_of_isSMulRegular_last
 
 section Perm
 
+/-!
+# Issue
+
+No fix found. 25 semireducible candidates (`torsionBy`, `lsmul`, `ker`, ...) tried
+singly and jointly; none removes `respectTransparency.types false`, and
+`instanceTypes "none"` is independently required.
+-/
+
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in
 open _root_.LinearMap in

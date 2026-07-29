@@ -12,6 +12,8 @@ public import Mathlib.Geometry.Manifold.VectorBundle.MDifferentiable
 public import Mathlib.Geometry.Manifold.VectorField.Pullback
 import Mathlib.Geometry.Manifold.Notation
 
+meta import Lean.PostprocessTraces
+
 /-!
 # Lie brackets of vector fields on manifolds
 
@@ -26,6 +28,8 @@ The main results are the following:
   identity `[U, [V, W]] = [[U, V], W] + [V, [U, W]]`.
 
 -/
+
+open Lean.PostprocessTraces
 
 public section
 
@@ -103,13 +107,22 @@ lemma mlieBracketWithin_eq_lieBracketWithin {V W : Π (x : E), TangentSpace 𝓘
 @[simp] lemma mlieBracketWithin_univ :
     mlieBracketWithin I V W univ = mlieBracket I V W := (rfl)
 
+/-!
+# Issue (Low Severity)
+
+Can be fixed by making `TangentSpace` implicit-reducible at its definition site and then removing
+`respectTransparency false`.
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 lemma mlieBracketWithin_eq_zero_of_eq_zero (hV : V x = 0) (hW : W x = 0) :
     mlieBracketWithin I V W s x = 0 := by
   simp only [mlieBracketWithin, mpullback_apply]
   rw [lieBracketWithin_eq_zero_of_eq_zero]
-  · simp
+  · simp only [extChartAt, OpenPartialHomeomorph.extend, PartialEquiv.coe_trans,
+    ModelWithCorners.toPartialEquiv_coe, PartialHomeomorph.toFun_eq_coe,
+    OpenPartialHomeomorph.coe_toPartialHomeomorph, comp_apply, map_zero]
   · simp only [mpullbackWithin_apply]
     have : (extChartAt I x).symm ((extChartAt I x) x) = x := by simp
     rw [this, hV]
@@ -135,6 +148,13 @@ lemma mlieBracket_swap_apply : mlieBracket I V W x = - mlieBracket I W V x :=
 
 lemma mlieBracket_swap : mlieBracket I V W = - mlieBracket I W V :=
   mlieBracketWithin_swap
+
+/-!
+# Issue (Low Severity)
+
+Can be fixed by making `TangentSpace` implicit-reducible at its definition site and then removing
+`respectTransparency false`.
+-/
 
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
@@ -337,8 +357,21 @@ private lemma mfderiv_extChart_inverse_comp_aux :
       ((mfderiv[range I] φ.symm (φ x)).inverse) (W (φ.symm (φ x))) = W x := by
   rw [mfderiv_extChartAt_inverse_comp_mfderivWithin_extChartAT_symm, extChartAt_to_inv]
 
+/-!
+# Issue (High Severity)
+
+  HSMul (TangentSpace 𝓘(𝕜,𝕜) (f x)) (TangentSpace I x) ?m.238
+    └ @instHSMul                      ⇒ SMul
+      └ @SMulZeroClass.toSMul         ⇒ SMulZeroClass
+        └ @SMulWithZero.toSMulZeroClass    ⇒ SMulWithZero
+          └ MulActionWithZero.toSMulWithZero ⇒ MulActionWithZero
+            └ @Module.toMulActionWithZero    ⇒ Module
+
+would probably work with HSMul 𝕜 (TangentSpace I x) ?m.238
+-/
+
 set_option backward.isDefEq.instanceTypes "none" in
-set_option backward.isDefEq.respectTransparency false in
+-- set_option backward.isDefEq.respectTransparency false in
 /-- Pulling back through `extChartAt` the scalar multiplication of a vector field by
 the derivative of a scalar function equals the scalar multiplication by the manifold derivative. -/
 lemma mpullback_mfderivWithin_apply_smul {f : M → 𝕜}

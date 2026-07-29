@@ -133,11 +133,6 @@ trace: [Meta.synthInstance] ❌️ TensorProduct.CompatibleSMul ↑(R.obj Y) ↑
                         Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
                     ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
                         (M₂.obj Y))
-              [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
-                    ↑(M₂.obj
-                        Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
-                    ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
-                        (M₂.obj Y))
             [Meta.synthInstance] ✅️ DistribMulAction ↑(R.obj Y) ↑(M₂.obj Y) (truncated)
             [Meta.isDefEq] ❌️ [instances] ModuleCat.instModuleCarrierObjRestrictScalars.toDistribMulAction =?= (M₂.obj
                       Y).isModule.toDistribMulAction
@@ -152,11 +147,6 @@ trace: [Meta.synthInstance] ❌️ TensorProduct.CompatibleSMul ↑(R.obj Y) ↑
                     [Meta.isDefEq] ❌️ [instances] ↑(R.obj Y) =?= ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
                       [Meta.isDefEq] ❌️ [instances] (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj Y).1
                         [Meta.isDefEq.onFailure] ❌️ (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj Y).1
-                    [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
-                          ↑(M₂.obj
-                              Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
-                          ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
-                              (M₂.obj Y))
                     [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
                           ↑(M₂.obj
                               Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
@@ -183,11 +173,6 @@ trace: [Meta.synthInstance] ❌️ TensorProduct.CompatibleSMul ↑(R.obj Y) ↑
                         Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
                     ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
                         (M₂.obj Y))
-              [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
-                    ↑(M₂.obj
-                        Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
-                    ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
-                        (M₂.obj Y))
             [Meta.synthInstance] ✅️ DistribMulAction ↑(R.obj Y) ↑(M₂.obj Y) (truncated)
             [Meta.isDefEq] ❌️ [instances] { toSMul := ModuleCat.instModuleCarrierObjRestrictScalars._aux_1,
                   mul_smul := ⋯, one_smul := ⋯, smul_zero := ⋯,
@@ -202,11 +187,6 @@ trace: [Meta.synthInstance] ❌️ TensorProduct.CompatibleSMul ↑(R.obj Y) ↑
                   [Meta.isDefEq] ❌️ [instances] ↑(R.obj Y) =?= ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
                     [Meta.isDefEq] ❌️ [instances] (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj Y).1
                       [Meta.isDefEq.onFailure] ❌️ (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj Y).1
-                  [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
-                        ↑(M₂.obj
-                            Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
-                        ↑((ModuleCat.restrictScalars (RingCat.Hom.hom ((R ⋙ forget₂ CommRingCat RingCat).map f))).obj
-                            (M₂.obj Y))
                   [Meta.isDefEq.onFailure] ❌️ DistribMulAction ↑(R.obj Y)
                         ↑(M₂.obj
                             Y) =?= DistribMulAction ↑((R ⋙ forget₂ CommRingCat RingCat).obj Y)
@@ -323,8 +303,6 @@ trace: [Meta.synthInstance] ❌️ Module ↑(R.obj Y)
                           [Meta.isDefEq.onFailure] ❌️ (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
                 [Meta.isDefEq.onFailure] ❌️ Ring
                       ↑(R.obj Y) =?= Ring ((forget RingCat).obj ((R ⋙ forget₂ CommRingCat RingCat).obj X))
-                [Meta.isDefEq.onFailure] ❌️ Ring
-                      ↑(R.obj Y) =?= Ring ((forget RingCat).obj ((R ⋙ forget₂ CommRingCat RingCat).obj X))
               [Meta.synthInstance] ✅️ Ring ↑(R.obj Y) (truncated)
               [Meta.isDefEq] ❌️ RingCat.instRingObjForgetRingHomCarrier =?= CommRingCat.instCommRingObjForgetRingHomCarrier.toRing
                 [Meta.isDefEq] ❌️ ((R ⋙ forget₂ CommRingCat RingCat).obj
@@ -343,7 +321,6 @@ trace: [Meta.synthInstance] ❌️ Module ↑(R.obj Y)
                 [Meta.isDefEq] ❌️ ↑(R.obj Y) =?= ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
                   [Meta.isDefEq] ❌️ (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
                     [Meta.isDefEq.onFailure] ❌️ (R.obj Y).1 =?= ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
-                [Meta.isDefEq.onFailure] ❌️ Ring ↑(R.obj Y) =?= Ring ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
                 [Meta.isDefEq.onFailure] ❌️ Ring ↑(R.obj Y) =?= Ring ((R ⋙ forget₂ CommRingCat RingCat).obj X).1
               [Meta.synthInstance] ✅️ Ring ↑(R.obj Y) (truncated)
               [Meta.isDefEq] ❌️ ((R ⋙ forget₂ CommRingCat RingCat).obj

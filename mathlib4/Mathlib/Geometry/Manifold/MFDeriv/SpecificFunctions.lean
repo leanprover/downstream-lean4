@@ -1104,6 +1104,8 @@ section Field
 variable {z : M} {F' : Type*} [NormedField F'] [NormedAlgebra 𝕜 F'] {p q : M → F'}
   {p' q' : TangentSpace% z →L[𝕜] F'}
 
+set_option allowUnsafeReducibility true in
+attribute [local semireducible] TangentSpace in
 set_option backward.isDefEq.respectTransparency.types false in
 lemma HasMFDerivWithinAt.inv (hp : HasMFDerivWithinAt I 𝓘(𝕜, F') p s z p') (hp_ne : p z ≠ 0) :
     HasMFDerivWithinAt I 𝓘(𝕜, F') (p⁻¹) s z (-(p z ^ 2)⁻¹ • p' : E →L[𝕜] F') := by
