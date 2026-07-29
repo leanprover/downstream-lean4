@@ -119,7 +119,7 @@ where
       else
         return .node data msg (← children.mapM go) wrap
 
-/-! # Issue -/
+/-! # Issue (Medium Severity) -/
 
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in

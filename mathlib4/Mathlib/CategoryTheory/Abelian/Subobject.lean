@@ -44,7 +44,7 @@ where
       else
         return .node data msg (← children.mapM go) wrap
 
-/-! # Issue -/
+/-! # Issue (Low Severity) -/
 
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.instanceTypes "none" in
@@ -133,14 +133,8 @@ trace: [Meta.synthInstance] ❌️ Mono (kernel.ι (cokernel.π f))
                             [Meta.isDefEq] ❌️ [instances] @colimit.ι =?= @Quiver.Hom.unop
                             [Meta.isDefEq.onFailure] ❌️ colimit.ι (parallelPair f 0)
                                   WalkingParallelPair.one =?= (cokernel.π f).op.unop
-                            [Meta.isDefEq.onFailure] ❌️ colimit.ι (parallelPair f 0)
-                                  WalkingParallelPair.one =?= (cokernel.π f).op.unop
                       [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f)
                             0 =?= parallelPair (cokernel.π f).op.unop 0
-                      [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f)
-                            0 =?= parallelPair (cokernel.π f).op.unop 0
-                    [Meta.isDefEq.onFailure] ❌️ HasLimit
-                          (parallelPair (cokernel.π f) 0) =?= HasLimit (parallelPair (cokernel.π f).op.unop 0)
                     [Meta.isDefEq.onFailure] ❌️ HasLimit
                           (parallelPair (cokernel.π f) 0) =?= HasLimit (parallelPair (cokernel.π f).op.unop 0)
                 [Meta.synthInstance] ✅️ HasEqualizer (cokernel.π f) 0 (truncated)
@@ -158,14 +152,8 @@ trace: [Meta.synthInstance] ❌️ Mono (kernel.ι (cokernel.π f))
                               [Meta.isDefEq] ❌️ [instances] @Quiver.Hom.unop =?= @colimit.ι
                               [Meta.isDefEq.onFailure] ❌️ (cokernel.π
                                         f).op.unop =?= colimit.ι (parallelPair f 0) WalkingParallelPair.one
-                              [Meta.isDefEq.onFailure] ❌️ (cokernel.π
-                                        f).op.unop =?= colimit.ι (parallelPair f 0) WalkingParallelPair.one
                         [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f).op.unop
                               0 =?= parallelPair (cokernel.π f) 0
-                        [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f).op.unop
-                              0 =?= parallelPair (cokernel.π f) 0
-                      [Meta.isDefEq.onFailure] ❌️ HasLimit
-                            (parallelPair (cokernel.π f).op.unop 0) =?= HasLimit (parallelPair (cokernel.π f) 0)
                       [Meta.isDefEq.onFailure] ❌️ HasLimit
                             (parallelPair (cokernel.π f).op.unop 0) =?= HasLimit (parallelPair (cokernel.π f) 0)
             [Meta.isDefEq] ❌️ [instances] limit.π (parallelPair (cokernel.π f) 0)
@@ -192,14 +180,8 @@ trace: [Meta.synthInstance] ❌️ Mono (kernel.ι (cokernel.π f))
                                 [Meta.isDefEq] ❌️ [instances] @Quiver.Hom.unop =?= @colimit.ι
                                 [Meta.isDefEq.onFailure] ❌️ (cokernel.π
                                           f).op.unop =?= colimit.ι (parallelPair f 0) WalkingParallelPair.one
-                                [Meta.isDefEq.onFailure] ❌️ (cokernel.π
-                                          f).op.unop =?= colimit.ι (parallelPair f 0) WalkingParallelPair.one
                           [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f).op.unop
                                 0 =?= parallelPair (cokernel.π f) 0
-                          [Meta.isDefEq.onFailure] ❌️ parallelPair (cokernel.π f).op.unop
-                                0 =?= parallelPair (cokernel.π f) 0
-                        [Meta.isDefEq.onFailure] ❌️ HasLimit
-                              (parallelPair (cokernel.π f).op.unop 0) =?= HasLimit (parallelPair (cokernel.π f) 0)
                         [Meta.isDefEq.onFailure] ❌️ HasLimit
                               (parallelPair (cokernel.π f).op.unop 0) =?= HasLimit (parallelPair (cokernel.π f) 0)
 -/

@@ -527,10 +527,12 @@ def UniversalFactorizationRing.presentation :
   letI := ((MvPolynomial.mapEquivMonic R _ n).symm p).toAlgebra
   (MvPolynomial.universalFactorizationMapPresentation R n m k hn).baseChange _
 
-/-! # Issue 2 (same `HMul.hMul` fix) -/
+/-!
+# Issue 2 (Low Severity)
 
-set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "none" in
+Same.
+-/
+
 lemma UniversalFactorizationRing.jacobian_resentation :
     (presentation m k hn p).jacobian =
       (-1) ^ n * (factor₁ m k hn p).1.resultant (factor₂ m k hn p).1 := by

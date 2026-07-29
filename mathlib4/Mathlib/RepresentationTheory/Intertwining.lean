@@ -503,7 +503,7 @@ where
       else
         return .node data msg (← children.mapM go) wrap
 
-/-! # Issue -/
+/-! # Issue (Low Severity) -/
 
 /-
 If `asModule` is made implicit-reducible *at its definition site*, then `respectTransparency` false
@@ -608,7 +608,6 @@ trace: [Meta.isDefEq] ✅️ [reducible] ?f (?c • ?x) =?= f (a • v)
               [Meta.isDefEq] ❌️ [instances] ρ.asModule =?= V
                 [Meta.isDefEq.onFailure] ❌️ ρ.asModule =?= V
               [Meta.isDefEq.onFailure] ❌️ SMul A ρ.asModule =?= SMul A V
-              [Meta.isDefEq.onFailure] ❌️ SMul A ρ.asModule =?= SMul A V
             [Meta.synthInstance] ✅️ SMul A ρ.asModule (truncated)
             [Meta.isDefEq] ❌️ [instances] DistribMulAction.toDistribSMul.toSMul =?= DistribMulAction.toDistribSMul.toSMul
               [Meta.isDefEq] ❌️ [instances] DistribMulAction.toDistribSMul.toSMulZeroClass.1 =?= DistribMulAction.toDistribSMul.toSMulZeroClass.1
@@ -621,7 +620,6 @@ trace: [Meta.isDefEq] ✅️ [reducible] ?f (?c • ?x) =?= f (a • v)
               [Meta.isDefEq] ✅️ [instances] A =?= A
               [Meta.isDefEq] ❌️ [instances] ρ.asModule =?= V
                 [Meta.isDefEq.onFailure] ❌️ ρ.asModule =?= V
-              [Meta.isDefEq.onFailure] ❌️ SMul A ρ.asModule =?= SMul A V
               [Meta.isDefEq.onFailure] ❌️ SMul A ρ.asModule =?= SMul A V
             [Meta.synthInstance] ✅️ SMul A ρ.asModule (truncated)
             [Meta.isDefEq] ❌️ [instances] inst✝².toSemigroupAction.1 =?= DistribMulAction.toDistribSMul.toSMul

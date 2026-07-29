@@ -256,7 +256,7 @@ theorem exists_modelType_is_realized_in (p : T.CompleteType α) :
   rfl
 
 /-!
-# Fix (partial: `instanceTypes "none"` stays)
+# Fix
 
 Add `implicit_reducible` attributes, and `cast` the `M.struct` instance to the correct expected
 type.

@@ -748,7 +748,6 @@ def unitsModPrincipalUnitsEquivResidueFieldUnits :
   QuotientGroup.liftEquiv _ A.surjective_unitGroupToResidueFieldUnits
     A.ker_unitGroupToResidueFieldUnits.symm
 
--- set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 theorem unitsModPrincipalUnitsEquivResidueFieldUnits_comp_quotientGroup_mk :
     (A.unitsModPrincipalUnitsEquivResidueFieldUnits : _ ⧸ Subgroup.comap _ _ →* _).comp

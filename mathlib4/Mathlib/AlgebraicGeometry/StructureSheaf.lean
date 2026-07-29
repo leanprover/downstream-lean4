@@ -500,7 +500,7 @@ theorem exists_le_iSup_basicOpen_and_smul_eq_smul_and_eq_const
 
 set_option linter.style.longLine false
 
-/-! # Issue -/
+/-! # Issue (Low Severity) -/
 
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in

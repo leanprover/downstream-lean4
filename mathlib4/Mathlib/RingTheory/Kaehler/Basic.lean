@@ -193,11 +193,9 @@ theorem KaehlerDifferential.DLinearMap_apply (s : S) :
         ⟨1 ⊗ₜ s - s ⊗ₜ 1, KaehlerDifferential.one_smul_sub_smul_one_mem_ideal R s⟩ := rfl
 
 /-!
-# Issue
+# Issue (Low Severity)
 
-No fix found. 67 semireducible candidates tried singly; `respectTransparency false`
-cannot be weakened to `.types false`, and `instanceTypes "none"` is independently
-required. Failing checks are around `Ideal.Cotangent`/`ideal R S • ⊤`.
+Fixed by making `KaehlerDifferential` implicit-reducible at definition site.
 -/
 
 set_option backward.isDefEq.instanceTypes "none" in

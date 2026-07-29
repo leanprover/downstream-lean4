@@ -144,7 +144,6 @@ trace: [Meta.synthInstance] ✅️ PosSMulReflectLT k Eᵒᵈ
                 [Meta.isDefEq] ❌️ [instances] E =?= Eᵒᵈ
                   [Meta.isDefEq.onFailure] ❌️ E =?= Eᵒᵈ
                 [Meta.isDefEq.onFailure] ❌️ SMul k E =?= SMul k Eᵒᵈ
-                [Meta.isDefEq.onFailure] ❌️ SMul k E =?= SMul k Eᵒᵈ
               [Meta.synthInstance] ✅️ SMul k E (truncated)
               [Meta.isDefEq] ✅️ [default] DistribMulAction.toDistribSMul.toSMul =?= DistribMulAction.toDistribSMul.toSMul (truncated)
 ---

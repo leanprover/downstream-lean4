@@ -157,7 +157,7 @@ isomorphisms on the right side. -/
 def propArrow : MorphismProperty (Arrow C) := fun _ _ f ↦
   (coproducts.{w} I).pushouts f.left ∧ (isomorphisms C) f.right
 
-/-! # Issue -/
+/-! # Issue (Low Severity) -/
 
 -- Works with "markOrSynth" if `Arrow` and `Arrow.Hom` are made implicit-reducible.
 set_option backward.isDefEq.instanceTypes "none" in
@@ -238,9 +238,6 @@ trace: [Meta.synthInstance] ❌️ Category.{max u v, max u v} (Comma (𝟭 C) (
                 [Meta.isDefEq] ❌️ [instances] Comma (𝟭 C) (𝟭 C) =?= Arrow C
                   [Meta.isDefEq] ❌️ [instances] @Comma =?= Arrow
                   [Meta.isDefEq.onFailure] ❌️ Comma (𝟭 C) (𝟭 C) =?= Arrow C
-                  [Meta.isDefEq.onFailure] ❌️ Comma (𝟭 C) (𝟭 C) =?= Arrow C
-                [Meta.isDefEq.onFailure] ❌️ Category.{?u.59, max u v}
-                      (Comma (𝟭 C) (𝟭 C)) =?= Category.{v, max u v} (Arrow C)
                 [Meta.isDefEq.onFailure] ❌️ Category.{?u.59, max u v}
                       (Comma (𝟭 C) (𝟭 C)) =?= Category.{v, max u v} (Arrow C)
               [Meta.synthInstance] ✅️ Category.{v, max u v} (Comma (𝟭 C) (𝟭 C)) (truncated)
@@ -256,9 +253,6 @@ trace: [Meta.synthInstance] ❌️ Category.{max u v, max u v} (Comma (𝟭 C) (
                 [Meta.isDefEq] ❌️ [instances] Comma (𝟭 C) (𝟭 C) =?= Arrow C
                   [Meta.isDefEq] ❌️ [instances] @Comma =?= Arrow
                   [Meta.isDefEq.onFailure] ❌️ Comma (𝟭 C) (𝟭 C) =?= Arrow C
-                  [Meta.isDefEq.onFailure] ❌️ Comma (𝟭 C) (𝟭 C) =?= Arrow C
-                [Meta.isDefEq.onFailure] ❌️ Category.{?u.59, max u v}
-                      (Comma (𝟭 C) (𝟭 C)) =?= Category.{v, max u v} (Arrow C)
                 [Meta.isDefEq.onFailure] ❌️ Category.{?u.59, max u v}
                       (Comma (𝟭 C) (𝟭 C)) =?= Category.{v, max u v} (Arrow C)
               [Meta.synthInstance] ✅️ Category.{v, max u v} (Comma (𝟭 C) (𝟭 C)) (truncated)

@@ -48,17 +48,39 @@ noncomputable def equivPiTensorComplSingletonTensor (i₀ : ι) :
 variable (i₀ : ι)
 
 /-!
-# Issue
-
-No fix found. 58 semireducible candidates tried singly and jointly;
-`respectTransparency.types false` is not enough and `instanceTypes "none"` is
-independently required.
+# Issue (Low Severity)
 -/
 
 set_option backward.isDefEq.instanceTypes "none" in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma equivPiTensorComplSingletonTensor_tprod (i₀ : ι) (m : ∀ i, M i) :
+    equivPiTensorComplSingletonTensor R M i₀ (⨂ₜ[R] i, m i) =
+      (⨂ₜ[R] (j : ((Set.singleton i₀)ᶜ : Set ι)), m j) ⊗ₜ m i₀:= by
+  dsimp [equivPiTensorComplSingletonTensor]
+  have : (reindex R M (Equiv.subtypeNeSumPUnit.{0} i₀).symm) (⨂ₜ[R] (i : ι), m i) =
+      ⨂ₜ[R] j, m ((Equiv.subtypeNeSumPUnit.{0} i₀) j) := by
+    simp_rw [reindex_tprod (R := R) (s := M), Equiv.symm_symm]
+  rw [dsimp% this, dsimp% tmulEquivDep_symm_apply R
+    (fun i ↦ M ((Equiv.subtypeNeSumPUnit.{0} i₀) i))]
+  exact (LinearEquiv.lTensor_tmul _ _ _ _).trans (by congr; simp)
+
+/-!
+# Fix
+
+Again the `respectTransparency` interaction. Getting rid of that would help.
+-/
+attribute [local implicit_reducible]
+  Equiv.trans
+  Equiv.optionSubtype
+  Equiv.optionEquivSumPUnit
+  Equiv.refl
+  Set.singleton
+  Option.casesOn'
+  Equiv.optionSubtypeNe
+  Sum.elim
+in
+example (i₀ : ι) (m : ∀ i, M i) :
     equivPiTensorComplSingletonTensor R M i₀ (⨂ₜ[R] i, m i) =
       (⨂ₜ[R] (j : ((Set.singleton i₀)ᶜ : Set ι)), m j) ⊗ₜ m i₀:= by
   dsimp [equivPiTensorComplSingletonTensor]

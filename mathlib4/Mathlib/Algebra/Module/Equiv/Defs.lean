@@ -675,17 +675,12 @@ trace: [Meta.synthInstance] ❌️ CoeFun (R ≃ₛₗ[↑f] S) ?m.35
                   [Meta.isDefEq] ❌️ [instances] f =?= f.symm.symm
                     [Meta.isDefEq.onFailure] ❌️ f =?= f.symm.symm
                   [Meta.isDefEq.onFailure] ❌️ ↑f =?= ↑f.symm.symm
-                  [Meta.isDefEq.onFailure] ❌️ ↑f =?= ↑f.symm.symm
-                [Meta.isDefEq.onFailure] ❌️ RingHomInvPair ↑f ↑f.symm =?= RingHomInvPair ↑f.symm.symm ↑f.symm
                 [Meta.isDefEq.onFailure] ❌️ RingHomInvPair ↑f ↑f.symm =?= RingHomInvPair ↑f.symm.symm ↑f.symm
               [Meta.synthInstance] ❌️ RingHomInvPair ↑f ↑f.symm
                 [Meta.synthInstance] ✅️ no instances for RingHomInvPair (↑f) _tc.0
                   [Meta.synthInstance.instances] #[]
                 [Meta.synthInstance] result <not-available>
           [Meta.isDefEq.onFailure] ❌️ R ≃ₛₗ[↑f] S =?= ?m.48 ≃ₛₗ[?m.56] ?m.49
-          [Meta.isDefEq.onFailure] ❌️ R ≃ₛₗ[↑f] S =?= ?m.48 ≃ₛₗ[?m.56] ?m.49
-        [Meta.isDefEq.onFailure] ❌️ EquivLike (R ≃ₛₗ[↑f] S) ?m.43
-              ?m.44 =?= EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
         [Meta.isDefEq.onFailure] ❌️ EquivLike (R ≃ₛₗ[↑f] S) ?m.43
               ?m.44 =?= EquivLike (?m.48 ≃ₛₗ[?m.56] ?m.49) ?m.48 ?m.49
 -/

@@ -1013,7 +1013,6 @@ lemma ringEquivOfRingEquiv_refl :
   simp [semilinearEquivOfRingEquiv]
 
 set_option backward.isDefEq.respectTransparency.types false in
--- set_option backward.isDefEq.instanceTypes "none" in
 lemma ringEquivOfRingEquiv_spanSingleton (x : K) :
     FractionalIdeal.ringEquivOfRingEquiv K L f (spanSingleton R⁰ x) =
       spanSingleton S⁰ (IsFractionRing.ringEquivOfRingEquiv (L := L) f x) := by

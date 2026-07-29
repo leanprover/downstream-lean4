@@ -492,19 +492,16 @@ noncomputable def semilinearEquivOfRingEquiv : K ≃ₛₗ[(f : A →+* B)] L :=
   map_smul' r x := by simp [Algebra.smul_def] }
 
 set_option backward.isDefEq.respectTransparency.types false in
--- set_option backward.isDefEq.instanceTypes "none" in
 lemma semilinearEquivOfRingEquiv_apply (x : K) :
     (semilinearEquivOfRingEquiv K L f) x = (ringEquivOfRingEquiv f) x := rfl
 
 set_option backward.isDefEq.respectTransparency.types false in
--- set_option backward.isDefEq.instanceTypes "none" in
 @[simp]
 lemma semilinearEquivOfRingEquiv_algebraMap (a : A) :
     semilinearEquivOfRingEquiv K L f (algebraMap A K a) = algebraMap B L (f a) := by
   simp [semilinearEquivOfRingEquiv, ringEquivOfRingEquiv]
 
 set_option backward.isDefEq.respectTransparency.types false in
--- set_option backward.isDefEq.instanceTypes "none" in
 lemma semilinearEquivOfRingEquiv_symm_apply (x : L) :
     (semilinearEquivOfRingEquiv K L f).symm x = (ringEquivOfRingEquiv f).symm x := rfl
 
