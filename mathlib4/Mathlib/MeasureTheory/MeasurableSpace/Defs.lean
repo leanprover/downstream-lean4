@@ -194,17 +194,16 @@ protected theorem MeasurableSet.ite {t s₁ s₂ : Set α} (ht : MeasurableSet t
     (h₁ : MeasurableSet s₁) (h₂ : MeasurableSet s₂) : MeasurableSet (t.ite s₁ s₂) :=
   (h₁.inter ht).union (h₂.diff ht)
 
-open scoped Classical in
+@[simp]
 theorem MeasurableSet.ite' {s t : Set α} {p : Prop} (hs : p → MeasurableSet s)
-    (ht : ¬p → MeasurableSet t) : MeasurableSet (ite p s t) := by
+    (ht : ¬p → MeasurableSet t) {_ : Decidable p} : MeasurableSet (ite p s t) := by
   split_ifs with h
   exacts [hs h, ht h]
 
-@[simp, measurability]
+@[measurability]
 protected theorem MeasurableSet.cond {s₁ s₂ : Set α} (h₁ : MeasurableSet s₁)
     (h₂ : MeasurableSet s₂) {i : Bool} : MeasurableSet (cond i s₁ s₂) := by
-  cases i
-  exacts [h₂, h₁]
+  simp_all
 
 protected theorem MeasurableSet.const (p : Prop) : MeasurableSet { _a : α | p } := by
   by_cases p <;> simp [*]
