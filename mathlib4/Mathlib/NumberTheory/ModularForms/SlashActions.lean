@@ -250,7 +250,7 @@ lemma prod_slash {ι : Type*} {k : ℤ} {g : GL (Fin 2) ℝ} {f : ι → ℍ →
   rw [this]
   exact prod_slash_sum_weights
 
-@[deprecated prod_slash (since := "2026-01-22")]
+@[deprecated prod_slash +typeChanged (since := "2026-01-22")]
 lemma prod_fintype_slash {ι : Type*} [Fintype ι] [Nonempty ι] {k : ℤ} {g : GL (Fin 2) ℝ}
     {f : ι → ℍ → ℂ} : (∏ i, f i) ∣[k * Fintype.card ι] g =
       |g.det.val| ^ (Fintype.card ι - 1) • (∏ i, f i ∣[k] g) := by

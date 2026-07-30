@@ -75,7 +75,7 @@ theorem HasDerivAtFilter.scomp (hg : HasDerivAtFilter g₁ g₁' L')
     HasDerivAtFilter (g₁ ∘ h) (h' • g₁') L := by
   simpa using ((hg.hasFDerivAtFilter.restrictScalars 𝕜).comp hh hL).hasDerivAtFilter
 
-@[deprecated HasDerivAtFilter.scomp (since := "2026-02-17")]
+@[deprecated HasDerivAtFilter.scomp +typeChanged (since := "2026-02-17")]
 theorem HasDerivAtFilter.scomp_of_eq {L : Filter 𝕜} {L' : Filter 𝕜'}
     (hg : HasDerivAtFilter g₁ g₁' (L' ×ˢ pure y)) (hh : HasDerivAtFilter h h' (L ×ˢ pure x))
     (hy : y = h x) (hL : Tendsto h L L') :
@@ -165,7 +165,7 @@ theorem HasDerivAtFilter.comp_hasFDerivAtFilter {f : E → 𝕜'} {f' : E →L[�
   ext x
   simp [mul_comm]
 
-@[deprecated HasDerivAtFilter.comp_hasFDerivAtFilter (since := "2026-02-17")]
+@[deprecated HasDerivAtFilter.comp_hasFDerivAtFilter +typeChanged (since := "2026-02-17")]
 theorem HasDerivAtFilter.comp_hasFDerivAtFilter_of_eq
     {f : E → 𝕜'} {f' : E →L[𝕜] 𝕜'} (x) {L' : Filter 𝕜'} {L'' : Filter E}
     (hh₂ : HasDerivAtFilter h₂ h₂' (L' ×ˢ pure y)) (hf : HasFDerivAtFilter f f' (L'' ×ˢ pure x))
@@ -233,7 +233,7 @@ theorem HasDerivAtFilter.comp (hh₂ : HasDerivAtFilter h₂ h₂' L')
   rw [mul_comm]
   exact hh₂.scomp hh hL
 
-@[deprecated HasDerivAtFilter.comp (since := "2026-07-17")]
+@[deprecated HasDerivAtFilter.comp +typeChanged (since := "2026-07-17")]
 theorem HasDerivAtFilter.comp_of_eq {L : Filter 𝕜} {L' : Filter 𝕜'}
     (hh₂ : HasDerivAtFilter h₂ h₂' (L' ×ˢ pure y))
     (hh : HasDerivAtFilter h h' (L ×ˢ pure x)) (hL : Tendsto h L L') (hy : y = h x) :

@@ -405,7 +405,7 @@ def equivWithVal (v : Valuation R Γ₀) (w : Valuation R Γ'₀) :
     WithVal v ≃+* WithVal w :=
   (equiv v).trans (equiv w).symm
 
-@[deprecated WithVal.congr_symm (since := "2026-01-27")]
+@[deprecated WithVal.congr_symm +typeChanged (since := "2026-01-27")]
 theorem equivWithVal_symm (v : Valuation R Γ₀) (w : Valuation R Γ'₀) :
     (congr v w (.refl R)).symm = congr w v (.refl R) := rfl
 

@@ -181,7 +181,7 @@ theorem vlt.ne_zero (h : x <ᵥ y) : y ≠ 0 := by
 lemma zero_vlt_one : (0 : R) <ᵥ 1 :=
   not_vle_one_zero
 
-@[deprecated mul_vle_mul_left (since := "2026-01-06")]
+@[deprecated mul_vle_mul_left +typeChanged (since := "2026-01-06")]
 lemma vle_mul_right (z) (h : x ≤ᵥ y) : x * z ≤ᵥ y * z :=
   mul_vle_mul_left h z
 

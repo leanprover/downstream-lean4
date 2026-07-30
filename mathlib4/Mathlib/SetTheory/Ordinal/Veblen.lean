@@ -130,7 +130,7 @@ theorem veblenWith_add_one (o : Ordinal) : veblenWith f (o + 1) = deriv (veblenW
 theorem veblenWith_one : veblenWith f 1 = deriv f := by
   simpa using veblenWith_add_one hf 0
 
-@[deprecated veblenWith_add_one (since := "2026-02-26")]
+@[deprecated veblenWith_add_one +typeChanged (since := "2026-02-26")]
 theorem veblenWith_succ (o : Ordinal) : veblenWith f (succ o) = deriv (veblenWith f o) :=
   veblenWith_add_one hf o
 
@@ -310,7 +310,7 @@ theorem veblen_mem_range_opow (o a : Ordinal) : veblen o a ∈ range (ω ^ · : 
 theorem veblen_add_one (o : Ordinal) : veblen (o + 1) = deriv (veblen o) :=
   veblenWith_add_one (isNormal_opow one_lt_omega0) o
 
-@[deprecated veblen_add_one (since := "2026-02-26")]
+@[deprecated veblen_add_one +typeChanged (since := "2026-02-26")]
 theorem veblen_succ (o : Ordinal) : veblen (succ o) = deriv (veblen o) :=
   veblen_add_one o
 

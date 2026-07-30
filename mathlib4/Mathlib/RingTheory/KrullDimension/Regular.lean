@@ -148,14 +148,15 @@ lemma _root_.ringKrullDim_le_ringKrullDim_quotSMulTop_succ {x : R} (hx : x ∈ m
   rw [← Module.supportDim_self_eq_ringKrullDim, ← Module.supportDim_quotient_eq_ringKrullDim]
   exact supportDim_le_supportDim_quotSMulTop_succ hx
 
-@[deprecated ringKrullDim_le_ringKrullDim_quotient_add_card (since := "2026-01-12")]
+@[deprecated ringKrullDim_le_ringKrullDim_quotient_add_card +typeChanged (since := "2026-01-12")]
 lemma _root_.ringKrullDim_le_ringKrullDim_add_card {S : Finset R}
     (hS : (S : Set R) ⊆ maximalIdeal R) :
     ringKrullDim R ≤ ringKrullDim (R ⧸ Ideal.span (SetLike.coe S)) + S.card := by
   apply ringKrullDim_le_ringKrullDim_quotient_add_card
   rwa [IsLocalRing.ringJacobson_eq_maximalIdeal]
 
-@[deprecated ringKrullDim_le_ringKrullDim_quotient_add_spanFinrank (since := "2026-01-12")]
+@[deprecated ringKrullDim_le_ringKrullDim_quotient_add_spanFinrank
+  +typeChanged (since := "2026-01-12")]
 lemma _root_.ringKrullDim_le_ringKrullDim_add_spanFinrank {I : Ideal R} (h : I ≠ ⊤) :
     ringKrullDim R ≤ ringKrullDim (R ⧸ I) + I.spanFinrank := by
   apply ringKrullDim_le_ringKrullDim_quotient_add_spanFinrank

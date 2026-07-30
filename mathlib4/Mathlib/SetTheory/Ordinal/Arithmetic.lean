@@ -169,7 +169,7 @@ theorem limitRecOn_add_one {motive} (o H₁ H₂ H₃) :
     @limitRecOn motive (o + 1) H₁ H₂ H₃ = H₂ o (@limitRecOn motive o H₁ H₂ H₃) :=
   SuccOrder.limitRecOn_succ ..
 
-@[deprecated limitRecOn_add_one (since := "2026-05-21")]
+@[deprecated limitRecOn_add_one +typeChanged (since := "2026-05-21")]
 theorem limitRecOn_succ {motive} (o H₁ H₂ H₃) :
     @limitRecOn motive (succ o) H₁ H₂ H₃ = H₂ o (@limitRecOn motive o H₁ H₂ H₃) :=
   limitRecOn_add_one ..
@@ -187,7 +187,7 @@ theorem enum_succ_eq_top {o : Ordinal} :
   rfl
 
 set_option backward.isDefEq.respectTransparency false in
-@[deprecated isSuccPrelimit_type_lt_iff (since := "2026-04-12")]
+@[deprecated isSuccPrelimit_type_lt_iff +typeChanged (since := "2026-04-12")]
 theorem has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : IsWellOrder α r]
     (h : ∀ a < type r, succ a < type r) (x : α) : ∃ y, r x y := by
   use enum r ⟨succ (typein r x), h _ (typein_lt_type r x)⟩
@@ -195,7 +195,7 @@ theorem has_succ_of_type_succ_lt {α} {r : α → α → Prop} [wo : IsWellOrder
   · rw [enum_typein]
   · rw [Subtype.mk_lt_mk, lt_succ_iff]
 
-@[deprecated isSuccPrelimit_type_lt_iff (since := "2026-04-12")]
+@[deprecated isSuccPrelimit_type_lt_iff +typeChanged (since := "2026-04-12")]
 theorem toType_noMax_of_succ_lt {o : Ordinal} (ho : ∀ a < o, succ a < o) : NoMaxOrder o.ToType :=
   ⟨has_succ_of_type_succ_lt (type_toType _ ▸ ho)⟩
 
@@ -219,7 +219,7 @@ def pred (o : Ordinal) : Ordinal :=
 theorem pred_add_one (o) : pred (o + 1) = o :=
   isSuccPrelimitRecOn_succ ..
 
-@[deprecated pred_add_one (since := "2026-05-25")]
+@[deprecated pred_add_one +typeChanged (since := "2026-05-25")]
 theorem pred_succ (o) : pred (succ o) = o :=
   pred_add_one o
 
@@ -599,11 +599,11 @@ theorem lt_div {a b c : Ordinal} (h : c ≠ 0) : a < b / c ↔ c * succ a ≤ b 
 
 theorem div_pos {b c : Ordinal} (h : c ≠ 0) : 0 < b / c ↔ c ≤ b := by simp [lt_div h]
 
-@[deprecated mul_le_iff_le_div (since := "2026-02-27")]
+@[deprecated mul_le_iff_le_div +typeChanged (since := "2026-02-27")]
 theorem le_div {a b c : Ordinal} (c0 : c ≠ 0) : a ≤ b / c ↔ c * a ≤ b :=
   (mul_le_iff_le_div c0).symm
 
-@[deprecated lt_mul_iff_div_lt (since := "2026-02-27")]
+@[deprecated lt_mul_iff_div_lt +typeChanged (since := "2026-02-27")]
 theorem div_lt {a b c : Ordinal} (b0 : b ≠ 0) : a / b < c ↔ a < b * c :=
   (lt_mul_iff_div_lt b0).symm
 
@@ -831,11 +831,11 @@ instance instCharZero : CharZero Ordinal := by
   refine ⟨fun a b h ↦ ?_⟩
   rwa [← Cardinal.ord_natCast, ← Cardinal.ord_natCast, Cardinal.ord_inj, Nat.cast_inj] at h
 
-@[deprecated Nat.cast_add_one_comm (since := "2026-05-10")]
+@[deprecated Nat.cast_add_one_comm +typeChanged (since := "2026-05-10")]
 theorem one_add_natCast (m : ℕ) : 1 + (m : Ordinal) = succ m :=
   m.cast_add_one_comm.symm
 
-@[deprecated Nat.cast_add_one_comm (since := "2026-05-10")]
+@[deprecated Nat.cast_add_one_comm +typeChanged (since := "2026-05-10")]
 theorem one_add_ofNat (m : ℕ) [m.AtLeastTwo] :
     1 + (ofNat(m) : Ordinal) = Order.succ (OfNat.ofNat m : Ordinal) :=
   m.cast_add_one_comm.symm
@@ -991,7 +991,7 @@ theorem isSuccPrelimit_iff_omega0_dvd {a : Ordinal} : IsSuccPrelimit a ↔ ω �
   · rcases h with ⟨a0, b, rfl⟩
     exact isSuccPrelimit_mul_left isSuccLimit_omega0
 
-@[deprecated isSuccPrelimit_iff_omega0_dvd (since := "2026-02-01")]
+@[deprecated isSuccPrelimit_iff_omega0_dvd +typeChanged (since := "2026-02-01")]
 theorem isSuccLimit_iff_omega0_dvd {a : Ordinal} : IsSuccLimit a ↔ a ≠ 0 ∧ ω ∣ a := by
   rw [isSuccLimit_iff, isSuccPrelimit_iff_omega0_dvd]
 

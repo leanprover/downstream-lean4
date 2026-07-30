@@ -127,7 +127,7 @@ section CommSemiring
 variable [CommSemiring R] [AddCommMonoid M] [Module R M]
 variable {N N' : Submodule R M} {S : Set M}
 
-@[deprecated mem_colon (since := "2026-01-15")]
+@[deprecated mem_colon +typeChanged (since := "2026-01-15")]
 theorem mem_colon' {r} : r ∈ N.colon S ↔ S ≤ comap (r • (LinearMap.id : M →ₗ[R] M)) N :=
   mem_colon
 

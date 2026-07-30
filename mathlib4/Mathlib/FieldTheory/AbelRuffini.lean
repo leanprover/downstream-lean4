@@ -197,7 +197,7 @@ def solvableByRad : IntermediateField F E :=
 
 variable (F) in
 /-- Inductive definition of solvable by radicals -/
-@[deprecated solvableByRad (since := "2026-02-28")]
+@[deprecated solvableByRad +typeChanged (since := "2026-02-28")]
 inductive IsSolvableByRad : E → Prop
   | base (α : F) : IsSolvableByRad (algebraMap F E α)
   | add (α β : E) : IsSolvableByRad α → IsSolvableByRad β → IsSolvableByRad (α + β)

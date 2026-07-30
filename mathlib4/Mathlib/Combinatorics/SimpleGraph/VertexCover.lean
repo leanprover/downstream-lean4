@@ -190,7 +190,7 @@ theorem IsContained.vertexCoverNum_le_vertexCoverNum (h : G ⊑ H) :
   grw [this.vertexCoverNum_le, ← hs₁]
   exact Function.Embedding.encard_le <| Function.Embedding.mk f hf |>.subtypeMap (by simp)
 
-@[deprecated IsContained.vertexCoverNum_le_vertexCoverNum (since := "2026-01-07")]
+@[deprecated IsContained.vertexCoverNum_le_vertexCoverNum +typeChanged (since := "2026-01-07")]
 theorem vertexCoverNum_le_vertexCoverNum_of_injective (f : G →g H) (hf : Function.Injective f) :
     vertexCoverNum G ≤ vertexCoverNum H :=
   IsContained.vertexCoverNum_le_vertexCoverNum ⟨f, hf⟩

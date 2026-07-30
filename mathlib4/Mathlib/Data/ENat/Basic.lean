@@ -315,7 +315,7 @@ lemma toNat_le_of_le_natCast {m : ℕ∞} {n : ℕ} (h : m ≤ n) : toNat m ≤ 
 lemma toNat_le_toNat {m n : ℕ∞} (h : m ≤ n) (hn : n ≠ ⊤) : toNat m ≤ toNat n :=
   toNat_le_of_le_natCast <| h.trans_eq (natCast_toNat hn).symm
 
-@[deprecated Order.succ_eq_add_one (since := "2026-05-25")]
+@[deprecated Order.succ_eq_add_one +typeChanged (since := "2026-05-25")]
 theorem succ_def (m : ℕ∞) : Order.succ m = m + 1 :=
   Order.succ_eq_add_one m
 
@@ -335,15 +335,15 @@ theorem add_one_le_natCast_iff {m : ℕ∞} {n : ℕ} : m + 1 ≤ n ↔ m < n :=
 
 @[deprecated (since := "2026-07-17")] alias add_one_le_coe_iff := add_one_le_natCast_iff
 
-@[deprecated Order.one_le_iff_ne_zero (since := "2026-05-25")]
+@[deprecated Order.one_le_iff_ne_zero +typeChanged (since := "2026-05-25")]
 protected theorem one_le_iff_ne_zero : 1 ≤ n ↔ n ≠ 0 :=
   Order.one_le_iff_ne_zero
 
-@[deprecated Order.lt_one_iff (since := "2026-05-25")]
+@[deprecated Order.lt_one_iff +typeChanged (since := "2026-05-25")]
 lemma lt_one_iff_eq_zero : n < 1 ↔ n = 0 :=
   Order.lt_one_iff
 
-@[deprecated Order.le_one_iff (since := "2026-05-25")]
+@[deprecated Order.le_one_iff +typeChanged (since := "2026-05-25")]
 lemma le_one_iff_eq_zero_or_eq_one : n ≤ 1 ↔ n = 0 ∨ n = 1 :=
   Order.le_one_iff
 
@@ -403,7 +403,7 @@ theorem nat_induction {motive : ℕ∞ → Prop} (a : ℕ∞) (zero : motive 0)
   · exact top A
   · exact A _
 
-@[deprecated add_pos_of_right (since := "2026-05-25")]
+@[deprecated add_pos_of_right +typeChanged (since := "2026-05-25")]
 lemma add_one_pos : 0 < n + 1 :=
   add_pos_of_right zero_lt_one n
 

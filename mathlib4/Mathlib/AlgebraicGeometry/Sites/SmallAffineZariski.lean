@@ -332,7 +332,8 @@ lemma opensRange_relativeGluingData_map (F : X.AffineZariskiSiteᵒᵖ ⥤ CommR
 alias PreservesLocalization.opensRange_map := opensRange_relativeGluingData_map
 
 set_option backward.isDefEq.respectTransparency.types false in
-@[deprecated Cover.RelativeGluingData.toBase_preimage_eq_opensRange_ι (since := "2026-02-01")]
+@[deprecated Cover.RelativeGluingData.toBase_preimage_eq_opensRange_ι
+  +typeChanged (since := "2026-02-01")]
 lemma PreservesLocalization.colimitDesc_preimage (F : X.AffineZariskiSiteᵒᵖ ⥤ CommRingCat)
     (α : (AffineZariskiSite.toOpensFunctor X).op ⋙ X.presheaf ⟶ F)
     (H : α.Coequifibered) (U : X.AffineZariskiSite) :

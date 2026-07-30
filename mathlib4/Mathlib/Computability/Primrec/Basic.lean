@@ -573,7 +573,7 @@ theorem option_getD : Primrec₂ (@Option.getD α) :=
 theorem option_getD_default [Inhabited α] : Primrec (fun o : Option α => o.getD default) :=
   option_getD.comp .id (const default)
 
-@[deprecated option_getD_default (since := "2026-01-05")]
+@[deprecated option_getD_default +typeChanged (since := "2026-01-05")]
 theorem option_iget [Inhabited α] : Primrec (@Option.iget α _) :=
   option_getD_default
 

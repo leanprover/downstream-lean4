@@ -312,18 +312,18 @@ theorem epsilon_lt_of_neg {r : ℝ} : r < 0 → r < ε :=
 @[deprecated (since := "2026-01-05")]
 alias epsilon_lt_pos := epsilon_lt_of_pos
 
-@[deprecated archimedeanClassMk_pos_of_tendsto (since := "2026-01-05")]
+@[deprecated archimedeanClassMk_pos_of_tendsto +typeChanged (since := "2026-01-05")]
 theorem lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : Tendsto f atTop (𝓝 0)) :
     ∀ {r : ℝ}, 0 < r → ofSeq f < (r : ℝ*) := fun hr ↦
   ofSeq_lt_ofSeq.2 <| (hf.eventually <| gt_mem_nhds hr).filter_mono Nat.hyperfilter_le_atTop
 
-@[deprecated archimedeanClassMk_pos_of_tendsto (since := "2026-01-05")]
+@[deprecated archimedeanClassMk_pos_of_tendsto +typeChanged (since := "2026-01-05")]
 theorem neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : Tendsto f atTop (𝓝 0)) :
     ∀ {r : ℝ}, 0 < r → (-r : ℝ*) < ofSeq f := fun hr =>
   have hg := hf.neg
   neg_lt_of_neg_lt (by rw [neg_zero] at hg; exact lt_of_tendsto_zero_of_pos hg hr)
 
-@[deprecated archimedeanClassMk_pos_of_tendsto (since := "2026-01-05")]
+@[deprecated archimedeanClassMk_pos_of_tendsto +typeChanged (since := "2026-01-05")]
 theorem gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : Tendsto f atTop (𝓝 0)) :
     ∀ {r : ℝ}, r < 0 → (r : ℝ*) < ofSeq f := fun {r} hr => by
   rw [← neg_neg r, coe_neg]; exact neg_lt_of_tendsto_zero_of_pos hf (neg_pos.mpr hr)
@@ -367,7 +367,7 @@ theorem tendsto_atBot_iff {x : ℝ*} : x.Tendsto atBot ↔ x < 0 ∧ mk x < 0 wh
 /-- Standard part predicate.
 **Do not use.** This is equivalent to the conjunction of `0 ≤ ArchimedeanClass.mk x` and
 `ArchimedeanClass.stdPart x = r`. -/
-@[deprecated stdPart (since := "2026-01-05")]
+@[deprecated stdPart +typeChanged (since := "2026-01-05")]
 def IsSt (x : ℝ*) (r : ℝ) :=
   ∀ δ : ℝ, 0 < δ → (r - δ : ℝ*) < x ∧ x < r + δ
 
@@ -387,7 +387,7 @@ theorem isSt_iff {x r} : IsSt x r ↔ 0 ≤ mk x ∧ stdPart x = r where
 
 open scoped Classical in
 /-- Standard part function: like a "round" to ℝ instead of ℤ -/
-@[deprecated stdPart (since := "2026-01-05")]
+@[deprecated stdPart +typeChanged (since := "2026-01-05")]
 noncomputable def st : ℝ* → ℝ := fun x => if h : ∃ r, IsSt x r then Classical.choose h else 0
 
 @[deprecated "`st` is deprecated" (since := "2026-01-05")]
@@ -404,7 +404,7 @@ theorem st_eq (x : ℝ*) : st x = stdPart x := by
 
 /-- A hyperreal number is infinitesimal if its standard part is 0.
 **Do not use.** Write `0 < ArchimedeanClass.mk x` instead. -/
-@[deprecated ArchimedeanClass.mk (since := "2026-01-05")]
+@[deprecated ArchimedeanClass.mk +typeChanged (since := "2026-01-05")]
 def Infinitesimal (x : ℝ*) :=
   IsSt x 0
 
@@ -414,7 +414,7 @@ theorem infinitesimal_iff {x : ℝ*} : Infinitesimal x ↔ 0 < mk x := by
 
 /-- A hyperreal number is positive infinite if it is larger than all real numbers.
 **Do not use.** Write `0 < x ∧ ArchimedeanClass.mk x < 0` instead. -/
-@[deprecated ArchimedeanClass.mk (since := "2026-01-05")]
+@[deprecated ArchimedeanClass.mk +typeChanged (since := "2026-01-05")]
 def InfinitePos (x : ℝ*) :=
   ∀ r : ℝ, ↑r < x
 
@@ -428,7 +428,7 @@ theorem infinitePos_iff {x : ℝ*} : InfinitePos x ↔ 0 < x ∧ mk x < 0 := by
 
 /-- A hyperreal number is negative infinite if it is smaller than all real numbers.
 **Do not use.** Write `x < 0 ∧ ArchimedeanClass.mk x < 0` instead. -/
-@[deprecated ArchimedeanClass.mk (since := "2026-01-05")]
+@[deprecated ArchimedeanClass.mk +typeChanged (since := "2026-01-05")]
 def InfiniteNeg (x : ℝ*) :=
   ∀ r : ℝ, x < r
 
@@ -442,7 +442,7 @@ theorem infiniteNeg_iff {x : ℝ*} : InfiniteNeg x ↔ x < 0 ∧ mk x < 0 := by
 
 /-- A hyperreal number is infinite if it is infinite positive or infinite negative.
 **Do not use.** Write `ArchimedeanClass.mk x < 0` instead. -/
-@[deprecated ArchimedeanClass.mk (since := "2026-01-05")]
+@[deprecated ArchimedeanClass.mk +typeChanged (since := "2026-01-05")]
 def Infinite (x : ℝ*) :=
   InfinitePos x ∨ InfiniteNeg x
 
@@ -451,18 +451,18 @@ theorem infinite_iff {x : ℝ*} : Infinite x ↔ mk x < 0 := by
   rw [Infinite, infinitePos_iff, infiniteNeg_iff]
   aesop
 
-@[deprecated tendsto_iff_forall (since := "2026-01-05")]
+@[deprecated tendsto_iff_forall +typeChanged (since := "2026-01-05")]
 theorem isSt_ofSeq_iff_tendsto {f : ℕ → ℝ} {r : ℝ} :
     IsSt (ofSeq f) r ↔ Tendsto f (hyperfilter ℕ) (𝓝 r) :=
   Iff.trans (forall₂_congr fun _ _ ↦ (ofSeq_lt_ofSeq.and ofSeq_lt_ofSeq).trans eventually_and.symm)
     (nhds_basis_Ioo_pos _).tendsto_right_iff.symm
 
-@[deprecated tendsto_iff_forall (since := "2026-01-05")]
+@[deprecated tendsto_iff_forall +typeChanged (since := "2026-01-05")]
 theorem isSt_iff_tendsto {x : ℝ*} {r : ℝ} : IsSt x r ↔ x.Tendsto (𝓝 r) := by
   rcases ofSeq_surjective x with ⟨f, rfl⟩
   exact isSt_ofSeq_iff_tendsto
 
-@[deprecated stdPart_of_tendsto (since := "2026-01-05")]
+@[deprecated stdPart_of_tendsto +typeChanged (since := "2026-01-05")]
 theorem isSt_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : Tendsto f atTop (𝓝 r)) : IsSt (ofSeq f) r :=
   isSt_ofSeq_iff_tendsto.2 <| hf.mono_left Nat.hyperfilter_le_atTop
 
@@ -495,21 +495,21 @@ theorem IsSt.not_infinite {x : ℝ*} {r : ℝ} (h : IsSt x r) : ¬Infinite x := 
 theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, IsSt x r) → ¬Infinite x := fun ⟨_r, hr⟩ =>
   hr.not_infinite
 
-@[deprecated stdPart_eq_zero (since := "2026-01-05")]
+@[deprecated stdPart_eq_zero +typeChanged (since := "2026-01-05")]
 theorem Infinite.st_eq {x : ℝ*} (hi : Infinite x) : st x = 0 :=
   dite_eq_right fun ⟨_r, hr⟩ ↦ hr.not_infinite hi
 
-@[deprecated stdPart_eq_sSup (since := "2026-01-05")]
+@[deprecated stdPart_eq_sSup +typeChanged (since := "2026-01-05")]
 theorem isSt_sSup {x : ℝ*} (hni : ¬Infinite x) : IsSt x (sSup { y : ℝ | (y : ℝ*) < x }) := by
   rw [infinite_iff, not_lt] at hni
   rw [isSt_iff]
   exact ⟨hni, stdPart_eq_sSup coeRingHom x⟩
 
-@[deprecated stdPart_eq_sSup (since := "2026-01-05")]
+@[deprecated stdPart_eq_sSup +typeChanged (since := "2026-01-05")]
 theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬Infinite x) : ∃ r : ℝ, IsSt x r :=
   ⟨sSup { y : ℝ | (y : ℝ*) < x }, isSt_sSup hni⟩
 
-@[deprecated stdPart_eq_sSup (since := "2026-01-05")]
+@[deprecated stdPart_eq_sSup +typeChanged (since := "2026-01-05")]
 theorem st_eq_sSup {x : ℝ*} : st x = sSup { y : ℝ | (y : ℝ*) < x } := by
   rw [st_eq]
   exact stdPart_eq_sSup coeRingHom x
@@ -541,7 +541,7 @@ theorem isSt_st {x : ℝ*} (hx : st x ≠ 0) : IsSt x (st x) :=
 @[deprecated "`IsSt` is deprecated" (since := "2026-01-05")]
 theorem isSt_refl_real (r : ℝ) : IsSt r r := isSt_ofSeq_iff_tendsto.2 tendsto_const_nhds
 
-@[deprecated stdPart_coe (since := "2026-01-05")]
+@[deprecated stdPart_coe +typeChanged (since := "2026-01-05")]
 theorem st_id_real (r : ℝ) : st r = r := (isSt_refl_real r).st_eq
 
 @[deprecated "`IsSt` is deprecated" (since := "2026-01-05")]
@@ -568,13 +568,13 @@ theorem isSt_inj_real {r₁ r₂ s : ℝ} (h1 : IsSt r₁ s) (h2 : IsSt r₂ s) 
 theorem isSt_iff_abs_sub_lt_delta {x : ℝ*} {r : ℝ} : IsSt x r ↔ ∀ δ : ℝ, 0 < δ → |x - ↑r| < δ := by
   simp only [abs_sub_lt_iff, sub_lt_iff_lt_add, IsSt, and_comm, add_comm]
 
-@[deprecated stdPart_map (since := "2026-01-05")]
+@[deprecated stdPart_map +typeChanged (since := "2026-01-05")]
 theorem IsSt.map {x : ℝ*} {r : ℝ} (hxr : IsSt x r) {f : ℝ → ℝ} (hf : ContinuousAt f r) :
     IsSt (x.map f) (f r) := by
   rcases ofSeq_surjective x with ⟨g, rfl⟩
   exact isSt_ofSeq_iff_tendsto.2 <| hf.tendsto.comp (isSt_ofSeq_iff_tendsto.1 hxr)
 
-@[deprecated stdPart_map₂ (since := "2026-01-05")]
+@[deprecated stdPart_map₂ +typeChanged (since := "2026-01-05")]
 theorem IsSt.map₂ {x y : ℝ*} {r s : ℝ} (hxr : IsSt x r) (hys : IsSt y s) {f : ℝ → ℝ → ℝ}
     (hf : ContinuousAt (Function.uncurry f) (r, s)) : IsSt (x.map₂ f y) (f r s) := by
   rcases ofSeq_surjective x with ⟨x, rfl⟩
@@ -582,27 +582,27 @@ theorem IsSt.map₂ {x y : ℝ*} {r s : ℝ} (hxr : IsSt x r) (hys : IsSt y s) {
   rw [isSt_ofSeq_iff_tendsto] at hxr hys
   exact isSt_ofSeq_iff_tendsto.2 <| hf.tendsto.comp (hxr.prodMk_nhds hys)
 
-@[deprecated stdPart_add (since := "2026-01-05")]
+@[deprecated stdPart_add +typeChanged (since := "2026-01-05")]
 theorem IsSt.add {x y : ℝ*} {r s : ℝ} (hxr : IsSt x r) (hys : IsSt y s) :
     IsSt (x + y) (r + s) := hxr.map₂ hys continuous_add.continuousAt
 
-@[deprecated stdPart_neg (since := "2026-01-05")]
+@[deprecated stdPart_neg +typeChanged (since := "2026-01-05")]
 theorem IsSt.neg {x : ℝ*} {r : ℝ} (hxr : IsSt x r) : IsSt (-x) (-r) :=
   hxr.map continuous_neg.continuousAt
 
-@[deprecated stdPart_sub (since := "2026-01-05")]
+@[deprecated stdPart_sub +typeChanged (since := "2026-01-05")]
 theorem IsSt.sub {x y : ℝ*} {r s : ℝ} (hxr : IsSt x r) (hys : IsSt y s) : IsSt (x - y) (r - s) :=
   hxr.map₂ hys continuous_sub.continuousAt
 
-@[deprecated stdPart_monotoneOn (since := "2026-01-05")]
+@[deprecated stdPart_monotoneOn +typeChanged (since := "2026-01-05")]
 theorem IsSt.le {x y : ℝ*} {r s : ℝ} (hrx : IsSt x r) (hsy : IsSt y s) (hxy : x ≤ y) : r ≤ s :=
   not_lt.1 fun h ↦ hxy.not_gt <| hsy.lt hrx h
 
-@[deprecated stdPart_monotoneOn (since := "2026-01-05")]
+@[deprecated stdPart_monotoneOn +typeChanged (since := "2026-01-05")]
 theorem st_le_of_le {x y : ℝ*} (hix : ¬Infinite x) (hiy : ¬Infinite y) : x ≤ y → st x ≤ st y :=
   (isSt_st' hix).le (isSt_st' hiy)
 
-@[deprecated stdPart_monotoneOn (since := "2026-01-05")]
+@[deprecated stdPart_monotoneOn +typeChanged (since := "2026-01-05")]
 theorem lt_of_st_lt {x y : ℝ*} (hix : ¬Infinite x) (hiy : ¬Infinite y) : st x < st y → x < y :=
   (isSt_st' hix).lt (isSt_st' hiy)
 
@@ -793,27 +793,27 @@ theorem Infinite.ne_real {x : ℝ*} : Infinite x → ∀ r : ℝ, x ≠ r := fun
 ### Facts about `st` that require some infinite machinery
 -/
 
-@[deprecated stdPart_mul (since := "2026-01-05")]
+@[deprecated stdPart_mul +typeChanged (since := "2026-01-05")]
 theorem IsSt.mul {x y : ℝ*} {r s : ℝ} (hxr : IsSt x r) (hys : IsSt y s) : IsSt (x * y) (r * s) :=
   hxr.map₂ hys continuous_mul.continuousAt
 
-@[deprecated mk_mul (since := "2026-01-05")]
+@[deprecated mk_mul +typeChanged (since := "2026-01-05")]
 theorem not_infinite_mul {x y : ℝ*} (hx : ¬Infinite x) (hy : ¬Infinite y) : ¬Infinite (x * y) :=
   have ⟨_r, hr⟩ := exists_st_of_not_infinite hx
   have ⟨_s, hs⟩ := exists_st_of_not_infinite hy
   (hr.mul hs).not_infinite
 
-@[deprecated stdPart_add (since := "2026-01-05")]
+@[deprecated stdPart_add +typeChanged (since := "2026-01-05")]
 theorem st_add {x y : ℝ*} (hx : ¬Infinite x) (hy : ¬Infinite y) : st (x + y) = st x + st y :=
   (isSt_st' (not_infinite_add hx hy)).unique ((isSt_st' hx).add (isSt_st' hy))
 
-@[deprecated stdPart_neg (since := "2026-01-05")]
+@[deprecated stdPart_neg +typeChanged (since := "2026-01-05")]
 theorem st_neg (x : ℝ*) : st (-x) = -st x := by
   by_cases h : Infinite x
   · rw [h.st_eq, (infinite_neg.2 h).st_eq, neg_zero]
   · exact (isSt_st' (not_infinite_neg h)).unique (isSt_st' h).neg
 
-@[deprecated stdPart_mul (since := "2026-01-05")]
+@[deprecated stdPart_mul +typeChanged (since := "2026-01-05")]
 theorem st_mul {x y : ℝ*} (hx : ¬Infinite x) (hy : ¬Infinite y) : st (x * y) = st x * st y :=
   have hx' := isSt_st' hx
   have hy' := isSt_st' hy
@@ -828,15 +828,15 @@ theorem st_mul {x y : ℝ*} (hx : ¬Infinite x) (hy : ¬Infinite y) : st (x * y)
 theorem infinitesimal_def {x : ℝ*} : Infinitesimal x ↔ ∀ r : ℝ, 0 < r → -(r : ℝ*) < x ∧ x < r := by
   simp [Infinitesimal, IsSt]
 
-@[deprecated lt_of_pos_of_archimedean (since := "2026-01-05")]
+@[deprecated lt_of_pos_of_archimedean +typeChanged (since := "2026-01-05")]
 theorem lt_of_pos_of_infinitesimal {x : ℝ*} : Infinitesimal x → ∀ r : ℝ, 0 < r → x < r :=
   fun hi r hr => ((infinitesimal_def.mp hi) r hr).2
 
-@[deprecated lt_of_neg_of_archimedean (since := "2026-01-05")]
+@[deprecated lt_of_neg_of_archimedean +typeChanged (since := "2026-01-05")]
 theorem lt_neg_of_pos_of_infinitesimal {x : ℝ*} : Infinitesimal x → ∀ r : ℝ, 0 < r → -↑r < x :=
   fun hi r hr => ((infinitesimal_def.mp hi) r hr).1
 
-@[deprecated lt_of_neg_of_archimedean (since := "2026-01-05")]
+@[deprecated lt_of_neg_of_archimedean +typeChanged (since := "2026-01-05")]
 theorem gt_of_neg_of_infinitesimal {x : ℝ*} (hi : Infinitesimal x) (r : ℝ) (hr : r < 0) : ↑r < x :=
   neg_neg r ▸ (infinitesimal_def.1 hi (-r) (neg_pos.2 hr)).1
 
@@ -934,19 +934,19 @@ theorem infinitesimal_neg_iff_infiniteNeg_inv {x : ℝ*} :
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : Infinitesimal x ↔ Infinite x⁻¹ :=
   Iff.trans (by rw [inv_inv]) (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm
 
-@[deprecated stdPart_inv (since := "2026-01-05")]
+@[deprecated stdPart_inv +typeChanged (since := "2026-01-05")]
 theorem IsSt.inv {x : ℝ*} {r : ℝ} (hi : ¬Infinitesimal x) (hr : IsSt x r) : IsSt x⁻¹ r⁻¹ :=
   hr.map <| continuousAt_inv₀ <| by rintro rfl; exact hi hr
 
-@[deprecated stdPart_inv (since := "2026-01-05")]
+@[deprecated stdPart_inv +typeChanged (since := "2026-01-05")]
 theorem st_inv (x : ℝ*) : st x⁻¹ = (st x)⁻¹ := by
   simp [st_eq]
 
-@[deprecated archimedeanClassMk_omega_neg (since := "2026-01-05")]
+@[deprecated archimedeanClassMk_omega_neg +typeChanged (since := "2026-01-05")]
 theorem infinitePos_omega : InfinitePos ω :=
   infinitePos_iff_infinitesimal_inv_pos.mpr ⟨infinitesimal_epsilon, epsilon_pos⟩
 
-@[deprecated archimedeanClassMk_omega_neg (since := "2026-01-05")]
+@[deprecated archimedeanClassMk_omega_neg +typeChanged (since := "2026-01-05")]
 theorem infinite_omega : Infinite ω :=
   (infinite_iff_infinitesimal_inv omega_ne_zero).mpr infinitesimal_epsilon
 

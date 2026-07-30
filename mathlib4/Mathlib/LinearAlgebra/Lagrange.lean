@@ -487,7 +487,7 @@ theorem eval_iterate_derivative_eq_sum (hvs : Set.InjOn v s) {P : Polynomial F} 
   nth_rewrite 1 [eq_interpolate hvs hP, iterate_derivative_interpolate _ hvs hk]
   simp [eval_finsetSum, eval_prod]
 
-@[deprecated eq_interpolate (since := "2026-01-14")]
+@[deprecated eq_interpolate +typeChanged (since := "2026-01-14")]
 theorem interpolate_poly_eq_self
     (hvs : Set.InjOn v s) {P : Polynomial F} (hP : P.degree < s.card) :
     interpolate s v (fun i => P.eval (v i)) = P := (eq_interpolate hvs hP).symm
