@@ -37,12 +37,13 @@ jobs:
         env:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
         run: |
-          TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/lean-toolchain")"
+          REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
+          TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
           TOOLCHAIN="${TOOLCHAIN#leanprover/lean4:}"
           .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::cache put-staged $repo"
             pushd "$repo"
-            lake cache put-staged "$RUNNER_TEMP/staging/$repo" --scope "$TOOLCHAIN/$repo" || true
+            lake cache put-staged "$RUNNER_TEMP/staging/$repo" --rev "$REV" --scope "$TOOLCHAIN/$repo" || true
             popd
             echo "::endgroup::"
           done
