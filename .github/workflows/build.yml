@@ -79,6 +79,7 @@ jobs:
         with:
           name: build-staging
           path: ${{ runner.temp }}/staging/
+          include-hidden-files: true
 
       - name: Fail if critical repos are not green
         run: |
