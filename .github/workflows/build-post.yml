@@ -39,7 +39,6 @@ jobs:
         run: |
           REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
           TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
-          TOOLCHAIN="${TOOLCHAIN#leanprover/lean4:}"
           .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::cache put-staged $repo"
             pushd "$repo"

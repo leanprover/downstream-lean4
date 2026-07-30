@@ -31,7 +31,6 @@ jobs:
       - name: Restore cache
         run: |
           TOOLCHAIN="$(cat lean-toolchain)"
-          TOOLCHAIN="${TOOLCHAIN#leanprover/lean4:}"
           .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::get $repo"
             pushd "$repo"
