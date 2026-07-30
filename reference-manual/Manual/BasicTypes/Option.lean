@@ -128,7 +128,7 @@ If the line consists only of letters (after removing whitespace from the beginni
 
 ```lean
 def getAlpha : IO (Option String) := do
-  let line := (← (← IO.getStdin).getLine).trim
+  let line := (← (← IO.getStdin).getLine).trimAscii.copy
   if line.length > 0 && line.all Char.isAlpha then
     return line
   else
