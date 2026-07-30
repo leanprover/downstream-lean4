@@ -834,11 +834,8 @@ theorem pred_ok (q₁ q₂ s v) (c d : List Γ') : ∃ s',
     obtain ⟨a, l, e, h⟩ : ∃ a l, (trPosNum m = a::l) ∧ natEnd a = false := by
       cases m <;> refine ⟨_, _, rfl, rfl⟩
     refine ⟨Γ'.bit0 :: l₁, _, some a, rfl, TransGen.single ?_⟩
-    simp only [PosNum.succ, trPosNum, e, List.cons_append, TM2.step.eq_2, tr_pred, pop',
-      Option.getD, default_Γ', peek', TM2.stepAux, elim, List.head?_cons, List.tail_cons,
-      elim_update_main, show some Γ'.bit1 ≠ some Γ'.bit0 by decide, decide_false, elim_update_rev,
-      h, Option.mem_def, Option.some.injEq]
-    rfl
+    simp [trPosNum, PosNum.succ, e, h, show some Γ'.bit1 ≠ some Γ'.bit0 by decide,
+      show natEnd Γ'.bit1 = false from rfl, Option.getD, -natEnd]
 
 set_option backward.isDefEq.respectTransparency false in
 theorem trNormal_respects (c k v s) :
