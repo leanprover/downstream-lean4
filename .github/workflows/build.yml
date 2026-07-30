@@ -57,8 +57,9 @@ jobs:
 
       - name: Stage cache
         run: |
-          mkdir -p "$RUNNER_TEMP/staging"
-          cp lean-toolchain "$RUNNER_TEMP/staging/"
+          mkdir -p "$RUNNER_TEMP/staging/.metadata"
+          git rev-parse HEAD > "$RUNNER_TEMP/staging/.metadata/rev"
+          cp lean-toolchain "$RUNNER_TEMP/staging/.metadata/lean-toolchain"
           .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::stage $repo"
             pushd "$repo"
