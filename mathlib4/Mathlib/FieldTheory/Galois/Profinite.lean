@@ -391,6 +391,10 @@ trace: [Meta.synthInstance] ✅️ EmbeddingLike (Gal(K/k) ≃* ↥(limitConePtA
               [Meta.isDefEq] ✅️ [implicit] (limitConePtAux
                       (asProfiniteGaloisGroupFunctor k
                         K)).mul =?= (limitConePtAux (asProfiniteGaloisGroupFunctor k K)).mul (truncated)
+---
+warning: Setting options starting with 'debug', 'pp', 'profiler', 'trace' is only intended for development and not for final code. If you intend to submit this contribution to the Mathlib project, please remove 'set_option trace.Meta.synthInstance'.
+
+Note: This linter can be disabled with `set_option linter.style.setOption false`
 -/
 #guard_msgs in
 postprocess_traces
