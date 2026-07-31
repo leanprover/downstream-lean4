@@ -55,8 +55,8 @@ theorem iSup_bool_eq {f : Bool → α} : ⨆ b : Bool, f b = f true ⊔ f false 
   rw [iSup, Bool.range_eq, sSup_pair, sup_comm]
 
 @[to_dual]
-theorem sup_eq_iSup (x y : α) : x ⊔ y = ⨆ b : Bool, if b then x else y := by
-  simp [iSup_bool_eq]
+theorem sup_eq_iSup (x y : α) : x ⊔ y = ⨆ b : Bool, cond b x y := by
+  rw [iSup_bool_eq, Bool.cond_true, Bool.cond_false]
 
 /-!
 ### `iSup` and `iInf` under `ℕ`

@@ -118,8 +118,8 @@ end CompleteLattice
 lemma Lattice.BicartSq.multicoequalizerDiagram {T : Type u} [CompleteLattice T]
     {x₁ x₂ x₃ x₄} (sq : BicartSq x₁ x₂ x₃ x₄) :
     CompleteLattice.MulticoequalizerDiagram (T := T) x₄
-      (fun (i : Bool) ↦ if i then x₃ else x₂)
-      (fun i j ↦ if i then if j then x₃ else x₁
+      (fun i ↦ bif i then x₃ else x₂)
+      (fun i j ↦ bif i then bif j then x₃ else x₁
         else bif j then x₁ else x₂) where
   iSup_eq := by rw [← sq.sup_eq, sup_comm, sup_eq_iSup]
   eq_inf i j := by grind

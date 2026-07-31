@@ -270,7 +270,7 @@ lemma closure_biUnion_congr (M : Matroid α) (Xs Ys : ι → Set α) (A : Set ι
 lemma closure_closure_union_closure_eq_closure_union (M : Matroid α) (X Y : Set α) :
     M.closure (M.closure X ∪ M.closure Y) = M.closure (X ∪ Y) := by
   rw [eq_comm, union_eq_iUnion, ← closure_iUnion_closure_eq_closure_iUnion, union_eq_iUnion]
-  simp_rw [apply_ite]
+  simp_rw [Bool.cond_eq_ite, apply_ite]
 
 @[simp] lemma closure_union_closure_right_eq (M : Matroid α) (X Y : Set α) :
     M.closure (X ∪ M.closure Y) = M.closure (X ∪ Y) := by
