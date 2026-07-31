@@ -29,7 +29,6 @@ for an ordered module interpreted as an affine space.
 affine space, ordered module, slope
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 public section
 
@@ -101,7 +100,6 @@ theorem left_lt_lineMap_iff_lt (h : 0 < r) : a < lineMap a b r ↔ a < b :=
 /-! # Issue -/
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 theorem lineMap_lt_left_iff_lt (h : 0 < r) : lineMap a b r < a ↔ b < a :=
   left_lt_lineMap_iff_lt (E := Eᵒᵈ) h
 
@@ -161,7 +159,6 @@ postprocess_traces
     <&&> containsString "toSMul =?= DistribMulAction" x)
 in
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example (h : 0 < r) : lineMap a b r < a ↔ b < a := by
   set_option trace.Meta.synthInstance true in
   set_option trace.Meta.isDefEq true in
@@ -175,7 +172,6 @@ theorem lineMap_lt_right_iff_lt (h : r < 1) : lineMap a b r < b ↔ a < b :=
 
 -- Same `OrderDual` transport as `lineMap_lt_left_iff_lt`; see the Explanation above.
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 theorem right_lt_lineMap_iff_lt (h : r < 1) : b < lineMap a b r ↔ b < a :=
   lineMap_lt_right_iff_lt (E := Eᵒᵈ) h
 

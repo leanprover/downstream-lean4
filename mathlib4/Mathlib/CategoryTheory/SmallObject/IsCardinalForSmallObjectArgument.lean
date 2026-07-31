@@ -160,7 +160,7 @@ def propArrow : MorphismProperty (Arrow C) := fun _ _ f ↦
 /-! # Issue (Low Severity) -/
 
 -- Works with "markOrSynth" if `Arrow` and `Arrow.Hom` are made implicit-reducible.
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 lemma succStruct_prop_le_propArrow :
@@ -268,7 +268,6 @@ postprocess_traces
   >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> succeeded x)
   >=> elideBelow (fun x => (ofClass `Meta.isDefEq x) <&&> containsString "commaCategory" x)
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 example :

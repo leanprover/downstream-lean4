@@ -27,7 +27,6 @@ such that `M^~(U)` is the set of dependent functions that are locally fractions.
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 open Lean.PostprocessTraces
 
@@ -476,7 +475,6 @@ instance : ((tilde.functor R).obj M).IsQuasicoherent :=
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 -- attribute [local instance_reducible] Scheme.Modules in
 set_option backward.isDefEq.respectTransparency false in
 lemma isIso_fromTildeΓ_of_presentation (M : (Spec R).Modules) (P : M.Presentation) :
@@ -551,7 +549,6 @@ postprocess_traces
     (containsString "SheafOfModules.instCategory" x) <&&> (containsString ".Modules)" x))
   >=> maxDepth 8
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 example (M : (Spec R).Modules) (P : M.Presentation) :
     IsIso M.fromTildeΓ := by

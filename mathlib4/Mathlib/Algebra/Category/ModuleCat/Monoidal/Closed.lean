@@ -85,7 +85,7 @@ theorem ihom_ev_app (M N : ModuleCat.{u} R) :
 Uncontroversial fix available.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Describes the unit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this should
 define a map `N ⟶ Hom(M, M ⊗ N)`, which is given by flipping the arguments in the natural
@@ -111,7 +111,6 @@ set_option trace.Meta.isDefEq.assign.checkTypes true in
 set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 /-- Describes the unit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this should
 define a map `N ⟶ Hom(M, M ⊗ N)`, which is given by flipping the arguments in the natural
 `R`-bilinear map `M ⟶ N ⟶ M ⊗ N`. -/

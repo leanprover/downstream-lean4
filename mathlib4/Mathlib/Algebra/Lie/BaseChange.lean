@@ -162,7 +162,6 @@ variable [CommRing A] [LieAlgebra A L]
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 instance lieAlgebra [CommRing R] [Algebra R A] : LieAlgebra R (RestrictScalars R A L) where
   lie_smul t x y := (lie_smul (algebraMap R A t) (RestrictScalars.addEquiv R A L x)
@@ -241,7 +240,6 @@ set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
 set_option trace.Meta.synthInstance true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 example [CommRing R] [Algebra R A] : LieAlgebra R (RestrictScalars R A L) where
   lie_smul t x y := (lie_smul (algebraMap R A t) (RestrictScalars.addEquiv R A L x)

@@ -52,7 +52,6 @@ for `Tor` modules is available.
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 @[expose] public section
 
@@ -289,7 +288,6 @@ lemma δAux_toAlgHom (f : Hom Q Q') (x) :
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 lemma δAux_ofComp (x : (Q.comp P).Ring) :
     δAux R Q ((Q.ofComp P).toAlgHom x) =
@@ -390,7 +388,6 @@ postprocess_traces
     <&&> (containsString "Module (Q.comp P).Ring T" x))
   >=> dropSubtrees (fun x => (containsString "[default]" x))
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 set_option linter.unusedSimpArgs false in
 set_option linter.style.setOption false in

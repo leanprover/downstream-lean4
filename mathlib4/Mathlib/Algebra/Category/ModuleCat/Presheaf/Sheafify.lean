@@ -340,7 +340,7 @@ lemma toSheafify_app_apply (X : Cᵒᵖ) (x : M₀.obj X) :
 
 /-! # Issue (Low Severity) -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `toSheafify_app_apply`. -/
 @[simp]

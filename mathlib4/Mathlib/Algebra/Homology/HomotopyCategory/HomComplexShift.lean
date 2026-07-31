@@ -299,7 +299,6 @@ lemma rightShift_smul (a n' : ℤ) (hn' : n' + a = n) (x : R) :
 -- can be removed
 set_option allowUnsafeReducibility true
 attribute [local implicit_reducible] shiftFunctor in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 @[simp]
 lemma leftShift_smul (a n' : ℤ) (hn' : n + a = n') (x : R) :
     (x • γ).leftShift a n' hn' = x • γ.leftShift a n' hn' := by
@@ -422,7 +421,6 @@ set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 postprocess_traces
   filterSubtrees (fun x => (ofClass `Meta.synthInstance.apply x)

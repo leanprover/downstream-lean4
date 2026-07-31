@@ -85,7 +85,7 @@ variable (d : M.Derivation φ)
 Has uncontroversial fix.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The postcomposition of a derivation by a morphism of presheaves of modules. -/
@@ -109,7 +109,6 @@ attribute [local implicit_reducible]
   ModuleCat.restrictScalars
   ModuleCat.RestrictScalars.obj'
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.defeqAttrib.useBackward true in
 example (f : M ⟶ N) : N.Derivation φ where
   d := (f.app _).hom.toAddMonoidHom.comp d.d

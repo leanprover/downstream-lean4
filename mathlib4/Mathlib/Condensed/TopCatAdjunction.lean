@@ -20,7 +20,6 @@ The counit is an isomorphism for compactly generated spaces, and we conclude tha
 `topCatToCondensedSet` is fully faithful when restricted to compactly generated spaces.
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 @[expose] public section
 
@@ -122,7 +121,7 @@ where
 /-! # Issue (Medium Severity) -/
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 /-- `simp`-normal form of the lemma that `@[simps]` would generate. -/
 @[simp] lemma topCatAdjunctionCounit_hom_apply (X : TopCat) (x) :
     -- We have to specify here to not infer the `TopologicalSpace` instance on `C(PUnit, X)`,
@@ -201,7 +200,6 @@ set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example (X : TopCat) (x) :
     DFunLike.coe (F := @ContinuousMap C(PUnit, X) X (_) _)
         (TopCat.Hom.hom (topCatAdjunctionCounit X)) x =
@@ -236,7 +234,6 @@ This changes the `F` value, though, and this affects the discrimination key.
 It's a very significant change, but I can't tell which version has the correct signature.
 -/
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 /-- `simp`-normal form of the lemma that `@[simps]` would generate. -/
 @[simp] lemma topCatAdjunctionCounit_hom_apply_fixed? (X : TopCat) (x : C(PUnit, X)) :
     -- We have to specify here to not infer the `TopologicalSpace` instance on `C(PUnit, X)`,

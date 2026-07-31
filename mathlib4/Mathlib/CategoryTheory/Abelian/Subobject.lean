@@ -15,7 +15,6 @@ meta import Lean.PostprocessTraces
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 open Lean.PostprocessTraces
 
@@ -47,7 +46,7 @@ where
 /-! # Issue (Low Severity) -/
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 /-- In an abelian category, the subobjects and quotient objects of an object `X` are
 order-isomorphic via taking kernels and cokernels.
@@ -199,7 +198,6 @@ set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 -- pin the pre-`firstPassBump` behavior: this block documents the old failure
 set_option backward.isDefEq.firstPassBump false in
 set_option trace.Meta.isDefEq.printTransparency true in
@@ -239,7 +237,6 @@ example [Abelian C] (X : C) : Subobject X ≃o (Subobject (op X))ᵒᵈ := by
 attribute [local implicit_reducible] Quiver.Hom.op Quiver.Hom.unop in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example [Abelian C] (X : C) : Subobject X ≃o (Subobject (op X))ᵒᵈ := by
   refine OrderIso.ofHomInv (cokernelOrderHom X) (kernelOrderHom X) ?_ ?_
   · change (cokernelOrderHom X).comp (kernelOrderHom X) = _

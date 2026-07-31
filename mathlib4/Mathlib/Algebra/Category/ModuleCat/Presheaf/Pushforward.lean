@@ -110,7 +110,7 @@ lemma pushforward_obj_map_apply (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f
 
 /-! # Issue (Low Severity) -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `pushforward_obj_map_apply`. -/
 @[simp]
@@ -131,7 +131,6 @@ attribute [local implicit_reducible]
   pushforward
   PresheafOfModules.restrictScalars PresheafOfModules.restrictScalarsObj
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f : X ⟶ Y)
     (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :
       DFunLike.coe
@@ -145,7 +144,7 @@ lemma pushforward_map_app_apply {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (
 
 /-! # Issue 2 (Low Severity, same fix) -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `@[simp]`-normal form of `pushforward_map_app_apply`. -/
 @[simp]
@@ -161,7 +160,6 @@ attribute [local implicit_reducible]
   pushforward
   PresheafOfModules.restrictScalars PresheafOfModules.restrictScalarsObj
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 /-- `@[simp]`-normal form of `pushforward_map_app_apply`. -/
 example {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (X : Cᵒᵖ)
     (m : (ModuleCat.restrictScalars (φ.app X).hom).obj (M.obj (Opposite.op (F.obj X.unop)))) :

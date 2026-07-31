@@ -70,7 +70,6 @@ public lemma index_of_surjective (hf : Surjective f) :
 
 set_option allowUnsafeReducibility true in
 attribute [local implicit_reducible] ker in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 @[simp] public lemma index_id :
     (id : M →ₗ[R] M).index = 0 := by
   nontriviality R
@@ -169,7 +168,6 @@ set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency.types false in
 postprocess_traces
   filterSubtrees (fun x => (ofClass `Meta.synthInstance.apply x)

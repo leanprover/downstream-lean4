@@ -198,7 +198,7 @@ theorem KaehlerDifferential.DLinearMap_apply (s : S) :
 Fixed by making `KaehlerDifferential` implicit-reducible at definition site.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The universal derivation into `Ω[S⁄R]`. -/

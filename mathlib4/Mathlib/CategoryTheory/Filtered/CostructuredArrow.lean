@@ -23,7 +23,6 @@ meta import Lean.PostprocessTraces
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 open Lean.PostprocessTraces
 
@@ -116,7 +115,6 @@ postprocess_traces
   >=> elideBelow (fun x => (ofClass `Meta.isDefEq x) <&&>
     containsString "instCategoryCostructuredArrow_1" x)
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 example (L : A ⥤ T) (R : B ⥤ T)
@@ -139,7 +137,6 @@ theorem Cat.of_str {C} [inst : Category C] : (Cat.of C).str = inst := rfl
 -- Adding `Cat.of_str` to the `simp only` set rewrites the desynced `colim` `Category` instance back
 -- to `CostructuredArrow`'s own `instCategoryCostructuredArrow_1`, realigning carrier and instance
 -- so that `HasColimitsOfShape` synthesis needs no cross-boundary assignment.
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 private lemma isFiltered_of_isFiltered_costructuredArrow_small (L : A ⥤ T) (R : B ⥤ T)

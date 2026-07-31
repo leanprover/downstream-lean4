@@ -15,7 +15,6 @@ This file gives defines intertwining maps of representations (aka equivariant li
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 @[expose] public section
 
@@ -509,7 +508,7 @@ where
 If `asModule` is made implicit-reducible *at its definition site*, then `respectTransparency` false
 becomes obsolete. After removing it, the lemma also works with "markOrSynth".
 -/
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- An intertwining map is the same thing as a linear map over the group ring. -/
 def equivLinearMapAsModule :
@@ -640,7 +639,6 @@ postprocess_traces
   >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> (containsString "SMul A ρ.asModule" x))
 in
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example (f : ρ.asModule →ₗ[A[G]] σ.asModule) (a : A) (v : V) : f (a • v) = a • f v := by
   set_option trace.Meta.synthInstance true in
   set_option trace.Meta.isDefEq.assign.checkTypes true in

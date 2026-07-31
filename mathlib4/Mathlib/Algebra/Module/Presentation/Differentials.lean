@@ -90,7 +90,7 @@ lemma hom₁_single (r : σ) :
 Fixed by making `Generators.toExtension` implicit-reducible and removing `respectTransparency false`
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma surjective_hom₁ : Function.Surjective (hom₁ pres) := by

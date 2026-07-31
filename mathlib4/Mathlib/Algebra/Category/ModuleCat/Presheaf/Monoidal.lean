@@ -59,7 +59,7 @@ remove `respectTransparency false`.
 
 /-! # First issue: `tensorObjMap` -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition for `tensorObj`. -/
 noncomputable def tensorObjMap {X Y : Cᵒᵖ} (f : X ⟶ Y) : M₁.obj X ⊗ M₂.obj X ⟶
@@ -200,7 +200,6 @@ postprocess_traces
   filterSubtrees (fun x => (ofClass `Meta.isDefEq.assign.checkTypes x) <&&> failed x)
   >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> succeeded x)
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 /-- `tensorObjMap` -/
 noncomputable example {X Y : Cᵒᵖ} (f : X ⟶ Y) : M₁.obj X ⊗ M₂.obj X ⟶
@@ -247,12 +246,12 @@ variable {M₁ M₂ M₃ M₄}
 
 /-! # Second issue: `tensorObj_map_tmul` -/
 
--- Needs `instanceTypes "none"` for the same `R.obj Y` (`CommRingCat`) vs
+-- Needs `instanceTypes false` for the same `R.obj Y` (`CommRingCat`) vs
 -- `(R ⋙ forget₂ CommRingCat RingCat).obj Y` (`RingCat`) ring-carrier synonym as `tensorObjMap`
 -- above: here the `Module ↑(R.obj Y) ↑((restrictScalars …).obj (M₁.obj Y))` needed to type the
 -- coercion is unsynthesizable because its `Ring ↑(R.obj Y)` slot rejects (leg (c)) the
 -- `RingCat`-bundled instance the goal carries. See the analysis before `tensorObjMap`.
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma tensorObj_map_tmul {X Y : Cᵒᵖ} (f : X ⟶ Y) (m₁ : M₁.obj X) (m₂ : M₂.obj X) :
@@ -337,7 +336,6 @@ postprocess_traces
   >=> elideBelow (fun x => (ofClass `Meta.synthInstance x) <&&> (containsString "Ring " x))
   >=> filterSubtrees (fun x => (failed x) <&&> (containsString "instRingObjForget" x))
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
@@ -513,7 +511,7 @@ instance (F : PresheafOfModules.{u} (R ⋙ forget₂ _ _)) :
 
 section InstanceTypesDemos
 /-!
-Guarded demonstrations for the two `backward.isDefEq.instanceTypes "none"` sites above.
+Guarded demonstrations for the two `backward.isDefEq.instanceTypes false` sites above.
 The trace demo pins `"markOrSynth"` (the `lakefile.lean` project default; a bare
 `lake env lean` would otherwise fall back to the toolchain register default `"mark"`).
 `with_reducible rfl` is used as a proxy for the `.instances` transparency the instance-type

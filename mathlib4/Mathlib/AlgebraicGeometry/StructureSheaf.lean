@@ -502,7 +502,7 @@ set_option linter.style.longLine false
 
 /-! # Issue (Low Severity) -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 theorem toBasicOpenₗ_surjective (f : R) : Function.Surjective (toBasicOpenₗ R M f) := by
   intro s
@@ -699,7 +699,6 @@ set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 example (f : R) : Function.Surjective (toBasicOpenₗ R M f) := by
   intro s
@@ -727,7 +726,6 @@ example (f : R) : Function.Surjective (toBasicOpenₗ R M f) := by
 /-! # Fix -/
 
 attribute [local implicit_reducible] PrimeSpectrum.Top in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example (f : R) : Function.Surjective (toBasicOpenₗ R M f) := by
   intro s
   obtain ⟨ι, _, a, b, ibU, iU, hab, H⟩ := exists_le_iSup_basicOpen_and_smul_eq_smul_and_eq_const _
@@ -1030,7 +1028,6 @@ instance (x : PrimeSpectrum.Top R) :
   rfl
 
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 variable (R M) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of

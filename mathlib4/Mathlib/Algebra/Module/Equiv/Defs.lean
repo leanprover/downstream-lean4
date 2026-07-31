@@ -591,7 +591,7 @@ open Lean.PostprocessTraces
 
 set_option backward.isDefEq.respectTransparency false in
 -- Verdict: Rightly fails if we enforce the type at instance transparency.
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 @[simp]
 lemma _root_.RingEquiv.symm_toSemilinearEquiv_symm_apply (f : R ≃+* S) (x : R) :
   f.symm.toSemilinearEquiv.symm (σ' := RingHomClass.toRingHom f) x = f x := rfl
@@ -698,7 +698,6 @@ set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq.assign.checkTypes true in
 -- set_option backward.isDefEq.respectTransparency false in
 -- Verdict: Rightly fails if we enforce the type at instance transparency.
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 @[simp]
 example (f : R ≃+* S) (x : R) :
   f.symm.toSemilinearEquiv.symm (σ' := RingHomClass.toRingHom f) x = f x := by

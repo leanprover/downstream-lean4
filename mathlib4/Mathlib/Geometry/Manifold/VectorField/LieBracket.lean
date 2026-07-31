@@ -114,7 +114,7 @@ Can be fixed by making `TangentSpace` implicit-reducible at its definition site 
 `respectTransparency false`.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 lemma mlieBracketWithin_eq_zero_of_eq_zero (hV : V x = 0) (hW : W x = 0) :
     mlieBracketWithin I V W s x = 0 := by
@@ -156,7 +156,7 @@ Can be fixed by making `TangentSpace` implicit-reducible at its definition site 
 `respectTransparency false`.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma mlieBracketWithin_self : mlieBracketWithin I V V = 0 := by
   ext x; simp [mlieBracketWithin, mpullback]
@@ -370,7 +370,7 @@ private lemma mfderiv_extChart_inverse_comp_aux :
 would probably work with HSMul 𝕜 (TangentSpace I x) ?m.238
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 -- set_option backward.isDefEq.respectTransparency false in
 /-- Pulling back through `extChartAt` the scalar multiplication of a vector field by
 the derivative of a scalar function equals the scalar multiplication by the manifold derivative. -/

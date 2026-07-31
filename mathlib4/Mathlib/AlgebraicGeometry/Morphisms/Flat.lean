@@ -24,7 +24,6 @@ We show that this property is local, and are stable under compositions and base 
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 open Lean.PostprocessTraces
 
@@ -344,7 +343,6 @@ lemma mono_pushoutSection_of_iSup_eq {ι : Type*} [Finite ι] (VX : ι → X.Ope
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 -- set_option allowUnsafeReducibility true in
 -- attribute [local instance_reducible] Pairwise.diagram Pairwise.diagramObj Functor.op
 set_option backward.defeqAttrib.useBackward true in
@@ -503,7 +501,6 @@ postprocess_traces
   >=> elideBelow (fun x => (ofClass `Meta.isDefEq x) <&&> (failed x))
 in
 set_option allowUnsafeReducibility true in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 -- attribute [local instance_reducible] Pairwise.diagram Pairwise.diagramObj Functor.op in

@@ -55,7 +55,6 @@ In a field extension `K/k`
 
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 open Lean.PostprocessTraces
 
@@ -303,7 +302,6 @@ lemma krullTopology_mem_nhds_one_iff_of_isGalois [IsGalois k K] (A : Set Gal(K/k
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 lemma isOpen_mulEquivToLimit_image_fixingSubgroup [IsGalois k K]
     (L : FiniteGaloisIntermediateField k K) : IsOpen (mulEquivToLimit k K '' L.fixingSubgroup) := by
   let fix1 : Set (Π L, (asProfiniteGaloisGroupFunctor k K).obj L) := {f | f (op L) = 1}
@@ -406,7 +404,6 @@ postprocess_traces
   >=> elideBelow (fun x => (containsString "[implicit]" x)
     <&&> (do return !(← containsString "?m" x)))
 in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option trace.Meta.synthInstance true in
 set_option trace.Meta.isDefEq true in
 set_option trace.Meta.isDefEq.printTransparency true in
@@ -426,7 +423,6 @@ example [IsGalois k K] (L : FiniteGaloisIntermediateField k K) :
 -- that lemma again unify the bundled group structure of the limit cone point at `.instances`,
 -- rescued by re-synthesis under `"markOrSynth"`. Here the decisively rejected instance is
 -- `Pi.group` for the ambient product group.
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 lemma mulEquivToLimit_symm_continuous [IsGalois k K] : Continuous (mulEquivToLimit k K).symm := by
   apply continuous_of_continuousAt_one _ (continuousAt_def.mpr _)
   simp only [map_one, krullTopology_mem_nhds_one_iff_of_isGalois, ← MulEquiv.coe_toEquiv_symm,

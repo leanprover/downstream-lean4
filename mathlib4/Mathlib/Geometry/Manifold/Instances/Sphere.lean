@@ -67,7 +67,6 @@ naive expression `EuclideanSpace ℝ (Fin (finrank ℝ E - 1))` for the model sp
 Relate the stereographic projection to the inversion of the space.
 -/
 
-set_option backward.isDefEq.instanceTypes "mark"
 
 @[expose] public section
 
@@ -478,7 +477,6 @@ theorem contMDiff_neg_sphere {m : ℕ∞ω} {n : ℕ} [Fact (finrank ℝ E = n +
 
 /-! # Issue -/
 
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 private lemma stereographic'_neg {n : ℕ} [Fact (finrank ℝ E = n + 1)] (v : sphere (0 : E) 1) :
@@ -569,7 +567,6 @@ postprocess_traces
 in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 example {n : ℕ} [Fact (finrank ℝ E = n + 1)] (v : sphere (0 : E) 1) :
     stereographic' n (-v) v = 0 := by
   dsimp [stereographic']
@@ -585,7 +582,6 @@ example {n : ℕ} [Fact (finrank ℝ E = n + 1)] (v : sphere (0 : E) 1) :
 -- `"markOrSynth"`). See the Explanation above. (`convert!` rolls back its own traces, so the
 -- decisive `checkTypes` shows up on the follow-up `simp`.)
 -- TODO: rephrase this using `mvfderiv`, avoiding the defeq abuse
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 /-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
 linear map from `TangentSpace (𝓡 n) v` to `E`.  The range of this map is the orthogonal complement
@@ -630,7 +626,6 @@ theorem range_mfderiv_coe_sphere {n : ℕ} [Fact (finrank ℝ E = n + 1)] (v : s
 -- Same `coe_neg_sphere` desync as `stereographic'_neg`, via the inner `convert!` + closing `simp`
 -- (rescued by `"markOrSynth"`). See the Explanation above.
 -- TODO: rephrase this using `mvfderiv`, avoiding the defeq abuse
-set_option backward.isDefEq.instanceTypes "markOrSynth" in
 set_option backward.isDefEq.respectTransparency false in
 /-- Consider the differential of the inclusion of the sphere in `E` at the point `v` as a continuous
 linear map from `TangentSpace (𝓡 n) v` to `E`.  This map is injective. -/

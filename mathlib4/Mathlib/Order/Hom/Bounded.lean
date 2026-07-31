@@ -432,7 +432,6 @@ theorem coe_comp_orderHom (f : BoundedOrderHom β γ) (g : BoundedOrderHom α β
   rfl
 
 -- TODO: This fails
--- set_option backward.isDefEq.instanceTypes "markOrSynthOrStuck" in
 @[to_dual (attr := simp)]
 theorem coe_comp_topHom (f : BoundedOrderHom β γ) (g : BoundedOrderHom α β) :
     (f.comp g : TopHom α γ) = (f : TopHom β γ).comp g :=

@@ -239,13 +239,13 @@ def basisRight : Module.Basis Unit S D.presRight.toExtension.Cotangent :=
 /-!
 # Issue (Low Severity)
 
-Uncontroversial fix, shared by the three `instanceTypes "none"` sites in this file.
+Uncontroversial fix, shared by the three `instanceTypes false` sites in this file.
 Making `Algebra.Generators.toExtension` implicit-reducible obsoletes both
-`respectTransparency(.types) false` and `instanceTypes "none"`.
+`respectTransparency(.types) false` and `instanceTypes false`.
 -/
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 /-- The basis on the cotangent space of the constructed presentation. -/
 def basis [Nontrivial S] : Module.Basis (Unit ⊕ σ) S D.pres.toExtension.Cotangent :=
   (Module.Basis.prod D.basisRight D.basisLeft).map D.cotangentEquivProd.symm
@@ -265,7 +265,7 @@ lemma basis_inl [Nontrivial S] :
 /-! # Issue 2 (Low Severity, same fix) -/
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 lemma basis_inr [Nontrivial S] (i : σ) :
     D.basis (.inr i) = D.cotangentEquivProd.symm (0, D.basisLeft i) := by
   simp [basis]
@@ -302,11 +302,11 @@ end
 # Issue 3 (Low Severity, same fix)
 
 `attribute [local implicit_reducible] Algebra.Generators.toExtension` also lets both
-`respectTransparency false` and `instanceTypes "none"` go here; no `example` since the
+`respectTransparency false` and `instanceTypes false` go here; no `example` since the
 proof is long.
 -/
 
-set_option backward.isDefEq.instanceTypes "none" in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 open PresentationOfFreeCotangent in
