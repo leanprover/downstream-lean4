@@ -205,7 +205,7 @@ theorem bernoulliFun_eval_half (k : ℕ) : bernoulliFun k 2⁻¹ = (2 / 2 ^ k - 
     simp_rw [Nat.cast_ofNat, mul_inv_cancel₀ (two_ne_zero' ℝ), Finset.sum_range_succ,
       Finset.sum_range_zero, Nat.cast_zero, Nat.cast_one, ← one_div, add_halves,
       bernoulliFun_eval_one, ite_eq_right k1, bernoulliFun_eval_zero, zero_div, add_zero,
-        zero_add] at m
+      zero_add] at m
     rw [← inv_mul_eq_iff_eq_mul₀ (by positivity), ← sub_eq_iff_eq_add, ← sub_one_mul, inv_div] at m
     rw [m, one_div]
 
@@ -258,8 +258,7 @@ theorem bernoulliFourierCoeff_eq {k : ℕ} (hk : k ≠ 0) (n : ℤ) :
       Nat.factorial_one, pow_one]
     rw [bernoulli_zero_fourier_coeff hn, sub_zero, mul_one, div_neg, neg_div]
   · rw [bernoulliFourierCoeff_recurrence (k + 1) hn, ite_eq_right (by grind),
-    Nat.add_sub_cancel k 1, h'k,
-      Nat.factorial_succ, zero_sub, Nat.cast_mul, pow_add]
+      Nat.add_sub_cancel k 1, h'k, Nat.factorial_succ, zero_sub, Nat.cast_mul, pow_add]
     ring
 
 end BernoulliFourierCoeffs
