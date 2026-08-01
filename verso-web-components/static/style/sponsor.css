@@ -43,9 +43,16 @@
     border-right: none;
 }
 
-/* remove bottom border on last row */
-.sponsor:nth-last-child(-n+3) {
+.sponsor:nth-child(3n+1):nth-last-child(-n+3),
+.sponsor:nth-child(3n+1):nth-last-child(-n+3) ~ .sponsor {
     border-bottom: none;
+}
+
+/* centre a sponsor that ends up alone on the last row */
+.sponsor:last-child:nth-child(3n+1):not(:first-child) {
+    grid-column: 2;
+    border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
 }
 
 img.sponsor-logo {
@@ -80,12 +87,27 @@ img.sponsor-logo {
         border-right: none;
     }
 
-    .sponsor:nth-last-child(-n+3) {
+    /* the last cell is either rightmost or spans the row, so it never needs sides */
+    .sponsor:last-child:nth-child(3n+1):not(:first-child) {
+        grid-column: auto;
+        border-left: none;
+        border-right: none;
+    }
+
+    .sponsor:nth-child(3n+1):nth-last-child(-n+3),
+    .sponsor:nth-child(3n+1):nth-last-child(-n+3) ~ .sponsor {
         border-bottom: 1px solid var(--color-border);
     }
 
-    .sponsor:nth-last-child(-n+2) {
+    .sponsor:nth-child(2n+1):nth-last-child(-n+2),
+    .sponsor:nth-child(2n+1):nth-last-child(-n+2) ~ .sponsor {
         border-bottom: none;
+    }
+
+    /* two columns leave no middle to centre in, so a lone sponsor spans the row */
+    .sponsor:last-child:nth-child(odd):not(:first-child) {
+        grid-column: 1 / -1;
+        border-right: none;
     }
 }
 
