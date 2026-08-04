@@ -87,7 +87,7 @@ jobs:
       - name: Update commit statuses
         uses: ./.downstream/actions/statuses-add
         with:
-          report-path: ${{ runner.temp }}/report/build-report.json
+          build-report-path: ${{ runner.temp }}/report/build-report.json
           target-url: ${{ github.event.workflow_run.html_url }}
 
   post-report-pr:
