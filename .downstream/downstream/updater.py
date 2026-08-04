@@ -116,13 +116,16 @@ class Updater:
         for manifest_path in subrepo.find_manifest_paths():
             self.fixup_manifest_dependencies(manifest_path)
 
-    def commit(self, msg: str, allow_empty: bool = False) -> None:
+    def commit(self, msg: str, allow_empty: bool = False) -> bool:
         result = run("git", "diff", "--staged", "--quiet", "--exit-code", check=False)
         has_differences = result.returncode != 0
         if has_differences:
             run("git", "commit", "-m", msg)
+            return True
         elif allow_empty:
             run("git", "commit", "--allow-empty", "-m", msg)
+            return True
+        return False
 
     def fixup_subrepo_and_commit(self, subrepo: Subrepo, sha: str, msg: str) -> None:
         self.fixup_subrepo_toolchain(subrepo)
@@ -235,7 +238,7 @@ class Updater:
 
     def split_to_branch(
         self, subrepo: Subrepo, branch: str, message: str = "chore: nightly adaptations"
-    ) -> None:
+    ) -> bool:
         self.reset()
 
         our_tree = self.get_tree_in_head(subrepo.name)
@@ -259,4 +262,4 @@ class Updater:
         )
 
         run("git", "add", ".")
-        self.commit(message)
+        return self.commit(message)

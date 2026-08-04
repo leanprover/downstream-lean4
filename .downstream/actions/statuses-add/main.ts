@@ -11,7 +11,7 @@ import type {
 import { abort, getInput, getInputOpt } from "../lib/util";
 
 const token = getInput("token");
-const reportPath = getInput("report-path");
+const buildReportPath = getInput("build-report-path");
 const targetUrl = getInputOpt("target-url");
 
 const octo = github.getOctokit(token);
@@ -52,7 +52,7 @@ async function updateStatus(
 }
 
 async function run(): Promise<void> {
-  const raw = await fs.readFile(reportPath, "utf8");
+  const raw = await fs.readFile(buildReportPath, "utf8");
   const buildReport = JSON.parse(raw) as BuildReport;
 
   let ok = true;
