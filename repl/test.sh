@@ -57,6 +57,7 @@ done
 
 # Run the Mathlib tests
 if [[ $RUN_MATHLIB -eq 1 ]]; then
+    rm -f test/Mathlib/lean-toolchain
     cp lean-toolchain test/Mathlib/
     cd test/Mathlib/ && ./test.sh
 else
