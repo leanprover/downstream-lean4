@@ -67,9 +67,8 @@ class Subrepo:
     def manifest_path(self) -> Path:
         return self.path / "lake-manifest.json"
 
-    @property
-    def override_path(self) -> Path:
-        return self.path / ".lake" / "package-overrides.json"
+    def find_manifest_paths(self) -> list[Path]:
+        return sorted(self.path.glob("**/lake-manifest.json"))
 
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:

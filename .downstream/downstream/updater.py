@@ -82,8 +82,8 @@ class Updater:
             relative = Path("lean-toolchain").relative_to(file.parent, walk_up=True)
             file.symlink_to(relative)
 
-    def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
-        manifest = json.loads(subrepo.manifest_path.read_text())
+    def fixup_manifest_dependencies(self, manifest_path: Path) -> None:
+        manifest = json.loads(manifest_path.read_text())
 
         packages = []
         for package in manifest["packages"]:
@@ -98,7 +98,9 @@ class Updater:
                 packages.append(package)
             elif repo := self.subrepos_by_url.get(url):
                 package["type"] = "path"
-                package["dir"] = f"../{repo.name}"
+                package["dir"] = str(
+                    repo.path.relative_to(manifest_path.parent, walk_up=True)
+                )
                 package["scope"] = ""
                 del package["url"]
                 del package["rev"]
@@ -106,8 +108,13 @@ class Updater:
                 packages.append(package)
 
         overrides = {"version": manifest["version"], "packages": packages}
-        subrepo.override_path.parent.mkdir(parents=True, exist_ok=True)
-        subrepo.override_path.write_text(json.dumps(overrides, indent=2))
+        override_path = manifest_path.parent / ".lake" / "package-overrides.json"
+        override_path.parent.mkdir(parents=True, exist_ok=True)
+        override_path.write_text(json.dumps(overrides, indent=2))
+
+    def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
+        for manifest_path in subrepo.find_manifest_paths():
+            self.fixup_manifest_dependencies(manifest_path)
 
     def commit(self, msg: str, allow_empty: bool = False) -> None:
         result = run("git", "diff", "--staged", "--quiet", "--exit-code", check=False)
@@ -136,7 +143,8 @@ class Updater:
             base_changed = True
 
         run("git", "add", subrepo.path)
-        run("git", "add", "--force", subrepo.override_path)
+        for override_path in subrepo.path.glob("**/.lake/package-overrides.json"):
+            run("git", "add", "--force", override_path)
         self.commit(message, allow_empty=base_changed)
 
     def find_latest_subrepo_sha(self, subrepo: Subrepo) -> str:
