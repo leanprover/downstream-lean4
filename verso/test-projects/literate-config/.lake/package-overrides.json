@@ -1,0 +1,25 @@
+{
+  "version": "1.2.0",
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "illuminate",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.lean",
+      "dir": "../../../illuminate"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "plausible",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../plausible"
+    }
+  ]
+}
