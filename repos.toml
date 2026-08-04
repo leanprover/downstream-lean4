@@ -2,11 +2,13 @@
 url = "https://github.com/leanprover-community/aesop"
 rev = "nightly-testing"
 critical = true
+build_options = ["--wfail"]
 
 [batteries]
 url = "https://github.com/leanprover-community/batteries"
 rev = "nightly-testing"
 critical = true
+build_options = ["--wfail"]
 
 [BibtexQuery]
 url = "https://github.com/dupuisf/BibtexQuery"
@@ -22,16 +24,21 @@ critical = false
 url = "https://github.com/leanprover/cslib"
 rev = "nightly-testing"
 critical = false
+build_options = ["--wfail", "--iofail"]
+test_options = ["--wfail", "--iofail"]
 
 [doc-gen4]
 url = "https://github.com/leanprover/doc-gen4"
 rev = "main"
 critical = false
+build_options = ["--wfail"]
 
 [illuminate]
 url = "https://github.com/leanprover/illuminate"
 rev = "main"
 critical = false
+build_options = ["--wfail"]
+test_options = ["--wfail"]
 
 [import-graph]
 url = "https://github.com/leanprover-community/import-graph"
@@ -47,6 +54,8 @@ critical = true
 url = "https://github.com/fgdorais/lean4-unicode-basic"
 rev = "main"
 critical = false
+build_targets = ["UnicodeBasic", "UnicodeData", "lookup", "makeCLib", "makeTables"]
+build_options = ["--wfail"]
 
 [lean4export]
 url = "https://github.com/leanprover/lean4export"
@@ -62,12 +71,16 @@ critical = false
 url = "https://github.com/leanprover/leansqlite"
 rev = "main"
 critical = false
+build_options = ["--wfail"]
 
 [mathlib4]
 url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
 aliases = ["https://github.com/leanprover-community/mathlib4"]
 rev = "nightly-testing"
 critical = true
+build_targets = ["Mathlib", "Archive", "Counterexamples"]
+build_options = ["--wfail"]
+test_options = ["--iofail"]
 
 [plausible]
 url = "https://github.com/leanprover-community/plausible"
@@ -78,11 +91,15 @@ critical = true
 url = "https://github.com/leanprover-community/ProofWidgets4"
 rev = "nightly-testing"
 critical = true
+build_targets = ["ProofWidgets", "ProofWidgets.Demos"]
+build_options = ["--wfail"]
+test_options = ["--wfail"]
 
 [quote4]
 url = "https://github.com/leanprover-community/quote4"
 rev = "nightly-testing"
 critical = true
+build_options = ["--wfail"]
 
 [reference-manual]
 url = "https://github.com/leanprover/reference-manual"
