@@ -61,11 +61,12 @@ export async function findPrFor(
   octo: Octokit,
   repo: Repo,
   branchName: string,
+  state: "open" | "closed" | "all" = "all",
 ): Promise<ListPr | undefined> {
   const { data } = await octo.rest.pulls.list({
     ...repo,
     head: `${repo.owner}:${branchName}`,
-    state: "all",
+    state,
     sort: "created",
     direction: "desc",
     per_page: 1,

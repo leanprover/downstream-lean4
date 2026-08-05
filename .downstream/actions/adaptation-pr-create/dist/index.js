@@ -24901,11 +24901,11 @@ async function getPr(octo2, repo, n) {
   });
   return data;
 }
-async function findPrFor(octo2, repo, branchName) {
+async function findPrFor(octo2, repo, branchName, state = "all") {
   const { data } = await octo2.rest.pulls.list({
     ...repo,
     head: `${repo.owner}:${branchName}`,
-    state: "all",
+    state,
     sort: "created",
     direction: "desc",
     per_page: 1

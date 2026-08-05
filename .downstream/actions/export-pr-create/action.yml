@@ -1,0 +1,61 @@
+name: Create an export PR
+
+description: >
+  Export the current state of a subrepo from the downstream monorepo back to a
+  branch and pull request in its own upstream repository.
+
+inputs:
+  app-token:
+    description: GitHub app token.
+    required: true
+
+  subrepo:
+    description: >
+      The name of the subrepo (as it appears in repos.toml and the build report)
+      to export.
+    required: true
+
+  build-report-path:
+    description: Path to the JSON build report produced by `build.py --report`.
+    required: true
+
+  downstream-clone:
+    description: >
+      Path to a (potentially treeless) clone of the downstream repository.
+    required: true
+
+  tracking-branch:
+    description: >
+      Branch that tracks the last successfully exported commit in the downstream
+      repository, to prevent outdated exports.
+    required: true
+
+  target-repo:
+    description: >
+      The upstream repository to push the export branch to and open the export
+      PR against, in "owner/repo" format.
+    required: true
+
+  target-branch:
+    description: The branch in target-repo to open the export PR against.
+    required: true
+
+  export-branch:
+    description: The branch in target-repo to push the export to.
+    default: downstream-export
+
+  pr-title:
+    description: Title for the export PR.
+    default: "chore: export adaptations"
+
+  pr-body:
+    description: Body for the export PR.
+
+outputs:
+  number:
+    description: >
+      The export PR number, if one exists or was created.
+
+runs:
+  using: node24
+  main: dist/index.js

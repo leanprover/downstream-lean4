@@ -51,7 +51,7 @@ function status(phase: BuildReportPhase): string {
   if (phase.success === null) return "⏭️";
   const icon = phase.success ? "✅" : "🟥";
   if (phase.duration === null) return icon;
-  return `${icon} in ${Math.round(phase.duration / 60)}m`;
+  return `${icon} in ${Math.round(phase.duration)}s`;
 }
 
 function renderTable(repos: BuildReportRepo[]): string[] {

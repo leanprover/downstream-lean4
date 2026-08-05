@@ -24175,7 +24175,7 @@ function status(phase) {
   if (phase.success === null) return "\u23ED\uFE0F";
   const icon = phase.success ? "\u2705" : "\u{1F7E5}";
   if (phase.duration === null) return icon;
-  return `${icon} in ${Math.round(phase.duration / 60)}m`;
+  return `${icon} in ${Math.round(phase.duration)}s`;
 }
 function renderTable(repos) {
   const lines = [
