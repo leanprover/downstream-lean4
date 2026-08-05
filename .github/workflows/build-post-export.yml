@@ -1,0 +1,58 @@
+name: Post-build export
+
+on:
+  workflow_run:
+    workflows: [Build subrepos]
+    types: [completed]
+
+jobs:
+  cslib:
+    if:
+      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          filter: tree:0
+          fetch-depth: 0
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Create export PR
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          app-token: ${{ steps.app-token.outputs.token }}
+          subrepo: cslib
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          downstream-clone: .
+          tracking-branch: export/cslib
+          target-repo: leanprover/cslib
+          target-branch: nightly-testing # TODO Obtain from repos.toml?
+          export-branch: downstream-lean4-export
+          pr-title: "chore: export downstream-lean4 adaptations"
+          pr-body: >
+            This PR contains the latest nightly adaptations from the
+            https://github.com/leanprover/downstream-lean4 repository.
+
+            The next export PR will only be opened after this PR has been merged
+            or closed.
