@@ -30,6 +30,11 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token.outputs.app-slug }}[bot]
+
       - name: Download build report
         uses: actions/download-artifact@v8
         with:
