@@ -22,6 +22,7 @@ jobs:
         with:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: ${{ github.repository }},cslib
 
       - name: Checkout
         uses: actions/checkout@v6
