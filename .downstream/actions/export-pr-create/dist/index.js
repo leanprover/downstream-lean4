@@ -24976,6 +24976,7 @@ async function advanceTrackingBranch(sha) {
   await dRun("git", ["push", "origin", `${sha}:refs/heads/${trackingBranch}`]);
 }
 async function run() {
+  setOutput("created", "false");
   const buildReport = await loadBuildReport();
   const repoEntry = buildReport.repos.find((r) => r.name === subrepo);
   if (!repoEntry?.green) {
@@ -24997,6 +24998,7 @@ async function run() {
   if (hasChanges) {
     await pushExportBranch();
     const number = await createExportPr();
+    setOutput("created", "true");
     setOutput("number", String(number));
   }
   await advanceTrackingBranch(buildReport.commit_sha);

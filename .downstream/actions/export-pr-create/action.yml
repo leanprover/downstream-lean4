@@ -52,6 +52,10 @@ inputs:
     description: Body for the export PR.
 
 outputs:
+  created:
+    description: >
+      Whether a new export PR was created by this run.
+
   number:
     description: >
       The export PR number, if one exists or was created.

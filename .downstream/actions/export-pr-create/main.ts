@@ -109,6 +109,8 @@ async function advanceTrackingBranch(sha: string): Promise<void> {
 }
 
 async function run(): Promise<void> {
+  core.setOutput("created", "false");
+
   const buildReport = await loadBuildReport();
 
   // Only once the subrepo exists and builds correctly are the changes worth
@@ -143,6 +145,7 @@ async function run(): Promise<void> {
     // Create the export PR
     await pushExportBranch();
     const number = await createExportPr();
+    core.setOutput("created", "true");
     core.setOutput("number", String(number));
   }
 
