@@ -52,6 +52,7 @@ jobs:
           echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
 
       - name: Create export PR
+        id: export-pr
         uses: ./.downstream/actions/export-pr-create
         with:
           app-token: ${{ steps.app-token.outputs.token }}
@@ -68,3 +69,20 @@ jobs:
             This PR contains the latest nightly adaptations from the
             [downstream-lean4](https://github.com/leanprover/downstream-lean4)
             repository.
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 PRs
+          content: >
+            PR cslib#${{ steps.export-pr.outputs.number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.
