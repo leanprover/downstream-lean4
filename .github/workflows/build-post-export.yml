@@ -11,6 +11,9 @@ jobs:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/cslib
+      cancel-in-progress: false
     runs-on: ubuntu-slim
     permissions:
       actions: read
