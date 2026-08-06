@@ -44,6 +44,13 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
       - name: Create export PR
         uses: ./.downstream/actions/export-pr-create
         with:
@@ -52,13 +59,12 @@ jobs:
           build-report-path: ${{ runner.temp }}/report/build-report.json
           downstream-clone: .
           tracking-branch: export/cslib
-          target-repo: leanprover/cslib
+          target-repo: leanprover/cslib # TODO Obtain from repos.toml?
           target-branch: nightly-testing # TODO Obtain from repos.toml?
           export-branch: downstream-lean4-export
-          pr-title: "chore: export downstream-lean4 adaptations"
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           pr-body: >
             This PR contains the latest nightly adaptations from the
-            https://github.com/leanprover/downstream-lean4 repository.
-
-            The next export PR will only be opened after this PR has been merged
-            or closed.
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            repository.
