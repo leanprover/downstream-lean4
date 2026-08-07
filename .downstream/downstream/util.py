@@ -3,12 +3,26 @@ import shlex
 import subprocess
 import tomllib
 from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from os import PathLike
 from pathlib import Path
 from subprocess import CompletedProcess
 
 type Arg = str | bytes | PathLike[str] | PathLike[bytes]
+
+
+def fprint(*args, **kwargs) -> None:
+    print(*args, **kwargs, flush=True)
+
+
+@contextmanager
+def group(name: str) -> Generator[None]:
+    fprint(f"::group::{name}")
+    try:
+        yield
+    finally:
+        fprint("::endgroup::")
 
 
 def run(
@@ -18,7 +32,7 @@ def run(
     capture: bool = False,
     env: dict[str, str] | None = None,
 ) -> CompletedProcess[str]:
-    print(f"$ {' '.join(shlex.quote(str(arg)) for arg in args)}", flush=True)
+    fprint(f"$ {' '.join(shlex.quote(str(arg)) for arg in args)}")
     return subprocess.run(
         args,
         check=check,

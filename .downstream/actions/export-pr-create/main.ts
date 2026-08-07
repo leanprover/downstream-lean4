@@ -72,14 +72,28 @@ async function prepareExportBranch(): Promise<boolean> {
       ".downstream/split.py",
       ".",
       subrepo,
-      exportBranch,
       "-m",
       prTitle,
+      "--rebase",
       "--fail-if-empty",
     ],
     { ignoreReturnCode: true },
   );
-  return exitCode === 0;
+
+  if (exitCode === 11 /* EXIT_REBASE_FAILED */) {
+    // If the changes can't be rebased cleanly, our PR will be outdated as soon
+    // as it is opened. This can happen for example if a previous export PR has
+    // just been merged but the changes have not yet made their way into the
+    // downstream repo via an update. In this situation, if we didn't check for
+    // rebaseability, we'd just re-open the same PR again.
+    abort("split.py failed to rebase");
+  } else if (exitCode === 10 /* EXIT_EMPTY */) {
+    return false; // Exit code returned by --fail-if-empty when empty
+  } else if (exitCode === 0) {
+    return true; // Successful split, so there are changes
+  } else {
+    abort(`split.py exited with code ${exitCode}`);
+  }
 }
 
 async function pushExportBranch(): Promise<void> {
@@ -87,7 +101,7 @@ async function pushExportBranch(): Promise<void> {
     "push",
     "--force",
     `https://github.com/${targetRepo.owner}/${targetRepo.repo}.git`,
-    `${exportBranch}:${exportBranch}`,
+    `HEAD:${exportBranch}`,
   ]);
 }
 

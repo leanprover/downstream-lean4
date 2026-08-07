@@ -24943,21 +24943,29 @@ async function prepareExportBranch() {
       ".downstream/split.py",
       ".",
       subrepo,
-      exportBranch,
       "-m",
       prTitle,
+      "--rebase",
       "--fail-if-empty"
     ],
     { ignoreReturnCode: true }
   );
-  return exitCode === 0;
+  if (exitCode === 11) {
+    abort("split.py failed to rebase");
+  } else if (exitCode === 10) {
+    return false;
+  } else if (exitCode === 0) {
+    return true;
+  } else {
+    abort(`split.py exited with code ${exitCode}`);
+  }
 }
 async function pushExportBranch() {
   await dRun("git", [
     "push",
     "--force",
     `https://github.com/${targetRepo.owner}/${targetRepo.repo}.git`,
-    `${exportBranch}:${exportBranch}`
+    `HEAD:${exportBranch}`
   ]);
 }
 async function createExportPr() {
