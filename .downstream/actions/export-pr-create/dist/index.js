@@ -24951,7 +24951,7 @@ async function prepareExportBranch() {
     { ignoreReturnCode: true }
   );
   if (exitCode === 11) {
-    abort("split.py failed to rebase");
+    exit("split.py failed to rebase");
   } else if (exitCode === 10) {
     return false;
   } else if (exitCode === 0) {

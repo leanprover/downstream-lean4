@@ -86,7 +86,7 @@ async function prepareExportBranch(): Promise<boolean> {
     // just been merged but the changes have not yet made their way into the
     // downstream repo via an update. In this situation, if we didn't check for
     // rebaseability, we'd just re-open the same PR again.
-    abort("split.py failed to rebase");
+    exit("split.py failed to rebase");
   } else if (exitCode === 10 /* EXIT_EMPTY */) {
     return false; // Exit code returned by --fail-if-empty when empty
   } else if (exitCode === 0) {
