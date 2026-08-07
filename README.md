@@ -49,6 +49,8 @@ this repository to benefit from cross-project caching:
   with artifacts from the global cache. Some repositories don't support the
   global artifact cache yet and may fail to build, test, or lint without this.
 
+An `.envrc` file for use with [direnv](https://direnv.net/) is provided.
+
 ## I'm a Lean developer and want to use this repo.
 
 If you suspect or know that a Lean PR will break downstream packages, tag the PR
