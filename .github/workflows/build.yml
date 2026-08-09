@@ -6,6 +6,7 @@ on:
       - "**"
       - "!green"
       - "!green-nightly-*"
+      - "!export/*"
 
 jobs:
   main:
