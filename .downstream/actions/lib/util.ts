@@ -57,15 +57,21 @@ export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
   return data;
 }
 
+export interface FindPrForOptions {
+  state?: "open" | "closed" | "all";
+  headOwner?: string;
+}
+
 export async function findPrFor(
   octo: Octokit,
   repo: Repo,
   branchName: string,
-  state: "open" | "closed" | "all" = "all",
+  options: FindPrForOptions = {},
 ): Promise<ListPr | undefined> {
+  const { state = "all", headOwner = repo.owner } = options;
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${repo.owner}:${branchName}`,
+    head: `${headOwner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",

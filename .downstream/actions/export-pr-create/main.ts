@@ -19,9 +19,10 @@ const subrepo = getInput("subrepo");
 const buildReportPath = getInput("build-report-path");
 const downstreamClone = getInput("downstream-clone");
 const trackingBranch = getInput("tracking-branch");
+const pushRepo = parseRepo(getInput("push-repo"));
+const pushBranch = getInput("push-branch");
 const targetRepo = parseRepo(getInput("target-repo"));
 const targetBranch = getInput("target-branch");
-const exportBranch = getInput("export-branch");
 const prTitle = getInput("pr-title");
 const prBody = getInputOpt("pr-body");
 
@@ -100,8 +101,8 @@ async function pushExportBranch(): Promise<void> {
   await dRun("git", [
     "push",
     "--force",
-    `https://github.com/${targetRepo.owner}/${targetRepo.repo}.git`,
-    `HEAD:${exportBranch}`,
+    `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
+    `HEAD:${pushBranch}`,
   ]);
 }
 
@@ -110,7 +111,7 @@ async function createExportPr(): Promise<number> {
   const { data } = await octo.rest.pulls.create({
     ...targetRepo,
     base: targetBranch,
-    head: exportBranch,
+    head: `${pushRepo.owner}:${pushBranch}`,
     title: prTitle,
     body: prBody ?? undefined,
   });
@@ -136,7 +137,10 @@ async function run(): Promise<void> {
 
   // We don't want to touch the export branch as long as an open PR exists since
   // that would modify the PR.
-  const existingPr = await findPrFor(octo, targetRepo, exportBranch, "open");
+  const existingPr = await findPrFor(octo, targetRepo, pushBranch, {
+    state: "open",
+    headOwner: pushRepo.owner,
+  });
   if (existingPr !== undefined) {
     core.setOutput("number", String(existingPr.number));
     exit(`Export PR #${existingPr.number} already exists.`);

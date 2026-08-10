@@ -30,19 +30,26 @@ inputs:
       repository, to prevent outdated exports.
     required: true
 
-  target-repo:
+  push-repo:
     description: >
       The upstream repository to push the export branch to and open the export
-      PR against, in "owner/repo" format.
+      PR from, in "owner/repo" format.
+    required: true
+
+  push-branch:
+    description: >
+      The branch in push-repo to push the export to and open the export PR from.
+    required: true
+
+  target-repo:
+    description: >
+      The upstream repository to open the export PR against, in "owner/repo"
+      format.
     required: true
 
   target-branch:
     description: The branch in target-repo to open the export PR against.
     required: true
-
-  export-branch:
-    description: The branch in target-repo to push the export to.
-    default: downstream-export
 
   pr-title:
     description: Title for the export PR.

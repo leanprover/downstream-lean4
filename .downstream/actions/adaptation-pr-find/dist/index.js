@@ -24134,10 +24134,11 @@ function parseRepo(input) {
   assert(match !== null, `Expected "owner/repo", not "${input}"`);
   return { owner: match[1], repo: match[2] };
 }
-async function findPrFor(octo2, repo, branchName, state = "all") {
+async function findPrFor(octo2, repo, branchName, options = {}) {
+  const { state = "all", headOwner = repo.owner } = options;
   const { data } = await octo2.rest.pulls.list({
     ...repo,
-    head: `${repo.owner}:${branchName}`,
+    head: `${headOwner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",

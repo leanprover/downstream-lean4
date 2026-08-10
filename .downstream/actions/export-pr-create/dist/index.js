@@ -24886,10 +24886,11 @@ function parseRepo(input) {
   assert(match !== null, `Expected "owner/repo", not "${input}"`);
   return { owner: match[1], repo: match[2] };
 }
-async function findPrFor(octo2, repo, branchName, state = "all") {
+async function findPrFor(octo2, repo, branchName, options = {}) {
+  const { state = "all", headOwner = repo.owner } = options;
   const { data } = await octo2.rest.pulls.list({
     ...repo,
-    head: `${repo.owner}:${branchName}`,
+    head: `${headOwner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
@@ -24904,9 +24905,10 @@ var subrepo = getInput2("subrepo");
 var buildReportPath = getInput2("build-report-path");
 var downstreamClone = getInput2("downstream-clone");
 var trackingBranch = getInput2("tracking-branch");
+var pushRepo = parseRepo(getInput2("push-repo"));
+var pushBranch = getInput2("push-branch");
 var targetRepo = parseRepo(getInput2("target-repo"));
 var targetBranch = getInput2("target-branch");
-var exportBranch = getInput2("export-branch");
 var prTitle = getInput2("pr-title");
 var prBody = getInputOpt("pr-body");
 var octo = getOctokit(appToken);
@@ -24964,8 +24966,8 @@ async function pushExportBranch() {
   await dRun("git", [
     "push",
     "--force",
-    `https://github.com/${targetRepo.owner}/${targetRepo.repo}.git`,
-    `HEAD:${exportBranch}`
+    `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
+    `HEAD:${pushBranch}`
   ]);
 }
 async function createExportPr() {
@@ -24973,7 +24975,7 @@ async function createExportPr() {
   const { data } = await octo.rest.pulls.create({
     ...targetRepo,
     base: targetBranch,
-    head: exportBranch,
+    head: `${pushRepo.owner}:${pushBranch}`,
     title: prTitle,
     body: prBody ?? void 0
   });
@@ -24990,7 +24992,10 @@ async function run() {
   if (!repoEntry?.green) {
     exit(`Subrepo "${subrepo}" is not green, nothing to export.`);
   }
-  const existingPr = await findPrFor(octo, targetRepo, exportBranch, "open");
+  const existingPr = await findPrFor(octo, targetRepo, pushBranch, {
+    state: "open",
+    headOwner: pushRepo.owner
+  });
   if (existingPr !== void 0) {
     setOutput("number", String(existingPr.number));
     exit(`Export PR #${existingPr.number} already exists.`);
