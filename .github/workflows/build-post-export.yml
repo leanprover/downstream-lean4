@@ -63,9 +63,10 @@ jobs:
           build-report-path: ${{ runner.temp }}/report/build-report.json
           downstream-clone: .
           tracking-branch: export/cslib
+          push-repo: leanprover/cslib # TODO Obtain from repos.toml?
+          push-branch: downstream-lean4-export
           target-repo: leanprover/cslib # TODO Obtain from repos.toml?
           target-branch: nightly-testing # TODO Obtain from repos.toml?
-          export-branch: downstream-lean4-export
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           pr-body: >
