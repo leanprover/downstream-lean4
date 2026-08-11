@@ -54,7 +54,6 @@ critical = true
 url = "https://github.com/fgdorais/lean4-unicode-basic"
 rev = "main"
 critical = false
-build_targets = ["UnicodeBasic", "UnicodeData", "lookup", "makeCLib", "makeTables"]
 build_options = ["--wfail"]
 
 [lean4export]
@@ -72,6 +71,7 @@ url = "https://github.com/leanprover/leansqlite"
 rev = "main"
 critical = false
 build_options = ["--wfail"]
+test_options = ["--wfail"]
 
 [mathlib4]
 url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
