@@ -123,7 +123,7 @@ theorem Coloring.not_adj_of_mem_colorClass {c : α} {v w : V} (hv : v ∈ C.colo
 theorem Coloring.isIndepSet_colorClass (c : α) : G.IsIndepSet <| C.colorClass c :=
   fun _ hv _ hw _ ↦ C.not_adj_of_mem_colorClass hv hw
 
-@[deprecated isIndepSet_colorClass (since := "2026-02-07")]
+@[deprecated isIndepSet_colorClass +typeChanged (since := "2026-02-07")]
 theorem Coloring.color_classes_independent (c : α) : IsAntichain G.Adj (C.colorClass c) :=
   C.isIndepSet_colorClass c
 
@@ -507,7 +507,7 @@ theorem chromaticNumber_eq_zero_iff : G.chromaticNumber = 0 ↔ IsEmpty V :=
 theorem chromaticNumber_eq_zero_of_isEmpty [IsEmpty V] : G.chromaticNumber = 0 := by
   simpa
 
-@[deprecated (since := "2026-04-24")]
+@[deprecated chromaticNumber_eq_zero_iff +typeChanged (since := "2026-04-24")]
 alias ⟨isEmpty_of_chromaticNumber_eq_zero, _⟩ := chromaticNumber_eq_zero_iff
 
 theorem chromaticNumber_eq_one_iff : G.chromaticNumber = 1 ↔ G = ⊥ ∧ Nonempty V := by

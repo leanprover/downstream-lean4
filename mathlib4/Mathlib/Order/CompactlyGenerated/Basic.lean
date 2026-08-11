@@ -465,7 +465,7 @@ lemma iSupIndep_iff_supIndep {ι : Type*} {f : ι → α} :
   rw [Finset.supIndep_iff_disjoint_erase] at h
   exact h i (Finset.mem_insert_self i _)
 
-@[deprecated iSupIndep_iff_supIndep (since := "2026-02-18")]
+@[deprecated iSupIndep_iff_supIndep +typeChanged (since := "2026-02-18")]
 lemma iSupIndep_iff_supIndep_of_injOn {ι : Type*} {f : ι → α}
     (hf : InjOn f {i | f i ≠ ⊥}) :
     iSupIndep f ↔ ∀ (s : Finset ι), s.SupIndep f := by

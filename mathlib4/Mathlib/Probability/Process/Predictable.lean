@@ -259,7 +259,7 @@ end Discrete
 
 end IsStronglyPredictable
 
-@[deprecated IsStronglyPredictable.stronglyAdapted (since := "2026-01-05")]
+@[deprecated IsStronglyPredictable.stronglyAdapted +typeChanged (since := "2026-01-05")]
 theorem Predictable.stronglyAdapted {β : Type*} [TopologicalSpace β] {f : Filtration ℕ m}
     {u : ℕ → Ω → β} (hu : StronglyAdapted f fun n => u (n + 1))
     (hu0 : StronglyMeasurable[f 0] (u 0)) :

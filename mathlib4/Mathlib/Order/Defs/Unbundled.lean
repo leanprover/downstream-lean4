@@ -459,7 +459,7 @@ theorem trans_trichotomous_right [IsTrans α r] [Std.Trichotomous r] {a b c : α
   · exact h₁
   · exact absurd h₃ h₂
 
-@[deprecated IsTrans.trans (since := "2026-02-20")]
+@[deprecated IsTrans.trans +typeChanged (since := "2026-02-20")]
 theorem transitive_of_trans (r : α → α → Prop) [IsTrans α r] : Transitive r := IsTrans.trans
 
 /-- In a trichotomous irreflexive order, every element is determined by the set of predecessors. -/

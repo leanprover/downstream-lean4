@@ -251,7 +251,7 @@ public theorem exists_subalgebra_fg [Smooth A B] :
     D.fg_subalgebra R, ⟨.of_split _ σ₀ hσ₀, inferInstance⟩,
     ⟨(P.tensorModelOfHasCoeffsEquiv (D.subalgebra R)).symm⟩⟩
 
-@[deprecated exists_subalgebra_fg (since := "2026-01-07")]
+@[deprecated exists_subalgebra_fg +typeChanged (since := "2026-01-07")]
 public theorem exists_subalgebra_finiteType [Smooth A B] :
     ∃ (A₀ : Subalgebra R A) (B₀ : Type u) (_ : CommRing B₀) (_ : Algebra A₀ B₀),
       FiniteType R A₀ ∧ Smooth A₀ B₀ ∧ Nonempty (B ≃ₐ[A] A ⊗[A₀] B₀) := by

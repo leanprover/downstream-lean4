@@ -1028,7 +1028,7 @@ theorem isMulCommutative_closure {s : Set R'} (hcomm : ∀ x ∈ s, ∀ y ∈ s,
 
 open scoped IsMulCommutative in
 /-- If all the elements of a set `s` commute, then `closure s` is a commutative semiring. -/
-@[deprecated isMulCommutative_closure (since := "2026-03-11")]
+@[deprecated isMulCommutative_closure +typeChanged (since := "2026-03-11")]
 abbrev closureCommSemiringOfComm {s : Set R'} (hcomm : ∀ x ∈ s, ∀ y ∈ s, x * y = y * x) :
     CommSemiring (closure s) :=
   have := isMulCommutative_closure hcomm

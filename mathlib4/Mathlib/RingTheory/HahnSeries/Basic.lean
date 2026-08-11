@@ -529,7 +529,7 @@ theorem forallLTEqZero_supp_BddBelow (f : Γ → R) (n : Γ) (hn : ∀ (m : Γ),
   contrapose
   simp_all
 
-@[deprecated bddBelow_empty (since := "2026-01-02")]
+@[deprecated bddBelow_empty +typeChanged (since := "2026-01-02")]
 theorem BddBelow_zero [Nonempty Γ] : BddBelow (Function.support (0 : Γ → R)) := by
   simp
 
@@ -562,7 +562,7 @@ theorem order_lt_iff_exists [Zero Γ] {x : R⟦Γ⟧} {i : Γ} (h : x ≠ 0) :
 
 variable [LocallyFiniteOrder Γ]
 
-@[deprecated BddBelow.isWF (since := "2026-01-02")]
+@[deprecated BddBelow.isWF +typeChanged (since := "2026-01-02")]
 theorem suppBddBelow_supp_PWO (f : Γ → R) (hf : BddBelow (Function.support f)) :
     (Function.support f).IsPWO :=
   hf.isWF.isPWO
@@ -587,7 +587,7 @@ theorem ofSuppBddBelow_eq_zero {f : Γ → R} {hf} : ofSuppBddBelow f hf = 0 ↔
 theorem coeff_ofSuppBddBelow {f : Γ → R} {hf} : (ofSuppBddBelow f hf).coeff = f :=
   rfl
 
-@[deprecated le_order_iff_forall (since := "2026-01-02")]
+@[deprecated le_order_iff_forall +typeChanged (since := "2026-01-02")]
 theorem order_ofForallLtEqZero [Zero Γ] (f : Γ → R) (hf : f ≠ 0) (n : Γ)
     (hn : ∀ (m : Γ), m < n → f m = 0) :
     n ≤ order (ofSuppBddBelow f (forallLTEqZero_supp_BddBelow f n hn)) := by

@@ -236,7 +236,7 @@ instance : Star 𝔻 where
   star z := mk (conj z) <| (norm_conj z).symm ▸ z.norm_lt_one
 
 /-- Conjugate point of the unit disc. Deprecated, use `star` instead. -/
-@[deprecated star (since := "2026-01-06")]
+@[deprecated star +typeChanged (since := "2026-01-06")]
 protected def «conj» (z : 𝔻) := star z
 
 @[simp] theorem coe_star (z : 𝔻) : (↑(star z) : ℂ) = conj ↑z := rfl
@@ -254,7 +254,7 @@ protected theorem star_zero : star (0 : 𝔻) = 0 := by simp
 instance : InvolutiveStar 𝔻 where
   star_involutive z := by ext; simp
 
-@[deprecated star_star (since := "2026-01-06")]
+@[deprecated star_star +typeChanged (since := "2026-01-06")]
 theorem conj_conj (z : 𝔻) : star (star z) = z := star_star z
 
 @[simp] protected theorem star_neg (z : 𝔻) : star (-z) = -(star z) := rfl
@@ -274,7 +274,7 @@ alias re_conj := UnitDisc.re_star
 instance : StarMul 𝔻 where
   star_mul z w := coe_injective <| by simp [mul_comm]
 
-@[deprecated star_mul' (since := "2026-01-06")]
+@[deprecated star_mul' +typeChanged (since := "2026-01-06")]
 theorem conj_mul (z w : 𝔻) : star (z * w) = star z * star w :=
   star_mul' z w
 

@@ -53,7 +53,7 @@ class HasCompl (α : Type*) where
   /-- Set / lattice complement -/
   compl : α → α
 
-attribute [deprecated Compl.compl (since := "2026-01-04")] HasCompl.compl
+attribute [deprecated Compl.compl +typeChanged (since := "2026-01-04")] HasCompl.compl
 
 @[inherit_doc]
 postfix:1024 "ᶜ" => compl

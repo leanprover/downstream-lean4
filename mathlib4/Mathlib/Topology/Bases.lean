@@ -746,7 +746,7 @@ theorem _root_.MapClusterPt.tendsto_subseq {u : ℕ → α} (hx : MapClusterPt x
     ∃ ψ : ℕ → ℕ, StrictMono ψ ∧ Tendsto (u ∘ ψ) atTop (𝓝 x) :=
   subseq_tendsto_of_neBot hx
 
-@[deprecated MapClusterPt.tendsto_subseq (since := "2026-03-29")]
+@[deprecated MapClusterPt.tendsto_subseq +typeChanged (since := "2026-03-29")]
 theorem FirstCountableTopology.tendsto_subseq {u : ℕ → α} {x : α}
     (hx : MapClusterPt x atTop u) : ∃ ψ : ℕ → ℕ, StrictMono ψ ∧ Tendsto (u ∘ ψ) atTop (𝓝 x) :=
   subseq_tendsto_of_neBot hx
