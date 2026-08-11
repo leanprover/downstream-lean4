@@ -56,15 +56,6 @@ function ensurePrIsUnmerged(pr: Pr): void {
   core.info("PR is unmerged, continuing...");
 }
 
-function ensurePrTargetsDefaultBranch(pr: Pr): void {
-  const defaultBranch = pr.base.repo.default_branch;
-  if (pr.base.ref === defaultBranch) {
-    core.info(`PR is targeting "${defaultBranch}", continuing...`);
-    return;
-  }
-  exit(`PR is not targeting "${defaultBranch}", exiting...`);
-}
-
 function ensurePrIsLabeled(pr: Pr, label: string): void {
   const labeled = pr.labels.some((l) => l.name === label);
   if (labeled) {
@@ -273,9 +264,8 @@ async function run(): Promise<void> {
 
   ensurePrIsUnmerged(uPr);
   ensurePrIsLabeled(uPr, upstreamLabel);
-  ensurePrTargetsDefaultBranch(uPr);
 
-  const aBranchName = adaptationBranchNameFor(uPr);
+  const aBranchName = adaptationBranchNameFor(uPr.number);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
 
   // If there's no adaptation branch, then there can't be any open adaptation
@@ -287,6 +277,7 @@ async function run(): Promise<void> {
       : await findPrFor(octo, downstreamRepo, aBranchName);
 
   const prefix = statusPrefix(aPr?.number);
+  if (aPr !== undefined) core.setOutput("number", String(aPr.number));
 
   if (aPr !== undefined) await syncState(uPr, aPr);
   if (uPr.state !== "open") exit("PR is closed, exiting...");
@@ -328,6 +319,7 @@ async function run(): Promise<void> {
 
   if (aPr === undefined) {
     const aPrNumber = await createAdaptationPrFor(uPr, aBranchName);
+    core.setOutput("number", String(aPrNumber));
     await updateStatus(uPr, statusPrefix(aPrNumber));
   } else {
     await updateStatus(uPr, prefix);

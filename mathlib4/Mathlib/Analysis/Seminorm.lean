@@ -514,7 +514,7 @@ noncomputable instance instSupSet : SupSet (Seminorm 𝕜 E) where
 
 protected theorem coe_sSup_eq' {s : Set <| Seminorm 𝕜 E}
     (hs : BddAbove ((↑) '' s : Set (E → ℝ))) : ↑(sSup s) = ⨆ p : s, ((p : Seminorm 𝕜 E) : E → ℝ) :=
-  congr_arg _ (dif_pos hs)
+  congr_arg _ (dite_eq_left hs)
 
 protected theorem bddAbove_iff {s : Set <| Seminorm 𝕜 E} :
     BddAbove s ↔ BddAbove ((↑) '' s : Set (E → ℝ)) :=
@@ -881,18 +881,9 @@ end AddCommGroup
 
 end SeminormedRing
 
-section NormedField
+section NormedDivisionRing
 
-variable [NormedField 𝕜] [AddCommGroup E] [Module 𝕜 E] (p : Seminorm 𝕜 E) {r : ℝ} {x : E}
-
-theorem closedBall_iSup {ι : Sort*} {p : ι → Seminorm 𝕜 E} (hp : BddAbove (range p)) (e : E)
-    {r : ℝ} (hr : 0 < r) : closedBall (⨆ i, p i) e r = ⋂ i, closedBall (p i) e r := by
-  cases isEmpty_or_nonempty ι
-  · rw [iSup_of_empty', iInter_of_empty, Seminorm.sSup_empty]
-    exact closedBall_bot _ hr
-  · ext x
-    have := Seminorm.bddAbove_range_iff.mp hp (x - e)
-    simp only [mem_closedBall, mem_iInter, Seminorm.iSup_apply hp, ciSup_le_iff this]
+variable [NormedDivisionRing 𝕜] [AddCommGroup E] [Module 𝕜 E] (p : Seminorm 𝕜 E) {r : ℝ} {x : E}
 
 theorem ball_norm_mul_subset {p : Seminorm 𝕜 E} {k : 𝕜} {r : ℝ} :
     p.ball 0 (‖k‖ * r) ⊆ k • p.ball 0 r := by
@@ -973,11 +964,26 @@ theorem smul_closedBall_preimage (p : Seminorm 𝕜 E) (y : E) (r : ℝ) (a : �
     rw [mem_preimage, mem_closedBall, mem_closedBall, le_div_iff₀ (norm_pos_iff.mpr ha), mul_comm, ←
       map_smul_eq_mul p, smul_sub, smul_inv_smul₀ ha]
 
+end NormedDivisionRing
+
+section NormedField
+
+variable [NormedField 𝕜] [AddCommGroup E] [Module 𝕜 E] (p : Seminorm 𝕜 E) {r : ℝ} {x : E}
+
+theorem closedBall_iSup {ι : Sort*} {p : ι → Seminorm 𝕜 E} (hp : BddAbove (range p)) (e : E)
+    {r : ℝ} (hr : 0 < r) : closedBall (⨆ i, p i) e r = ⋂ i, closedBall (p i) e r := by
+  cases isEmpty_or_nonempty ι
+  · rw [iSup_of_empty', iInter_of_empty, Seminorm.sSup_empty]
+    exact closedBall_bot _ hr
+  · ext x
+    have := Seminorm.bddAbove_range_iff.mp hp (x - e)
+    simp only [mem_closedBall, mem_iInter, Seminorm.iSup_apply hp, ciSup_le_iff this]
+
 end NormedField
 
 section Convex
 
-variable [NormedField 𝕜] [AddCommGroup E] [NormedSpace ℝ 𝕜] [Module 𝕜 E]
+variable [NormedField 𝕜] [AddCommGroup E] [SMul ℝ 𝕜] [NormSMulClass ℝ 𝕜] [Module 𝕜 E]
 
 section SMul
 
@@ -1018,7 +1024,7 @@ end Convex
 
 section RestrictScalars
 
-variable (𝕜) {𝕜' : Type*} [NormedField 𝕜] [SeminormedRing 𝕜'] [NormedAlgebra 𝕜 𝕜']
+variable (𝕜) {𝕜' : Type*} [NormedField 𝕜] [SeminormedRing 𝕜'] [SMul 𝕜 𝕜'] [NormSMulClass 𝕜 𝕜']
   [NormOneClass 𝕜'] [AddCommGroup E] [Module 𝕜' E] [SMul 𝕜 E] [IsScalarTower 𝕜 𝕜' E]
 
 /-- Reinterpret a seminorm over a field `𝕜'` as a seminorm over a smaller field `𝕜`. This will
@@ -1333,12 +1339,12 @@ variable {𝕜 E} {x : E}
 /-- Balls at the origin are absorbent. -/
 theorem absorbent_ball_zero (hr : 0 < r) : Absorbent 𝕜 (Metric.ball (0 : E) r) := by
   rw [← ball_normSeminorm 𝕜]
-  exact (normSeminorm _ _).absorbent_ball_zero hr
+  exact (normSeminorm 𝕜 _).absorbent_ball_zero hr
 
 /-- Balls containing the origin are absorbent. -/
 theorem absorbent_ball (hx : ‖x‖ < r) : Absorbent 𝕜 (Metric.ball x r) := by
   rw [← ball_normSeminorm 𝕜]
-  exact (normSeminorm _ _).absorbent_ball hx
+  exact (normSeminorm 𝕜 _).absorbent_ball hx
 
 /-- Balls at the origin are balanced. -/
 theorem balanced_ball_zero : Balanced 𝕜 (Metric.ball (0 : E) r) := by

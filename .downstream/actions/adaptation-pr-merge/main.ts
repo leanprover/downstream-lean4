@@ -163,7 +163,8 @@ async function isReachableFromRev(uPr: Pr): Promise<boolean> {
   return data.status === "ahead" || data.status === "identical";
 }
 
-async function mergeForPr(aPr: ListPr): Promise<void> {
+// Returns `false` iff the adaptation PR needs manual attention.
+async function mergeForPr(aPr: ListPr): Promise<boolean> {
   core.info(
     `Checking whether adaptation PR #${aPr.number} should be merged...`,
   );
@@ -174,7 +175,7 @@ async function mergeForPr(aPr: ListPr): Promise<void> {
     core.warning(
       `Adaptation PR #${aPr.number} has invalid branch name "${aPr.head.ref}", skipping...`,
     );
-    return;
+    return true;
   }
   const uPr = await getPr(octo, upstreamRepo, uPrNumber);
 
@@ -183,7 +184,7 @@ async function mergeForPr(aPr: ListPr): Promise<void> {
     core.info(
       `Upstream PR #${uPr.number} is not reachable from rev "${upstreamRev}", skipping...`,
     );
-    return;
+    return true;
   }
 
   // Attempt to merge the adaptation PR using the GitHub API
@@ -191,25 +192,35 @@ async function mergeForPr(aPr: ListPr): Promise<void> {
   await undoOverridesAndCommit(aPr);
   await pushAdaptationBranch(aPr.head.ref);
   await waitForMergeability(aPr.number);
-  if (await squashMergeAdaptationPr(aPr)) return;
+  if (await squashMergeAdaptationPr(aPr)) return true;
 
   // We failed, so tell the upstream PR author
   await tellAuthorToMerge(uPr, aPr);
   await addMergeLabel(aPr);
+  return false;
+}
+
+function renderZulipReport(unmergedPrs: ListPr[]): string {
+  return unmergedPrs
+    .map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`)
+    .join("\n");
 }
 
 async function run(): Promise<void> {
   const aPrs = await findAdaptationPrMergeCandidates();
   core.info(`Found ${aPrs.length} candidate adaptation PR(s)`);
 
+  const unmergedPrs: ListPr[] = [];
   for (const aPr of aPrs) {
     try {
-      await mergeForPr(aPr);
+      if (!(await mergeForPr(aPr))) unmergedPrs.push(aPr);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       core.warning(`Failed to merge adaptation PR #${aPr.number}: ${errorMsg}`);
     }
   }
+
+  core.setOutput("report-zulip", renderZulipReport(unmergedPrs));
 }
 
 run().catch((error) => {

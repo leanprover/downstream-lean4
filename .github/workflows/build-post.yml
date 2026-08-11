@@ -5,17 +5,14 @@ on:
     workflows: [Build subrepos]
     types: [completed]
 
-concurrency:
-  group: build-post-${{ github.event.workflow_run.head_branch }}
-  cancel-in-progress: false
-
 jobs:
   upload-cache:
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
       actions: read
       contents: read
+      pull-requests: write
     env:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
@@ -28,22 +25,11 @@ jobs:
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Set cache directory
-        run: echo "LAKE_CACHE_DIR=$RUNNER_TEMP/cache" >> "$GITHUB_ENV"
-
-      - name: Download build mappings
+      - name: Download staged cache
         uses: actions/download-artifact@v8
         with:
-          name: build-mappings
-          path: ${{ runner.temp }}/mappings
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Download build cache
-        uses: actions/download-artifact@v8
-        with:
-          name: build-cache
-          path: ${{ runner.temp }}/cache
+          name: build-staging
+          path: ${{ runner.temp }}/staging
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -51,11 +37,33 @@ jobs:
         env:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
         run: |
+          REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
+          TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
           .downstream/list.py . | while IFS= read -r repo; do
-            echo "::group::cache put $repo"
-            ( cd "$repo" && lake cache put --scope "$repo" "$RUNNER_TEMP/mappings/$repo.jsonl" ) || true
+            echo "::group::cache put-staged $repo"
+            pushd "$repo"
+            lake cache put-staged "$RUNNER_TEMP/staging/$repo" --rev "$REV" --scope "$TOOLCHAIN/$repo" || true
+            popd
             echo "::endgroup::"
           done
+
+      - name: Find original PR
+        id: original-pr
+        if:
+          ${{ github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        continue-on-error: true # May not belong to a PR
+        uses: ./.downstream/actions/find-original-pr
+
+      - name: Add cache-available label to PR
+        if:
+          ${{ steps.original-pr.outcome == 'success' &&
+          steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr edit "${{ steps.original-pr.outputs.number }}" \
+            --repo "${{ github.repository }}" --add-label cache-available
 
   update-statuses:
     if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
@@ -79,7 +87,7 @@ jobs:
       - name: Update commit statuses
         uses: ./.downstream/actions/statuses-add
         with:
-          report-path: ${{ runner.temp }}/report/build-report.json
+          build-report-path: ${{ runner.temp }}/report/build-report.json
           target-url: ${{ github.event.workflow_run.html_url }}
 
   post-report-pr:

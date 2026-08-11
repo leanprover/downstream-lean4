@@ -17,13 +17,13 @@ class Updater:
         self.overrides = [r for r in subrepos if r.override_only]
         self.overrides_by_name = {r.name: r for r in self.overrides}
         self.overrides_by_url = {
-            url: r for r in self.overrides for url in (r.url, r.fetch_url)
+            url: r for r in self.overrides for url in (r.url, *r.aliases)
         }
 
         self.subrepos = [r for r in subrepos if not r.override_only]
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {
-            url: r for r in self.subrepos for url in (r.url, r.fetch_url)
+            url: r for r in self.subrepos for url in (r.url, *r.aliases)
         }
 
     def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
@@ -82,8 +82,8 @@ class Updater:
             relative = Path("lean-toolchain").relative_to(file.parent, walk_up=True)
             file.symlink_to(relative)
 
-    def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
-        manifest = json.loads(subrepo.manifest_path.read_text())
+    def fixup_manifest_dependencies(self, manifest_path: Path) -> None:
+        manifest = json.loads(manifest_path.read_text())
 
         packages = []
         for package in manifest["packages"]:
@@ -92,13 +92,15 @@ class Updater:
             url = normalize_url(package["url"])
 
             if repo := self.overrides_by_url.get(url):
-                sha, _ = self.fetch_sha_tree(repo.fetch_url, repo.rev)
+                sha, _ = self.fetch_sha_tree(repo.url, repo.rev)
                 package["input_rev"] = repo.rev
                 package["rev"] = sha
                 packages.append(package)
             elif repo := self.subrepos_by_url.get(url):
                 package["type"] = "path"
-                package["dir"] = f"../{repo.name}"
+                package["dir"] = str(
+                    repo.path.relative_to(manifest_path.parent, walk_up=True)
+                )
                 package["scope"] = ""
                 del package["url"]
                 del package["rev"]
@@ -106,16 +108,24 @@ class Updater:
                 packages.append(package)
 
         overrides = {"version": manifest["version"], "packages": packages}
-        subrepo.override_path.parent.mkdir(parents=True, exist_ok=True)
-        subrepo.override_path.write_text(json.dumps(overrides, indent=2))
+        override_path = manifest_path.parent / ".lake" / "package-overrides.json"
+        override_path.parent.mkdir(parents=True, exist_ok=True)
+        override_path.write_text(json.dumps(overrides, indent=2))
 
-    def commit(self, msg: str, allow_empty: bool = False) -> None:
+    def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
+        for manifest_path in subrepo.find_manifest_paths():
+            self.fixup_manifest_dependencies(manifest_path)
+
+    def commit(self, msg: str, allow_empty: bool = False) -> bool:
         result = run("git", "diff", "--staged", "--quiet", "--exit-code", check=False)
         has_differences = result.returncode != 0
         if has_differences:
             run("git", "commit", "-m", msg)
+            return True
         elif allow_empty:
             run("git", "commit", "--allow-empty", "-m", msg)
+            return True
+        return False
 
     def fixup_subrepo_and_commit(self, subrepo: Subrepo, sha: str, msg: str) -> None:
         self.fixup_subrepo_toolchain(subrepo)
@@ -125,7 +135,7 @@ class Updater:
             f"downstream: {msg}",
             "",
             f"downstream-repo: {subrepo.name}",
-            f"downstream-url: {subrepo.fetch_url}",
+            f"downstream-url: {subrepo.url}",
             f"downstream-rev: {subrepo.rev}",
             f"downstream-sha: {sha}",
         ])
@@ -136,7 +146,8 @@ class Updater:
             base_changed = True
 
         run("git", "add", subrepo.path)
-        run("git", "add", "--force", subrepo.override_path)
+        for override_path in subrepo.path.glob("**/.lake/package-overrides.json"):
+            run("git", "add", "--force", override_path)
         self.commit(message, allow_empty=base_changed)
 
     def find_latest_subrepo_sha(self, subrepo: Subrepo) -> str:
@@ -160,7 +171,7 @@ class Updater:
         print(f"::group::add {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"add repo {subrepo.name}")
         print("::endgroup::", flush=True)
@@ -169,7 +180,7 @@ class Updater:
         print(f"::group::reset {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
         self.restore_tree_to(rev_tree, subrepo.path)
         self.fixup_subrepo_and_commit(subrepo, rev_sha, f"reset repo {subrepo.name}")
         print("::endgroup::", flush=True)
@@ -178,10 +189,10 @@ class Updater:
         print(f"::group::update {subrepo.name}", flush=True)
         self.reset()
 
-        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.fetch_url, subrepo.rev)
+        rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
         our_tree = self.get_tree_in_head(subrepo.name)
         base_sha = self.find_latest_subrepo_sha(subrepo)
-        _, base_tree = self.fetch_sha_tree(subrepo.fetch_url, base_sha)
+        _, base_tree = self.fetch_sha_tree(subrepo.url, base_sha)
         merged_tree = merge_tree_theirs(base_tree, our_tree, rev_tree)
 
         self.restore_tree_to(merged_tree, subrepo.path)
@@ -227,12 +238,12 @@ class Updater:
 
     def split_to_branch(
         self, subrepo: Subrepo, branch: str, message: str = "chore: nightly adaptations"
-    ) -> None:
+    ) -> bool:
         self.reset()
 
         our_tree = self.get_tree_in_head(subrepo.name)
         base_sha = self.find_latest_subrepo_sha(subrepo)
-        self.fetch_sha_tree(subrepo.fetch_url, base_sha)
+        self.fetch_sha_tree(subrepo.url, base_sha)
 
         run("git", "switch", "-C", branch, base_sha)
         run("git", "read-tree", "--reset", "-u", our_tree)
@@ -251,4 +262,4 @@ class Updater:
         )
 
         run("git", "add", ".")
-        self.commit(message)
+        return self.commit(message)

@@ -1,0 +1,31 @@
+name: Find an adaptation PR
+
+description: >
+  Find the adaptation PR corresponding to an upstream PR, based on the
+  deterministic adaptation branch name. Does not fail if no adaptation PR is
+  found.
+
+inputs:
+  token:
+    description: GitHub token used to search for pull requests.
+    default: ${{ github.token }}
+
+  upstream-pr:
+    description: >
+      The upstream PR number to find the adaptation PR for.
+    required: true
+
+  downstream-repo:
+    description: >
+      The downstream repository to search for the adaptation PR in, in
+      "owner/repo" format.
+    required: true
+
+outputs:
+  number:
+    description: >
+      The adaptation PR number, or empty if no adaptation PR was found.
+
+runs:
+  using: node24
+  main: dist/index.js

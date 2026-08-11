@@ -1,0 +1,91 @@
+name: Post-build export
+
+on:
+  workflow_run:
+    workflows: [Build subrepos]
+    types: [completed]
+
+jobs:
+  cslib:
+    if:
+      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/cslib
+      cancel-in-progress: false
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: ${{ github.repository }},cslib
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          filter: tree:0
+          fetch-depth: 0
+
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token.outputs.app-slug }}[bot]
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Create export PR
+        id: export-pr
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          app-token: ${{ steps.app-token.outputs.token }}
+          subrepo: cslib
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          downstream-clone: .
+          tracking-branch: export/cslib
+          target-repo: leanprover/cslib # TODO Obtain from repos.toml?
+          target-branch: nightly-testing # TODO Obtain from repos.toml?
+          export-branch: downstream-lean4-export
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+          pr-body: >
+            This PR contains the latest nightly adaptations from the
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            repository.
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 PRs
+          content: >
+            PR cslib#${{ steps.export-pr.outputs.number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.

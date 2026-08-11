@@ -10,6 +10,7 @@ import Tests.Golden
 import Tests.CommentSkipping
 import Tests.DocElabExtensions.Use
 import Tests.DocTerm
+import Tests.DocVisibility
 import Tests.DocstringMissing
 import Tests.DocstringMissingLegacy
 import Tests.HighlightedToTeX
@@ -27,6 +28,7 @@ import Tests.Integration.ExtraFilesDoc
 import Tests.Integration.FrontMatter
 import Tests.Integration.InheritanceDoc
 import Tests.Integration.LeanSection
+import Tests.Integration.TwoSideDoc
 import Tests.LeanCode
 import Tests.Linters
 import Tests.Method

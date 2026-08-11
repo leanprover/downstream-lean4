@@ -15,23 +15,32 @@ namespace Verso.Web.Components
 structure Sponsor where
   name : String
   logo : String
+  logoDark : Option String := none
   link : Option String := none
 
 namespace Sponsor
 
+/-- The logo images for a sponsor: a single one, or a light/dark pair swapped by the theme. -/
+def logos (s : Sponsor) : Array Html :=
+  match s.logoDark with
+  | none => #[{{ <img src={{s.logo}} alt=s!"{s.name} logo" class="sponsor-logo" /> }}]
+  | some dark =>
+    #[{{ <img src={{s.logo}} alt=s!"{s.name} logo" class="sponsor-logo sponsor-logo-light" /> }},
+      {{ <img src={{dark}} alt=s!"{s.name} logo" class="sponsor-logo sponsor-logo-dark" /> }}]
+
 def render [MonadStateOf Component.State m] [Monad m] (s : Sponsor) : m Html := do
- Template.saveCss (include_str "../../static/style/sponsor.css")
+  Template.saveCss (include_str "../../static/style/sponsor.css")
 
   if let some link := s.link then
     return {{
       <a class="sponsor" href={{link}} target="_blank" rel="noopener noreferrer">
-        <img src={{s.logo}} alt=s!"{s.name} logo" class="sponsor-logo" />
+        {{ s.logos }}
       </a>
     }}
   else
     return {{
       <div class="sponsor">
-        <img src={{s.logo}} alt=s!"{s.name} logo" class="sponsor-logo" />
+        {{ s.logos }}
       </div>
     }}
 

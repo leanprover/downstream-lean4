@@ -61,11 +61,12 @@ export async function findPrFor(
   octo: Octokit,
   repo: Repo,
   branchName: string,
+  state: "open" | "closed" | "all" = "all",
 ): Promise<ListPr | undefined> {
   const { data } = await octo.rest.pulls.list({
     ...repo,
     head: `${repo.owner}:${branchName}`,
-    state: "all",
+    state,
     sort: "created",
     direction: "desc",
     per_page: 1,
@@ -73,8 +74,8 @@ export async function findPrFor(
   return data[0];
 }
 
-export function adaptationBranchNameFor(uPr: Pr): string {
-  return `adaptation-${uPr.number}`;
+export function adaptationBranchNameFor(prNumber: number): string {
+  return `adaptation-${prNumber}`;
 }
 
 // Inverse of `adaptationBranchNameFor`

@@ -19,9 +19,6 @@
     grid-template-columns: repeat(3, 1fr);
     max-width: 900px;
     width: 100%;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
 }
 
 .sponsor {
@@ -29,23 +26,11 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-8) var(--space-6);
-    border-right: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-    transition: background var(--transition-base);
 }
 
-.sponsor:hover {
-    background: var(--color-hover);
-}
-
-/* remove right border on last column */
-.sponsor:nth-child(3n) {
-    border-right: none;
-}
-
-/* remove bottom border on last row */
-.sponsor:nth-last-child(-n+3) {
-    border-bottom: none;
+/* centre a sponsor that ends up alone on the last row */
+.sponsor:last-child:nth-child(3n+1):not(:first-child) {
+    grid-column: 2;
 }
 
 img.sponsor-logo {
@@ -72,23 +57,30 @@ img.sponsor-logo {
         width: 100%;
     }
 
-    .sponsor:nth-child(3n) {
-        border-right: 1px solid var(--color-border);
-    }
-
-    .sponsor:nth-child(2n) {
-        border-right: none;
-    }
-
-    .sponsor:nth-last-child(-n+3) {
-        border-bottom: 1px solid var(--color-border);
-    }
-
-    .sponsor:nth-last-child(-n+2) {
-        border-bottom: none;
+    /* two columns leave no middle to centre in, so a lone sponsor spans the row */
+    .sponsor:last-child:nth-child(odd):not(:first-child) {
+        grid-column: 1 / -1;
     }
 }
 
 .dark-theme .sponsor-logo {
     filter: invert(1) brightness(10);
+}
+
+/* Sponsors that ship a dedicated dark logo swap the image instead of inverting it. */
+.sponsor-logo-dark {
+    display: none;
+}
+
+.dark-theme .sponsor-logo-light {
+    display: none;
+}
+
+.dark-theme .sponsor-logo-dark {
+    display: block;
+}
+
+.dark-theme .sponsor-logo-light,
+.dark-theme .sponsor-logo-dark {
+    filter: none;
 }

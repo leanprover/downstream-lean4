@@ -8,7 +8,7 @@ inputs:
     description: GitHub token with permission to read and write commit statuses.
     default: ${{ github.token }}
 
-  report-path:
+  build-report-path:
     description: Path to the JSON build report produced by `build.py --report`.
     required: true
 

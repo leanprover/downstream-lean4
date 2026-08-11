@@ -1,0 +1,95 @@
+{
+  "version": "1.2.0",
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "mathlib",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../../../mathlib4"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "plausible",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../plausible"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "LeanSearchClient",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../LeanSearchClient"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "importGraph",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../import-graph"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "proofwidgets",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.lean",
+      "dir": "../../../ProofWidgets4"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "aesop",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../aesop"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "Qq",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../quote4"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "batteries",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../batteries"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "Cli",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../../lean4-cli"
+    }
+  ]
+}

@@ -325,7 +325,7 @@ meta def leanCommand : BlockCommandOf LeanCommandConfig
     let projectExamples ← getSubproject project
     let (_, {highlighted := hls, original := str, ..}) ← projectExamples.getOrSuggest exampleName
     Verso.Hover.addCustomHover exampleName s!"```lean\n{str}\n```"
-    `(Block.other (Blog.BlockExt.highlightedCode { contextName := $(quote project.getId), showProofStates := $(quote showProofStates) } (SubVerso.Highlighting.Highlighted.seq $(quote hls))) #[Block.code $(quote str)])
+    `(Block.other (Blog.BlockExt.highlightedCode { contextName := $(quote project.getId), showProofStates := $(quote showProofStates) } $(quote hls)) #[Block.code $(quote str)])
 
 structure LeanCommandAtArgs where
   project : Ident
@@ -402,7 +402,7 @@ meta def leanTerm : RoleExpanderOf LeanTermArgs
     let projectExamples ← getSubproject project
     let (_, {highlighted := hls, original := str, ..}) ← projectExamples.getOrSuggest <| mkIdentFrom name exampleName
     Verso.Hover.addCustomHover arg s!"```lean\n{str}\n```"
-    `(Inline.other (Blog.InlineExt.highlightedCode { contextName := $(quote project.getId) } (SubVerso.Highlighting.Highlighted.seq $(quote hls))) #[Inline.code $(quote str)])
+    `(Inline.other (Blog.InlineExt.highlightedCode { contextName := $(quote project.getId) } $(quote hls)) #[Inline.code $(quote str)])
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Unexpected contents"
@@ -488,7 +488,7 @@ meta def lean : CodeBlockExpanderOf LeanBlockConfig
     -- Process with empty messages to avoid duplicate output
     let s ←
       withTraceNode `Elab.Verso.block.lean (fun _ => pure m!"Elaborating commands") <|
-      IO.processCommands context { state with pos := startPos } { commandState with messages.unreported := {} }
+      IO.processCommands context { state with pos := startPos, hasLeading := false } { commandState with messages.unreported := {} }
     for t in s.commandState.infoState.trees do
       pushInfoTree t
 

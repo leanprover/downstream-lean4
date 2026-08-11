@@ -30,9 +30,12 @@ jobs:
 
       - name: Restore cache
         run: |
+          TOOLCHAIN="$(cat lean-toolchain)"
           .downstream/list.py . | while IFS= read -r repo; do
-            echo "::group::cache get $repo"
-            ( cd "$repo" && lake cache get --scope "$repo" ) || true
+            echo "::group::get $repo"
+            pushd "$repo"
+            lake cache get --scope "$TOOLCHAIN/$repo" || true
+            popd
             echo "::endgroup::"
           done
 
@@ -51,23 +54,31 @@ jobs:
       - name: Add report to job summary
         run: cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Stage cache
+        run: |
+          mkdir -p "$RUNNER_TEMP/staging/.metadata"
+          git rev-parse HEAD > "$RUNNER_TEMP/staging/.metadata/rev"
+          cp lean-toolchain "$RUNNER_TEMP/staging/.metadata/lean-toolchain"
+          .downstream/list.py . | while IFS= read -r repo; do
+            echo "::group::stage $repo"
+            pushd "$repo"
+            lake cache stage "$RUNNER_TEMP/mappings/$repo.jsonl" "$RUNNER_TEMP/staging/$repo/" || true
+            popd
+            echo "::endgroup::"
+          done
+
       - name: Upload build report
         uses: actions/upload-artifact@v7
         with:
           name: build-report
           path: ${{ runner.temp }}/build-report.json
 
-      - name: Upload build mappings
+      - name: Upload staged cache
         uses: actions/upload-artifact@v7
         with:
-          name: build-mappings
-          path: ${{ runner.temp }}/mappings/
-
-      - name: Upload build cache
-        uses: actions/upload-artifact@v7
-        with:
-          name: build-cache
-          path: ${{ runner.temp }}/cache/
+          name: build-staging
+          path: ${{ runner.temp }}/staging/
+          include-hidden-files: true
 
       - name: Fail if critical repos are not green
         run: |

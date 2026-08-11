@@ -24094,7 +24094,7 @@ function getInputOpt(name) {
 
 // actions/statuses-add/main.ts
 var token = getInput2("token");
-var reportPath = getInput2("report-path");
+var buildReportPath = getInput2("build-report-path");
 var targetUrl = getInputOpt("target-url");
 var octo = getOctokit(token);
 var repo = context2.repo;
@@ -24127,7 +24127,7 @@ async function updateStatus(commitSha, buildRepo) {
   }
 }
 async function run() {
-  const raw = await fs2.readFile(reportPath, "utf8");
+  const raw = await fs2.readFile(buildReportPath, "utf8");
   const buildReport = JSON.parse(raw);
   let ok = true;
   for (const buildRepo of buildReport.repos) {

@@ -48,12 +48,15 @@ def normalize_url(url: str) -> str:
 class Subrepo:
     name: str
     url: str
-    fetch_url: str
-    push_url: str
     rev: str
+    aliases: list[str]
     critical: bool
     override_only: bool
+    build_targets: list[str]
+    build_options: list[str]
+    test_options: list[str]
     test_args: list[str]
+    lint_options: list[str]
     lint_args: list[str]
 
     @property
@@ -64,24 +67,23 @@ class Subrepo:
     def manifest_path(self) -> Path:
         return self.path / "lake-manifest.json"
 
-    @property
-    def override_path(self) -> Path:
-        return self.path / ".lake" / "package-overrides.json"
+    def find_manifest_paths(self) -> list[Path]:
+        return sorted(self.path.glob("**/lake-manifest.json"))
 
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:
     for name, data in tomllib.loads(path.read_text()).items():
-        url = data["url"]
-        fetch_url = data.get("fetch_url", url)
-        push_url = data.get("push_url", url)
         yield Subrepo(
             name=name,
-            url=normalize_url(url),
-            fetch_url=normalize_url(fetch_url),
-            push_url=normalize_url(push_url),
+            url=normalize_url(data["url"]),
             rev=data["rev"],
+            aliases=[normalize_url(url) for url in data.get("aliases", [])],
             critical=data.get("critical", True),
             override_only=data.get("override_only", False),
+            build_targets=data.get("build_targets", []),
+            build_options=data.get("build_options", []),
+            test_options=data.get("test_options", []),
             test_args=data.get("test_args", []),
+            lint_options=data.get("lint_options", []),
             lint_args=data.get("lint_args", []),
         )
