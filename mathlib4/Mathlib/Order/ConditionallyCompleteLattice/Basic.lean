@@ -71,15 +71,15 @@ theorem sInf_eq [InfSet α] {s : Set (WithTop α)} (hs : ¬s ⊆ {⊤}) (h's : B
 
 @[to_dual (attr := simp)]
 theorem sInf_empty [InfSet α] : sInf (∅ : Set (WithTop α)) = ⊤ :=
-  if_pos <| by simp
+  ite_eq_left <| by simp
 
 @[to_dual (attr := simp)]
 theorem sInf_singleton_top [InfSet α] : sInf ({⊤} : Set (WithTop α)) = ⊤ :=
-  if_pos <| .inl subset_rfl
+  ite_eq_left <| .inl subset_rfl
 
 @[to_dual (attr := simp)]
 theorem sSup_of_top_mem [SupSet α] {s : Set (WithTop α)} (h : ⊤ ∈ s) : sSup s = ⊤ :=
-  if_pos h
+  ite_eq_left h
 
 @[to_dual]
 theorem sSup_singleton_top [SupSet α] : sSup ({⊤} : Set (WithTop α)) = ⊤ := by
