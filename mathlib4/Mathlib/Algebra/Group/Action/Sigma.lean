@@ -38,6 +38,7 @@ variable [∀ i, SMul M (α i)] [∀ i, SMul N (α i)] (a : M) (i : ι) (b : α 
 instance : SMul M (Σ i, α i) :=
   ⟨fun a => (Sigma.map id) fun _ => (a • ·)⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 theorem smul_def : a • x = x.map id fun _ => (a • ·) :=
   rfl

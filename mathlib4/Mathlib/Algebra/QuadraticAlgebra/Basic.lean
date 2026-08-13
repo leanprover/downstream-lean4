@@ -90,6 +90,7 @@ theorem mk_eq_add_smul_omega (x y : R) :
 
 variable {A : Type*} [Ring A] [Algebra R A]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[ext]
 theorem algHom_ext {f g : QuadraticAlgebra R a b →ₐ[R] A}
@@ -97,6 +98,7 @@ theorem algHom_ext {f g : QuadraticAlgebra R a b →ₐ[R] A}
   ext ⟨x, y⟩
   simp [mk_eq_add_smul_omega, h]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The unique `AlgHom` from `QuadraticAlgebra R a b` to an `R`-algebra `A`,
 constructed by replacing `ω` with the provided root.

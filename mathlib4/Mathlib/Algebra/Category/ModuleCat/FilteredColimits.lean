@@ -123,6 +123,7 @@ instance colimitSMulWithZero : SMulWithZero R (M F) :=
     simp [← colimit_zero_eq] }
 
 instance colimitModule : Module R (M F) :=
+set_option backward.isDefEq.respectTransparency.outParams false in
 { colimitMulAction F,
   colimitSMulWithZero F with
   smul_add := fun r x y => by
@@ -148,6 +149,7 @@ def coconeMorphism (j : J) : F.obj j ⟶ colimit F :=
       (F ⋙ forget₂ (ModuleCat R) AddCommGrpCat.{max v u})).ι.app j).hom with
     map_smul' := by solve_by_elim }
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The cocone over the proposed colimit module. -/
 @[implicit_reducible]
 def colimitCocone : Cocone F where

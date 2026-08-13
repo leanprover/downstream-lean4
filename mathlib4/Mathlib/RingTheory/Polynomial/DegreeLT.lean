@@ -104,11 +104,13 @@ lemma addLinearEquiv_symm_apply_inr_basis (j : Fin n) :
       basis R (m + n) (j.natAdd m) :=
   (LinearEquiv.symm_apply_eq _).2 (addLinearEquiv_natAdd j).symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma addLinearEquiv_symm_apply_inl (P : R[X]_m) :
     ((addLinearEquiv R m n).symm (LinearMap.inl R _ _ P) : R[X]) = (P : R[X]) := by
   rw [← (basis ..).sum_repr P]
   simp [-LinearMap.coe_inl, addLinearEquiv_symm_apply_inl_basis]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma addLinearEquiv_symm_apply_inr (Q : R[X]_n) :
     ((addLinearEquiv R m n).symm (LinearMap.inr R _ _ Q) : R[X]) = (Q : R[X]) * X ^ (m : ℕ) := by
   rw [← (basis ..).sum_repr Q]

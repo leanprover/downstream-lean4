@@ -70,6 +70,7 @@ structure EvenHom where
 
 variable {A Q}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Compose an `EvenHom` with an `AlgHom` on the output. -/
 @[simps]
 def EvenHom.compr₂ (g : EvenHom Q A) (f : A →ₐ[R] B) : EvenHom Q B where
@@ -80,6 +81,7 @@ def EvenHom.compr₂ (g : EvenHom Q A) (f : A →ₐ[R] B) : EvenHom Q B where
 
 variable (Q)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The embedding of pairs of vectors into the even subalgebra, as a bilinear map. -/
 nonrec def even.ι : EvenHom Q (even Q) where
   bilin :=
@@ -101,6 +103,7 @@ instance : Inhabited (EvenHom Q (even Q)) :=
 
 variable (f : EvenHom Q A)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Two algebra morphisms from the even subalgebra are equal if they agree on pairs of generators.
 
 See note [partially-applied ext lemmas]. -/
@@ -130,6 +133,7 @@ private def S : Submodule R (M →ₗ[R] A) :=
   Submodule.span R
     {f' | ∃ x m₂, f' = LinearMap.lcomp R _ (f.bilin.flip m₂) (LinearMap.mulRight R x)}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.privateInPublic true in
 /-- An auxiliary bilinear map that is later passed into `CliffordAlgebra.foldr`. Our desired result
 is stored in the `A` part of the accumulator, while auxiliary recursion state is stored in the `S f`
@@ -202,6 +206,7 @@ def aux (f : EvenHom Q A) : CliffordAlgebra.even Q →ₗ[R] A := by
 theorem aux_one : aux f 1 = 1 :=
   congr_arg Prod.fst (foldr_one _ _ _ _)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem aux_ι (m₁ m₂ : M) : aux f ((even.ι Q).bilin m₁ m₂) = f.bilin m₁ m₂ := by
   rw [CliffordAlgebra.even.lift.aux_apply]

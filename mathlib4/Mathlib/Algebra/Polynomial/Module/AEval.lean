@@ -70,6 +70,7 @@ lemma of_aeval_smul (f : R[X]) (m : M) : of R M a (aeval a f • m) = f • of R
 @[simp] lemma of_symm_smul (f : R[X]) (m : AEval R M a) :
     (of R M a).symm (f • m) = aeval a f • (of R M a).symm m := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma C_smul (t : R) (m : AEval R M a) : C t • m = t • m :=
   (of R M a).symm.injective <| by simp
@@ -84,6 +85,7 @@ lemma of_symm_X_smul (m : AEval R M a) :
     (of R M a).symm ((X : R[X]) • m) = a • (of R M a).symm m := by
   rw [of_symm_smul, aeval_X]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance instIsScalarTowerOrigPolynomial : IsScalarTower R R[X] <| AEval R M a where
   smul_assoc r f m := by
     apply (of R M a).symm.injective

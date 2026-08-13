@@ -113,6 +113,7 @@ instance colimitSemiring : Semiring.{max v u} <| R.{v, u} F :=
 def colimit : SemiRingCat.{max v u} :=
   SemiRingCat.of <| R.{v, u} F
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The cocone over the proposed colimit semiring. -/
 def colimitCocone : Cocone F where
   pt := colimit.{v, u} F
@@ -215,6 +216,7 @@ instance colimitCommSemiring : CommSemiring.{max v u} <| R.{v, u} F :=
 def colimit : CommSemiRingCat.{max v u} :=
   CommSemiRingCat.of <| R.{v, u} F
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The cocone over the proposed colimit commutative semiring. -/
 def colimitCocone : Cocone F where
   pt := colimit.{v, u} F
@@ -273,6 +275,7 @@ instance colimitRing : Ring.{max v u} <| R.{v, u} F :=
 def colimit : RingCat.{max v u} :=
   RingCat.of <| R.{v, u} F
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The cocone over the proposed colimit ring. -/
 def colimitCocone : Cocone F where
   pt := colimit.{v, u} F
@@ -336,6 +339,7 @@ instance colimitCommRing : CommRing.{max v u} <| R.{v, u} F :=
 def colimit : CommRingCat.{max v u} :=
   CommRingCat.of <| R.{v, u} F
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The cocone over the proposed colimit commutative ring. -/
 def colimitCocone : Cocone F where
   pt := colimit.{v, u} F

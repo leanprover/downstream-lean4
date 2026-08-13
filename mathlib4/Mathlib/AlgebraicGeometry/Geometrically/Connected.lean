@@ -63,6 +63,8 @@ instance (s : S) [GeometricallyConnected f] :
     GeometricallyConnected (f.fiberToSpecResidueField s) :=
   MorphismProperty.pullback_snd _ _ inferInstance
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance (s : S) [GeometricallyConnected f] : ConnectedSpace (f.fiber s) :=
   GeometricallyConnected.geometrically_connectedSpace _ _ _ (.of_hasPullback _ _)
 

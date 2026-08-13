@@ -76,6 +76,29 @@ theorem ihom_ev_app (M N : ModuleCat.{u} R) :
   apply TensorProduct.ext'
   apply monoidalClosed_uncurry
 
+#adaptation_note
+/--
+We had to use the `instanceTypes` backward compatibility flag to make an instance search succeed.
+Concretely, the following instance cannot be synthesized:
+`Module R (TensorProduct R ↑(unop (op M)) ↑((𝟭 (ModuleCat R)).obj N))`
+
+The failure happens while applying `@TensorProduct.leftModule`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type is
+`Module R ↑((𝟭 (ModuleCat R)).obj N)`, whereas the assigned value `N.isModule` has type
+`Module R ↑N`. Lean falls back to synthesize an instance of the correct type, but it returns
+`((𝟭 (ModuleCat R)).obj N).isModule`, which is again not defeq to `N.isModule`: seeing that
+`(𝟭 (ModuleCat R)).obj N` is `N` requires unfolding `𝟭`, which is `@[implicit_reducible]` and
+therefore does not unfold at the `.instances` transparency that instance search runs at.
+
+Potential fix: Concentrate on removing `respectTransparency false` first.
+For example, do this by making `TensorProduct` implicit-reducible.
+Without the backward-compatibility flag `respectTransparency false`, Lean bumps transparency for
+instance-implicit arguments to `implicit`, thereby comparing the synthesized and unified instances
+at implicit transparency instead of the stricter instance transparency.
+After that, you can remove `instanceTypes false`, too.
+-/
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Describes the unit of the adjunction `M ⊗ - ⊣ Hom(M, -)`. Given an `R`-module `N` this should
 define a map `N ⟶ Hom(M, M ⊗ N)`, which is given by flipping the arguments in the natural

@@ -284,6 +284,7 @@ def mapDomainOfBialgHom (f : R[G] →ₐc[R] R[H]) : G →* H where
     rw [← mul_one (1 : R), ← single_mul_single, ← single_mul_single, map_mul]
     simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive (dont_translate := R) (attr := simp)]
 lemma single_mapDomainOfBialgHom (f : R[G] →ₐc[R] R[H]) (g : G) (r : R) :
     single (mapDomainOfBialgHom f g) r = f (single g r) := by

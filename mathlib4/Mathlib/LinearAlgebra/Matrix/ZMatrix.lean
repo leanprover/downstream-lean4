@@ -36,6 +36,7 @@ public lemma diag_pos_of_mul_diagonal_posDef (i : ι) :
   rw [← mul_pos_iff_of_pos_left (hD i)]
   simpa using hA.2 (x := Finsupp.single i 1) (by simp)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A spectral bound result for Z-matrices satisfying a positive-definiteness condition.
 
 It is important because it applies to Cartan matrices, and shows that all (real) eigenvalues must

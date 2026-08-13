@@ -300,6 +300,7 @@ lemma linearIndependent_baseSupp [IsDomain R] [CharZero R] :
   have hv : LinearIndependent R v := Basis.linearIndependent_coord _
   simpa [Int.cast_smul_eq_zsmul] using! hv.sum_smul_of_nondegenerate this
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] lemma baseSupp_apply_smul_e (i : ι) (x : H) :
     b.baseSupp i x • b.e i = ⁅x, b.e i⁆ := by
   obtain ⟨x, hx⟩ := x

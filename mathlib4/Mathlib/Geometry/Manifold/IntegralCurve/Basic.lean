@@ -164,6 +164,7 @@ lemma IsMIntegralCurve.continuous (hγ : IsMIntegralCurve γ v) : Continuous γ 
 
 variable [IsManifold I 1 M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If `γ` is an integral curve of a vector field `v`, then `γ t` is tangent to `v (γ t)` when
 expressed in the local chart around the initial point `γ t₀`. -/
@@ -184,6 +185,7 @@ lemma IsMIntegralCurveOn.hasDerivWithinAt (hγ : IsMIntegralCurveOn γ v s) {t :
     mfderiv_chartAt_eq_tangentCoordChange hsrc]
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma IsMIntegralCurveAt.eventually_hasDerivAt (hγ : IsMIntegralCurveAt γ v t₀) :
     ∀ᶠ t in 𝓝 t₀, HasDerivAt ((extChartAt I (γ t₀)) ∘ γ)

@@ -819,6 +819,7 @@ theorem truncLT_eval_mem_range_extendFun [IsOrderedAddMonoid R] [Archimedean R] 
     obtain ⟨y, hy⟩ := h
     exact ⟨y, Set.mem_of_mem_of_subset hy (by simpa using (ball_strictAnti K).antitone hdc)⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem truncLT_mem_range_extendFun [IsOrderedAddMonoid R] [Archimedean R] {x : M}
     (hx : x ∉ f.val.domain) (y : (f.extendFun hx).domain) (c : FiniteArchimedeanClass M) :
     toLex (HahnSeries.truncLTLinearMap K c (ofLex (f.extendFun hx y))) ∈

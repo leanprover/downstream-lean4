@@ -192,6 +192,37 @@ theorem KaehlerDifferential.DLinearMap_apply (s : S) :
       (KaehlerDifferential.ideal R S).toCotangent
         ⟨1 ⊗ₜ s - s ⊗ₜ 1, KaehlerDifferential.one_smul_sub_smul_one_mem_ideal R s⟩ := rfl
 
+#adaptation_note
+/--
+We had to use the `instanceTypes` backward compatibility flag to make an instance search succeed.
+Concretely, the following instance cannot be synthesized:
+`LinearMap.CompatibleSMul (↥(ideal R S)) (ideal R S).Cotangent S (S ⊗[R] S)`
+It is needed by the two `← LinearMap.map_smul_of_tower (ideal R S).toCotangent` rewrites in
+`leibniz'` below. The `have` just above them does not rescue the search: it is stated for `Ω[S⁄R]`,
+and `(ideal R S).Cotangent =?= Ω[S⁄R]` already fails at `.instances`.
+
+The failure happens while applying `@LinearMap.IsScalarTower.compatibleSMul`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `SMul S (ideal R S).Cotangent`, whereas the assigned value
+`DistribMulAction.toDistribSMul.toSMul` has type `SMul S Ω[S⁄R]`. The comparison bottoms out at
+`@Ideal.Cotangent =?= KaehlerDifferential`,
+where `KaehlerDifferential` is a plain semireducible `def` and therefore does not unfold at the
+`.instances` transparency that instance search runs at. Lean falls back to synthesize an instance of
+the correct type, which succeeds, but it returns `(ideal R S).instSMulCotangentOfAlgebra`, which
+is not defeq to the assigned value, the comparison bottoming out at
+`instSMulKaehlerDifferentialOfSMulCommClass._aux_1 =?= @Ideal.instSMulCotangentOfAlgebra._aux_1`.
+That second comparison also runs at `.instances`, `respectTransparency false` suppressing the
+transparency bump.
+
+Potential fix: mark `KaehlerDifferential` `@[implicit_reducible]` at its definition site.
+Then `instanceTypes false` and `respectTransparency false` can go, but only together: with
+`respectTransparency false` still in place, the comparison stays at `.instances`, where an
+implicit-reducible definition does not unfold, and the search fails as before.
+The `_aux_1` wrappers for the instance fields become implicit-reducible as soon as
+`KaehlerDifferential` is.
+-/
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The universal derivation into `Ω[S⁄R]`. -/
@@ -525,6 +556,7 @@ theorem KaehlerDifferential.derivationQuotKerTotal_apply (x) :
     KaehlerDifferential.derivationQuotKerTotal R S x = 1𝖣x :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem KaehlerDifferential.derivationQuotKerTotal_lift_comp_linearCombination :
     (KaehlerDifferential.derivationQuotKerTotal R S).liftKaehlerDifferential.comp
         (Finsupp.linearCombination S (KaehlerDifferential.D R S)) =
@@ -719,6 +751,7 @@ This is the first map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] �
 noncomputable def KaehlerDifferential.mapBaseChange : B ⊗[A] Ω[A⁄R] →ₗ[B] Ω[B⁄R] :=
   (TensorProduct.isBaseChange A Ω[A⁄R] B).lift (KaehlerDifferential.map R R A B)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem KaehlerDifferential.mapBaseChange_tmul (x : B) (y : Ω[A⁄R]) :
     KaehlerDifferential.mapBaseChange R A B (x ⊗ₜ y) = x • KaehlerDifferential.map R R A B y := by
@@ -771,6 +804,7 @@ def KaehlerDifferential.kerToTensor :
     algebraMap_eq_smul_one, RingHom.mem_ker.mp x.prop, TensorProduct.zero_tmul, add_zero,
     RingHom.id_apply]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The map `I/I² → B ⊗[A] Ω[A⁄R]` where `I = ker(A → B)`. -/
 noncomputable
 def KaehlerDifferential.kerCotangentToTensor :

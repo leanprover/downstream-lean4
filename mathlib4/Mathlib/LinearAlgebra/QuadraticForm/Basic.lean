@@ -536,6 +536,7 @@ section Comp
 variable [CommSemiring R] [AddCommMonoid M] [Module R M] [AddCommMonoid N] [Module R N]
 variable [AddCommMonoid P] [Module R P]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Compose the quadratic map with a linear function on the right. -/
 def comp (Q : QuadraticMap R N P) (f : M →ₗ[R] N) : QuadraticMap R M P where
   toFun x := Q (f x)
@@ -544,10 +545,12 @@ def comp (Q : QuadraticMap R N P) (f : M →ₗ[R] N) : QuadraticMap R M P where
     let ⟨B, h⟩ := Q.exists_companion
     ⟨B.compl₁₂ f f, fun x y => by simp_rw [f.map_add]; exact h (f x) (f y)⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem comp_apply (Q : QuadraticMap R N P) (f : M →ₗ[R] N) (x : M) : (Q.comp f) x = Q (f x) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Compose a quadratic map with a linear function on the left. -/
 @[simps +simpRhs]
 def _root_.LinearMap.compQuadraticMap (f : N →ₗ[R] P) (Q : QuadraticMap R M N) :
@@ -620,6 +623,7 @@ theorem linMulLin_add (f g h : M →ₗ[R] A) : linMulLin f (g + h) = linMulLin 
 
 variable {N' : Type*} [AddCommMonoid N'] [Module R N']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem linMulLin_comp (f g : M →ₗ[R] A) (h : N' →ₗ[R] M) :
     (linMulLin f g).comp h = linMulLin (f.comp h) (g.comp h) :=
@@ -671,6 +675,7 @@ section Semiring
 variable [CommSemiring R] [AddCommMonoid M] [Module R M] [AddCommMonoid N] [Module R N]
 variable {N' : Type*} [AddCommMonoid N'] [Module R N']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A bilinear map gives a quadratic map by applying the argument twice. -/
 def toQuadraticMap (B : BilinMap R M N) : QuadraticMap R M N where
@@ -678,10 +683,12 @@ def toQuadraticMap (B : BilinMap R M N) : QuadraticMap R M N where
   toFun_smul a x := by simp only [map_smul, LinearMap.smul_apply, smul_smul]
   exists_companion' := ⟨B + LinearMap.flip B, fun x y => by simp [add_add_add_comm, add_comm]⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_apply (B : BilinMap R M N) (x : M) : B.toQuadraticMap x = B x x :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toQuadraticMap_comp_same (B : BilinMap R M N) (f : N' →ₗ[R] M) :
     BilinMap.toQuadraticMap (B.compl₁₂ f f) = B.toQuadraticMap.comp f := rfl
 
@@ -689,17 +696,20 @@ section
 
 variable (R M)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_zero : (0 : BilinMap R M N).toQuadraticMap = 0 :=
   rfl
 
 end
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_add (B₁ B₂ : BilinMap R M N) :
     (B₁ + B₂).toQuadraticMap = B₁.toQuadraticMap + B₂.toQuadraticMap :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_smul [Monoid S] [DistribMulAction S N] [SMulCommClass S R N]
     [SMulCommClass R S N] (a : S)
@@ -710,6 +720,7 @@ section
 
 variable (S R M)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `LinearMap.BilinMap.toQuadraticMap` as an additive homomorphism -/
 @[simps]
 def toQuadraticMapAddMonoidHom : (BilinMap R M N) →+ QuadraticMap R M N where
@@ -717,6 +728,7 @@ def toQuadraticMapAddMonoidHom : (BilinMap R M N) →+ QuadraticMap R M N where
   map_zero' := toQuadraticMap_zero _ _
   map_add' := toQuadraticMap_add
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `LinearMap.BilinMap.toQuadraticMap` as a linear map -/
 @[simps]
 def toQuadraticMapLinearMap [Semiring S] [Module S N] [SMulCommClass S R N] [SMulCommClass R S N] :
@@ -727,6 +739,7 @@ def toQuadraticMapLinearMap [Semiring S] [Module S N] [SMulCommClass S R N] [SMu
 
 end
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_list_sum (B : List (BilinMap R M N)) :
     B.sum.toQuadraticMap = (B.map toQuadraticMap).sum :=
@@ -742,6 +755,7 @@ theorem toQuadraticMap_sum {ι : Type*} (s : Finset ι) (B : ι → (BilinMap R 
     (∑ i ∈ s, B i).toQuadraticMap = ∑ i ∈ s, (B i).toQuadraticMap :=
   map_sum (toQuadraticMapAddMonoidHom R M) B s
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_eq_zero {B : BilinMap R M N} :
     B.toQuadraticMap = 0 ↔ B.IsAlt :=
@@ -754,15 +768,18 @@ section Ring
 variable [CommRing R] [AddCommGroup M] [AddCommGroup N] [Module R M] [Module R N]
 variable {B : BilinMap R M N}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_neg (B : BilinMap R M N) : (-B).toQuadraticMap = -B.toQuadraticMap :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toQuadraticMap_sub (B₁ B₂ : BilinMap R M N) :
     (B₁ - B₂).toQuadraticMap = B₁.toQuadraticMap - B₂.toQuadraticMap :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem polar_toQuadraticMap (x y : M) : polar (toQuadraticMap B) x y = B x y + B y x := by
   simp only [polar, toQuadraticMap_apply, map_add, add_apply, add_assoc, add_comm (B y x) _,
     add_sub_cancel_left, sub_eq_add_neg _ (B y y), add_neg_cancel_left]
@@ -770,6 +787,7 @@ theorem polar_toQuadraticMap (x y : M) : polar (toQuadraticMap B) x y = B x y + 
 theorem polarBilin_toQuadraticMap : polarBilin (toQuadraticMap B) = B + flip B :=
   LinearMap.ext₂ polar_toQuadraticMap
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] theorem _root_.QuadraticMap.toQuadraticMap_polarBilin (Q : QuadraticMap R M N) :
     toQuadraticMap (polarBilin Q) = 2 • Q :=
   QuadraticMap.ext fun x => (polar_self _ x).trans <| by simp
@@ -786,6 +804,7 @@ section
 
 variable {N' : Type*} [AddCommGroup N'] [Module R N']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.QuadraticMap.polarBilin_comp (Q : QuadraticMap R N' N) (f : M →ₗ[R] N') :
     polarBilin (Q.comp f) = LinearMap.compl₁₂ (polarBilin Q) f f :=
   LinearMap.ext₂ <| fun x y => by simp [polar]
@@ -892,12 +911,14 @@ lemma associated_flip : (associatedHom S Q).flip = associatedHom S Q := by
   simp only [LinearMap.flip_apply, associated_apply, add_comm, sub_eq_add_neg, add_left_comm,
     add_assoc]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem associated_comp {N' : Type*} [AddCommGroup N'] [Module R N'] (f : N' →ₗ[R] M) :
     associatedHom S (Q.comp f) = (associatedHom S Q).compl₁₂ f f := by
   ext
   simp only [associated_apply, comp_apply, map_add, LinearMap.compl₁₂_apply]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem associated_toQuadraticMap (B : BilinMap R M N) (x y : M) :
     associatedHom S B.toQuadraticMap x y = ⅟(2 : Module.End R N) • (B x y + B y x) := by
   simp only [associated_apply, BilinMap.toQuadraticMap_apply, map_add, LinearMap.add_apply,
@@ -920,6 +941,7 @@ theorem associated_eq_self_apply (x : M) : associatedHom S Q x x = Q x := by
     add_smul, one_smul, add_sub_cancel_right, add_sub_cancel_right, two_smul, ← two_smul R,
     invOf_smul_eq_iff, two_smul, two_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toQuadraticMap_associated : (associatedHom S Q).toQuadraticMap = Q :=
   QuadraticMap.ext <| associated_eq_self_apply S Q
 
@@ -1026,6 +1048,7 @@ theorem isOrtho_comm {x y : M} : IsOrtho Q x y ↔ IsOrtho Q y x := by simp_rw [
 
 alias ⟨IsOrtho.symm, _⟩ := isOrtho_comm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.LinearMap.BilinForm.toQuadraticMap_isOrtho [IsCancelAdd R]
     [NoZeroDivisors R] [CharZero R] {B : BilinMap R M R} {x y : M} (h : B.IsSymm) :
     B.toQuadraticMap.IsOrtho x y ↔ B x y = 0 := by
@@ -1161,6 +1184,7 @@ The determinant of the matrix is the discriminant of the quadratic form.
 variable {n : Type w} [Fintype n] [DecidableEq n]
 variable [CommRing R] [AddCommMonoid M] [Module R M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `M.toQuadraticForm'` is the map `fun x ↦ row x * M * col x` as a quadratic form on `n → R`. -/
 def Matrix.toQuadraticForm' (M : Matrix n n R) : QuadraticForm R (n → R) :=
   LinearMap.BilinMap.toQuadraticMap (Matrix.toLinearMap₂' R M)
@@ -1179,6 +1203,7 @@ section Rn
 def toMatrix' (Q : QuadraticForm R (n → R)) : Matrix n n R :=
   LinearMap.toMatrix₂' R Q.associated
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toMatrix'_smul (a : R) (Q : QuadraticForm R (n → R)) :
     (a • Q).toMatrix' = a • Q.toMatrix' := by
   simp [toMatrix']
@@ -1224,6 +1249,7 @@ lemma toMatrix_eq_toMatrix' (Q : QuadraticForm R (n → R)) :
   simp only [toMatrix, toMatrix']
   exact LinearEquiv.congr_arg rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toMatrix_smul (a : R) (Q : QuadraticForm R N) :
     (a • Q).toMatrix b = a • (Q.toMatrix b) := by
   simp [toMatrix]
@@ -1313,6 +1339,7 @@ section Semiring
 
 variable [CommSemiring R] [AddCommMonoid M] [Module R M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 A bilinear form is separating left if the quadratic form it is associated with is anisotropic.
 -/
@@ -1337,6 +1364,7 @@ open Module
 variable {V : Type u} {K : Type v} [Field K] [AddCommGroup V] [Module K V]
 variable [FiniteDimensional K V]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a symmetric bilinear form `B` on some vector space `V` over a field `K`
 in which `2` is invertible, there exists an orthogonal basis with respect to `B`. -/
 theorem exists_orthogonal_basis [hK : Invertible (2 : K)] {B : LinearMap.BilinForm K V}
@@ -1400,6 +1428,7 @@ noncomputable def basisRepr [Finite ι] (Q : QuadraticMap R M N) (v : Basis ι R
     QuadraticMap R (ι → R) N :=
   Q.comp v.equivFun.symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem basisRepr_apply [Fintype ι] {v : Basis ι R M} (Q : QuadraticMap R M N) (w : ι → R) :
     Q.basisRepr v w = Q (∑ i : ι, w i • v i) := by
@@ -1428,6 +1457,7 @@ theorem weightedSumSquares_apply [Monoid S] [DistribMulAction S R] [SMulCommClas
     weightedSumSquares R w v = ∑ i : ι, w i • (v i * v i) :=
   sum_apply _ _ _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- On an orthogonal basis, the basis representation of `Q` is just a sum of squares. -/
 theorem basisRepr_eq_of_iIsOrtho {R M} [CommRing R] [AddCommGroup M] [Module R M]
     [Invertible (2 : R)] (Q : QuadraticForm R M) (v : Basis ι R M)

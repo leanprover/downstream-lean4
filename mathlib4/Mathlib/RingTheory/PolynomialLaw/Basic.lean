@@ -243,6 +243,7 @@ theorem one_tmul_ground_apply' {S : Type u} [CommSemiring S] [Algebra R S] (x : 
   · simp only [includeRight_lid]
   · rw [rTensor_tmul, toLinearMap_apply, map_one]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The map ground assigning a function `M → N` to a polynomial map `f : M →ₚₗ[R] N` as a
   linear map. -/
 def lground : (M →ₚₗ[R] N) →ₗ[R] (M → N) where
@@ -555,6 +556,7 @@ theorem toFun_add :
   ext t
   simp only [Pi.add_apply, toFun_add_apply]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem toFun_neg {R : Type u} [CommRing R]
     {M : Type*} [AddCommGroup M] [Module R M]
@@ -566,6 +568,7 @@ theorem toFun_neg {R : Type u} [CommRing R]
   obtain ⟨⟨s, p⟩, ha⟩ := π_surjective t
   simp only [toFun_eq_rTensor_φ_toFun' _ ha, neg_def, Pi.smul_apply, map_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (S) in
 /-- Extension of `PolynomialLaw.smul_def` -/
 @[simp]

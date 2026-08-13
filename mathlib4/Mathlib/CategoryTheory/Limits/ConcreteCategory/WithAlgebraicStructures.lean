@@ -57,6 +57,7 @@ end zero
 
 section module
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 If `r` has no zero smul divisors for all small-enough sections, then `r` has no zero smul divisors
 in the colimit.

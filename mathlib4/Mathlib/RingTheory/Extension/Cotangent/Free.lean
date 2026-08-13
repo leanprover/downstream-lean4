@@ -78,6 +78,7 @@ lemma cotangentRestrict_bijective_of_isCompl
     · exact P.cotangentSpaceBasis.repr.symm.surjective
   · simpa [g, Submodule.map_comp, Submodule.map_span, ← Set.range_comp, Function.comp_def]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma disjoint_ker_toKaehler_of_linearIndependent
     (h : LinearIndependent S (fun k ↦ D R S (P.val (v k)))) :
     Disjoint (LinearMap.ker P.toExtension.toKaehler)

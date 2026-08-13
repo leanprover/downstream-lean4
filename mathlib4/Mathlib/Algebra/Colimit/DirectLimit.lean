@@ -523,6 +523,7 @@ instance [∀ i, AddZeroClass (G i)] [∀ i, DistribSMul R (G i)]
   smul_add r := DirectLimit.induction₂ _ fun i _ _ ↦ by
     simp_rw [add_def, smul_def, smul_add, add_def]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance [Monoid R] [∀ i, AddMonoid (G i)] [∀ i, DistribMulAction R (G i)]
     [∀ i j h, DistribMulActionHomClass (T h) R (G i) (G j)] :
     DistribMulAction R (DirectLimit G f) :=
@@ -634,6 +635,7 @@ lemma map₀_algebraMap (i : ι) (r : R) :
     map₀ f (fun i ↦ algebraMap R (G i) r) = ⟦⟨i, algebraMap R (G i) r⟩⟧ :=
   map₀_def _ _ (fun _ _ _ => AlgHomClass.commutes _ _) i
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 instance : Algebra R (DirectLimit G f) where
   algebraMap := map₀RingHom (f := f).comp (algebraMap R (∀ i, G i))
@@ -661,6 +663,7 @@ variable [Semiring R] [∀ i, AddCommMonoid (G i)] [∀ i, Module R (G i)]
 variable [∀ i j h, LinearMapClass (T h) R (G i) (G j)]
 variable (R ι G f) [Nonempty ι]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The canonical map from a component to the direct limit. -/
 @[simps]
 def of (i) : G i →ₗ[R] DirectLimit G f where
@@ -674,6 +677,7 @@ theorem of_f {i j hij x} : of R ι G f j (f i j hij x) = of R ι G f i x := .sym
 
 variable {P : Type*} [AddCommMonoid P] [Module R P]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (R ι G f) in
 /-- The universal property of the direct limit: maps from the components to another module
 that respect the directed system structure (i.e. make some diagram commute) give rise
@@ -899,6 +903,7 @@ variable [∀ i, NonUnitalNonAssocSemiring (G i)] [∀ i, DistribMulAction R (G 
 variable [∀ i j h, NonUnitalAlgHomClass (T h) R (G i) (G j)]
 variable [Nonempty ι]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (G f) in
 /-- The canonical map from a component to the direct limit. -/
 def of (i) : G i →ₙₐ[R] DirectLimit G f where
@@ -910,6 +915,7 @@ lemma of_f {i j} (hij) (x) : of G f j (f i j hij x) = of G f i x := .symm <| eq_
 
 variable (P : Type*) [NonUnitalNonAssocSemiring P] [DistribMulAction R P]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (G f) in
 /-- The universal property of the direct limit: maps from the components to another R-algebra
 that respect the directed system structure (i.e. make some diagram commute) give rise
@@ -924,9 +930,11 @@ def lift (g : ∀ i, G i →ₙₐ[R] P) (Hg : ∀ i j hij x, g j (f i j hij x) 
 
 variable (g : ∀ i, G i →ₙₐ[R] P) (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem lift_comp_of {i} : (lift G f P g Hg).comp (of G f i) = g i := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := rfl
 
 @[ext]

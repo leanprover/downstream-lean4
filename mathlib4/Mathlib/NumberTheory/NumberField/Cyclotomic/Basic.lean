@@ -428,6 +428,7 @@ lemma prime_norm_toInteger_sub_one_of_prime_ne_two' [hcycl : IsCyclotomicExtensi
   replace hζ : IsPrimitiveRoot ζ (p ^ (0 + 1)) := by simpa using hζ
   exact hζ.prime_norm_toInteger_sub_one_of_prime_ne_two hodd
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- In a `p ^ (k + 1)`-th cyclotomic extension of `ℚ `, we have that `ζ` is not congruent to an
   integer modulo `p` if `p ^ (k  + 1) ≠ 2`. -/
 theorem not_exists_int_prime_dvd_sub_of_prime_pow_ne_two

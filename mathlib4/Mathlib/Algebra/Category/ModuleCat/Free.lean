@@ -92,6 +92,7 @@ end LinearIndependent
 
 section Span
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 include hS in
 /-- In the commutative diagram
 ```

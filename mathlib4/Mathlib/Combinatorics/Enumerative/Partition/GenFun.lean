@@ -90,6 +90,7 @@ theorem summable_genFun_term' (f : ℕ → ℕ → R) {i : ℕ} (hi : i ≠ 0) :
 
 variable [T2Space R]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 private theorem aux_dvd_of_coeff_ne_zero {f : ℕ → ℕ → R} {d : ℕ} {s : Finset ℕ} (hs0 : 0 ∉ s)
     {g : ℕ →₀ ℕ} (hg : g ∈ s.finsuppAntidiag d)
     (hprod : ∀ i ∈ s, (coeff (g i)) (1 + ∑' j, f i (j + 1) • X ^ (i * (j + 1))) ≠ (0 : R)) (x : ℕ) :

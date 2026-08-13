@@ -284,6 +284,7 @@ end cfcHom
 
 section cfcL
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `cfcHom` bundled as a continuous linear map. -/
 @[simps apply]
 noncomputable def cfcL {a : A} (ha : p a) : C(spectrum R a, R) →L[R] A :=
@@ -517,6 +518,7 @@ lemma cfc_sum_univ {ι : Type*} [Fintype ι] (f : ι → R → R) (a : A)
     cfc (∑ i, f i) a = ∑ i, cfc (f i) a :=
   cfc_sum f a _ fun i _ ↦ hf i
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma cfc_smul {S : Type*} [SMul S R] [ContinuousConstSMul S R]
     [SMulZeroClass S A] [IsScalarTower S R A] [IsScalarTower S R (R → R)]
     (s : S) (f : R → R) (a : A) (hf : ContinuousOn f (spectrum R a) := by cfc_cont_tac) :

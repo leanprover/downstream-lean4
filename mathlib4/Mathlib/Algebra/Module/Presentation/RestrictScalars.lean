@@ -42,6 +42,7 @@ abbrev RestrictScalarsData : Type _ :=
 
 variable (data : presM.RestrictScalarsData presB)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A presentation of the restriction of scalars from `B` to `A` of a `B`-module `M`,
 given a presentation of `M` as a `B`-module, a presentation of `B` as an `A`-module,
 and an additional data. -/

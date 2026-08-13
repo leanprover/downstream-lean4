@@ -140,6 +140,7 @@ open fwdDiff_aux
 
 section newton_formulae
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 Express the `n`-th forward difference of `f` at `y` in terms of the values `f (y + k)`, for
 `0 ≤ k ≤ n`.

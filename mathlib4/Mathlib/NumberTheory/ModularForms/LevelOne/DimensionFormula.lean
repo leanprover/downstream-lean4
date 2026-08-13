@@ -220,6 +220,7 @@ private lemma eq_zero_of_pow_eq_smul {p p4 p6 : PowerSeries ℂ} {c4 c6 : ℂ}
     grind
   grind [pow_eq_zero_iff, zero_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 private lemma weight_two_qExpansion_eq_zero (f : ModularForm 𝒮ℒ 2) : qExpansion 1 f = 0 := by
   obtain ⟨c4, hc4⟩ : ∃ c4, c4 • E₄ = f.mul f :=
     (finrank_eq_one_iff_of_nonzero' E₄ (E_ne_zero _ ⟨2, rfl⟩)).mp

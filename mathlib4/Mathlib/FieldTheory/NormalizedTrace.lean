@@ -75,6 +75,7 @@ private theorem normalizedTraceAux_eq_of_finiteDimensional [FiniteDimensional F 
 
 variable [Algebra.IsIntegral F K]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
 /-- The normalized trace map from an algebraic extension `K` to the base field `F`. -/
@@ -180,6 +181,7 @@ theorem normalizedTrace_algebraMap_of_lifts [CharZero E] [Algebra.IsIntegral E K
   simp [normalizedTrace_minpoly F a, normalizedTrace_minpoly E a, ← minpoly.map_algebraMap ha h,
     (minpoly F a).nextCoeff_map_eq, map_mul, map_neg]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /- An auxiliary result to prove `normalizedTrace_trans_apply`. It differs from
 `normalizedTrace_trans_apply` only by the extra assumption about finiteness of `E` over `F`. -/

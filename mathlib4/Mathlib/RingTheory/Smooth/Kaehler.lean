@@ -151,6 +151,7 @@ variable [Algebra R S] [IsScalarTower R P S]
 variable (hf' : (RingHom.ker (algebraMap P S)) ^ 2 = ⊥)
 include hf'
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 Given a surjective algebra homomorphism `f : P →ₐ[R] S` with square-zero kernel `I`.
 Let `σ` be an arbitrary (set-theoretic) section of `f`.

@@ -855,6 +855,7 @@ def adjSylvester (f g : R[X]) :
   (f.sylvester g m n).adjugate.toLin (degreeLT.basis R (m + n))
     (((degreeLT.basis R m).prod (degreeLT.basis R n)).reindex finSumFinEquiv)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma sylveserMap_comp_adjSylvester (f g : R[X]) (hf : f.natDegree ≤ m) (hg : g.natDegree ≤ n) :
     sylvesterMap f g hf hg ∘ₗ adjSylvester f g = f.resultant g m n • LinearMap.id := by
   let b₁ := ((degreeLT.basis R m).prod (degreeLT.basis R n)).reindex finSumFinEquiv
@@ -863,6 +864,7 @@ lemma sylveserMap_comp_adjSylvester (f g : R[X]) (hf : f.natDegree ≤ m) (hg : 
   rwa [Matrix.toLin_mul b₂ b₁ b₂, Matrix.toLin_toMatrix, map_smul,
     toMatrix_sylvesterMap', Matrix.toLin_one, ← resultant] at this
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma adjSylvester_comp_sylveserMap (f g : R[X]) (hf : f.natDegree ≤ m) (hg : g.natDegree ≤ n) :
     adjSylvester f g ∘ₗ sylvesterMap f g hf hg = f.resultant g m n • LinearMap.id := by
   let b₁ := ((degreeLT.basis R m).prod (degreeLT.basis R n)).reindex finSumFinEquiv

@@ -302,6 +302,7 @@ variable (R M)
 
 variable {A : Type*} [CommSemiring A] [Algebra R A]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 private theorem lift'_imp {f : ℕ × M → A} (hf_zero : ∀ m, f (0, m) = 1)
     (hf_smul : ∀ (n : ℕ) (r : R) (m : M), f ⟨n, r • m⟩ = r ^ n • f ⟨n, m⟩)
     (hf_mul : ∀ n p m, f ⟨n, m⟩ * f ⟨p, m⟩ = (n + p).choose n • f ⟨n + p, m⟩)

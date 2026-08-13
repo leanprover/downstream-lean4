@@ -110,6 +110,7 @@ instance [Nontrivial M] : Nonempty (Module.Free.ChooseBasisIndex R M) :=
 theorem infinite [Infinite R] [Nontrivial M] : Infinite M :=
   (Equiv.infinite_iff (chooseBasis R M).repr.toEquiv).mpr Finsupp.infinite_of_right
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance [Nontrivial M] : FaithfulSMul R M :=
   .of_injective _ (chooseBasis R M).repr.symm.injective
 
@@ -179,6 +180,7 @@ open Finset
 
 variable {S : Type*} [CommRing R] [Ring S] [Algebra R S]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable {R} in
 /-- If `B` is a basis of the `R`-algebra `S` such that `B i = 1` for some index `i`, then

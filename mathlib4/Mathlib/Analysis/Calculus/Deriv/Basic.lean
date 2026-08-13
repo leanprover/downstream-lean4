@@ -456,6 +456,7 @@ theorem norm_derivWithin_eq_norm_fderivWithin : ‖derivWithin f s x‖ = ‖fde
 
 theorem fderiv_apply_one_eq_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem fderiv_eq_smul_deriv (y : 𝕜) : (fderiv 𝕜 f x : 𝕜 → F) y = y • deriv f x := by
   rw [← fderiv_apply_one_eq_deriv, ← map_smul]

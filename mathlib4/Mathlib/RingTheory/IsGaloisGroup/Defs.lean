@@ -79,6 +79,7 @@ theorem top_iff : IsGaloisGroup (⊤ : Subgroup G) A B ↔ IsGaloisGroup G A B :
 instance [IsGaloisGroup G A B] : IsGaloisGroup (⊤ : Subgroup G) A B :=
   IsGaloisGroup.top_iff.mpr ‹_›
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem of_algEquiv [hG : IsGaloisGroup G A B] (B' : Type*) [Semiring B']
     [Algebra A B'] [MulSemiringAction G B'] (e : B ≃ₐ[A] B')
     (he : ∀ (g : G) (x : B), e (g • x) = g • (e x)) :

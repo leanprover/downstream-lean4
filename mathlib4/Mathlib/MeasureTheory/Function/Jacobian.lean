@@ -280,6 +280,7 @@ to the approximating linear map.
 -/
 
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `f` be a function which is sufficiently close (in the Lipschitz sense) to a given linear
 map `A`. Then it expands the volume of any set by at most `m` for any `m > det A`. -/
 theorem addHaar_image_le_mul_of_det_lt (A : E →L[ℝ] E) {m : ℝ≥0}
@@ -457,6 +458,7 @@ theorem mul_le_addHaar_image_of_lt_det (A : E →L[ℝ] E) {m : ℝ≥0}
   -- and our choice of `δ`.
   exact hδ₀ _ _ ((hf'.to_inv h1δ).mono_num h2δ.le)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a differentiable function `f` is approximated by a linear map `A` on a set `s`, up to `δ`,
 then at almost every `x` in `s` one has `‖f' x - A‖ ≤ δ`. -/
 theorem _root_.ApproximatesLinearOn.norm_fderiv_sub_le {A : E →L[ℝ] E} {δ : ℝ≥0}

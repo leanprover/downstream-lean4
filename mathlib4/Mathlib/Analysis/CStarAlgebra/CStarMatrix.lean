@@ -587,6 +587,7 @@ lemma norm_def {M : CStarMatrix m n A} : ‖M‖ = ‖toCLM M‖ := rfl
 
 lemma norm_def' {M : CStarMatrix n n A} : ‖M‖ = ‖toCLMNonUnitalAlgHom (A := A) M‖ := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma normedSpaceCore : NormedSpace.Core ℂ (CStarMatrix m n A) where
   norm_nonneg M := (toCLM M).opNorm_nonneg
   norm_smul c M := by rw [norm_def, norm_def, map_smul, norm_smul _ (toCLM M)]
@@ -819,9 +820,11 @@ noncomputable instance instNormedRing : NormedRing (CStarMatrix n n A) where
   dist_eq _ _ := rfl
   norm_mul_le := norm_mul_le
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 noncomputable instance instNormedAlgebra : NormedAlgebra ℂ (CStarMatrix n n A) where
   norm_smul_le r M := by simpa only [norm_def, map_smul] using (toCLM M).opNorm_smul_le r
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Matrices with entries in a unital C⋆-algebra form a unital C⋆-algebra. -/
 noncomputable instance instCStarAlgebra : CStarAlgebra (CStarMatrix n n A) where
 

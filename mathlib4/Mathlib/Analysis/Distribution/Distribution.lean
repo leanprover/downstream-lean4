@@ -240,6 +240,7 @@ lemma lineDerivCLM_add {v₁ v₂ : E} :
   ext T f
   simp [lineDerivCLM_apply, TestFunction.lineDerivCLM_add, neg_add, -neg_add_rev]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma lineDerivCLM_smul {c : ℝ} {v : E} :
     (lineDerivCLM (c • v) : 𝓓'^{k}(Ω, F) →L[ℝ] 𝓓'^{n}(Ω, F)) =
       c • lineDerivCLM v := by
@@ -268,6 +269,7 @@ noncomputable instance : LineDerivAdd E 𝓓'(Ω, F) 𝓓'(Ω, F) where
   lineDerivOp_add v := map_add (lineDerivCLM v)
   lineDerivOp_left_add _ _ T := congr($lineDerivCLM_add T)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 noncomputable instance : LineDerivSMul ℝ E 𝓓'(Ω, F) 𝓓'(Ω, F) where
   lineDerivOp_smul v := map_smul (lineDerivCLM v)
 

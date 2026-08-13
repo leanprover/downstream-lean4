@@ -294,6 +294,7 @@ lemma threeShortAddLongRoot_eq :
   simp [threeShortAddLongRoot, threeShortAddLong, reflection_apply_root]
   module
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma threeShortAddTwoLongRoot_eq :
     threeShortAddTwoLongRoot P = (3 : R) • shortRoot P + (2 : R) • longRoot P := by
   simp [threeShortAddTwoLongRoot, threeShortAddTwoLong, reflection_apply_root]
@@ -401,6 +402,7 @@ variable (i : ι)
   · simp only [twoShortAddLongRoot_eq, one_smul, add_left_inj]
     norm_cast
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] lemma pairingIn_twoShortAddLong_right :
     P.pairingIn ℤ i (twoShortAddLong P) =
       2 * P.pairingIn ℤ i (short P) + 3 * P.pairingIn ℤ i (long P) := by
@@ -431,6 +433,7 @@ omit [Finite ι] [IsDomain R] in
   · simp only [threeShortAddLongRoot_eq, one_smul, add_left_inj]
     norm_cast
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] lemma pairingIn_threeShortAddLong_right :
     P.pairingIn ℤ i (threeShortAddLong P) =
       P.pairingIn ℤ i (short P) + P.pairingIn ℤ i (long P) := by
@@ -461,6 +464,7 @@ omit [Finite ι] [IsDomain R] in
   · simp only [threeShortAddTwoLongRoot_eq]
     norm_cast
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] lemma pairingIn_threeShortAddTwoLong_right :
     P.pairingIn ℤ i (threeShortAddTwoLong P) =
       P.pairingIn ℤ i (short P) + 2 * P.pairingIn ℤ i (long P) := by

@@ -53,6 +53,7 @@ section
 variable {P' : Type*} [CommRing P'] [Algebra R P']
 variable {P'' : Type*} [CommRing P''] [Algebra R P'']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.IsFractional.map (g : P →ₐ[R] P') {I : Submodule R P} :
     IsFractional S I → IsFractional S (Submodule.map g.toLinearMap I)
   | ⟨a, a_nonzero, hI⟩ =>

@@ -61,6 +61,7 @@ def e0 : CliffordAlgebra (Q' Q) :=
 def v : M →ₗ[R] CliffordAlgebra (Q' Q) :=
   ι (Q' Q) ∘ₗ LinearMap.inl _ _ _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem ι_eq_v_add_smul_e0 (m : M) (r : R) : ι (Q' Q) (m, r) = v Q m + r • e0 Q := by
   rw [e0, v, LinearMap.comp_apply, LinearMap.inl_apply, ← map_smul, Prod.smul_mk,
     smul_zero, smul_eq_mul, mul_one, ← map_add, Prod.mk_add_mk, zero_add, add_zero]

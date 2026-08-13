@@ -150,6 +150,7 @@ def ModuleCon.ker [Monoid R] [Monoid S] [AddMonoid M] [AddMonoid N] [DistribMulA
   __ := SMulCon.ker f.toMulActionHom
   __ := AddCon.ker f
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The first isomorphism theorem for semimodules in the case of a surjective homomorphism. -/
 noncomputable def ModuleCon.quotientKerEquivOfSurjective [Semiring S] [AddCommMonoid M]
     [AddCommMonoid N] [Module S M] [Module S N] (f : M →ₗ[S] N) (hf : Function.Surjective f) :

@@ -176,6 +176,7 @@ theorem Module.one_le_rank_iff : 1 ≤ Module.rank R M ↔ ∃ f : R →ₗ[R] M
   · exact ⟨f ∘ₗ _, by apply hf.comp (LinearEquiv.piUnique R ..).symm.injective⟩
   · exact ⟨f ∘ₗ _, hf.comp (LinearEquiv.piUnique R ..).injective⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Module.rank_eq_zero_of_not_faithfulSMul (h : ¬ FaithfulSMul R M) : Module.rank R M = 0 := by
   contrapose! h
   obtain ⟨f, hf⟩ := by rwa [← Cardinal.one_le_iff_ne_zero, one_le_rank_iff] at h
@@ -249,6 +250,7 @@ theorem rank_eq_of_equiv_equiv (i : R → R') (j : M ≃+ M₁)
 end
 end Semiring
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- TODO: prove that nontrivial commutative semirings satisfy the strong rank condition,
 following *Free sets and free subsemimodules in a semimodule* by Yi-Jia Tan, Theorem 3.2.

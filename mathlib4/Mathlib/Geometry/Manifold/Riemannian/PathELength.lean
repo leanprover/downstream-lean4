@@ -133,6 +133,7 @@ open MeasureTheory
 
 variable [∀ (x : M), ENormSMulClass ℝ (TangentSpace% x)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The length of a path in a manifold is invariant under a monotone reparametrization. -/
 lemma pathELength_comp_of_monotoneOn {f : ℝ → ℝ} (h : a ≤ b) (hf : MonotoneOn f (Icc a b))
@@ -165,6 +166,7 @@ lemma pathELength_comp_of_monotoneOn {f : ℝ → ℝ} (h : a ≤ b) (hf : Monot
   have : 0 ≤ derivWithin f (Icc a b) t := hf.derivWithin_nonneg
   simp only [map_smul, enorm_smul, ← Real.enorm_of_nonneg this, f_im]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The length of a path in a manifold is invariant under an antitone reparametrization. -/
 lemma pathELength_comp_of_antitoneOn {f : ℝ → ℝ} (h : a ≤ b) (hf : AntitoneOn f (Icc a b))

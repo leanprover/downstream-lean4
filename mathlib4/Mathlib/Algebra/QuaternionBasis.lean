@@ -161,6 +161,7 @@ theorem range_liftHom (B : Basis A c₁ c₂ c₃) :
       <;> [use (Basis.self R).i; use (Basis.self R).j; use (Basis.self R).k]
     all_goals simp [lift]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Transform a `QuaternionAlgebra.Basis` through an `AlgHom`. -/
 @[simps i j k]
 def compHom (F : A →ₐ[R] B) : Basis B c₁ c₂ c₃ where
@@ -174,6 +175,7 @@ def compHom (F : A →ₐ[R] B) : Basis B c₁ c₂ c₃ where
 
 end Basis
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 /-- A quaternionic basis on `A` is equivalent to a map from the quaternion algebra to `A`. -/
 @[simps]

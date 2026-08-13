@@ -328,6 +328,7 @@ noncomputable def ofSupportedInCLM [SMulCommClass ℝ 𝕜 F] {K : Compacts E}
     (ofSupportedInCLM 𝕜 K_sub_Ω : 𝓓^{n}_{K}(E, F) → 𝓓^{n}(Ω, F)) = ofSupportedIn K_sub_Ω :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The **universal property** of the topology on `𝓓^{n}(Ω, F)`: a **linear** map from
 `𝓓^{n}(Ω, F)` to a locally convex topological vector space is continuous if and only if its
 precomposition with the inclusion `ofSupportedIn K_sub_Ω : 𝓓^{n}_{K}(E, F) → 𝓓^{n}(Ω, F)` is
@@ -627,6 +628,7 @@ noncomputable instance : LineDerivAdd E 𝓓(Ω, F) 𝓓(Ω, F) where
   lineDerivOp_add v := map_add (lineDerivCLM ℝ v)
   lineDerivOp_left_add _ _ f := congr($lineDerivCLM_add f)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 noncomputable instance : LineDerivSMul 𝕜 E 𝓓(Ω, F) 𝓓(Ω, F) where
   lineDerivOp_smul v := map_smul (lineDerivCLM 𝕜 v)
 

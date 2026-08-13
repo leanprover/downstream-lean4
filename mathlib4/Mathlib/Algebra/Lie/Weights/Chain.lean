@@ -174,6 +174,7 @@ section IsCartanSubalgebra
 variable [H.IsCartanSubalgebra] [IsNoetherian R L]
 attribute [local instance 100] LieRing.ofAssociativeRing
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma trace_toEnd_genWeightSpaceChain_eq_zero
     (hp : genWeightSpace M (p • α + χ) = ⊥)
     (hq : genWeightSpace M (q • α + χ) = ⊥)

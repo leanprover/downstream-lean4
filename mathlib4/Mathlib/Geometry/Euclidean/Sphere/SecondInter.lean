@@ -43,6 +43,7 @@ the second intersection with the sphere through `p` and with center `s.center`. 
 def Sphere.secondInter (s : Sphere P) (p : P) (v : V) : P :=
   (-2 * ⟪v, p -ᵥ s.center⟫ / ⟪v, v⟫) • v +ᵥ p
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma Sphere.secondInter_map (s : Sphere P) (p : P) (v : V) (f : P →ᵃⁱ[ℝ] P₂) :
     Sphere.secondInter ⟨f s.center, s.radius⟩ (f p) (f.linearIsometry v) =

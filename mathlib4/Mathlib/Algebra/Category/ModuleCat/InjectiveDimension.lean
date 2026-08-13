@@ -86,6 +86,7 @@ variable [Small.{v} R] {R' : Type u'} [Ring R'] (eR : R ≃+* R')
 
 attribute [local instance] RingHomInvPair.of_ringEquiv
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 private lemma hasInjectiveDimensionLE_iff_of_semiLinearEquiv_aux [Small.{v} R']
     {M : ModuleCat.{v} R} {N : ModuleCat.{v} R'} (e : M ≃ₛₗ[RingHomClass.toRingHom eR] N)
@@ -126,6 +127,7 @@ private lemma hasInjectiveDimensionLE_iff_of_semiLinearEquiv_aux [Small.{v} R']
     exact (exactS.hasInjectiveDimensionLT_X₃_iff n inferInstance).symm.trans
       ((ih eCoker).trans (exactS'.hasInjectiveDimensionLT_X₃_iff n inferInstance))
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 attribute [local instance] small_lift in
 lemma hasInjectiveDimensionLE_iff_of_semiLinearEquiv [Small.{v'} R']
@@ -137,6 +139,8 @@ lemma hasInjectiveDimensionLE_iff_of_semiLinearEquiv [Small.{v'} R']
     hasInjectiveDimensionLE_iff_of_linearEquiv_aux eN]
   exact hasInjectiveDimensionLE_iff_of_semiLinearEquiv_aux eR ((eM.symm.trans e).trans eN) n
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma injectiveDimension_eq_of_semiLinearEquiv [Small.{v'} R']
     {M : ModuleCat.{v} R} {N : ModuleCat.{v'} R'} (e : M ≃ₛₗ[RingHomClass.toRingHom eR] N) :
     injectiveDimension M = injectiveDimension N := by

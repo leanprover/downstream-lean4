@@ -426,6 +426,7 @@ protected theorem orthonormal (b : HilbertBasis ι 𝕜 E) : Orthonormal 𝕜 b 
     lp.single_apply, Pi.single_apply]
   simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem hasSum_repr_symm (b : HilbertBasis ι 𝕜 E) (f : ℓ²(ι, 𝕜)) :
     HasSum (fun i => f i • b i) (b.repr.symm f) := by
   classical

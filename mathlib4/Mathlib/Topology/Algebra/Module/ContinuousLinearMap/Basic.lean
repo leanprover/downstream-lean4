@@ -658,6 +658,7 @@ instance applyFaithfulSMul : FaithfulSMul (M₁ →L[R₁] M₁) M₁ :=
 instance applySMulCommClass : SMulCommClass R₁ (M₁ →L[R₁] M₁) M₁ where
   smul_comm r e m := (e.map_smul r m).symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance applySMulCommClass' : SMulCommClass (M₁ →L[R₁] M₁) R₁ M₁ where
   smul_comm := map_smul
 

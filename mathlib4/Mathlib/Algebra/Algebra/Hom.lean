@@ -271,6 +271,7 @@ theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A �
 instance {φ₁ : B →ₐ[R] C} {φ₂ : A →ₐ[R] B} :
     RingHomCompTriple φ₂.toRingHom φ₁.toRingHom (φ₁.comp φ₂).toRingHom := ⟨rfl⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- R-Alg ⥤ R-Mod -/
 def toLinearMap : A →ₗ[R] B where
   toFun := φ
@@ -297,6 +298,7 @@ theorem comp_toLinearMap (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
 theorem toLinearMap_id : toLinearMap (AlgHom.id R A) = LinearMap.id :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] lemma linearMapMk_toAddHom (f : A →ₐ[R] B) : LinearMap.mk f (map_smul f) = f.toLinearMap :=
   rfl
 

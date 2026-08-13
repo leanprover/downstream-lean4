@@ -72,6 +72,7 @@ section notation_genWeightSpaceOf
 /-- Until we define `LieModule.genWeightSpaceOf`, it is useful to have some notation as follows: -/
 local notation3 "𝕎("M", " χ", " x")" => (toEnd R L M x).maxGenEigenspace χ
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- See also `bourbaki1975b` Chapter VII §1.1, Proposition 2 (ii). -/
 protected theorem weight_vector_multiplication (M₁ M₂ M₃ : Type*)
     [AddCommGroup M₁] [Module R M₁] [LieRingModule L M₁] [LieModule R L M₁] [AddCommGroup M₂]
@@ -506,6 +507,7 @@ lemma map_posFittingComp_le :
   use f n
   rw [LieModule.toEnd_pow_apply_map, hn]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma map_genWeightSpace_le :
     (genWeightSpace M χ).map f ≤ genWeightSpace M₂ χ := by
   rw [LieSubmodule.map_le_iff_le_comap]
@@ -520,6 +522,7 @@ lemma map_genWeightSpace_le :
 
 variable {f}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma comap_genWeightSpace_eq_of_injective (hf : Injective f) :
     (genWeightSpace M₂ χ).comap f = genWeightSpace M χ := by
   refine le_antisymm (fun m hm ↦ ?_) ?_
@@ -735,6 +738,7 @@ lemma iSup_genWeightSpaceOf_eq_top [IsTriangularizable R L M] (x : L) :
   dsimp [genWeightSpaceOf]
   exact IsTriangularizable.maxGenEigenspace_eq_top x
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 open LinearMap Module in
 @[simp]
 lemma trace_toEnd_genWeightSpace [IsDomain R] [IsPrincipalIdealRing R]

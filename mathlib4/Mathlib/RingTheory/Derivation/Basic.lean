@@ -264,6 +264,7 @@ variable {N : Type*} [AddCommMonoid N] [Module A N] [Module R N] [IsScalarTower 
 
 variable (f : M →ₗ[A] N) (e : M ≃ₗ[A] N)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- We can push forward derivations using linear maps, i.e., the composition of a derivation with a
 linear map is a derivation. Furthermore, this operation is linear on the spaces of derivations. -/
@@ -277,14 +278,17 @@ def _root_.LinearMap.compDer : Derivation R A M →ₗ[A] Derivation R A N where
   map_add' D₁ D₂ := by ext; exact LinearMap.map_add _ _ _
   map_smul' r D := by ext; dsimp; simp only [_root_.map_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem coe_to_linearMap_comp : (f.compDer D : A →ₗ[R] N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem coe_comp : (f.compDer D : A → N) = (f : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The composition of a derivation with a linear map as a bilinear map -/
 @[simps]
 def llcomp : (M →ₗ[A] N) →ₗ[A] Derivation R A M →ₗ[A] Derivation R A N where
@@ -292,6 +296,7 @@ def llcomp : (M →ₗ[A] N) →ₗ[A] Derivation R A M →ₗ[A] Derivation R A
   map_add' f₁ f₂ := by ext; rfl
   map_smul' r D := by ext; rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Pushing a derivation forward through a linear equivalence is an equivalence. -/
 def _root_.LinearEquiv.compDer : Derivation R A M ≃ₗ[A] Derivation R A N :=
   { e.toLinearMap.compDer with
@@ -299,11 +304,13 @@ def _root_.LinearEquiv.compDer : Derivation R A M ≃ₗ[A] Derivation R A N :=
     left_inv := fun D => by ext a; exact e.symm_apply_apply (D a)
     right_inv := fun D => by ext a; exact e.apply_symm_apply (D a) }
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem linearEquiv_coe_to_linearMap_comp :
     (e.compDer D : A →ₗ[R] N) = (e.toLinearMap : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem linearEquiv_coe_comp :
     (e.compDer D : A → N) = (e.toLinearMap : M →ₗ[R] N).comp (D : A →ₗ[R] M) :=
@@ -361,6 +368,7 @@ variable [CommSemiring R] [CommRing A] [CommRing M]
 variable [Algebra R A] [Algebra R M]
 variable {F : Type*} [FunLike F A M] [AlgHomClass F R A M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /--
 Lift a derivation via an algebra homomorphism `f` with a right inverse such that

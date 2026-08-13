@@ -77,6 +77,7 @@ lemma char_add_eq_mul (x y : W) :
 lemma char_neg (w : W) :
     char he hL (-w) = star (char he hL w) := by ext; simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If `e` and `L` are non-trivial, then `char he hL w, w : W` separates points in `V`. -/
 theorem ext_of_char_eq (he : Continuous e) (he' : e ≠ 1)

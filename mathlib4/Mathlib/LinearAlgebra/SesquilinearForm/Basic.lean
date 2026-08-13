@@ -807,6 +807,7 @@ end Nondegenerate
 
 namespace BilinForm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma apply_smul_sub_smul_sub_eq [CommRing R] [AddCommGroup M] [Module R M]
     (B : LinearMap.BilinForm R M) (x y : M) :
@@ -899,6 +900,7 @@ lemma nondegenerate_restrict_iff_disjoint_ker (hs : ∀ x, 0 ≤ B x x) (hB : B.
 
 variable [IsTorsionFree R M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Strict **Cauchy-Schwarz** is equivalent to linear independence for positive definite forms. -/
 lemma apply_mul_apply_lt_iff_linearIndependent (hp : ∀ x, x ≠ 0 → 0 < B x x) (x y : M) :

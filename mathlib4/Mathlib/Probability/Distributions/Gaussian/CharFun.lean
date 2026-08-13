@@ -60,6 +60,7 @@ lemma IsGaussian.charFunDual_eq' [IsGaussian μ] (L : StrongDual ℝ E) :
   · exact IsGaussian.integrable_id
   · exact IsGaussian.memLp_two_id
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The measure `μ` is Gaussian if and only if there
 exist `m : E` and `f : StrongDual ℝ E →L[ℝ] StrongDual ℝ E →L[ℝ] ℝ`
 satisfying `f.toBilinForm.IsPosSemidef` and `charFunDual μ L = exp (L m * I - f L L / 2)`. -/

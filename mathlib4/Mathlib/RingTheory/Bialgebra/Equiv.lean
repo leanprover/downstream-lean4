@@ -55,6 +55,7 @@ variable {F R A B : Type*} [CommSemiring R] [Semiring A] [Semiring B]
   [Algebra R A] [Algebra R B] [CoalgebraStruct R A] [CoalgebraStruct R B]
   [EquivLike F A B] [BialgEquivClass F R A B]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 100) toBialgHomClass : BialgHomClass F R A B where
   map_add := map_add
   map_smulₛₗ := map_smul
@@ -310,6 +311,7 @@ end
 
 variable [Semiring A] [Semiring B] [Bialgebra R A] [Bialgebra R B]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Construct a bialgebra equiv from an algebra equiv respecting counit and comultiplication. -/
 @[simps apply] def ofAlgEquiv (f : A ≃ₐ[R] B)
     (counit_comp : (Bialgebra.counitAlgHom R B).comp f = Bialgebra.counitAlgHom R A)

@@ -113,6 +113,7 @@ instance [Algebra.IsPushout R S A B] :
       (algebraMap S B r)) • x = r • x
   simp only [Algebra.pushoutDesc_left, Module.End.smul_def, Algebra.lsmul_coe]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma map_liftBaseChange_smul [h : Algebra.IsPushout R S A B] (b : B) (x) :
     ((map R S A B).restrictScalars R).liftBaseChange S (b • x) =
     b • ((map R S A B).restrictScalars R).liftBaseChange S x := by
@@ -126,6 +127,7 @@ lemma map_liftBaseChange_smul [h : Algebra.IsPushout R S A B] (b : B) (x) :
     · simp [smul_comm]
     · simp only [map_add, smul_add, *]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- (Implementation).
 The `S`-derivation `B = S ⊗[R] A` to `S ⊗[R] Ω[A⁄R]` sending `a ⊗ b` to `a ⊗ d b`. -/
 noncomputable

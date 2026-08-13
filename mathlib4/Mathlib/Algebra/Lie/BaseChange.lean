@@ -111,6 +111,7 @@ instance instLieRing : LieRing (A ⊗[R] L) where
 
 instance instBaseLieAlgebra : LieAlgebra R (A ⊗[R] L) where lie_smul := by simp [bracket_def]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance instLieAlgebra : LieAlgebra A (A ⊗[R] L) where lie_smul _a _x _y := map_smul _ _ _
 
 set_option backward.privateInPublic true in
@@ -120,6 +121,7 @@ instance instLieRingModule : LieRingModule (A ⊗[R] L) (A ⊗[R] M) where
   lie_add x y z := by simp only [bracket_def, map_add]
   leibniz_lie := bracket_leibniz_lie R A L M
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance instLieModule : LieModule A (A ⊗[R] L) (A ⊗[R] M) where
   smul_lie t x m := by simp only [bracket_def, map_smul, LinearMap.smul_apply]
@@ -183,6 +185,7 @@ variable (N : LieSubmodule R L M)
 
 open LieModule
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable {R L M} in
 /-- If `A` is an `R`-algebra, any Lie submodule of a Lie module `M` with coefficients in `R` may be

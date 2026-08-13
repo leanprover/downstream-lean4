@@ -77,6 +77,7 @@ lemma im_extendRCLike_apply (g : Dual ℝ F) (x : F) :
   obtain (h | h) := RCLike.I_eq_zero_or_im_I_eq_one (K := 𝕜)
   all_goals simp [h, extendRCLike_apply]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem norm_extendRCLike_apply_sq (fr : Dual ℝ F) (x : F) :
     ‖(fr.extendRCLike x : 𝕜)‖ ^ 2 = fr (conj (fr.extendRCLike x : 𝕜) • x) := calc
   ‖(fr.extendRCLike x : 𝕜)‖ ^ 2 = re (conj (fr.extendRCLike x) * fr.extendRCLike x : 𝕜) := by

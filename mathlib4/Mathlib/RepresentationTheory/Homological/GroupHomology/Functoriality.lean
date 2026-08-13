@@ -52,6 +52,7 @@ theorem congr {f₁ f₂ : G →* H} (h : f₁ = f₂) {φ : A ⟶ res f₁ B} {
   subst h
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a group homomorphism `f : G →* H` and a representation morphism `φ : A ⟶ Res(f)(B)`,
 this is the chain map sending `∑ aᵢ·gᵢ : Gⁿ →₀ A` to `∑ φ(aᵢ)·(f ∘ gᵢ) : Hⁿ →₀ B`. -/
 @[simps! -isSimp f f_hom]
@@ -108,6 +109,7 @@ lemma chainsMap_id_comp {A B C : Rep k G} (φ : A ⟶ B) (ψ : B ⟶ C) :
 lemma chainsMap_zero : chainsMap f (0 : A ⟶ res f B) = 0 := by
   ext; simp [chainsMap_f, LinearMap.zero_apply (M₂ := B)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma chainsMap_f_map_mono (hf : Function.Injective f) [Mono φ] (i : ℕ) :
     Mono ((chainsMap f φ).f i) := by
   simpa [ModuleCat.mono_iff_injective] using!
@@ -118,6 +120,7 @@ instance chainsMap_id_f_map_mono {A B : Rep k G} (φ : A ⟶ B) [Mono φ] (i : �
     Mono ((chainsMap (MonoidHom.id G) φ).f i) :=
   chainsMap_f_map_mono (MonoidHom.id G) φ (fun _ _ h => h) _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma chainsMap_f_map_epi (hf : Function.Surjective f) [Epi φ] (i : ℕ) :
     Epi ((chainsMap f φ).f i) := by
   simpa [ModuleCat.epi_iff_surjective] using!
@@ -825,6 +828,7 @@ noncomputable def chainsFunctor :
   map_id _ := chainsMap_id
   map_comp φ ψ := chainsMap_comp (MonoidHom.id G) (MonoidHom.id G) φ ψ
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (chainsFunctor k G).PreservesZeroMorphisms where
   map_zero _ _ := chainsMap_zero (MonoidHom.id G)
 

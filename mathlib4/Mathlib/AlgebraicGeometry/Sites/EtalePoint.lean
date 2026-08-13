@@ -93,6 +93,7 @@ noncomputable def pointSmallEtale : (smallEtaleTopology S).Point where
 
 variable {s₀ : S} (hs₀ : s default = s₀)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a morphism `s : Spec (.of Ω) ⟶ S` with image `s₀ : S` where `Ω` is a
 separably closed field, this is the canonical map
 `(pointSmallEtale s).fiber.obj X ⟶ X.hom ⁻¹' {s₀}` for `X : S.Etale`. -/
@@ -110,6 +111,7 @@ instance {Y X : Scheme.{u}} (f : Y ⟶ X) [Etale f] (x : X) :
   dsimp [Hom.fiberToSpecResidueField]
   infer_instance
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma pointSmallEtaleFiberObjToPreimage_surjective (X : S.Etale) :
     Function.Surjective (pointSmallEtaleFiberObjToPreimage s hs₀ (X := X)) := by
@@ -122,6 +124,7 @@ lemma pointSmallEtaleFiberObjToPreimage_surjective (X : S.Etale) :
   refine ⟨Over.homMk (l ≫ X.hom.fiberι t) ?_, rfl⟩
   simp [X.hom.fiber_fac, reassoc_of% hl]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma isConservative_pointSmallEtale
     {ι : Type*} {S : Scheme.{u}}

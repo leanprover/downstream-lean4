@@ -185,6 +185,7 @@ variable {L : Type w} [LieRing L] [LieAlgebra R L]
 def liftAux (f : X → CommutatorRing L) :=
   lib.lift R f
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem liftAux_map_smul (f : X → L) (t : R) (a : lib R X) :
     liftAux R f (t • a) = t • liftAux R f a :=
   map_smul _ t a

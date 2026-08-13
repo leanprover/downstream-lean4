@@ -298,6 +298,7 @@ private theorem apply_notMem_sup_of_linearIndependent {u : V}
     grind [smul_sub, sub_smul, one_smul, map_smul]
   aesop
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 omit [Module.Finite K V] in
 variable {e} in
 /-- If `e.fixedReduce` is not a homothety, then there are a linear form `f` and
@@ -340,6 +341,7 @@ private theorem exists_dual_of_fixedReduce_ne_smul
   rw [← LinearIndependent.pair_smul_smul_iff (Ne.isUnit hfu).inv (Ne.isUnit hfu).inv] at hu
   simpa only [← LinearMap.map_smul, ← LinearEquiv.map_smul, ← v_def] using hu
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable {e} in
 /-- Auxiliary lemma for the second non-exceptional case in Dieudonné's theorem:
 with the notation of the proof of

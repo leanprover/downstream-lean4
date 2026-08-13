@@ -206,6 +206,7 @@ section Algebra
 
 variable {R S : Type*} [CommRing R] [Ring S] [Algebra R S] {ι : Type*} (B : Basis ι R S)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- For any `r : R`, `s : S`, we have
   `B.repr ((algebra_map R S r) * s) i = r * (B.repr s i) `. -/
 theorem Module.Basis.repr_smul' (i : ι) (r : R) (s : S) :

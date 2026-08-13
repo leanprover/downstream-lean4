@@ -150,6 +150,7 @@ section Map
 
 variable [AddCommGroup N] [Module R N]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The image of a face of a cone under an injective linear map is a face of the
 image of the cone. -/
 protected theorem map (f : M →ₗ[R] N) (hf : Function.Injective f) (hF : F.IsFaceOf C) :
@@ -176,6 +177,7 @@ theorem of_map_injective {f : M →ₗ[R] N} (hf : Function.Injective f)
     convert hx'
     exact hf hhx'.symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The comap of a face of a cone under a linear map is a face of the comap of the cone. -/
 protected theorem comap (f : N →ₗ[R] M) (hF : F.IsFaceOf C) : (F.comap f).IsFaceOf (C.comap f) := by
   refine ⟨comap_mono hF.le, ?_⟩

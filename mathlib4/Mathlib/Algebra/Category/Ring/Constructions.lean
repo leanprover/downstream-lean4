@@ -344,6 +344,7 @@ namespace Limits
 
 variable {J : Type u'} [SmallCategory J] (F : J ⥤ CommRingCat.{u}) {c : Cone F}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem isUnit_iff_forall_isUnit (hc : IsLimit c) (r : c.pt) : IsUnit r ↔
     ∀ (j : J), IsUnit (c.π.app j r) := by
@@ -484,6 +485,7 @@ def pullbackConeIsLimit (f : A ⟶ C) (g : B ⟶ C) :
 
 open WalkingCospan
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance pullbackFst_isLocalHom (f : A ⟶ C) (g : B ⟶ C) [IsLocalHom g.hom] :
     IsLocalHom (pullback.fst f g).hom := by
   refine Limits.π_isLocalHom _ (limit.isLimit _) left fun x hx i ↦ ?_

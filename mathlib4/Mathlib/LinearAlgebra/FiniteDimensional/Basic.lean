@@ -124,6 +124,7 @@ theorem exists_relation_sum_zero_pos_coefficient_of_finrank_succ_lt_card [Finite
 
 end
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- In a vector space with dimension 1, each set `{v}` is a basis for `v ≠ 0`. -/
 @[simps repr_apply]

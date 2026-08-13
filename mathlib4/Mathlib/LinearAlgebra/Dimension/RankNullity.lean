@@ -187,6 +187,7 @@ theorem exists_linearIndependent_pair_of_one_lt_rank [IsDomain R] [StrongRankCon
   rw [this] at hy
   exact ⟨y, hy⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem Submodule.exists_smul_notMem_of_rank_lt {N : Submodule R M}
     (h : Module.rank R N < Module.rank R M) : ∃ m : M, ∀ r : R, r ≠ 0 → r • m ∉ N := by
@@ -277,6 +278,7 @@ open Submodule Module
 
 variable [StrongRankCondition R] [Module.Finite R M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma Submodule.exists_of_finrank_lt (N : Submodule R M) (h : finrank R N < finrank R M) :
     ∃ m : M, ∀ r : R, r ≠ 0 → r • m ∉ N := by
   obtain ⟨s, hs, hs'⟩ :=

@@ -49,6 +49,7 @@ section Complex_Seminormed
 
 variable {V : Type*} [SeminormedAddCommGroup V] [InnerProductSpace ℂ V]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A complex polarization identity, with a linear map. -/
 theorem inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V) :
@@ -62,6 +63,7 @@ theorem inner_map_polarization (T : V →ₗ[ℂ] V) (x y : V) :
     mul_add, ← mul_assoc, mul_neg, neg_neg, one_mul, neg_one_mul, mul_sub, sub_sub]
   ring
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem inner_map_polarization' (T : V →ₗ[ℂ] V) (x y : V) :
     ⟪T x, y⟫_ℂ =
@@ -109,6 +111,7 @@ variable {ι : Type*} {ι' : Type*} {ι'' : Type*}
 variable {E' : Type*} [SeminormedAddCommGroup E'] [InnerProductSpace 𝕜 E']
 variable {E'' : Type*} [SeminormedAddCommGroup E''] [InnerProductSpace 𝕜 E'']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A linear isometry preserves the inner product. -/
 @[simp]
@@ -281,6 +284,7 @@ theorem ContinuousLinearMap.reApplyInnerSelf_continuous (T : E →L[𝕜] E) :
     Continuous T.reApplyInnerSelf :=
   reCLM.continuous.comp <| T.continuous.inner continuous_id
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem ContinuousLinearMap.reApplyInnerSelf_smul (T : E →L[𝕜] E) (x : E) {c : 𝕜} :
     T.reApplyInnerSelf (c • x) = ‖c‖ ^ 2 * T.reApplyInnerSelf x := by
@@ -360,6 +364,7 @@ variable {F H : Type*} [NormedAddCommGroup F] [InnerProductSpace 𝕜 F]
 lemma rankOne_ne_zero {x : E} {y : F} (hx : x ≠ 0) (hy : y ≠ 0) : rankOne 𝕜 x y ≠ 0 := by
   grind [rankOne_eq_zero]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem isIdempotentElem_rankOne_self_iff {x : F} (hx : x ≠ 0) :
     IsIdempotentElem (rankOne 𝕜 x x) ↔ ‖x‖ = 1 := by

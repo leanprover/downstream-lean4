@@ -491,6 +491,7 @@ theorem ringQuot_ext' {s : A → A → Prop} (f g : RingQuot s →ₐ[S] B)
 set_option backward.isDefEq.respectTransparency false in
 irreducible_def preLiftAlgHom {s : A → A → Prop} {f : A →ₐ[S] B}
   (h : ∀ ⦃x y⦄, s x y → f x = f y) : RingQuot s →ₐ[S] B :=
+set_option backward.isDefEq.respectTransparency.outParams false in
 { toFun := fun x ↦ Quot.lift f
             (by
               rintro _ _ r
@@ -512,6 +513,7 @@ irreducible_def preLiftAlgHom {s : A → A → Prop} {f : A →ₐ[S] B}
     rintro x
     simp [← one_quot, smul_quot, Algebra.algebraMap_eq_smul_one] }
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Any `S`-algebra homomorphism `f : A →ₐ[S] B` which respects a relation `s : A → A → Prop`
 factors uniquely through a morphism `RingQuot s →ₐ[S] B`.
 -/
@@ -530,6 +532,7 @@ irreducible_def liftAlgHom {s : A → A → Prop} :
                  AlgHom.coe_comp, AlgHom.coe_mk, RingHom.coe_mk,
                  MonoidHom.coe_mk, OneHom.coe_mk, Function.comp_apply] }
 
+set_option backward.isDefEq.respectTransparency.instances false in
 @[simp]
 theorem liftAlgHom_mkAlgHom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
     (w : ∀ ⦃x y⦄, s x y → f x = f y) (x) : (liftAlgHom S ⟨f, w⟩) ((mkAlgHom S s) x) = f x := by
@@ -537,11 +540,13 @@ theorem liftAlgHom_mkAlgHom_apply (f : A →ₐ[S] B) {s : A → A → Prop}
   rfl
 
 -- note this is essentially `(liftAlgHom S).symm_apply_eq.mp h`
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem liftAlgHom_unique (f : A →ₐ[S] B) {s : A → A → Prop} (w : ∀ ⦃x y⦄, s x y → f x = f y)
     (g : RingQuot s →ₐ[S] B) (h : g.comp (mkAlgHom S s) = f) : g = liftAlgHom S ⟨f, w⟩ := by
   ext
   simp [h]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem eq_liftAlgHom_comp_mkAlgHom {s : A → A → Prop} (f : RingQuot s →ₐ[S] B) :
     f = liftAlgHom S ⟨f.comp (mkAlgHom S s), fun _ _ h ↦ congr_arg f (mkAlgHom_rel S h)⟩ :=
   liftAlgHom_unique S (f.comp (mkAlgHom S s)) (fun _ _ h ↦ congr_arg (⇑f) (mkAlgHom_rel S h)) f rfl
@@ -550,6 +555,7 @@ open scoped Function -- required for scoped `on` notation
 
 variable {S}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If two `S`-algebras are `S`-equivalent and their quotients by a relation `rel` are defined,
 then their quotients are also `S`-equivalent.
 

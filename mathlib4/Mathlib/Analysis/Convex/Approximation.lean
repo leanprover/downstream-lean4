@@ -62,6 +62,7 @@ section RCLike
 variable [AddCommGroup E] [Module ℝ E] [Module 𝕜 E] [IsScalarTower ℝ 𝕜 E] [IsTopologicalAddGroup E]
   [ContinuousSMul 𝕜 E] [LocallyConvexSpace ℝ E]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `φ : E → ℝ` be a convex and lower-semicontinuous function on a closed convex subset `s`. For
 any point `x ∈ s` and `a < φ x`, there exists a continuous affine linear function `f` in `E` such
 that `f ≤ φ` on `s` and `f x = a`. This is an auxiliary lemma used in the proof of
@@ -88,6 +89,7 @@ lemma exists_affine_le_of_lt {x : E} {a : ℝ} (hx : x ∈ s) (hax : a < φ x) (
       using mul_le_mul_of_nonneg_left (hine z.2).le hc.le
   · simp [u, c, smul_re]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma exists_affine_le_of_lt_real {s : Set ℝ} {f : ℝ → ℝ} {x : ℝ} {a : ℝ} (hx : x ∈ s)
     (hax : a < f x) (hsc : IsClosed s) (hfc : LowerSemicontinuousOn f s) (hf : ConvexOn ℝ s f) :
     ∃ (c c' : ℝ), (∀ y ∈ s, c * y + c' ≤ f y) ∧ c * x + c' = a := by

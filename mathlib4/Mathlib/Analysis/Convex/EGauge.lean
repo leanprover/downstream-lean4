@@ -225,6 +225,7 @@ theorem egauge_prod_mk {F : Type*} [AddCommGroup F] [Module 𝕜 F] {U : Set E} 
   | inl hle => exact ⟨y, ⟨hU.smul_mono hle hx, hy⟩, hyr⟩
   | inr hle => exact ⟨x, ⟨hx, hV.smul_mono hle hy⟩, hxr⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem egauge_add_add_le {U V : Set E} (hU : Balanced 𝕜 U) (hV : Balanced 𝕜 V) (a b : E) :
     egauge 𝕜 (U + V) (a + b) ≤ max (egauge 𝕜 U a) (egauge 𝕜 V b) := by
   rw [← egauge_prod_mk hU hV a b, ← add_image_prod]

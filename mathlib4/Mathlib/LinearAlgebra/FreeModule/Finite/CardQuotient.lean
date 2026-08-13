@@ -28,6 +28,7 @@ section Submodule
 
 variable {M : Type*} [AddCommGroup M] [Module.Free ℤ M] [Module.Finite ℤ M]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `e : M ≃ N` be an additive isomorphism (therefore a `ℤ`-linear equiv).
 Then an alternative way to compute the cardinality of the quotient `M ⧸ N` is given by taking
 the determinant of `e`.

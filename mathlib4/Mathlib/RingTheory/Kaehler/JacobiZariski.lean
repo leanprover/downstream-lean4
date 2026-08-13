@@ -263,6 +263,7 @@ lemma δAux_C (r) :
     δAux R Q (C r) = 1 ⊗ₜ D R S r := by
   rw [← monomial_zero', δAux_monomial, Finsupp.prod_zero_index]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable {Q} {Q'} in
 lemma δAux_toAlgHom (f : Hom Q Q') (x) :
@@ -285,6 +286,7 @@ lemma δAux_toAlgHom (f : Hom Q Q') (x) :
     rw [add_left_comm]
     rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma δAux_ofComp (x : (Q.comp P).Ring) :
     δAux R Q ((Q.ofComp P).toAlgHom x) =
@@ -465,6 +467,7 @@ lemma exact_map_δ' (f : Hom W Q) :
   rw [← Extension.H1Cotangent.map_comp, Extension.H1Cotangent.map_eq _ (Q.ofComp P).toExtensionHom]
   exact exact_map_δ Q P
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 open LinearMap in
 lemma liftBaseChange_range_le :

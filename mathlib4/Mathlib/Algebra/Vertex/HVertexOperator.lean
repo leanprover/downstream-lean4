@@ -129,6 +129,7 @@ theorem compHahnSeries_add (u v : U) :
   simp only [compHahnSeries_coeff, map_add, coeff_apply_apply, HahnSeries.coeff_add', Pi.add_apply]
   rw [← HahnSeries.coeff_add]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem compHahnSeries_smul (r : R) (u : U) :

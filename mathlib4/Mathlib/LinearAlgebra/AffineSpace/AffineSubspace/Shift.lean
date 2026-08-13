@@ -98,6 +98,7 @@ theorem shift_one (s : AffineSubspace k P) (c : P) : s.shift c 1 = s := by
   have h : Nonempty s := by simpa using! h
   simp [shift, h]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Consider a point `A` with barycentric coordinates associated to a collection of points `P`.
 If the coordinate associated to one of the points `Pᵢ` is `r`, then the point `A` is on the span
 of `P \ {Pᵢ}` shifted towards `Pᵢ` with parameter `1 - r`. -/
@@ -120,6 +121,7 @@ theorem affineCombination_mem_shift {ι : Type*} [Fintype ι] [Nontrivial ι]
   refine affineCombination_mem_affineSpan_image ?_ (fun i' _ hi ↦ by aesop) _
   simp [sum_add_distrib, ← mul_sum, hw]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The iff version of `affineCombination_mem_shift` for affine independent points. -/
 theorem _root_.AffineIndependent.affineCombination_mem_shift_iff
     {ι : Type*} [Fintype ι] [Nontrivial ι] {p : ι → P}

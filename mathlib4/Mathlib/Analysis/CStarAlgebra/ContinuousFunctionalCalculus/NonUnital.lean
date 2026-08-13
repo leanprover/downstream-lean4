@@ -191,6 +191,7 @@ end cfcₙHom
 
 section cfcₙL
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `cfcₙHom` bundled as a continuous linear map. -/
 @[simps apply]
 noncomputable def cfcₙL {a : A} (ha : p a) : C(σₙ R a, R)₀ →L[R] A :=
@@ -411,6 +412,7 @@ lemma cfcₙ_sum_univ {ι : Type*} [Fintype ι] (f : ι → R → R) (a : A)
     cfcₙ (∑ i, f i) a = ∑ i, cfcₙ (f i) a :=
   cfcₙ_sum f a _ (fun i _ ↦ hf i) (fun i _ ↦ hf0 i)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma cfcₙ_smul {S : Type*} [SMulZeroClass S R] [ContinuousConstSMul S R]
     [SMulZeroClass S A] [IsScalarTower S R A] [IsScalarTower S R (R → R)]
     (s : S) (f : R → R) (a : A) (hf : ContinuousOn f (σₙ R a) := by cfc_cont_tac)

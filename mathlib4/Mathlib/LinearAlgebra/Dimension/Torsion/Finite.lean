@@ -15,6 +15,7 @@ public import Mathlib.LinearAlgebra.Dimension.Finite
 
 public section
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A torsion module has rank zero. -/
 theorem Module.IsTorsion.rank_eq_zero {R M : Type*} [Semiring R] [AddCommMonoid M] [Module R M]
     [Nontrivial R] (h : IsTorsion R M) : Module.rank R M = 0 := by

@@ -419,6 +419,7 @@ theorem weightedHomogeneousComponent_mem (w : σ → M) (φ : MvPolynomial σ R)
   rw [mem_weightedHomogeneousSubmodule]
   exact weightedHomogeneousComponent_isWeightedHomogeneous m φ
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem weightedHomogeneousComponent_C_mul (n : M) (r : R) :
     weightedHomogeneousComponent w n (C r * φ) = C r * weightedHomogeneousComponent w n φ := by

@@ -72,6 +72,7 @@ private lemma comap_ker_eq_sup_of_ker_eq_map (surjRS : Function.Surjective (alge
       ← RingHom.comap_ker]
   simp [eqmap, Ideal.comap_map_of_surjective' _ surjRS]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 private lemma mul_le_ker_of_range_le_mul_of_sq_zero {J I : Ideal R} (sq : I ^ 2 = ⊥)
     (f : J.Cotangent →ₗ[R] J.Cotangent)
     (le : f.range ≤ (Submodule.comap J.subtype (I * J)).map J.toCotangent) :
@@ -94,6 +95,7 @@ private lemma mul_le_ker_of_range_le_mul_of_sq_zero {J I : Ideal R} (sq : I ^ 2 
   rcases Submodule.mem_map.mp hx with ⟨x', hx', eq⟩
   simpa [← eq] using this hx'
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- For flat ring homomorphism `f : R →+* S`, `I` an ideal of `R` which is square zero,
 if `R ⧸ I →+* S ⧸ IS` is formally smooth, so is `f`. -/

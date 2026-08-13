@@ -556,6 +556,7 @@ lemma adjoin_id_eq_span_one_add (s : Set 𝕜) :
     StarAlgebra.adjoin_nonUnitalStarSubalgebra_eq_span, mem_sup]
   simp [Set.mem_add]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma nonUnitalStarAlgebraAdjoin_id_subset_ker_evalStarAlgHom {s : Set 𝕜} (h0 : 0 ∈ s) :
     (adjoin 𝕜 {restrict s (.id 𝕜)} : Set C(s, 𝕜)) ⊆
       RingHom.ker (evalStarAlgHom 𝕜 𝕜 (⟨0, h0⟩ : s)) := by
@@ -593,6 +594,7 @@ lemma ker_evalStarAlgHom_inter_adjoin_id (s : Set 𝕜) (h0 : 0 ∈ s) :
 
 set_option backward.isDefEq.respectTransparency false in
 -- the statement should be in terms of nonunital subalgebras, but we lack API
+set_option backward.isDefEq.respectTransparency.outParams false in
 open RingHom Filter Topology in
 theorem AlgHom.closure_ker_inter {F S K A : Type*} [CommRing K] [Ring A] [Algebra K A]
     [TopologicalSpace K] [T1Space K] [TopologicalSpace A] [ContinuousSub A] [ContinuousSMul K A]
@@ -679,6 +681,7 @@ theorem ContinuousMapZero.induction_on_of_compact {s : Set 𝕜} [Fact (0 ∈ s)
   have := (ContinuousMapZero.adjoin_id_dense s).closure_eq ▸ Set.mem_univ (x := f)
   exact mem_closure_iff_frequently.mp this |>.mp <| .of_forall h
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ContinuousMapZero.nonUnitalStarAlgHom_apply_mul_eq_zero {𝕜 A : Type*}
     [RCLike 𝕜] [NonUnitalSemiring A] [Star A] [TopologicalSpace A] [SeparatelyContinuousMul A]
     [T2Space A] [DistribMulAction 𝕜 A] [IsScalarTower 𝕜 A A] {s : Set 𝕜} [Fact (0 ∈ s)]
@@ -694,6 +697,7 @@ lemma ContinuousMapZero.nonUnitalStarAlgHom_apply_mul_eq_zero {𝕜 A : Type*}
   | smul _ _ h => rw [map_smul, smul_mul_assoc, h, smul_zero]
   | frequently f h => exact h.mem_of_closed <| isClosed_eq (by fun_prop) continuous_zero
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ContinuousMapZero.mul_nonUnitalStarAlgHom_apply_eq_zero {𝕜 A : Type*}
     [RCLike 𝕜] [NonUnitalSemiring A] [Star A] [TopologicalSpace A] [SeparatelyContinuousMul A]
     [T2Space A] [DistribMulAction 𝕜 A] [SMulCommClass 𝕜 A A] {s : Set 𝕜} [Fact (0 ∈ s)]

@@ -238,6 +238,7 @@ theorem normDet_zero : (0 : U →ₗ[𝕜] V).normDet = 0 ^ finrank 𝕜 U := by
   nontriviality U
   simp [zero_pow finrank_pos.ne.symm, normDet_eq_zero_iff_ker_ne_bot]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem normDet_smul (f : U →ₗ[𝕜] V) (c : 𝕜) :
     (c • f).normDet = ‖c‖ ^ finrank 𝕜 U * f.normDet := by

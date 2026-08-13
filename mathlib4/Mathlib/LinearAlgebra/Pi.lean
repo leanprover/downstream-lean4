@@ -354,6 +354,7 @@ theorem proj_comp_single (i j : ι) : (proj i).comp (single R φ j) = diag j i :
 
 end
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
 theorem pi_apply_eq_sum_univ [Fintype ι] (f : (ι → R) →ₗ[R] M₂) (x : ι → R) :
@@ -461,6 +462,7 @@ variable [(i : ι) → AddCommMonoid (φ i)] [(i : ι) → Module R (φ i)]
 variable [(i : ι) → AddCommMonoid (ψ i)] [(i : ι) → Module R (ψ i)]
 variable [(i : ι) → AddCommMonoid (χ i)] [(i : ι) → Module R (χ i)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Combine a family of linear equivalences into a linear equivalence of `pi`-types.
 

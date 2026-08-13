@@ -51,6 +51,7 @@ inductive DirectLimit.Eqv [DecidableEq ι] : DirectSum ι G → DirectSum ι G �
   | of_map {i j} (h : i ≤ j) (x : G i) :
     Eqv (DirectSum.lof R ι G i x) (DirectSum.lof R ι G j <| f i j h x)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The congruence relation to quotient the direct sum by to obtain the direct limit. -/
 def DirectLimit.moduleCon [DecidableEq ι] : ModuleCon R (DirectSum ι G) :=
   SMulCon.addConGen' (Eqv f) <| by rintro _ _ _ ⟨⟩; simpa only [← map_smul] using .of_map ..
@@ -91,6 +92,7 @@ variable {R ι G f}
 
 theorem quotMk_of (i x) : Quot.mk _ (.of G i x) = of R ι G f i x := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem of_f {i j hij x} : of R ι G f j (f i j hij x) = of R ι G f i x :=
   (AddCon.eq _).mpr <| .symm <| .of _ _ (.of_map _ _)
@@ -123,6 +125,7 @@ protected theorem induction_on [Nonempty ι] [IsDirectedOrder ι] {C : DirectLim
 
 variable {P : Type*} [AddCommMonoid P] [Module R P]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (R ι G f) in
 /-- The universal property of the direct limit: maps from the components to another module
 that respect the directed system structure (i.e. make some diagram commute) give rise
@@ -135,6 +138,7 @@ def lift (g : ∀ i, G i →ₗ[R] P) (Hg : ∀ i j hij x, g j (f i j hij x) = g
 
 variable (g : ∀ i, G i →ₗ[R] P) (Hg : ∀ i j hij x, g j (f i j hij x) = g i x)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] theorem lift_of {i} (x) : lift R ι G f g Hg (of R ι G f i x) = g i x :=
   DirectSum.toModule_lof R _ _
 

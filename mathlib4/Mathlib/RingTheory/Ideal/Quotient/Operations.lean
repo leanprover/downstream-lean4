@@ -466,6 +466,7 @@ section
 
 variable [Semiring B] [Algebra R₁ B]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- `Ideal.quotient.lift` as an `AlgHom`. -/
 def Quotient.liftₐ (I : Ideal A) [I.IsTwoSided] (f : A →ₐ[R₁] B) (hI : ∀ a : A, a ∈ I → f a = 0) :
@@ -501,6 +502,7 @@ lemma Quotient.smul_top {R : Type*} [CommRing R] (a : R) (I : Ideal R) :
     (a • ⊤ : Submodule R (R ⧸ I)) = Submodule.span R {Submodule.Quotient.mk a} := by
   simp [← Ideal.Quotient.span_singleton_one, Algebra.smul_def, Submodule.smul_span]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem KerLift.map_smul (f : A →ₐ[R₁] B) (r : R₁) (x : A ⧸ (RingHom.ker f)) :
     f.kerLift (r • x) = r • f.kerLift x := by
   obtain ⟨a, rfl⟩ := Quotient.mkₐ_surjective R₁ _ x

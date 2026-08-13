@@ -135,6 +135,7 @@ theorem averageMap_invariant (v : V) : averageMap ρ v ∈ invariants ρ := fun 
   rw [averageMap, ← asAlgebraHom_single_one, ← Module.End.mul_apply, ← map_mul (asAlgebraHom ρ),
     mul_average_left]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The `averageMap` acts as the identity on the subspace of invariants.
 -/
 theorem averageMap_id (v : V) (hv : v ∈ invariants ρ) : averageMap ρ v = v := by

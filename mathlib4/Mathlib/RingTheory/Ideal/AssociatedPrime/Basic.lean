@@ -115,6 +115,7 @@ theorem isAssociatedPrime_iff [IsNoetherianRing R] :
     IsAssociatedPrime I M ↔ I.IsPrime ∧ ∃ x : M, I = colon ⊥ {x} :=
   (⊥ : Submodule R M).isAssociatedPrime_iff
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem IsAssociatedPrime.map_of_injective (h : IsAssociatedPrime I M) (hf : Function.Injective f) :
     IsAssociatedPrime I M' := by
@@ -163,6 +164,7 @@ contained in that of `M'`. -/
 theorem subset_of_injective (hf : Function.Injective f) :
     associatedPrimes R M ⊆ associatedPrimes R M' := fun _I h => h.map_of_injective f hf
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `0 → M → M' → M''` is an exact sequence, then the set of associated primes of `M'` is
 contained in the union of those of `M` and `M''`. -/
 @[stacks 02M3 "second part"]

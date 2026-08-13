@@ -91,6 +91,7 @@ end Cochains
 
 section Differentials
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 0th differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `A → Fun(G, A)`. It sends `(a, g) ↦ ρ_A(g)(a) - a.` -/
 @[simps!]
@@ -117,6 +118,7 @@ lemma subtype_comp_d₀₁ : ModuleCat.ofHom (A.ρ.invariants.subtype) ≫ d₀�
   rw [← sub_eq_zero] at hx
   exact hx
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 1st differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `Fun(G, A) → Fun(G × G, A)`. It sends
 `(f, (g₁, g₂)) ↦ ρ_A(g₁)(f(g₂)) - f(g₁g₂) + f(g₁).` -/
@@ -127,6 +129,7 @@ def d₁₂ : ModuleCat.of k (G → A) ⟶ ModuleCat.of k (G × G → A) :=
     map_add' x y := funext fun g => by dsimp; rw [map_add, add_add_add_comm, add_sub_add_comm]
     map_smul' r x := funext fun g => by dsimp; rw [map_smul, smul_add, smul_sub] }
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 2nd differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `Fun(G × G, A) → Fun(G × G × G, A)`. It sends
 `(f, (g₁, g₂, g₃)) ↦ ρ_A(g₁)(f(g₂, g₃)) - f(g₁g₂, g₃) + f(g₁, g₂g₃) - f(g₁, g₂).` -/

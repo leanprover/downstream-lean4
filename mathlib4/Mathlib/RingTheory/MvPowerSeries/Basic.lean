@@ -975,11 +975,13 @@ theorem _root_.MvPowerSeries.prod_smul_X_eq_smul_monomial_one
   · intro x _
     rw [algebra_compatible_smul R, MvPowerSeries.smul_eq_C_mul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.MvPowerSeries.monomial_eq (e : σ →₀ ℕ) (r : σ → R) :
     MvPowerSeries.monomial e (e.prod (fun s n => r s ^ n))
       = e.prod fun s e => (r s • MvPowerSeries.X s) ^ e := by
   rw [MvPowerSeries.prod_smul_X_eq_smul_monomial_one, ← map_smul, smul_eq_mul, mul_one]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.MvPowerSeries.monomial_smul_const
     {σ : Type*} {R : Type*} [CommSemiring R]
     (e : σ →₀ ℕ) (r : R) :

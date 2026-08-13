@@ -331,6 +331,7 @@ variable {ι₂ M₂ N₂ : Type*} [AddCommGroup M₂] [Module R M₂] [AddCommG
   {P₂ : RootPairing ι₂ R M₂ N₂} [P₂.IsCrystallographic] (b₂ : P₂.Base)
   (e : b.support ≃ b₂.support)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma apply_mem_range_root_of_cartanMatrixEq
     (f : M ≃ₗ[R] M₂) (hf : ∀ i : b.support, f (P.root i) = P₂.root (e i))
     (m : M) (hm : m ∈ range P.root)

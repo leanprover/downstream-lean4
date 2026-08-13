@@ -239,6 +239,7 @@ variable {K L H}
 noncomputable def coroot (α : Weight K H L) : H :=
   2 • (α <| (cartanEquivDual H).symm α)⁻¹ • (cartanEquivDual H).symm α
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma traceForm_coroot (α : Weight K H L) (x : H) :
     traceForm K H L (coroot α) x = 2 • (α <| (cartanEquivDual H).symm α)⁻¹ • α x := by
   have : cartanEquivDual H ((cartanEquivDual H).symm α) x = α x := by
@@ -473,6 +474,7 @@ lemma coe_corootSpace_eq_span_singleton (α : Weight K H L) :
     change (K ∙ (2 • (α α')⁻¹ • α')) = _
     simpa [← Nat.cast_smul_eq_nsmul K, smul_smul] using Submodule.span_singleton_smul_eq this _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma eq_coroot_of_mem_corootSpace_of_two (α : Weight K H L) {x : H}
     (h_mem : x ∈ corootSpace α) (h_two : α x = 2) :
     x = coroot α := by
@@ -552,6 +554,7 @@ lemma traceForm_eq_zero_of_mem_ker_of_mem_span_coroot {α : Weight K H L} {x y :
         root_apply_coroot hβ]
     · simp [root_apply_coroot hα]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma exists_isSl2Triple_of_weight_isNonZero {α : Weight K H L} (hα : α.IsNonZero) :
     ∃ h e f : L, IsSl2Triple h e f ∧ e ∈ rootSpace H α ∧ f ∈ rootSpace H (-α) := by
   obtain ⟨e, heα : e ∈ rootSpace H α, he₀ : e ≠ 0⟩ := α.exists_ne_zero
@@ -580,6 +583,7 @@ lemma exists_isSl2Triple_of_weight_isNonZero {α : Weight K H L} (hα : α.IsNon
     rw [lie_smul, lie_smul, smul_lie, this]
     simp [← smul_assoc, f, hh, mul_comm _ (2 * (α h)⁻¹)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma _root_.IsSl2Triple.h_eq_coroot {α : Weight K H L} (hα : α.IsNonZero)
     {h e f : L} (ht : IsSl2Triple h e f) (heα : e ∈ rootSpace H α) (hfα : f ∈ rootSpace H (-α)) :
     h = coroot α := by
@@ -693,6 +697,7 @@ lemma coe_coroot_mem_corootSubmodule (α : Weight K H L) :
   (LieSubmodule.mem_map _).mpr
     ⟨⟨coroot α, (coroot α).property⟩, coroot_mem_corootSpace α, rfl⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 open Submodule in
 lemma sl2SubmoduleOfRoot_eq_sup (α : Weight K H L) (hα : α.IsNonZero) :

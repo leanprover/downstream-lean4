@@ -527,6 +527,7 @@ theorem good_lt_maxProducts (q : GoodProducts (π C (ord I · < o)))
     simp only [term, Ordinal.typein_enum]
     exact Products.prop_of_isGood C _ q.prop q.val.val.head! (List.head!_mem_self h)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 include hC hsC in
 /--

@@ -178,6 +178,7 @@ instance instRing : Ring (𝒜 ᵍ⊗[R] ℬ) where
   mul_zero x := by simp_rw [mul_def, map_zero]
   zero_mul x := by simp_rw [mul_def, LinearMap.map_zero₂]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The characterization of this multiplication on partially homogeneous elements. -/
 theorem tmul_coe_mul_coe_tmul {j₁ i₂ : ι} (a₁ : A) (b₁ : ℬ j₁) (a₂ : 𝒜 i₂) (b₂ : B) :
     (a₁ ᵍ⊗ₜ[R] (b₁ : B) * (a₂ : A) ᵍ⊗ₜ[R] b₂ : 𝒜 ᵍ⊗[R] ℬ) =
@@ -273,6 +274,7 @@ def includeLeft : A →ₐ[R] 𝒜 ᵍ⊗[R] ℬ where
   toRingHom := includeLeftRingHom 𝒜 ℬ
   commutes' _ := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The algebra morphism `B →ₐ[R] A ⊗[R] B` sending `b` to `1 ⊗ₜ b`. -/
 @[simps!]
 def includeRight : B →ₐ[R] (𝒜 ᵍ⊗[R] ℬ) :=
@@ -294,6 +296,7 @@ lemma algebraMap_def' (r : R) : algebraMap R (𝒜 ᵍ⊗[R] ℬ) r = 1 ᵍ⊗�
 
 variable {C} [Ring C] [Algebra R C]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 /-- The forwards direction of the universal property; an algebra morphism out of the graded tensor
 product can be assembled from maps on each component that (anti)commute on pure elements of the

@@ -34,8 +34,36 @@ section Small
 variable {A : Type u₁} [SmallCategory A] {B : Type u₁} [SmallCategory B]
 variable {T : Type u₁} [SmallCategory T]
 
+#adaptation_note
+/--
+We had to use the `instanceTypes` backward compatibility flag to make an instance search succeed.
+Concretely, the following instance cannot be synthesized:
+`HasColimitsOfShape (CostructuredArrow L (R.obj b)) (Type u₁)`
+It is needed by `filtered_colim_preservesFiniteLimits` in the `haveI` below. The `simp only`
+preceding it rewrites the shape of `colim` to `CostructuredArrow L (R.obj b)` via
+`Cat.of_α`, but leaves that `colim`'s `Category` instance typed at the old spelling
+`↑(Cat.of (CostructuredArrow L (R.obj b)))`, and the synthesis has to reproduce that mismatch.
+
+The failure happens while applying `@Types.hasColimitsOfShape`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type is
+`Category (CostructuredArrow L (R.obj b))`, whereas the assigned value
+`(Cat.of (CostructuredArrow L (R.obj b))).str` has type
+`Category ↑(Cat.of (CostructuredArrow L (R.obj b)))`. The comparison bottoms out at
+`CostructuredArrow L (R.obj b) =?= (Cat.of (CostructuredArrow L (R.obj b))).1`, where `Cat.of` is a
+plain semireducible `def` and therefore does not unfold at the `.instances` transparency that
+instance search runs at. Lean falls back to synthesize an instance of the correct type, which
+succeeds, but it returns `instCategoryCostructuredArrow_1 L (R.obj b)`, which is again not defeq to
+the assigned value: that comparison bottoms out at the same `Cat.of` boundary, and it too runs at
+`.instances`, since `respectTransparency false` suppresses the transparency bump that
+instance-implicit arguments would otherwise receive.
+
+Potential fix: Mark `Cat.of` and `Bundled.of` implicit-reducible and then remove
+`instanceTypes false` and `respectTransparency false`.
+-/
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.isDefEq.instanceTypes false in
 private lemma isFiltered_of_isFiltered_costructuredArrow_small (L : A ⥤ T) (R : B ⥤ T)
     [IsFiltered B] [Final R] [∀ b, IsFiltered (CostructuredArrow L (R.obj b))] : IsFiltered A := by
   refine isFiltered_of_nonempty_limit_colimit_to_colimit_limit fun J {_ _} F => ⟨?_⟩

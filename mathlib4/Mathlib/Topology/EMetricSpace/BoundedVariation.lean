@@ -660,6 +660,8 @@ theorem eVariationOn_on_inter_Iic_eq_Iio_add_edist
       sum_le_of_monotoneOn_Iic (by grind [MonotoneOn, StrictMonoOn]) (by grind)
     exact A.trans B
 
+set_option backward.isDefEq.instanceTypes false in
+set_option backward.isDefEq.respectTransparency false in
 /-- The variation of a function on `Ici a` is the sum of the variation on `Ioi a` and the
 contribution of `a`, i.e., the distance between the right limit and the value at `a`.
 We give a version relative to a set `s`. -/
@@ -715,6 +717,8 @@ lemma eVariationOn_Ioc_eq_Icc_of_continuousWithinAt
   have : (𝓝[Ioi a] a).NeBot := nhdsGT_neBot_of_exists_gt ⟨b, hab⟩
   exact eVariationOn_Ioc_eq_Icc_of_continuousWithinAt' h'
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt'
     [TopologicalSpace α] [OrderTopology α] {f : α → E} {a b : α}
     [h : (𝓝[<] a).NeBot] (h' : ContinuousWithinAt f (Iic a) a) :
@@ -722,6 +726,8 @@ lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt'
   rw [← comp_ofDual f, ← comp_ofDual f, ← Ioc_toDual, ← Icc_toDual]
   exact eVariationOn_Ioc_eq_Icc_of_continuousWithinAt' h'
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt
     [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] {f : α → E} {a b : α}
     (h' : ContinuousWithinAt f (Iic a) a) :

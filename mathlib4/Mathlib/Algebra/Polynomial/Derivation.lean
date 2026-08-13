@@ -110,6 +110,7 @@ open Polynomial Module
 
 set_option backward.isDefEq.respectTransparency false in
 set_option linter.style.whitespace false in -- manual alignment is not recognised
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 For a derivation `d : A → M` and an element `a : A`, `d.compAEval a` is the
 derivation of `R[X]` which takes a polynomial `f` to `d(aeval a f)`.

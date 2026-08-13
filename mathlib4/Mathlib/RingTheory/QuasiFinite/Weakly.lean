@@ -225,6 +225,7 @@ lemma of_restrictScalars [Algebra S T] [IsScalarTower R S T]
   refine .trans ?_ (Ideal.comap_map_of_surjective _ Ideal.Quotient.mk_surjective _).symm
   simp [← RingHom.ker_eq_comap_bot, Ideal.map_comap_le]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Use `Algebra.QuasiFinite.of_quasiFiniteAt_residueField` instead
 for `Algebra.QuasiFiniteAt R q`. -/
 lemma of_quasiFiniteAt_residueField [p.IsPrime] [q.LiesOver p]

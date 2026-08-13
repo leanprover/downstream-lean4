@@ -237,6 +237,7 @@ lemma map_smul_homEquiv'_iff {N : ModuleCat.{w} cR.pt}
     congr 1
     exact (smul_eq ..).symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- This is the universal property of `PresheafOfModules.ModuleColimit` as a module.
 See also `PresheafOfModules.colimitAdjunction`. -/

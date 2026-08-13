@@ -238,6 +238,7 @@ theorem _root_.SpecialLinearGroup.smul_def (g : SpecialLinearGroup R V) (v : V) 
 theorem _root_.SpecialLinearGroup.toLinearEquiv_eq_coe (g : SpecialLinearGroup R V) :
     g.toLinearEquiv = (g : V ≃ₗ[R] V) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 instance : SMulCommClass (SpecialLinearGroup R V) R V where
   smul_comm g a v := by
     simp [SpecialLinearGroup.smul_def]
@@ -355,6 +356,7 @@ theorem center_eq_bot_of_finrank_le_one (h : Module.finrank R V ≤ 1) :
     (Subgroup.centerCongr (Matrix.SpecialLinearGroup.toLin_equiv b)).toEquiv] at this
   exact Subgroup.eq_bot_of_subsingleton _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem mem_center_iff {g : SpecialLinearGroup R V} :
     g ∈ Subgroup.center (SpecialLinearGroup R V) ↔
       ∃ (r : R), r ^ (Module.finrank R V) = 1 ∧

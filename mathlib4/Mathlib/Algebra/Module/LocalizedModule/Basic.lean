@@ -563,6 +563,7 @@ lemma IsLocalizedModule.injective_iff_isRegular [IsLocalizedModule S f] :
     Function.Injective f ↔ ∀ c : S, IsSMulRegular M c := by
   simp_rw [IsSMulRegular, Function.Injective, eq_iff_exists S, exists_imp, forall_comm (α := S)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance IsLocalizedModule.of_linearEquiv (e : M' ≃ₗ[R] M'') [hf : IsLocalizedModule S f] :
     IsLocalizedModule S (e ∘ₗ f : M →ₗ[R] M'') where
@@ -580,6 +581,7 @@ instance IsLocalizedModule.of_linearEquiv (e : M' ≃ₗ[R] M'') [hf : IsLocaliz
       EmbeddingLike.apply_eq_iff_eq] at h
     exact hf.exists_of_eq h
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance IsLocalizedModule.of_linearEquiv_right (e : M'' ≃ₗ[R] M) [hf : IsLocalizedModule S f] :
     IsLocalizedModule S (f ∘ₗ e : M'' →ₗ[R] M') where
@@ -619,6 +621,7 @@ lemma isLocalizedModule_id (R') [CommSemiring R'] [Algebra R R'] [IsLocalization
 
 namespace LocalizedModule
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 If `g` is a linear map `M → M''` such that all scalar multiplication by `s : S` is invertible, then
 there is a linear map `LocalizedModule S M → M''`.
@@ -646,6 +649,7 @@ theorem lift'_mk (g : M →ₗ[R] M'') (h : ∀ x : S, IsUnit ((algebraMap R (Mo
     LocalizedModule.lift' S g h (LocalizedModule.mk m s) = (h s).unit⁻¹.val (g m) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem lift'_add (g : M →ₗ[R] M'') (h : ∀ x : S, IsUnit ((algebraMap R (Module.End R M'')) x))
     (x y) :
     LocalizedModule.lift' S g h (x + y) =
@@ -665,6 +669,7 @@ theorem lift'_add (g : M →ₗ[R] M'') (h : ∀ x : S, IsUnit ((algebraMap R (M
         rfl)
     x y
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem lift'_smul (g : M →ₗ[R] M'') (h : ∀ x : S, IsUnit ((algebraMap R (Module.End R M'')) x))
     (r : R) (m) : r • LocalizedModule.lift' S g h m = LocalizedModule.lift' S g h (r • m) :=
   m.induction_on fun a b => by
@@ -807,6 +812,7 @@ namespace IsLocalizedModule
 
 variable [IsLocalizedModule S f]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `(M', f : M ⟶ M')` satisfies universal property of localized module, there is a canonical
 map `LocalizedModule S M ⟶ M'`.
 -/
@@ -825,6 +831,7 @@ theorem fromLocalizedModule'_mk (m : M) (s : S) :
       (IsLocalizedModule.map_units f s).unit⁻¹.val (f m) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem fromLocalizedModule'_add (x y : LocalizedModule S M) :
     fromLocalizedModule' S f (x + y) = fromLocalizedModule' S f x + fromLocalizedModule' S f y :=
   LocalizedModule.induction_on₂
@@ -839,6 +846,7 @@ theorem fromLocalizedModule'_add (x y : LocalizedModule S M) :
       · rw [Submonoid.coe_mul, LinearMap.map_smul_of_tower, mul_comm, mul_smul, Submonoid.smul_def])
     x y
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem fromLocalizedModule'_smul (r : R) (x : LocalizedModule S M) :
     r • fromLocalizedModule' S f x = fromLocalizedModule' S f (r • x) :=
   LocalizedModule.induction_on
@@ -861,6 +869,7 @@ theorem fromLocalizedModule_mk (m : M) (s : S) :
       (IsLocalizedModule.map_units f s).unit⁻¹.val (f m) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem fromLocalizedModule.inj : Function.Injective <| fromLocalizedModule S f := fun x y eq1 => by
   induction x with | _ a b
   induction y with | _ a' b'
@@ -1131,6 +1140,7 @@ theorem mk_eq_mk' (s : S) (m : M) :
   rw [eq_comm, mk'_eq_iff, Submonoid.smul_def, LocalizedModule.smul'_mk, ← Submonoid.smul_def,
     LocalizedModule.mk_cancel, LocalizedModule.mkLinearMap_apply]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable (A) in
 lemma mk'_smul_mk' (x : R) (m : M) (s t : S) :
@@ -1171,6 +1181,7 @@ lemma liftOfLE_comp : (liftOfLE S₁ S₂ h f₁ f₂).comp f₁ = f₂ := lift_
 
 @[simp] lemma liftOfLE_apply (x) : liftOfLE S₁ S₂ h f₁ f₂ (f₁ x) = f₂ x := lift_apply ..
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The image of `m/s` under `liftOfLE` is `m/s`. -/
 @[simp]
@@ -1197,6 +1208,7 @@ instance : IsLocalizedModule S₂ (liftOfLE S₁ S₂ h f₁ f₂) where
 
 end liftOfLE
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 include S in
 lemma injective_of_map_eq {N : Type*} [AddCommMonoid N] [Module R N]
     {g : M' →ₗ[R] N} (H : ∀ {x y}, g (f x) = g (f y) → f x = f y) :
@@ -1326,6 +1338,7 @@ theorem map_comp' (g : M₀ →ₗ[R] M₁) (h : M₁ →ₗ[R] M₂) :
 
 section Algebra
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem mkOfAlgebra {R S S' : Type*} [CommSemiring R] [Ring S] [Ring S'] [Algebra R S]
     [Algebra R S'] (M : Submonoid R) (f : S →ₐ[R] S') (h₁ : ∀ x ∈ M, IsUnit (algebraMap R S' x))

@@ -52,6 +52,7 @@ variable [AddCommGroup E] [UniformSpace E] [IsUniformAddGroup E]
   [ContinuousConstSMul 𝕜 Eₗ] [ContinuousConstSMul 𝕜₂ F]
   {σ₁₂ : 𝕜 →+* 𝕜₂} (f g : E →SL[σ₁₂] F) [CompleteSpace F] (e : E →L[𝕜] Eₗ)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped Classical in
 /-- Extension of a continuous linear map `f : E →SL[σ₁₂] F`, with `E` a normed space and `F` a
 complete normed space, along a uniform and dense embedding `e : E →L[𝕜] Eₗ`. -/

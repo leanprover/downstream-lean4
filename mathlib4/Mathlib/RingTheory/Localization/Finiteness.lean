@@ -45,6 +45,7 @@ variable {R S : Type*} [CommSemiring R] [CommSemiring S] (M : Submonoid R) (f : 
 variable (R' S' : Type*) [CommSemiring R'] [CommSemiring S']
 variable [Algebra R R'] [Algebra S S']
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 open scoped Classical in
 /-- Let `S` be an `R`-algebra, `M` a submonoid of `R`, and `S' = M⁻¹S`.

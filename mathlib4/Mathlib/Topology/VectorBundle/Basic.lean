@@ -662,6 +662,7 @@ theorem localTriv_apply {i : ι} (p : Z.TotalSpace) :
     (Z.localTriv i) p = ⟨p.1, Z.coordChange (Z.indexAt p.1) i p.1 p.2⟩ :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The standard local trivializations of a vector bundle constructed from core are linear. -/
 instance localTriv.isLinear (i : ι) : (Z.localTriv i).IsLinear R where

@@ -232,9 +232,38 @@ noncomputable instance [Small.{u} σ] : CoproductsOfShapeDisjoint Scheme.{u} σ 
 instance : HasFiniteCoproducts Scheme.{u} where
   out := inferInstance
 
+set_option linter.style.longLine false in
+#adaptation_note
+/--
+We had to add `(X := X)` in the `inferInstanceAs` below to make an instance search succeed.
+
+Was:
+```lean
 set_option backward.isDefEq.respectTransparency.types false in
 instance : MonoCoprod Scheme.{u} :=
-  .mk' fun X Y ↦ ⟨.mk coprod.inl coprod.inr, coprodIsCoprod X Y, inferInstanceAs <| Mono coprod.inl⟩
+  .mk' fun X Y ↦
+    ⟨.mk coprod.inl coprod.inr, coprodIsCoprod X Y, inferInstanceAs <| Mono coprod.inl⟩
+```
+Concretely, without the pin the following instance cannot be synthesized:
+`Mono coprod.inl`
+
+The failure happens while applying `@Mono.inl_of_binaryCoproductDisjoint`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `HasBinaryCoproduct ((pair X Y).obj { as := WalkingPair.left }) Y`, whereas the assigned value
+`Scheme.IsLocallyDirected.instHasColimit (pair X Y)` has type `HasColimit (pair X Y)`. Lean falls
+back to synthesize an instance of the correct type, which succeeds, but the candidate is again not
+defeq to the result. The direct check bottoms out at
+`(pair X Y).obj { as := WalkingPair.left } =?= X` and the fallback comparison at the same pair the
+other way around, so `pair` unfolds neither at `.instances` nor at `.implicit`.
+
+The unpinned `inferInstanceAs` leaves the elaborator free to spell the coproduct leg as
+`(pair X Y).obj { as := WalkingPair.left }` rather than `X`; pinning `(X := X)` fixes that
+spelling up front. An alternative fix is to make `pair` implicit-reducible.
+-/
+instance : MonoCoprod Scheme.{u} :=
+  .mk' fun X Y ↦
+    ⟨.mk coprod.inl coprod.inr, coprodIsCoprod X Y, inferInstanceAs <| Mono coprod.inl (X := X)⟩
 
 /-- The cover of `∐ X` by the `Xᵢ`. -/
 @[simps!]
@@ -328,15 +357,21 @@ lemma nonempty_isColimit_cofanMk_of [Small.{u} σ]
 
 variable (X Y : Scheme.{u})
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- (Implementation Detail)
 The coproduct of the two schemes is given by indexed coproducts over `WalkingPair`. -/
 noncomputable
 def coprodIsoSigma : X ⨿ Y ≅ ∐ fun i : ULift.{u} WalkingPair ↦ i.1.casesOn X Y :=
   Sigma.whiskerEquiv Equiv.ulift.symm (fun _ ↦ by exact Iso.refl _)
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ι_left_coprodIsoSigma_inv : Sigma.ι _ ⟨.left⟩ ≫ (coprodIsoSigma X Y).inv = coprod.inl :=
   Sigma.ι_comp_map' _ _ _
 
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ι_right_coprodIsoSigma_inv : Sigma.ι _ ⟨.right⟩ ≫ (coprodIsoSigma X Y).inv = coprod.inr :=
   Sigma.ι_comp_map' _ _ _
 

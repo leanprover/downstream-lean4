@@ -70,6 +70,7 @@ theorem normBound_pos : 0 < normBound abv bS := by
   refine lt_of_lt_of_le (abv.pos hijk) (Finset.le_max' _ _ ?_)
   exact Finset.mem_image.mpr ⟨⟨i, j, k⟩, Finset.mem_univ _, rfl⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If the `R`-integral element `a : S` has coordinates `≤ y` with respect to some basis `b`,
 its norm is less than `normBound abv b * y ^ dim S`. -/
 theorem norm_le (a : S) {y : ℤ} (hy : ∀ k, abv (bS.repr a k) ≤ y) :
@@ -185,6 +186,7 @@ open Real
 
 attribute [-instance] Real.decidableEq
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- We can approximate `a / b : L` with `q / r`, where `r` has finitely many options for `L`. -/
 theorem exists_mem_finsetApprox (a : S) {b} (hb : b ≠ (0 : R)) :

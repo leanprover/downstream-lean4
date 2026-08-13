@@ -323,6 +323,7 @@ open scoped ComplexStarModule
 
 variable {F A : Type*} [CStarAlgebra A] [FunLike F A ℂ] [hF : AlgHomClass F ℂ A ℂ]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- This instance is provided instead of `StarHomClass` to avoid type class inference loops.
 See note [lower instance priority] -/
 noncomputable instance (priority := 100) Complex.instStarHomClass : StarHomClass F A ℂ where

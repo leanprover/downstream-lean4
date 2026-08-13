@@ -52,6 +52,7 @@ namespace IsUltrametricDist
 section algNormOfAlgEquiv
 
 set_option linter.style.whitespace false in -- manual alignment is not recognised
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a normed field `K`, a finite algebraic extension `L/K` and `σ : L ≃ₐ[K] L`, the function
 `L → ℝ` sending `x : L` to `‖ σ x ‖`, where `‖ ⬝ ‖` is any power-multiplicative algebra norm on `L`
 extending the norm on `K`, is an algebra norm on `K`. -/
@@ -66,11 +67,13 @@ def algNormOfAlgEquiv (σ : L ≃ₐ[K] L) :
   smul' x y   := by simp [map_smul σ, map_smul_eq_mul]
   eq_zero_of_map_eq_zero' x hx := EmbeddingLike.map_eq_zero_iff.mp (eq_zero_of_map_eq_zero _ hx)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem algNormOfAlgEquiv_apply (σ : L ≃ₐ[K] L) (x : L) :
     algNormOfAlgEquiv σ x =
       Classical.choose (exists_nonarchimedean_pow_mul_seminorm_of_finiteDimensional h_fin
         hu.isNonarchimedean_norm) (σ x) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The algebra norm `algNormOfAlgEquiv` is power-multiplicative. -/
 theorem isPowMul_algNormOfAlgEquiv (σ : L ≃ₐ[K] L) :
     IsPowMul (algNormOfAlgEquiv σ) := by
@@ -79,6 +82,7 @@ theorem isPowMul_algNormOfAlgEquiv (σ : L ≃ₐ[K] L) :
   exact (Classical.choose_spec (exists_nonarchimedean_pow_mul_seminorm_of_finiteDimensional
     h_fin hu.isNonarchimedean_norm)).1 _ hn
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The algebra norm `algNormOfAlgEquiv` is nonarchimedean. -/
 theorem isNonarchimedean_algNormOfAlgEquiv (σ : L ≃ₐ[K] L) :
     IsNonarchimedean (algNormOfAlgEquiv σ) := by
@@ -87,6 +91,7 @@ theorem isNonarchimedean_algNormOfAlgEquiv (σ : L ≃ₐ[K] L) :
   exact (Classical.choose_spec (exists_nonarchimedean_pow_mul_seminorm_of_finiteDimensional
     h_fin hu.isNonarchimedean_norm)).2.2 _ _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The algebra norm `algNormOfAlgEquiv` extends the norm on `K`. -/
 theorem algNormOfAlgEquiv_extends (σ : L ≃ₐ[K] L) (x : K) :
     (algNormOfAlgEquiv σ) ((algebraMap K L) x) = ‖x‖ := by

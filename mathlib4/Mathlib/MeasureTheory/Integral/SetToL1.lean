@@ -500,6 +500,7 @@ theorem setToL1_smul_left' (hT : DominatedFinMeasAdditive μ T C)
   apply setToL1_unique hT' (A := c • setToL1 hT) _ f
   simp [setToL1_eq_setToL1SCLM, setToL1SCLM_smul_left' c hT hT' h_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem setToL1_smul (hT : DominatedFinMeasAdditive μ T C)
     (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) (c : 𝕜) (f : α →₁[μ] E) :
     setToL1 hT (c • f) = c • setToL1 hT f := by

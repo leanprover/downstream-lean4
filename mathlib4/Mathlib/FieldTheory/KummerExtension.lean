@@ -195,6 +195,7 @@ theorem Polynomial.separable_X_pow_sub_C_of_irreducible : (X ^ n - C a).Separabl
 
 variable (n)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The natural embedding of the roots of unity of `K` into `Gal(K[ⁿ√a]/K)`, by sending
 `η ↦ (ⁿ√a ↦ η • ⁿ√a)`. Also see `autAdjoinRootXPowSubC` for the `AlgEquiv` version. -/
 noncomputable
@@ -392,6 +393,7 @@ def autEquivRootsOfUnity [NeZero n] :
   (AlgEquiv.autCongr (adjoinRootXPowSubCEquiv hζ H (rootOfSplitsXPowSubC_pow a L)).symm).trans
     (autAdjoinRootXPowSubCEquiv hζ H).symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma autEquivRootsOfUnity_apply_rootOfSplit [NeZero n] (σ : Gal(L/K)) :
     σ (rootOfSplitsXPowSubC (NeZero.pos n) a L) =
       autEquivRootsOfUnity hζ H L σ • (rootOfSplitsXPowSubC (NeZero.pos n) a L) := by
@@ -403,6 +405,7 @@ lemma autEquivRootsOfUnity_apply_rootOfSplit [NeZero n] (σ : Gal(L/K)) :
     adjoinRootXPowSubCEquiv_root]
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 include hα in
 lemma autEquivRootsOfUnity_smul [NeZero n] (σ : Gal(L/K)) :
     autEquivRootsOfUnity hζ H L σ • α = σ α := by

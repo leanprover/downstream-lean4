@@ -267,6 +267,7 @@ variable {R}
 
 variable {M : ModuleCat R} {I : Type*} {X : I → TopModuleCat R} (f : ∀ i, M ⟶ (X i).toModuleCat)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The induced topology on `M` from a family of continuous linear maps from `M`, which is the
 coarsest topology that makes every map continuous. -/
 def induced : TopModuleCat R :=
@@ -404,6 +405,9 @@ def freeObj (X : TopCat.{v}) : TopModuleCat.{max v u} R :=
 
 lemma coe_freeObj (X : TopCat.{v}) : freeObj R X = (X →₀ R) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
+set_option backward.isDefEq.respectTransparency.instances false in
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The free topological module over a topological space is functorial. -/
 noncomputable
@@ -421,9 +425,11 @@ def freeMap {X Y : TopCat.{v}} (f : X ⟶ Y) : freeObj R X ⟶ freeObj R Y :=
     ext x
     simp [coe_freeObj]⟩
 
+set_option backward.isDefEq.respectTransparency.instances false in
 lemma freeMap_map {X Y : TopCat.{v}} (f : X ⟶ Y) (v : X →₀ R) :
     (freeMap R f : (X →₀ R) → (Y →₀ R)) v = Finsupp.mapDomain f.hom v := rfl
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The free topological module over a topological space as a functor.
 This is left adjoint to the forgetful functor. -/
@@ -434,6 +440,9 @@ def free : TopCat.{v} ⥤ TopModuleCat.{max v u} R :=
     map_id M := by ext x; exact DFunLike.congr_fun (Finsupp.lmapDomain_id _ _) x
     map_comp f g := by ext; exact DFunLike.congr_fun (Finsupp.lmapDomain_comp _ _ f.hom g.hom) _ }
 
+set_option backward.isDefEq.instanceTypes false in
+set_option backward.isDefEq.respectTransparency.outParams false in
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The free-forgetful adjoint for `TopModuleCat R`. -/

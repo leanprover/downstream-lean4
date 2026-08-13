@@ -58,6 +58,7 @@ theorem of_isSeparable [Algebra.IsSeparable K L] : FormallyUnramified K L := by
 variable [FormallyUnramified K A] [EssFiniteType K A]
 variable [FormallyUnramified K L] [EssFiniteType K L]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem bijective_of_isAlgClosed_of_isLocalRing
     [IsAlgClosed K] [IsLocalRing A] :
     Function.Bijective (algebraMap K A) := by

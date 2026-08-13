@@ -160,6 +160,7 @@ variable {F : Type*} [SeminormedAddCommGroup F] [NormedSpace 𝕜 F]
 
 variable (𝕜 E F)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The linear equivalence between `ContinuousMultilinearMap 𝕜 E F` and `(⨂[𝕜] i, Eᵢ) →L[𝕜] F`
 induced by `PiTensorProduct.lift`, for every normed space `F`.
 -/

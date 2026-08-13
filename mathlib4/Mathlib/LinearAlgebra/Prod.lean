@@ -90,6 +90,7 @@ theorem fst_surjective : Function.Surjective (fst R M M₂) := fun x => ⟨(x, 0
 
 theorem snd_surjective : Function.Surjective (snd R M M₂) := fun x => ⟨(0, x), rfl⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The prod of two linear maps is a linear map. -/
 @[simps]
@@ -881,6 +882,7 @@ section Graph
 variable [Semiring R] [AddCommMonoid M] [AddCommMonoid M₂] [AddCommGroup M₃] [AddCommGroup M₄]
   [Module R M] [Module R M₂] [Module R M₃] [Module R M₄] (f : M →ₗ[R] M₂) (g : M₃ →ₗ[R] M₄)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Graph of a linear map. -/
 def graph : Submodule R (M × M₂) where
   carrier := { p | p.2 = f p.1 }

@@ -44,6 +44,7 @@ variable {p : M →ₗ[R] N →ₗ[R] R} {s t : Set M} {y : N}
 
 local notation3 "R≥0" => {c : R // 0 ≤ c}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable (p) in
 /-- The dual cone of a set `s` with respect to a bilinear pairing `p` is the cone consisting of all
 points `y` such that for all points `x ∈ s` we have `0 ≤ p x y`. -/

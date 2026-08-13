@@ -423,6 +423,7 @@ theorem map_tmul {M M' : ModuleCat.{v} R} (g : M ⟶ M') (s : S) (m : M) :
 
 variable {f}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[ext]
 lemma hom_ext {M : ModuleCat R} {N : ModuleCat S}
@@ -452,6 +453,7 @@ variable (M : Type v) [AddCommMonoid M] [Module R M]
 -- Porting note: this seems to cause problems related to lack of reducibility
 -- local notation "S'" => (restrictScalars f).obj ⟨S⟩
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given an `R`-module M, consider Hom(S, M) -- the `R`-linear maps between S (as an `R`-module by
 means of restriction of scalars) and M. `S` acts on Hom(S, M) by `s • g = x ↦ g (x • s)`
@@ -562,6 +564,7 @@ namespace RestrictionCoextensionAdj
 
 variable {R : Type u₁} {S : Type u₂} [Ring R] [Ring S] (f : R →+* S)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given `R`-module X and `S`-module Y, any `g : (restrictScalars f).obj Y ⟶ X`
 corresponds to `Y ⟶ (coextendScalars f).obj X` by sending `y ↦ (s ↦ g (s • y))`
@@ -585,6 +588,7 @@ def HomEquiv.fromRestriction {X : ModuleCat R} {Y : ModuleCat S}
     (g : (restrictScalars f).obj Y ⟶ X) (y) (s : S) :
     (HomEquiv.fromRestriction f g).hom y s = g (s • y) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given `R`-module X and `S`-module Y, any `g : Y ⟶ (coextendScalars f).obj X`
 corresponds to `(restrictScalars f).obj Y ⟶ X` by `y ↦ g y 1`
@@ -605,6 +609,7 @@ def HomEquiv.toRestriction {X : ModuleCat R} {Y : ModuleCat S} (g : Y ⟶ (coext
     (g : Y ⟶ (coextendScalars f).obj X) (y) :
     (HomEquiv.toRestriction f g).hom y = g.hom y (1 : S) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition for `unit'`, to address timeouts. -/
 def app' (Y : ModuleCat S) : Y →ₗ[S] (restrictScalars f ⋙ coextendScalars f).obj Y :=
@@ -620,6 +625,7 @@ def app' (Y : ModuleCat S) : Y →ₗ[S] (restrictScalars f ⋙ coextendScalars 
       LinearMap.ext fun t : S => by
         simp [mul_smul] }
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The natural transformation from identity functor to the composition of restriction and coextension
 of scalars.
@@ -634,6 +640,7 @@ protected noncomputable def unit' : 𝟭 (ModuleCat S) ⟶ restrictScalars f ⋙
       change s • (g y) = g (s • y)
       rw [map_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The natural transformation from the composition of coextension and restriction of scalars to
 identity functor.
@@ -654,8 +661,11 @@ protected noncomputable def counit' : coextendScalars f ⋙ restrictScalars f �
 
 end RestrictionCoextensionAdj
 
+set_option backward.isDefEq.instanceTypes false in
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 -- Porting note: very fiddly universes
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Restriction of scalars is left adjoint to coextension of scalars. -/
 -- @[simps] Porting note: not in normal form and not used
 def restrictCoextendScalarsAdj {R : Type u₁} {S : Type u₂} [Ring R] [Ring S] (f : R →+* S) :
@@ -710,6 +720,7 @@ def HomEquiv.toRestrictScalars {X : ModuleCat R} {Y : ModuleCat S}
 
 set_option backward.isDefEq.respectTransparency false in
 -- Porting note: forced to break apart fromExtendScalars due to timeouts
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The map `S → X →ₗ[R] Y` given by `fun s x => s • (g x)`
 -/
@@ -854,6 +865,7 @@ lemma Counit.map_apply_one_tmul {Y : ModuleCat S} (y : Y) :
   change (1 : S) • y = y
   simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The natural transformation from the composition of restriction and extension of scalars to the

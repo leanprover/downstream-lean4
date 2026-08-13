@@ -124,6 +124,7 @@ theorem restrictScalars_range_ofPowSMul_eq_ker_eval {n : ℕ} :
   simp only [LinearMap.mem_ker, coe_eval] at hx
   use ofValEqZero I hx; simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /- An intermediate helper lemma for the theorem below to avoid introducing
 `AdicCompletion.finsuppSum` (the `Finsupp` version of `AdicCompletion.sum`).
 It proves the equality of two linear maps:

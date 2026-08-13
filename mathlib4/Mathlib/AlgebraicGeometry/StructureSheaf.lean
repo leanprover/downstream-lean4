@@ -47,7 +47,6 @@ boundaries.
 
 -/
 
-
 universe u
 
 noncomputable section
@@ -415,6 +414,7 @@ def toBasicOpenₗ (f : R) :
     exact Submonoid.powers_le (P := (IsUnit.submonoid _).comap (algebraMap R _)).mpr
       (isUnit_basicOpen_end ..)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 theorem toBasicOpenₗ_mk (s : R) (f : M) (g : Submonoid.powers s) :
@@ -494,6 +494,33 @@ theorem exists_le_iSup_basicOpen_and_smul_eq_smul_and_eq_const
       simp [Submonoid.smul_def, pow_succ', mul_smul]
     · simp
 
+#adaptation_note
+/--
+We had to use the `instanceTypes` backward compatibility flag to make an instance search succeed.
+Concretely, the following instance cannot be synthesized:
+`IsConcreteLE (Opens (PrimeSpectrum R)) ↑(PrimeSpectrum.Top R)`
+It is needed by `← SetLike.coe_subset_coe` in the `simpa … using iU` below.
+
+The failure happens while applying `instIsConcreteLE`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `SetLike (Opens (PrimeSpectrum R)) ↑(PrimeSpectrum.Top R)`, whereas the assigned value
+`Opens.instSetLike` has type `SetLike (Opens ↑(PrimeSpectrum.Top R)) ↑(PrimeSpectrum.Top R)`. The
+two differ in the first argument, and comparing them bottoms out at
+`PrimeSpectrum R =?= (PrimeSpectrum.Top R).1`, where `PrimeSpectrum.Top` is semireducible and hence
+does not unfold at the `.instances` transparency that instance search runs at. Lean falls back to
+synthesize an instance of the correct type, but that synthesis fails as well: it hits the very same
+problem one level down, for the assignment of a metavariable of type
+`TopologicalSpace (PrimeSpectrum R)` to `(PrimeSpectrum.Top R).str`, whose own fallback returns
+`PrimeSpectrum.zariskiTopology`; again not defeq to `(PrimeSpectrum.Top R).str` at `.instances`.
+
+With no `IsConcreteLE` instance found, `← SetLike.coe_subset_coe` never fires and `simpa` reports a
+type mismatch for `iU`.
+
+Potential fix: mark `PrimeSpectrum.Top` implicit-reducible, then remove both backward compatibility
+options.
+-/
+set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 theorem toBasicOpenₗ_surjective (f : R) : Function.Surjective (toBasicOpenₗ R M f) := by
   intro s
@@ -599,6 +626,7 @@ instance (x : PrimeSpectrum.Top R) :
       ↑(TopCat.Presheaf.stalk (moduleStructurePresheaf R M).presheaf x) :=
   .of_algebraMap_smul fun _ _ ↦ rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 variable (R M) in
 def modulePresheafStalkIso (x : PrimeSpectrum.Top R) :
@@ -632,6 +660,7 @@ instance (x : PrimeSpectrum.Top R) :
       ((structurePresheafInModuleCat R M).stalk x) :=
   (modulePresheafStalkIso R M x).toAddEquiv.symm.module _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma toStalk_smul (x : PrimeSpectrum.Top R) (r : R)
     (m : (structurePresheafInModuleCat R M).stalk x) :
     toStalk R x r • m = r • m := by
@@ -684,6 +713,7 @@ def localizationtoStalkₗ (x : PrimeSpectrum.Top R) :
     (LocalizedModule.mkLinearMap x.asIdeal.primeCompl M)
     (toStalkₗ' R M x).hom fun f ↦ isUnit_toStalkₗ' x f.1 f.2 :)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem localizationtoStalkₗ_mk (x : PrimeSpectrum.Top R) (f : M) (s) :
@@ -797,6 +827,7 @@ instance (x : PrimeSpectrum.Top R) :
   rw! [PrimeSpectrum.basicOpen_one]
   rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable (R M) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of

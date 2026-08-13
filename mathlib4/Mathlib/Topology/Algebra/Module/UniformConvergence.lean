@@ -52,6 +52,7 @@ variable (𝕜 α E H : Type*) {hom : Type*} [NormedField 𝕜] [AddCommGroup H]
   [ContinuousSMul 𝕜 E] {𝔖 : Set <| Set α}
   [FunLike hom H (α → E)] [LinearMapClass hom 𝕜 H (α → E)]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Let `E` be a topological vector space over a normed field `𝕜`, let `α` be any type.
 Let `H` be a submodule of `α →ᵤ E` such that the range of each `f ∈ H` is von Neumann bounded.
@@ -87,6 +88,7 @@ lemma UniformFun.continuousSMul_induced_of_range_bounded (φ : hom)
     simp only [Set.mem_ofPred_eq, map_smul, Pi.smul_apply]
     simpa only [Set.mapsTo_range_iff] using (h u hU).eventually_nhds_zero (mem_of_mem_nhds hU)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `E` be a TVS, `𝔖 : Set (Set α)` and `H` a submodule of `α →ᵤ[𝔖] E`. If the image of any
 `S ∈ 𝔖` by any `u ∈ H` is bounded (in the sense of `Bornology.IsVonNBounded`), then `H`,
 equipped with the topology of `𝔖`-convergence, is a TVS.

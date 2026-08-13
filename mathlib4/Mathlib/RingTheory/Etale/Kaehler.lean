@@ -138,6 +138,7 @@ def tensorCotangentSpaceOfFormallyEtale
       ext a
       simp; rfl }
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- (Implementation)
 If `J ≃ Q ⊗ₚ I` (e.g. when `T = Q ⊗ₚ S` and `P → Q` is flat), then `T ⊗ₛ I/I² ≃ J/J²`.
 This is the inverse. -/
@@ -200,6 +201,7 @@ lemma tensorCotangentInvFun_smul_mk
   rw [e.symm_apply_apply]
   simp
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `J ≃ Q ⊗ₚ I` (e.g. when `T = Q ⊗ₚ S` and `P → Q` is flat), then `T ⊗ₛ I/I² ≃ J/J²`. -/
 noncomputable
 def tensorCotangent [alg : Algebra P.Ring Q.Ring] (halg : algebraMap P.Ring Q.Ring = f.toRingHom)

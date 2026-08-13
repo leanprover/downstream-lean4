@@ -56,6 +56,7 @@ lemma norm_apply_le_of_nonneg [StarOrderedRing B₂] (f : B₁ →ₚ[ℂ] B₂)
   rw [← Algebra.algebraMap_eq_smul_one]
   exact IsSelfAdjoint.le_algebraMap_norm_self <| .of_nonneg hx
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 open Complex Filter in
 /--
 If `f` is a positive map, then it is bounded (and therefore continuous).

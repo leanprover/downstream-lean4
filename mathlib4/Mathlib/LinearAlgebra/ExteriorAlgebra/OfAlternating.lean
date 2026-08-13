@@ -40,6 +40,7 @@ namespace ExteriorAlgebra
 
 open CliffordAlgebra hiding ι
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Build a map out of the exterior algebra given a collection of alternating maps acting on each
 exterior power -/
 def liftAlternating : (∀ i, M [⋀^Fin i]→ₗ[R] N) →ₗ[R] ExteriorAlgebra R M →ₗ[R] N := by
@@ -85,6 +86,7 @@ theorem liftAlternating_one (f : ∀ i, M [⋀^Fin i]→ₗ[R] N) :
   dsimp [liftAlternating]
   rw [foldl_one]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem liftAlternating_algebraMap (f : ∀ i, M [⋀^Fin i]→ₗ[R] N) (r : R) :
     liftAlternating (R := R) (M := M) (N := N) f (algebraMap _ (ExteriorAlgebra R M) r) =
@@ -108,6 +110,7 @@ theorem liftAlternating_comp_ιMulti {n : ℕ} (f : ∀ i, M [⋀^Fin i]→ₗ[R
     (liftAlternating (R := R) (M := M) (N := N) f).compAlternatingMap (ιMulti R n) = f n :=
   AlternatingMap.ext <| liftAlternating_apply_ιMulti f
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem liftAlternating_comp (g : N →ₗ[R] N') (f : ∀ i, M [⋀^Fin i]→ₗ[R] N) :
     (liftAlternating (R := R) (M := M) (N := N') fun i => g.compAlternatingMap (f i)) =
@@ -135,6 +138,7 @@ theorem liftAlternating_ιMulti :
   | ι_mul _ _ hx => simp_rw [liftAlternating_ι_mul, ιMulti_succ_curryLeft, liftAlternating_comp,
       LinearMap.comp_apply, LinearMap.mulLeft_apply, hx]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `ExteriorAlgebra.liftAlternating` is an equivalence. -/
 @[simps apply symm_apply]
 def liftAlternatingEquiv : (∀ i, M [⋀^Fin i]→ₗ[R] N) ≃ₗ[R] ExteriorAlgebra R M →ₗ[R] N where

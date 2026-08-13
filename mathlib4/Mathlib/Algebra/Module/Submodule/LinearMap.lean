@@ -185,6 +185,7 @@ section
 variable {M₂' : Type*} [AddCommMonoid M₂'] [Module R₂ M₂']
   (p : M₂' →ₗ[R₂] M₂) (hp : Injective p) (h : ∀ c, f c ∈ range p)
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A linear map `f : M → M₂` whose values lie in the image of an injective linear map
 `p : M₂' → M₂` admits a unique lift to a linear map `M → M₂'`. -/
@@ -194,6 +195,7 @@ noncomputable def codLift :
   map_add' b c := by apply hp; simp_rw [map_add, (h _).choose_spec, ← map_add, (h _).choose_spec]
   map_smul' r c := by apply hp; simp_rw [map_smul, (h _).choose_spec, map_smulₛₗ]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] theorem codLift_apply (x : M) :
     (f.codLift p hp h x) = (h x).choose :=
   rfl

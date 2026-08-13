@@ -760,6 +760,7 @@ lemma pow_mul_norm_iteratedFDeriv_fourier_le
   gcongr
   exact norm_innerSL_le _
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma hasDerivAt_fourier
     {f : ℝ → E} (hf : Integrable f) (hf' : Integrable (fun x : ℝ ↦ x • f x)) (w : ℝ) :
     HasDerivAt (𝓕 f) (𝓕 (fun x : ℝ ↦ (-2 * π * I * x) • f x) w) w := by

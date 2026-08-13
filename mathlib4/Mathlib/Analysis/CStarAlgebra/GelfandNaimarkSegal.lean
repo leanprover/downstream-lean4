@@ -69,6 +69,7 @@ lemma ofPreGNS_toPreGNS (a : A) : f.ofPreGNS (f.toPreGNS a) = a := rfl
 
 variable [StarOrderedRing A]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The (semi-)inner product space whose elements are the elements of `A`, but which has an
 inner product-induced norm that is different from the norm on `A` and which is induced by `f`.
@@ -85,12 +86,15 @@ noncomputable instance : SeminormedAddCommGroup f.PreGNS :=
 noncomputable instance : InnerProductSpace ℂ f.PreGNS :=
   InnerProductSpace.ofCore f.preGNSpreInnerProdSpace
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma preGNS_inner_def (a b : f.PreGNS) :
     ⟪a, b⟫_ℂ = f (star (f.ofPreGNS a) * f.ofPreGNS b) := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma preGNS_norm_def (a : f.PreGNS) :
     ‖a‖ = √(f (star (f.ofPreGNS a) * f.ofPreGNS a)).re := rfl
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma preGNS_norm_sq (a : f.PreGNS) :
     ‖a‖ ^ 2 = f (star (f.ofPreGNS a) * f.ofPreGNS a) := by
   have : 0 ≤ f (star (f.ofPreGNS a) * f.ofPreGNS a) := f.map_nonneg (star_mul_self_nonneg _)
@@ -129,6 +133,7 @@ lemma leftMulMapPreGNS_mul_eq_comp (a b : A) :
     f.leftMulMapPreGNS (a * b) = f.leftMulMapPreGNS a ∘L f.leftMulMapPreGNS b := by
   ext c; simp [mul_assoc]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 This proves map_smul' of gnsNonUnitalStarAlgHom so that map_zero' can be proven as a direct
 consequence.
@@ -143,6 +148,7 @@ private lemma completion_leftMulMapPreGNS_map_smul (m : ℂ) (x : A) :
       (m • (f.leftMulMapPreGNS x).completion).continuous
   | ih a => simp [smul_mul_assoc]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 The non-unital ⋆-homomorphism/⋆-representation of `A` into the algebra of bounded operators on
 a Hilbert space that is constructed from a positive linear functional `f` on a possibly non-unital

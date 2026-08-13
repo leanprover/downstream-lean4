@@ -313,6 +313,7 @@ theorem circleAverage_nonneg_of_nonneg {c : ℂ} {R : ℝ} {f : ℂ → ℝ}
 ## Commutativity with Linear Maps
 -/
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Circle averages commute with continuous linear maps. -/
 theorem _root_.ContinuousLinearMap.circleAverage_comp_comm [CompleteSpace E] (L : E →L[ℝ] F)
     {f : ℂ → E} (hf : CircleIntegrable f c R) :

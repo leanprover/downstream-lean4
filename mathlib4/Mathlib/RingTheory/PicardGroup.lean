@@ -263,6 +263,7 @@ theorem toModuleEnd_bijective : Function.Bijective (toModuleEnd R (S := R) M) :=
 instance : FaithfulSMul R M where
   eq_of_smul_eq_smul {_ _} h := (toModuleEnd_bijective R M).injective <| LinearMap.ext h
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable {R M N} in
 private theorem bijective_self_of_surjective (f : R →ₗ[R] M) (hf : Function.Surjective f) :
     Function.Bijective f where
@@ -796,6 +797,7 @@ instance : Flat R (submoduleAlgebra e) := .of_linearEquiv (submoduleAlgebraEquiv
 instance [Module.Invertible R M] : Module.Invertible R (submoduleAlgebra e) :=
   .congr (submoduleAlgebraEquiv e).symm
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 /-- When a flat `R`-module `M` is embedded as a submodule of a faithful `R`-algebra `A`,
 the multiplication map induces an isomorphism `A ⊗[R] M ≃ₗ[A] A`. -/
@@ -915,6 +917,7 @@ See https://mathoverflow.net/a/499611. -/
 example [IsNoetherianRing R] : ∃ I : Ideal R, Nonempty (M ≃ₗ[R] I) :=
   Module.Invertible.exists_linearEquiv_ideal R M
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 variable {R} in
 /-- In a total ring of fractions, if two ideals are inverse to each other in the Picard group,
 the only possibility is that they are both the whole ring. -/

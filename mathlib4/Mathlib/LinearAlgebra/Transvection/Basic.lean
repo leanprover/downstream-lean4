@@ -95,6 +95,7 @@ theorem of_right_eq_zero (f : Dual R V) :
   ext
   simp [transvection]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem comp_smul_smul {f : Dual R V} {v : V} {r s : R} :
     transvection f (r • v) ∘ₗ transvection f (s • v) =
       transvection f ((r + s + s * f v * r) • v) := by
@@ -102,6 +103,7 @@ theorem comp_smul_smul {f : Dual R V} {v : V} {r s : R} :
   simp only [LinearMap.comp_apply, apply, map_add, map_smul, add_assoc]
   simp only [smul_add, ← mul_smul, ← add_smul, ← mul_add (f x), mul_assoc]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem eq_id_of_finrank_le_one
     {R V : Type*} [CommSemiring R] [AddCommMonoid V] [Module R V]
     [Free R V] [Module.Finite R V] [StrongRankCondition R]
@@ -122,6 +124,7 @@ theorem eq_id_of_finrank_le_one
     have : x = ∑ i, b.repr x i • b i := (b.sum_equivFun x).symm
     rwa [Finset.sum_eq_single_of_mem i (Finset.mem_univ i) (by grind)] at this
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 theorem congr {W : Type*} [AddCommMonoid W] [Module R W]
     (f : Dual R V) (v : V) (e : V ≃ₗ[R] W) :
     e ∘ₗ (transvection f v) ∘ₗ e.symm = transvection (f ∘ₗ e.symm) (e v) := by
@@ -292,6 +295,7 @@ theorem transvection_mem_dilatransvections {f : Dual R V} {v : V} (hfv : f v = 0
 theorem one_mem_dilatransvections : 1 ∈ dilatransvections R V :=
   refl_mem_dilatransvections
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem symm_mem_dilatransvections_iff {e : V ≃ₗ[R] V} :
     e.symm ∈ dilatransvections R V ↔ e ∈ dilatransvections R V := by
@@ -555,6 +559,7 @@ section Field
 
 variable {K : Type*} {V : Type*} [Field K] [AddCommGroup V] [Module K V]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Determinant of transvections, over a field.
 
 See `LinearMap.Transvection.det` for the general result. -/

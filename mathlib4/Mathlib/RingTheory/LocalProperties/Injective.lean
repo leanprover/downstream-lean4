@@ -35,6 +35,7 @@ section
 
 universe u' v'
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 open IsLocalizedModule in
 theorem Module.injective_of_isLocalizedModule [Small.{v} R] [IsNoetherianRing R] {Rₛ : Type u'}
     [Small.{v'} Rₛ] [CommRing Rₛ] [Algebra R Rₛ] {Mₛ : Type v'} [AddCommGroup Mₛ] [Module R Mₛ]

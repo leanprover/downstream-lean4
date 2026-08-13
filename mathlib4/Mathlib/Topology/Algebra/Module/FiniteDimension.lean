@@ -148,6 +148,7 @@ theorem unique_topology_of_t2 {t : TopologicalSpace 𝕜} (h₁ : @IsTopological
           tendsto_id (1 : 𝕜))
       _ = @nhds 𝕜 t 0 := by rw [zero_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Any linear form on a topological vector space over a nontrivially normed field is continuous if
 its kernel is closed. -/
 theorem LinearMap.continuous_of_isClosed_ker (l : E →ₗ[𝕜] 𝕜)

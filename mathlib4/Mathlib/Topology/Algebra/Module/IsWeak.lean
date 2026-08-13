@@ -152,6 +152,7 @@ theorem continuousAdd [ContinuousAdd 𝕜] : ContinuousAdd E where
     simp only [Function.comp_def, map_add, add_apply]
     fun_prop
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 include hB in
 /-- Scalar multiplication in `E` is continuous when `E` is equipped with a `LinearMap.IsWeak`
 topology. -/

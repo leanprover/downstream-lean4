@@ -342,6 +342,7 @@ variable {K : Type*} {V : Type*} [Field K] [AddCommGroup V] [Module K V]
 
 variable {f : V →ₗ[K] K} {v : V}
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- In a vector space, given a nonzero linear form `f`,
 a nonzero vector `v` such that `f v ≠ 0`,

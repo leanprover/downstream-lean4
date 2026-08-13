@@ -455,6 +455,7 @@ variable {R : Type*} [CommRing R]
 variable {A : Type*} [CommRing A] [Algebra R A]
 variable (B : Type*) [CommRing B] [Algebra R B]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 instance [FormallySmooth R A] : FormallySmooth B (B ⊗[R] A) := by
   refine .of_comp_surjective fun C _ _ I hI f ↦ ?_

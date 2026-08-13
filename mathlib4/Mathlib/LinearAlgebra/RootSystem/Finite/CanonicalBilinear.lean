@@ -271,6 +271,7 @@ lemma rootFormIn_self_smul_coroot (i : ι) :
   intro j hj
   rw [← P.algebraMap_pairingIn S, IsScalarTower.algebraMap_smul, ← mul_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma prod_rootFormIn_smul_coroot_mem_range_PolarizationIn (i : ι) :
     (∏ j : ι, P.RootFormIn S (P.rootSpanMem S j) (P.rootSpanMem S j)) • P.coroot i ∈
       LinearMap.range (P.PolarizationIn S) := by
@@ -300,12 +301,14 @@ lemma corootForm_self_smul_root (i : ι) :
     (P.CorootForm (P.coroot i) (P.coroot i)) • P.root i = 2 • P.CoPolarization (P.coroot i) :=
   rootForm_self_smul_coroot (P.flip) i
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma four_nsmul_coPolarization_compl_polarization_apply_root (i : ι) :
     (4 • P.CoPolarization ∘ₗ P.Polarization) (P.root i) =
     (P.RootForm (P.root i) (P.root i) * P.CorootForm (P.coroot i) (P.coroot i)) • P.root i := by
   rw [LinearMap.smul_apply, LinearMap.comp_apply, show 4 = 2 * 2 from rfl, mul_smul, ← map_nsmul,
     ← rootForm_self_smul_coroot, map_smul, smul_comm, ← corootForm_self_smul_root, smul_smul]
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 lemma four_smul_rootForm_sq_eq_coxeterWeight_smul (i j : ι) :
     4 • (P.RootForm (P.root i) (P.root j)) ^ 2 = P.coxeterWeight i j •
       (P.RootForm (P.root i) (P.root i) * P.RootForm (P.root j) (P.root j)) := by

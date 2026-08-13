@@ -64,6 +64,7 @@ theorem card_support_mul_le : #(p * q).support ≤ #p.support * #q.support := by
       grw [AddMonoidAlgebra.support_coeff_mul_subset]
     _ ≤ #p.support * #q.support := Finset.card_image₂_le ..
 
+set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- `Polynomial.sum` as a linear map. -/
 @[simps]
