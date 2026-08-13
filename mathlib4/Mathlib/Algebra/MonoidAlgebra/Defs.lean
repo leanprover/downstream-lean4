@@ -590,14 +590,16 @@ lemma coeff_mul_single_of_forall_mul_ne (r : R) (x : R[M]) (h : ∀ d, d * m ≠
 lemma coeff_single_mul_of_forall_mul_ne (r : R) (x : R[M]) (h : ∀ d, m * d ≠ m') :
     (single m r * x).coeff m' = 0 := by classical simp [coeff_mul, h]
 
-@[to_additive (attr := deprecated coeff_mul_single_of_forall_mul_ne (since := "2026-06-18"))
+@[to_additive (attr := deprecated coeff_mul_single_of_forall_mul_ne +typeChanged
+  (since := "2026-06-18"))
   (dont_translate := R)]
 lemma mul_single_apply_of_not_exists_mul (r : R) {g g' : M} (x : R[M])
     (h : ¬∃ d, g' = d * g) : (x * single g r).coeff g' = 0 :=
   coeff_mul_single_of_forall_mul_ne _ _ <| by simpa [eq_comm] using h
 
-@[to_additive (attr := deprecated coeff_single_mul_of_forall_mul_ne
-  +typeChanged (since := "2026-06-18")) (dont_translate := R)]
+@[to_additive (attr := deprecated coeff_single_mul_of_forall_mul_ne +typeChanged
+  (since := "2026-06-18"))
+  (dont_translate := R)]
 lemma single_mul_apply_of_not_exists_mul (r : R) {g g' : M} (x : R[M])
     (h : ¬∃ d, g' = g * d) : (single g r * x).coeff g' = 0 :=
   coeff_single_mul_of_forall_mul_ne _ _ <| by simpa [eq_comm] using h

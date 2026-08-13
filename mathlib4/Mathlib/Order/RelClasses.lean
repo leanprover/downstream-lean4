@@ -31,7 +31,7 @@ open Function
 theorem Std.Refl.swap (r : α → α → Prop) [Std.Refl r] : Std.Refl (swap r) :=
   inferInstance
 
-@[deprecated inferInstance (since := "2026-04-28")]
+@[deprecated inferInstance +typeChanged (since := "2026-04-28")]
 theorem Std.Irrefl.swap (r : α → α → Prop) [Std.Irrefl r] : Std.Irrefl (swap r) :=
   inferInstance
 
@@ -47,7 +47,7 @@ theorem Std.Antisymm.swap (r : α → α → Prop) [Std.Antisymm r] : Std.Antisy
 theorem Std.Asymm.swap (r : α → α → Prop) [Std.Asymm r] : Std.Asymm (swap r) :=
   inferInstance
 
-@[deprecated inferInstance (since := "2026-04-28")]
+@[deprecated inferInstance +typeChanged (since := "2026-04-28")]
 theorem Std.Total.swap (r : α → α → Prop) [Std.Total r] : Std.Total (swap r) :=
   inferInstance
 
@@ -55,7 +55,7 @@ theorem Std.Total.swap (r : α → α → Prop) [Std.Total r] : Std.Total (swap 
 theorem Std.Trichotomous.swap (r : α → α → Prop) [Std.Trichotomous r] : Std.Trichotomous (swap r) :=
   inferInstance
 
-@[deprecated inferInstance (since := "2026-04-28")]
+@[deprecated inferInstance +typeChanged (since := "2026-04-28")]
 theorem IsPreorder.swap (r) [IsPreorder α r] : IsPreorder α (swap r) :=
   inferInstance
 
@@ -462,7 +462,7 @@ attribute [to_set_notation]
 
 @[deprecated (since := "2026-05-24")] alias HasSubset.subset.trans_eq := LE.le.trans_eq
 
-@[deprecated LE.le.trans (since := "2026-05-24")]
+@[deprecated LE.le.trans +typeChanged (since := "2026-05-24")]
 alias HasSubset.Subset.trans := subset_trans
 
 @[deprecated LE.le.antisymm +typeChanged (since := "2026-05-24")]

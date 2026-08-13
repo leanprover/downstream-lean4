@@ -105,7 +105,7 @@ lemma toNat_le_toNat {m n : ℕ∞} (h : m ≤ n) (hn : n ≠ ⊤) : toNat m ≤
 
 @[deprecated (since := "2026-07-17")] alias toNat_eq_iff_eq_coe := toNat_eq_iff_eq_natCast
 
-@[deprecated add_pos_of_right (since := "2026-05-25")]
+@[deprecated add_pos_of_right +typeChanged (since := "2026-05-25")]
 lemma add_one_pos : 0 < n + 1 :=
   add_pos_of_right zero_lt_one n
 

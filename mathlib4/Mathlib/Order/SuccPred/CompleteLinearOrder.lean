@@ -81,8 +81,8 @@ lemma IsGLB.exists_of_nonempty_of_not_isPredPrelimit
 
 /-- Every conditionally complete linear order with well-founded `<` is a successor order, by setting
 the successor of an element to be the infimum of all larger elements. -/
-@[instance_reducible, deprecated SuccOrder.ofLinearWellFoundedLT
-  +typeChanged (since := "2026-04-12")]
+@[instance_reducible, deprecated SuccOrder.ofLinearWellFoundedLT +typeChanged
+  (since := "2026-04-12")]
 noncomputable def ConditionallyCompleteLinearOrder.toSuccOrder [WellFoundedLT α] :
     SuccOrder α := .ofLinearWellFoundedLT _
 

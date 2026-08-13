@@ -380,8 +380,7 @@ theorem image_sdiff {f : α → β} (hf : Injective f) (s t : Set α) : f '' (s 
 
 @[deprecated image_sdiff +typeChanged (since := "2026-06-03")]
 alias subset_image_diff := subset_image_sdiff
-@[deprecated (since := "2026-06-03")]
-alias image_diff := image_sdiff
+@[deprecated (since := "2026-06-03")] alias image_diff := image_sdiff
 
 open scoped symmDiff in
 theorem image_symmDiff (hf : Injective f) (s t : Set α) : f '' s ∆ t = (f '' s) ∆ (f '' t) := by
