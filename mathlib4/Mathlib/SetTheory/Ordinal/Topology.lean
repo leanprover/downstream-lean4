@@ -126,7 +126,7 @@ theorem isClosed_iff_bsup :
     apply H (type_ne_zero_iff_nonempty.2 hι)
     exact fun i hi => hf _
 
-@[deprecated isNormal_enum_iff_dirSupClosed (since := "2026-05-25")]
+@[deprecated isNormal_enum_iff_dirSupClosed +typeChanged (since := "2026-05-25")]
 theorem enumOrd_isNormal_iff_isClosed (hs : ¬ BddAbove s) :
     IsNormal (enumOrd s) ↔ IsClosed s := by
   have Hs := enumOrd_strictMono hs
