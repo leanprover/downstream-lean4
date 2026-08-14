@@ -53,7 +53,6 @@ lemma of_dvd_two [IsCancelMulZero R] [NeZero (2 : R)] (hx : B x x ∣ 2) :
 
 variable (hx : IsReflective B x)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The coroot attached to a reflective vector. -/
 def coroot : M →ₗ[R] R where
   toFun y := (hx.2 y).choose
@@ -81,7 +80,6 @@ lemma smul_coroot : B x x • coroot B hx = 2 • B x := by
 lemma coroot_apply_self : coroot B hx x = 2 :=
   hx.regular.left <| by simp [mul_comm _ (B x x)]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma isOrthogonal_reflection (hSB : LinearMap.IsSymm B) :
     B.IsOrthogonal (Module.reflection (coroot_apply_self B hx)) := by
@@ -116,7 +114,6 @@ namespace RootPairing
 
 open LinearMap IsReflective
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The root pairing given by all reflective vectors for a bilinear form. -/
 def ofBilinear [IsReflexive R M] (B : M →ₗ[R] M →ₗ[R] R) (hNB : LinearMap.Nondegenerate B)

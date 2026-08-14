@@ -247,7 +247,6 @@ section Equiv
 
 variable [Algebra A S] {S' : Type*} [Ring S'] [Algebra A S']
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem constr_pow_aeval (pb : PowerBasis A S) {y : S'} (hy : aeval y (minpoly A pb.gen) = 0)
     (f : A[X]) : pb.basis.constr A (fun i => y ^ (i : ℕ)) (aeval pb.gen f) = aeval y f := by
   cases subsingleton_or_nontrivial A

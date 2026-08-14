@@ -209,7 +209,6 @@ lemma pairing_eq_add_of_root_eq_add {i j k l : ι} (h : P.root k = P.root i + P.
     P.pairing k l = P.pairing i l + P.pairing j l := by
   simp only [← root_coroot_eq_pairing, h, map_add, LinearMap.add_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable {P} in
 lemma pairing_eq_add_of_root_eq_smul_add_smul
@@ -400,7 +399,6 @@ lemma pairing_reflectionPerm_self_right (i j : ι) :
   rw [pairing, ← reflectionPerm_coroot, root_coroot_eq_pairing, pairing_same, two_smul,
     sub_add_cancel_left, map_neg, root_coroot_eq_pairing]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The indexing set of a root pairing carries an involutive negation, corresponding to the negation
 of a root / coroot. -/
@@ -413,7 +411,6 @@ of a root / coroot. -/
       sub_neg_eq_add, map_smul, smul_add]
     module
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ne_neg [NeZero (2 : R)] [IsDomain R] :
     letI := P.indexNeg
     i ≠ -i := by
@@ -502,7 +499,6 @@ lemma pairing_smul_coroot_eq (k : ι) (hij : P.reflectionPerm i = P.reflectionPe
     simp only [← coroot_reflectionPerm, hij]
   simpa only [coreflection_apply_coroot, sub_right_inj] using h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma two_nsmul_reflection_eq_of_perm_eq (hij : P.reflectionPerm i = P.reflectionPerm j) :
     2 • ⇑(P.reflection i) = 2 • P.reflection j := by
   ext x
@@ -528,7 +524,6 @@ lemma reflectionPerm_eq_reflectionPerm_iff_of_isSMulRegular (h2 : IsSMulRegular 
   replace h2 : IsSMulRegular (M → M) 2 := IsSMulRegular.pi fun _ ↦ h2
   exact h2 <| P.two_nsmul_reflection_eq_of_perm_eq i j h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma reflectionPerm_eq_reflectionPerm_iff_of_span :
     P.reflectionPerm i = P.reflectionPerm j ↔
@@ -573,7 +568,6 @@ def IsOrthogonal : Prop := pairing P i j = 0 ∧ pairing P j i = 0
 lemma isOrthogonal_symm : IsOrthogonal P i j ↔ IsOrthogonal P j i := by
   simp only [IsOrthogonal, and_comm]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma isOrthogonal_comm (h : IsOrthogonal P i j) : Commute (P.reflection i) (P.reflection j) := by
   rw [commute_iff_eq]
@@ -605,7 +599,6 @@ lemma IsOrthogonal.coreflection_apply_right (h : IsOrthogonal P j i) :
     P.coreflection j (P.coroot i) = P.coroot i :=
   h.flip.reflection_apply_right
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma isFixedPt_reflection_of_isOrthogonal {s : Set ι} (hj : ∀ i ∈ s, P.IsOrthogonal j i)
     {x : M} (hx : x ∈ span R (P.root '' s)) :
     IsFixedPt (P.reflection j) x := by
@@ -664,7 +657,6 @@ section Map
 
 variable {ι₂ M₂ N₂ : Type*} [AddCommGroup M₂] [Module R M₂] [AddCommGroup N₂] [Module R N₂]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Push forward a root pairing along linear equivalences, also reindexing the (co)roots. -/
 protected def map (e : ι ≃ ι₂) (f : M ≃ₗ[R] M₂) (g : N ≃ₗ[R] N₂) :

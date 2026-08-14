@@ -74,7 +74,6 @@ theorem ninePointCircle_reindex {m n : ℕ} (s : Simplex ℝ P n) (e : Fin (n + 
   · simp [ninePointCircle_center, centroid_reindex, h]
   · simp [ninePointCircle_radius, h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem ninePointCircle_map {V₂ P₂ : Type*} [NormedAddCommGroup V₂] [InnerProductSpace ℝ V₂]
     [MetricSpace P₂] [NormedAddTorsor V₂ P₂]
     {n : ℕ} (s : Simplex ℝ P n) (f : P →ᵃⁱ[ℝ] P₂) :
@@ -128,7 +127,6 @@ theorem eulerPoint_reindex {m n : ℕ} (s : Simplex ℝ P n) (e : Fin (n + 1) �
   ext i
   simp [eulerPoint, h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem eulerPoint_map {V₂ P₂ : Type*} [NormedAddCommGroup V₂] [InnerProductSpace ℝ V₂]
     [MetricSpace P₂] [NormedAddTorsor V₂ P₂]

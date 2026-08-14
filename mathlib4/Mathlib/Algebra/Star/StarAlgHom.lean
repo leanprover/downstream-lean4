@@ -128,7 +128,6 @@ theorem coe_toNonUnitalAlgHom {f : A →⋆ₙₐ[R] B} : (f.toNonUnitalAlgHom :
 theorem ext {f g : A →⋆ₙₐ[R] B} (h : ∀ x, f x = g x) : f = g :=
   DFunLike.ext _ _ h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Copy of a `NonUnitalStarAlgHom` with a new `toFun` equal to the old one. Useful
 to fix definitional equalities. -/
 protected def copy (f : A →⋆ₙₐ[R] B) (f' : A → B) (h : f' = f) : A →⋆ₙₐ[R] B where
@@ -452,7 +451,6 @@ instance : Monoid (A →⋆ₐ[R] A) where
   one_mul := id_comp
   mul_one := comp_id
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A unital morphism of ⋆-algebras is a `NonUnitalStarAlgHom`. -/
 def toNonUnitalStarAlgHom (f : A →⋆ₐ[R] B) : A →⋆ₙₐ[R] B :=
   { f with map_smul' := map_smul f }
@@ -652,7 +650,6 @@ class NonUnitalAlgEquivClass (F : Type*) (R A B : outParam Type*)
   extends RingEquivClass F A B, MulActionSemiHomClass F (@id R) A B where
 
 -- See note [lower instance priority]
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 100) {F R A B : Type*} [Monoid R] [NonUnitalNonAssocSemiring A]
     [DistribMulAction R A] [NonUnitalNonAssocSemiring B] [DistribMulAction R B] [EquivLike F A B]
     [NonUnitalAlgEquivClass F R A B] :
@@ -661,7 +658,6 @@ instance (priority := 100) {F R A B : Type*} [Monoid R] [NonUnitalNonAssocSemiri
 
 set_option backward.isDefEq.respectTransparency false in
 -- See note [lower instance priority]
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 100) (F R A B : Type*) [CommSemiring R] [Semiring A]
     [Algebra R A] [Semiring B] [Algebra R B] [EquivLike F A B] [NonUnitalAlgEquivClass F R A B] :
     AlgEquivClass F R A B :=
@@ -1042,7 +1038,6 @@ theorem symm_arrowCongr (e₁ : A₁ ≃⋆ₐ[R] A₁') (e₂ : A₂ ≃⋆ₐ[
     (arrowCongr e₁ e₂).symm = arrowCongr e₁.symm e₂.symm :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Construct a star algebra equivalence from a pair of star algebra homomorphisms. -/
 @[simps]
 def ofStarAlgHom {R A B : Type*} [CommSemiring R]
@@ -1083,7 +1078,6 @@ variable [NonUnitalNonAssocSemiring B] [DistribMulAction R B] [Star B]
 variable [FunLike F A B] [NonUnitalAlgHomClass F R A B] [StarHomClass F A B]
 variable [FunLike G B A] [NonUnitalAlgHomClass G R B A] [StarHomClass G B A]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Promote a bijective star algebra homomorphism to a star algebra equivalence. -/
 noncomputable def ofBijective (f : F) (hf : Function.Bijective f) : A ≃⋆ₐ[R] B :=
   {

@@ -602,7 +602,6 @@ LinearMap.mk₂'ₛₗ
 Then both backward compatibility options can go.
 -/
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.instanceTypes false in
 open _root_.LinearMap in
 private lemma IsWeaklyRegular.swap {a b : R} (h1 : IsWeaklyRegular M [a, b])

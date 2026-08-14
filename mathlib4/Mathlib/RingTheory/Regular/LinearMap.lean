@@ -36,7 +36,6 @@ namespace IsSMulRegular
 
 variable {R M N : Type*} [CommRing R] [AddCommGroup M] [AddCommGroup N] [Module R M] [Module R N]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma linearMap_subsingleton_of_mem_annihilator {r : R} (reg : IsSMulRegular M r)
     (mem_ann : r ∈ Module.annihilator R N) : Subsingleton (N →ₗ[R] M) := by
   apply subsingleton_of_forall_eq 0 (fun f ↦ ext fun x ↦ ?_)

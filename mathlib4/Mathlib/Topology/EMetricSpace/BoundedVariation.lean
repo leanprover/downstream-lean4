@@ -718,7 +718,6 @@ lemma eVariationOn_Ioc_eq_Icc_of_continuousWithinAt
   exact eVariationOn_Ioc_eq_Icc_of_continuousWithinAt' h'
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt'
     [TopologicalSpace α] [OrderTopology α] {f : α → E} {a b : α}
     [h : (𝓝[<] a).NeBot] (h' : ContinuousWithinAt f (Iic a) a) :
@@ -727,7 +726,6 @@ lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt'
   exact eVariationOn_Ioc_eq_Icc_of_continuousWithinAt' h'
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma eVariationOn_Ico_eq_Icc_of_continuousWithinAt
     [TopologicalSpace α] [OrderTopology α] [DenselyOrdered α] {f : α → E} {a b : α}
     (h' : ContinuousWithinAt f (Iic a) a) :

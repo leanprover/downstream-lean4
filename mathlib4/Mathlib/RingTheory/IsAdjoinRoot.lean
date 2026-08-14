@@ -547,7 +547,6 @@ theorem coeff_one [Nontrivial S] : h.coeff 1 = Pi.single 0 1 := by
 theorem coeff_root (hdeg : 1 < natDegree f) : h.coeff h.root = Pi.single 1 1 := by
   rw [← h.coeff_root_pow hdeg, pow_one]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem coeff_algebraMap [Nontrivial S] (x : R) : h.coeff (algebraMap R S x) = Pi.single 0 x := by
   ext i
   rw [Algebra.algebraMap_eq_smul_one, map_smul, coeff_one, Pi.smul_apply, smul_eq_mul]

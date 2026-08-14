@@ -114,7 +114,6 @@ open scoped TensorProduct in
     traceForm A (A ⊗[R] L) (A ⊗[R] M) = (traceForm R L M).baseChange A := by
   ext; simp [traceForm_apply_apply, ← LinearMap.baseChange_comp, Algebra.algebraMap_eq_smul_one]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable {R L M} in
 lemma trace_toEnd_mul_eq_zero_of_traceForm_eq_zero (h : traceForm R L M = 0)
     (y : End R M) (hy : ∀ z ∈ LieHom.range φ, ⁅y, z⁆ ∈ LieHom.range φ)
@@ -135,7 +134,6 @@ lemma trace_toEnd_mul_eq_zero_of_traceForm_eq_zero (h : traceForm R L M = 0)
   | add u v _ _ hu hv => simp [add_mul, hu, hv]
   | smul t u _ hu => simp [hu]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma traceForm_genWeightSpace_eq [Module.Free R M]
     [IsDomain R] [IsPrincipalIdealRing R]
@@ -218,7 +216,6 @@ lemma eq_zero_of_mem_genWeightSpace_mem_posFitting [LieRing.IsNilpotent L]
   obtain ⟨m, rfl⟩ := (mem_posFittingCompOf R x m₁).mp hm₁ k
   simp [hB, hk]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma trace_toEnd_eq_zero_of_mem_lcs
     {k : ℕ} {x : L} (hk : 1 ≤ k) (hx : x ∈ lowerCentralSeries R L L k) :
     trace R _ (toEnd R L M x) = 0 := by

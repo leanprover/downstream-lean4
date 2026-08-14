@@ -559,7 +559,6 @@ variable [DecidableEq I] [HasInitial C]
   [HasGoodTensor₁₂Tensor X₁ tensorUnit X₃] [HasGoodTensorTensor₂₃ X₁ tensorUnit X₃]
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 lemma triangle :
     (associator X₁ tensorUnit X₃).hom ≫ tensorHom (𝟙 X₁) (leftUnitor X₃).hom =

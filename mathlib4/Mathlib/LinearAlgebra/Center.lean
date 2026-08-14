@@ -95,7 +95,6 @@ theorem commute_transvections_iff_of_basis
   intro j _
   simp [Subring.smul_def, h_allEq i j, hcomm j]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Over a domain, an endomorphism `f` of a free module `V`
 of rank ≠ 1 such that `f v` and `v` are collinear, for all `v : V`,
 consists of homotheties with central ratio.

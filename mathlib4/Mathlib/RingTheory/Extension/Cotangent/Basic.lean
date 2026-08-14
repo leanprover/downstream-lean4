@@ -243,7 +243,6 @@ def Hom.subToKer (f g : Hom P P') : P.Ring →ₗ[R] P'.ker := by
     Submodule.restrictScalars_mem, RingHom.mem_ker, map_sub, algebraMap_toRingHom,
     sub_self, toAlgHom_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable [IsScalarTower R S S'] in
 /--
 If `f` and `g` are two maps `P → P'` between presentations,

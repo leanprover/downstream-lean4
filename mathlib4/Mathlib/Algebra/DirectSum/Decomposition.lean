@@ -256,7 +256,6 @@ abbrev Decomposition.ofLinearMap (decompose : M →ₗ[R] ⨁ i, ℳ i)
 
 variable [Decomposition ℳ]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `M` is graded by `ι` with degree `i` component `ℳ i`, then it is isomorphic as
 a module to a direct sum of components. -/
 def decomposeLinearEquiv : M ≃ₗ[R] ⨁ i, ℳ i :=
@@ -269,7 +268,6 @@ theorem decomposeLinearEquiv_apply (m : M) :
 theorem decomposeLinearEquiv_symm_apply (m : ⨁ i, ℳ i) :
     (decomposeLinearEquiv ℳ).symm m = (decompose ℳ).symm m := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem decompose_smul (r : R) (x : M) : decompose ℳ (r • x) = r • decompose ℳ x :=
   map_smul (decomposeLinearEquiv ℳ) r x

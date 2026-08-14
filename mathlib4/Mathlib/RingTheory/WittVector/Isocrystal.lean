@@ -168,7 +168,6 @@ section PerfectRing
 variable [IsDomain k] [CharP k p] [PerfectRing k p]
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The standard one-dimensional isocrystal of slope `m : ℤ` is an isocrystal. -/
 instance (m : ℤ) : Isocrystal p k (StandardOneDimIsocrystal p k m) where
   frob :=

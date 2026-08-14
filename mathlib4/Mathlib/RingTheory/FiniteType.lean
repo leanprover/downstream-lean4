@@ -374,7 +374,6 @@ end Ring
 
 end Span
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a set `S` generates an additive monoid `M`, then the image of `M` generates, as algebra,
 `R[M]`. -/
 theorem mvPolynomial_aeval_of_surjective_of_closure [AddCommMonoid M] [CommSemiring R] {S : Set M}
@@ -403,7 +402,6 @@ theorem mvPolynomial_aeval_of_surjective_of_closure [AddCommMonoid M] [CommSemir
 
 variable [AddMonoid M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a set `S` generates an additive monoid `M`, then the image of `M` generates, as algebra,
 `R[M]`. -/
 theorem freeAlgebra_lift_of_surjective_of_closure [CommSemiring R] {S : Set M}
@@ -525,7 +523,6 @@ end Ring
 
 end Span
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a set `S` generates a monoid `M`, then the image of `M` generates, as algebra,
 `R[M]`. -/
 theorem mvPolynomial_aeval_of_surjective_of_closure [CommMonoid M] [CommSemiring R] {S : Set M}
@@ -553,7 +550,6 @@ theorem mvPolynomial_aeval_of_surjective_of_closure [CommMonoid M] [CommSemiring
 
 variable [Monoid M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a set `S` generates an additive monoid `M`, then the image of `M` generates, as algebra,
 `R[M]`. -/
 theorem freeAlgebra_lift_of_surjective_of_closure [CommSemiring R] {S : Set M}
@@ -605,7 +601,6 @@ end MonoidAlgebra
 
 section Orzech
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open Submodule Module Module.Finite in
 /--
 Any commutative ring `R` satisfies the `OrzechProperty`, that is, for any finitely generated

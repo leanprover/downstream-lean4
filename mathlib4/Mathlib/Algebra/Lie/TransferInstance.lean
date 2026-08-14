@@ -39,7 +39,6 @@ lemma AddEquiv.bracket_def (e : M ≃+ L) (x y : M) :
     letI := e.lieRing
     ⁅x, y⁆ = e.symm ⁅e x, e y⁆ := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Transfer `LieAlgebra` across a `LinearEquiv` -/
 protected abbrev LinearEquiv.lieAlgebra (e : M ≃ₗ[R] L) :
     letI := e.toAddEquiv.lieRing

@@ -45,7 +45,6 @@ instance IsOpenImmersion.comp {X Y Z : Scheme.{u}} (f : X ⟶ Y) (g : Y ⟶ Z)
 namespace LocallyRingedSpace.IsOpenImmersion
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- To show that a locally ringed space is a scheme, it suffices to show that it has a jointly
 surjective family of open immersions from affine schemes. -/
 protected def scheme (X : LocallyRingedSpace.{u})
@@ -361,7 +360,6 @@ lemma _root_.AlgebraicGeometry.IsOpenImmersion.of_isLocalization {R S} [CommRing
   infer_instance
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem exists_affine_mem_range_and_range_subset
     {X : Scheme.{u}} {x : X} {U : X.Opens} (hxU : x ∈ U) :
     ∃ R, ∃ (f : Spec R ⟶ X), IsOpenImmersion f ∧ x ∈ Set.range f ∧ Set.range f ⊆ U := by

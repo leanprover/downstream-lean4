@@ -123,7 +123,6 @@ instance colimitSMulWithZero : SMulWithZero R (M F) :=
     simp [← colimit_zero_eq] }
 
 instance colimitModule : Module R (M F) :=
-set_option backward.isDefEq.respectTransparency.outParams false in
 { colimitMulAction F,
   colimitSMulWithZero F with
   smul_add := fun r x y => by

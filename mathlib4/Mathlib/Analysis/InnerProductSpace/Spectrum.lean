@@ -326,7 +326,6 @@ theorem apply_eigenvectorBasis (hT : T.IsSymmetric) (hn : Module.finrank 𝕜 E 
     T (hT.eigenvectorBasis hn i) = (hT.eigenvalues hn i : 𝕜) • hT.eigenvectorBasis hn i :=
   mem_eigenspace_iff.mp (hT.hasEigenvector_eigenvectorBasis hn i).1
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- *Diagonalization theorem*, *spectral theorem*; version 2: A self-adjoint operator `T` on a
 finite-dimensional inner product space `E` acts diagonally on the identification of `E` with
 Euclidean space induced by an orthonormal basis of eigenvectors of `T`. -/
@@ -347,7 +346,6 @@ theorem eigenvectorBasis_apply_self_apply (hT : T.IsSymmetric) (hn : Module.finr
   intro a
   rw [smul_smul, mul_comm, ofLp_toLp]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toMatrix_eigenvectorBasis (hT : T.IsSymmetric) (hn : Module.finrank 𝕜 E = n) :
     letI b := (hT.eigenvectorBasis hn).toBasis
     T.toMatrix b b = Matrix.diagonal (RCLike.ofReal ∘ hT.eigenvalues hn) := by

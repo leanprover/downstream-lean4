@@ -122,7 +122,6 @@ lemma toFinsupp_single_tmul (c : A) (z : L) :
     (toFinsupp R A L (AddMonoidAlgebra.single c 1 ⊗ₜ[R] z)) = Finsupp.single c z := by
   simp [← toFinsupp_symm_single]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open Finsupp in
 set_option backward.isDefEq.respectTransparency false in
 /-- The residue pairing on the loop algebra.  When `A = ℤ` and the elements are viewed as Laurent

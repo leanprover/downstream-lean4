@@ -69,7 +69,6 @@ Potential fix: make the following definitions implicit-reducible:
 Then both backward compatibility options can go.
 -/
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.instanceTypes false in
 open MonoidWithZeroHom.ValueGroup₀ in
 lemma isUniformInducing_cast_withVal : IsUniformInducing ((Rat.castHom ℚ_[p]).comp

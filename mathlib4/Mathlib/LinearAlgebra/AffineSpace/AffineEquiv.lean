@@ -655,7 +655,6 @@ section arrowCongrₗ
 
 variable (e₁ : P₁ ≃ᵃ[R] P₂) (e₂ : V₃ ≃ₗ[R] V₄)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- An affine isomorphism between the domains and a linear isomorphism between the codomains of two
 spaces of affine maps give a linear isomorphism between the two function spaces.

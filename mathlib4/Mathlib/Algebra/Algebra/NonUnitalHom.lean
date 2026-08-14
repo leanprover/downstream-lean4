@@ -103,7 +103,6 @@ variable [Semiring R] [Semiring S] {φ : R →+* S}
 -- This needs `DFunLike.coe φ = DFunLike.coe (φ : R →* S)` to hold at `instances` transparency,
 -- which seems reasonable but isn't true at the moment.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 -- see Note [lower instance priority]
 instance (priority := 100) {F R S A B : Type*}
     {_ : Semiring R} {_ : Semiring S} {φ : R →+* S}
@@ -373,7 +372,6 @@ def snd : A × B →ₙₐ[R] B where
 variable {R A B}
 variable [DistribMulAction R C]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The prod of two morphisms is a morphism. -/
 @[simps toFun]
@@ -445,11 +443,9 @@ variable {A B : Type*} [Semiring A] [Semiring B] [Algebra R A]
   [Algebra R B]
 
 -- see Note [lower instance priority]
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 100) [FunLike F A B] [AlgHomClass F R A B] : NonUnitalAlgHomClass F R A B :=
   { ‹AlgHomClass F R A B› with map_smulₛₗ := map_smul }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A unital morphism of algebras is a `NonUnitalAlgHom`. -/
 @[coe]
 def toNonUnitalAlgHom (f : A →ₐ[R] B) : A →ₙₐ[R] B :=
@@ -473,7 +469,6 @@ variable (R : Type*) {S A B : Type*} [Monoid R] [Monoid S]
     [DistribMulAction S A] [DistribMulAction S B] [DistribMulAction R A] [DistribMulAction R B]
     [IsScalarTower R S A] [IsScalarTower R S B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a monoid `R` acts on another monoid `S`, then a non-unital algebra homomorphism
 over `S` can be viewed as a non-unital algebra homomorphism over `R`. -/
 def restrictScalars (f : A →ₙₐ[S] B) : A →ₙₐ[R] B :=

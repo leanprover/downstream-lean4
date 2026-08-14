@@ -96,7 +96,6 @@ instance Lex.isStrictOrder [∀ i, PartialOrder (α i)] :
   trans _ _ _ := lt_trans (α := Lex (∀ i, α i))
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.isStrictOrder [∀ i, PartialOrder (α i)] :
     IsStrictOrder (Colex (Π₀ i, α i)) (· < ·) :=
   Lex.isStrictOrder (ι := ιᵒᵈ)
@@ -123,7 +122,6 @@ theorem Lex.le_iff_of_unique [Unique ι] [∀ i, PartialOrder (α i)] {x y : Lex
   Pi.lex_le_iff_of_unique
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Colex.le_iff_of_unique [Unique ι] [∀ i, PartialOrder (α i)] {x y : Colex (Π₀ i, α i)} :
     x ≤ y ↔ x default ≤ y default :=
   Lex.le_iff_of_unique (ι := ιᵒᵈ)
@@ -151,7 +149,6 @@ instance Lex.total_le : @Std.Total (Lex (Π₀ i, α i)) (· ≤ ·) where
   total := lt_trichotomy_rec (fun h ↦ Or.inl h.le) (fun h ↦ Or.inl h.le) fun h ↦ Or.inr h.le
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.total_le : @Std.Total (Colex (Π₀ i, α i)) (· ≤ ·) :=
   Lex.total_le (ι := ιᵒᵈ)
 
@@ -164,7 +161,6 @@ instance Lex.decidableLE : DecidableLE (Lex (Π₀ i, α i)) :=
     fun h ↦ isFalse fun h' ↦ lt_irrefl _ (h.trans_le h')
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The less-or-equal relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLE : DecidableLE (Colex (Π₀ i, α i)) :=
   Lex.decidableLE (ι := ιᵒᵈ)
@@ -176,7 +172,6 @@ instance Lex.decidableLT : DecidableLT (Lex (Π₀ i, α i)) :=
   lt_trichotomy_rec (fun h ↦ isTrue h) (fun h ↦ isFalse h.not_lt) fun h ↦ isFalse h.asymm
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The less-than relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLT : DecidableLT (Colex (Π₀ i, α i)) :=
   Lex.decidableLT (ι := ιᵒᵈ)
@@ -206,7 +201,6 @@ theorem toLex_monotone : Monotone (@toLex (Π₀ i, α i)) := by
     (h _).lt_of_ne (mem_neLocus.1 <| Finset.min'_mem _ _)⟩
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem toColex_monotone : Monotone (@toColex (Π₀ i, α i)) :=
   toLex_monotone (ι := ιᵒᵈ)
 
@@ -230,7 +224,6 @@ instance Lex.addLeftStrictMono : AddLeftStrictMono (Lex (Π₀ i, α i)) :=
   ⟨fun _ _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr_arg _ (lta j ja), by dsimp; gcongr⟩⟩
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.addLeftStrictMono : AddLeftStrictMono (Colex (Π₀ i, α i)) :=
   Lex.addLeftStrictMono (ι := ιᵒᵈ)
 
@@ -239,7 +232,6 @@ instance Lex.addLeftMono : AddLeftMono (Lex (Π₀ i, α i)) :=
   addLeftMono_of_addLeftStrictMono _
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.addLeftMono : AddLeftMono (Colex (Π₀ i, α i)) :=
   Lex.addLeftMono (ι := ιᵒᵈ)
 
@@ -255,17 +247,14 @@ instance Lex.addRightStrictMono : AddRightStrictMono (Lex (Π₀ i, α i)) :=
     ⟨a, fun j ja ↦ congr_arg (· + ofLex f j) (lta j ja), by dsimp; gcongr⟩⟩
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.addRightStrictMono : AddRightStrictMono (Colex (Π₀ i, α i)) :=
   Lex.addRightStrictMono (ι := ιᵒᵈ)
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Lex.addRightMono : AddRightMono (Lex (Π₀ i, α i)) :=
   addRightMono_of_addRightStrictMono _
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.addRightMono : AddRightMono (Colex (Π₀ i, α i)) :=
   Lex.addRightMono (ι := ιᵒᵈ)
 
@@ -306,7 +295,6 @@ instance Lex.isOrderedCancelAddMonoid [∀ i, AddCommMonoid (α i)] [∀ i, Part
   le_of_add_le_add_left _ _ _ := le_of_add_le_add_left (α := Lex (∀ i, α i))
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.isOrderedCancelAddMonoid [∀ i, AddCommMonoid (α i)] [∀ i, PartialOrder (α i)]
     [∀ i, IsOrderedCancelAddMonoid (α i)] :
     IsOrderedCancelAddMonoid (Colex (Π₀ i, α i)) :=
@@ -318,7 +306,6 @@ instance Lex.isOrderedAddMonoid [∀ i, AddCommGroup (α i)] [∀ i, PartialOrde
   add_le_add_left _ _ := add_le_add_left
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance Colex.isOrderedAddMonoid [∀ i, AddCommGroup (α i)] [∀ i, PartialOrder (α i)]
     [∀ i, IsOrderedAddMonoid (α i)] :
     IsOrderedAddMonoid (Colex (Π₀ i, α i)) :=

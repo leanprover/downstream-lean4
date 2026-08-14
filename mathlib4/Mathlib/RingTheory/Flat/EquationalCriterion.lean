@@ -100,7 +100,6 @@ end Module
 
 namespace Module.Flat
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable (R M) in
 /-- **Equational criterion for flatness**, combined form.
 

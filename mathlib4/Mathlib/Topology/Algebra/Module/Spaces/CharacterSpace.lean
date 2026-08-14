@@ -84,7 +84,6 @@ def toCLM (φ : characterSpace 𝕜 A) : A →L[𝕜] 𝕜 :=
 theorem coe_toCLM (φ : characterSpace 𝕜 A) : ⇑(toCLM φ) = φ :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Elements of the character space are non-unital algebra homomorphisms. -/
 instance instNonUnitalAlgHomClass : NonUnitalAlgHomClass (characterSpace 𝕜 A) 𝕜 A 𝕜 :=
   { CharacterSpace.instContinuousLinearMapClass with
@@ -92,7 +91,6 @@ instance instNonUnitalAlgHomClass : NonUnitalAlgHomClass (characterSpace 𝕜 A)
     map_zero := fun φ => map_zero φ
     map_mul := fun φ => φ.prop.2 }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An element of the character space, as a non-unital algebra homomorphism. -/
 noncomputable def toNonUnitalAlgHom (φ : characterSpace 𝕜 A) : A →ₙₐ[𝕜] 𝕜 where
   toFun := (φ : A → 𝕜)
@@ -137,7 +135,6 @@ section Unital
 variable [CommRing 𝕜] [NoZeroDivisors 𝕜] [TopologicalSpace 𝕜] [ContinuousAdd 𝕜]
   [ContinuousConstSMul 𝕜 𝕜] [TopologicalSpace A] [Semiring A] [Algebra 𝕜 A]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- In a unital algebra, elements of the character space are algebra homomorphisms. -/
 instance instAlgHomClass : AlgHomClass (characterSpace 𝕜 A) 𝕜 A 𝕜 :=
   haveI map_one' : ∀ φ : characterSpace 𝕜 A, φ 1 = 1 := fun φ => by

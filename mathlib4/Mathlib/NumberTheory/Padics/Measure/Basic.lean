@@ -131,7 +131,6 @@ section Prod
 
 -- note we define `contractSnd` first, because `f.curry` only works one way round
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Send a measure `ν` on `Y` and a function `f` on `X × Y` to the function on `X` given by
 `x ↦ ν (f (x, ·))`, or more suggestively, `x ↦ ∫ f(x, y) dμ(y)`. -/
 def contractSnd : D(Y, R) →ₗ[R] C(X × Y, R) →ₗ[R] C(X, R) :=
@@ -187,7 +186,6 @@ def prodMk : D(X, R) →ₗ[R] D(Y, R) →ₗ[R] D(X × Y, R) :=
 @[simp] lemma prodMk_apply (f : C(X × Y, R)) :
   prodMk μ ν f = ν (μ.contractFst f) := (rfl)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- On functions of the form `(x, y) ↦ f x * g y`, the measure `prodMk μ ν` agrees with the
 algebraic tensor product of `μ` and `ν`. -/
 lemma prodMk_prod_apply (f : C(X, R)) (g : C(Y, R)) :
@@ -211,7 +209,6 @@ lemma prodMk'_apply (f : C(X × Y, R)) : (μ.prodMk' ν) f = μ (ν.contractSnd 
 lemma prodMk'_flip (f : C(X × Y, R)) :
     (μ.prodMk' ν) f = (ν.prodMk μ) (f.comp ContinuousMap.prodSwap) := (rfl)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma prodMk'_prod_apply (f : C(X, R)) (g : C(Y, R)) :
     prodMk' μ ν ((f.comp .fst) * (g.comp .snd)) = μ f * ν g := by
   simp only [prodMk'_apply, mul_comm (μ f) (ν g), ← smul_eq_mul, ← map_smul]

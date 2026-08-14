@@ -267,7 +267,6 @@ variable {N2 : Type*} [AddCommGroup N2] [Module R N2]
 variable {N3 : Type*} [AddCommGroup N3] [Module R N3]
 variable (l12 : N1 →ₗ[R] N2) (l23 : N2 →ₗ[R] N3)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 If `M` is faithfully flat, then exactness of `N₁ ⊗ M -> N₂ ⊗ M -> N₃ ⊗ M` implies that the
 composition `N₁ -> N₂ -> N₃` is `0`.

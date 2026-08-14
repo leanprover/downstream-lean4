@@ -259,7 +259,6 @@ instance : Category LightDiagram :=
 
 -- Would need to have a new type synonym for the `FunLike` instance for the induced category.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance hasForget : ConcreteCategory LightDiagram (fun X Y => C(X.toProfinite, Y.toProfinite)) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toProfinite) _
 

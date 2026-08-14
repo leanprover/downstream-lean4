@@ -101,7 +101,6 @@ theorem char_linHom (g : G) :
 
 variable [Fintype G] [Invertible (Nat.card G : k)]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem card_inv_mul_sum_char_eq_finrank :
     (Nat.card G : k)⁻¹ * ∑ g : G, ρ.character g = finrank k (invariants ρ) := by
   have : Invertible (Fintype.card G : k) := by rw [Fintype.card_eq_nat_card]; assumption
@@ -197,7 +196,6 @@ theorem char_linHom (V W : FDRep k G) (g : G) :
 
 variable [Fintype G] [Invertible (Nat.card G : k)]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem average_char_eq_finrank_invariants (V : FDRep k G) :
     (Nat.card G : k)⁻¹ * ∑ g : G, V.character g = finrank k (invariants V.ρ) := by
   have : Invertible (Fintype.card G : k) := by

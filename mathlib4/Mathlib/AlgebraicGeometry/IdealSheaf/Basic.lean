@@ -558,7 +558,6 @@ lemma radical_mul {I J : IdealSheafData X} :
   simp only [radical_ideal, ideal_mul, Pi.mul_apply, Ideal.radical_mul, ideal_inf, Pi.inf_apply]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The vanishing ideal sheaf of a closed set,
 which is the largest ideal sheaf whose support is equal to it.
 The reduced induced scheme structure on the closed set is the quotient of this ideal. -/

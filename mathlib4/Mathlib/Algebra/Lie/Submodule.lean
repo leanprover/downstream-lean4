@@ -521,7 +521,6 @@ variable (R L M)
 -- Defeq abuse: need `FunLike _ (LieSubmodule R L M) (Submodule R M)ᵒᵈ`, get
 -- `FunLike _ (LieSubmodule R L M)ᵒᵈ (Submodule R M)ᵒᵈ`.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance wellFoundedGT_of_noetherian [IsNoetherian R M] : WellFoundedGT (LieSubmodule R L M) :=
   RelHomClass.isWellFounded (toSubmodule_orderEmbedding R L M).dual.ltEmbedding
 

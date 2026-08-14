@@ -174,7 +174,6 @@ variable {R S : Type*} [CommSemiring R] [CommSemiring S] [Algebra R S]
   [Module R M₁₂] [Module S M₁₂] [IsScalarTower R S M₁₂]
   [Module R M₂₃] [Module S M₂₃] [IsScalarTower R S M₂₃]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- (Implementation): Use the more linear `IsTensorProduct.assoc`. -/
@@ -421,7 +420,6 @@ theorem IsBaseChange.equiv_tmul (s : S) (m : M) : h.equiv (s ⊗ₜ m) = s • f
 theorem IsBaseChange.equiv_symm_apply (m : M) : h.equiv.symm (f m) = 1 ⊗ₜ m := by
   rw [h.equiv.symm_apply_eq, h.equiv_tmul, one_smul]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma IsBaseChange.of_equiv (e : S ⊗[R] M ≃ₗ[S] N) (he : ∀ x, e (1 ⊗ₜ x) = f x) :
     IsBaseChange S f := by

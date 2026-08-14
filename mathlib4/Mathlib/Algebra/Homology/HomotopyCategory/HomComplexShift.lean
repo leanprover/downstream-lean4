@@ -390,7 +390,6 @@ lemma shift_units_smul (a : ℤ) (x : Rˣ) :
   dsimp
   simp only [shift_v', units_smul_v]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma rightUnshift_smul {n' a : ℤ} (γ : Cochain K (L⟦a⟧) n') (n : ℤ) (hn : n' + a = n) (x : R) :
     (x • γ).rightUnshift n hn = x • γ.rightUnshift n hn := by
@@ -403,7 +402,6 @@ lemma rightUnshift_units_smul {n' a : ℤ} (γ : Cochain K (L⟦a⟧) n') (n : �
     (x • γ).rightUnshift n hn = x • γ.rightUnshift n hn := by
   apply rightUnshift_smul
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma leftUnshift_smul {n' a : ℤ} (γ : Cochain (K⟦a⟧) L n') (n : ℤ) (hn : n + a = n') (x : R) :
     (x • γ).leftUnshift n hn = x • γ.leftUnshift n hn := by

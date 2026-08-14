@@ -229,7 +229,6 @@ theorem FGModuleCatEvaluation_apply (f : FGModuleCatDual K V) (x : V) :
   contractLeft_apply f x
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `@[simp]`-normal form of `FGModuleCatEvaluation_apply`, where the carriers have been unfolded.
 -/
 @[simp]

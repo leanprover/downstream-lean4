@@ -168,7 +168,6 @@ lemma Module.support_subset_of_surjective (hf : Function.Surjective f) :
   obtain ⟨m, rfl⟩ := hf m
   exact ⟨m, fun r hr e ↦ hm r hr (by simpa using congr(f $e))⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable {f g} in
 /-- Given an exact sequence `0 → M → N → P → 0` of `R`-modules, `Supp N = Supp M ∪ Supp P`. -/
 @[stacks 00L3 "(4)"]

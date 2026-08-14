@@ -531,7 +531,6 @@ theorem norm_expMapBasis_ne_zero (x : realSpace K) :
     mixedEmbedding.norm (mixedSpaceOfRealSpace (expMapBasis x)) ≠ 0 :=
   norm_expMapBasis x ▸ pow_ne_zero _ (Real.exp_ne_zero _)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped Classical in
 theorem logMap_expMapBasis (x : realSpace K) :
     logMap (mixedSpaceOfRealSpace (expMapBasis x)) ∈

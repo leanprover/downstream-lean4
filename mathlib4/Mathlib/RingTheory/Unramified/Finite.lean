@@ -83,7 +83,6 @@ theorem iff_exists_tensorProduct [EssFiniteType R S] :
       use 1 ⊗ₜ[R] s - s ⊗ₜ[R] 1
       linear_combination ht₁ s
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma finite_of_free_aux (I) [DecidableEq I] (b : Basis I R S)
     (f : I →₀ S) (x : S) (a : I → I →₀ R) (ha : a = fun i ↦ b.repr (b i * x)) :
     (1 ⊗ₜ[R] x * Finsupp.sum f fun i y ↦ y ⊗ₜ[R] b i) =

@@ -73,7 +73,6 @@ lemma mulLeftRight_comp_congr (e : A ≃ₐ[R] B) :
     (e.toLinearEquiv.conjAlgEquiv R).toAlgHom.comp (AlgHom.mulLeftRight R A) := by
   ext <;> simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem of_AlgEquiv (e : A ≃ₐ[R] B) [IsAzumaya R A] : IsAzumaya R B :=
   let _ : Module.Projective R B := .of_equiv e.toLinearEquiv
   let _ : FaithfulSMul R B := .of_injective e e.injective

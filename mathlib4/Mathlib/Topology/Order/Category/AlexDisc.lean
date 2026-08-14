@@ -34,7 +34,6 @@ instance category : Category AlexDisc :=
 
 -- Would need to have a new type synonym for the `FunLike` instance for the induced category.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance concreteCategory : ConcreteCategory AlexDisc (C(·, ·)) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toTopCat) _
 

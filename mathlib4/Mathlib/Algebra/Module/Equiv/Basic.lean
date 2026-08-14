@@ -347,7 +347,6 @@ theorem piApply_apply_apply {V : M → Type*}
 variable (R S M)
 variable [Semiring R] [Semiring S] [AddCommMonoid M] [Module R M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The equivalence between R-linear maps from `R` to `M`, and points of `M` itself.
 This says that the forgetful functor from `R`-modules to types is representable, by `R`.
 

@@ -54,7 +54,6 @@ lemma ext {N₁ N₂ : M.Submodule} (h : ∀ X, N₁.obj X = N₂.obj X) :
   cases N₁; cases N₂; congr 1; ext X : 1; exact h X
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[grind .]
 lemma map_mem {X Y : Cᵒᵖ} (f : X ⟶ Y) {x : M.obj X} (hx : x ∈ N.obj X) :
     M.map f x ∈ N.obj Y :=

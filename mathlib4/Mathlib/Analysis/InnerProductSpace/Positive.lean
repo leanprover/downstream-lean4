@@ -539,7 +539,6 @@ theorem LinearMap.IsPositive.toLinearMap_symm {T : E ≃ₗ[𝕜] E} (hT : T.IsP
     inner_smul_left, RCLike.conj_mul, ← RCLike.ofReal_pow, RCLike.ofReal_nonneg]
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- In finite-dimensional spaces, a continuous linear map is positive iff it is equal to the sum
 of rank-one positive operators. -/
 theorem ContinuousLinearMap.isPositive_iff_eq_sum_rankOne [FiniteDimensional 𝕜 E] {T : E →L[𝕜] E} :

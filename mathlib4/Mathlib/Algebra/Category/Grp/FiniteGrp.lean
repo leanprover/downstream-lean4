@@ -50,7 +50,6 @@ instance : Category FiniteGrp :=
 
 -- Would need to have a new type synonym for the `FunLike` instance for the induced category.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 instance : ConcreteCategory FiniteGrp (· →* ·) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toGrp) _

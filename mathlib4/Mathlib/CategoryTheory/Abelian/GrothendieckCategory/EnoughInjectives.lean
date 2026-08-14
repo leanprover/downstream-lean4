@@ -205,7 +205,6 @@ lemma top_mem_range (A₀ : Subobject X) {J : Type w} [LinearOrder J] [OrderBot 
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma exists_ordinal (A₀ : Subobject X) :
     ∃ (o : Ordinal.{w}) (j : o.ToType), transfiniteIterate (largerSubobject hG) j A₀ = ⊤ := by
   let κ := Order.succ (Cardinal.mk (Shrink.{w} (Subobject X)))

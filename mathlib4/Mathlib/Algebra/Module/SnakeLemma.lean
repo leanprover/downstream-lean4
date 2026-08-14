@@ -82,7 +82,6 @@ lemma SnakeLemma.eq_of_eq (x : K₃)
   rw [← sub_eq_zero, ← map_sub, hz₁, hπ₁]
   exact ⟨_, rfl⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /--
 **Snake Lemma**
@@ -123,13 +122,11 @@ def SnakeLemma.δ : K₃ →ₗ[R] C₁ :=
       apply eq_of_eq i₁ i₂ f₁ f₂ hf g₁ h₁ ρ hρ ι₃ π₁ hπ₁ (r • x) _ (H₁ _) _ (H₂ _)
         (r • σ (ι₃ x)) (by simp only [map_smul, H₁]) _ (by simp only [map_smul, H₂]) }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma SnakeLemma.δ_eq (x : K₃) (y) (hy : f₂ y = ι₃ x) (z) (hz : g₁ z = i₂ y) :
     δ i₁ i₂ i₃ f₁ f₂ hf g₁ g₂ hg h₁ h₂ σ hσ ρ hρ ι₃ hι₃ π₁ hπ₁ x = π₁ z :=
   eq_of_eq i₁ i₂ f₁ f₂ hf g₁ h₁ ρ hρ ι₃ π₁ hπ₁ x _ (congr_fun hσ _) _
     (δ_aux i₂ i₃ f₂ g₁ g₂ hg h₂ σ hσ ρ hρ ι₃ hι₃ _) y hy z hz
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 include hι₂ in
 /--
 Suppose we have an exact commutative diagram
@@ -169,7 +166,6 @@ lemma SnakeLemma.exact_δ_right (F : K₂ →ₗ[R] K₃) (hF : f₂.comp ι₂ 
     exact (δ_eq i₁ i₂ i₃ f₁ f₂ hf g₁ g₂ hg h₁ h₂ σ hσ ρ hρ ι₃ hι₃ π₁ hπ₁ _ (ι₂ y) congr($hF y)
       _ (by rw [map_zero, hι₂.apply_apply_eq_zero])).trans π₁.map_zero
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 include hπ₂ in
 /--
 Suppose we have an exact commutative diagram
@@ -207,7 +203,6 @@ lemma SnakeLemma.exact_δ_left (G : C₁ →ₗ[R] C₂) (hF : G.comp π₁ = π
     simp only [δ, coe_mk, AddHom.coe_mk]
     rw [← G.comp_apply, hF, π₂.comp_apply, H₂, hπ₂.apply_apply_eq_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /--
 Suppose we have an exact commutative diagram
 ```
@@ -234,13 +229,11 @@ Also see `SnakeLemma.δ` for a computable version.
 noncomputable def SnakeLemma.δ' (hf₂ : Surjective f₂) (hg₁ : Injective g₁) : K₃ →ₗ[R] C₁ :=
   δ i₁ i₂ i₃ f₁ f₂ hf g₁ g₂ hg h₁ h₂ _ (funext (surjInv_eq hf₂)) _ (invFun_comp hg₁) ι₃ hι₃ π₁ hπ₁
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma SnakeLemma.δ'_eq (hf₂ : Surjective f₂) (hg₁ : Injective g₁)
     (x : K₃) (y) (hy : f₂ y = ι₃ x) (z) (hz : g₁ z = i₂ y) :
     δ' i₁ i₂ i₃ f₁ f₂ hf g₁ g₂ hg h₁ h₂ ι₃ hι₃ π₁ hπ₁ hf₂ hg₁ x = π₁ z :=
   SnakeLemma.δ_eq _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ‹_› ‹_› _ ‹_›
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 include hι₂ in
 /--
 Suppose we have an exact commutative diagram
@@ -268,7 +261,6 @@ lemma SnakeLemma.exact_δ'_right (hf₂ : Surjective f₂) (hg₁ : Injective g�
     Exact F (δ' i₁ i₂ i₃ f₁ f₂ hf g₁ g₂ hg h₁ h₂ ι₃ hι₃ π₁ hπ₁ hf₂ hg₁) :=
   SnakeLemma.exact_δ_right _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ‹_› _ _ _ _ _ ‹_› ‹_›
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 include hπ₂ in
 /--
 Suppose we have an exact commutative diagram

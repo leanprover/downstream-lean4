@@ -517,7 +517,6 @@ lemma Module.FinitePresentation.exists_notMem_bijective [Module.Finite R M]
   obtain ⟨g, hg, h⟩ := exists_bijective_map_powers p.primeCompl fM fN f hf
   exact ⟨g, hg, h g dvd_rfl⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open IsLocalizedModule in
 /--
 Let `M` `N` be a finitely presented `R`-modules.

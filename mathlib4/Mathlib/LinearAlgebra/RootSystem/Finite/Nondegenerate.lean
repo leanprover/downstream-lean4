@@ -95,7 +95,6 @@ instance instIsAnisotropicOfIsCrystallographic [CharZero R] [P.IsCrystallographi
   ne_zero := IsAnisotropic.rootForm_root_ne_zero
   isOrthogonal_reflection := P.rootForm_reflection_reflection_apply
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma smul_coroot_eq_of_root_add_root_eq [P.IsAnisotropic] [IsDomain R] [IsTorsionFree R N]
     {i j k : ι} {m n : R} (hk : m • P.root i + n • P.root j = P.root k) :
     letI Q :=
@@ -377,7 +376,6 @@ lemma coroot_eq_polarizationEquiv_apply_root (i : ι) :
     smul_smul, mul_div_cancel₀ _ h₀]
   norm_cast
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma polarizationEquiv_symm_apply_coroot {i : ι} :
     P.PolarizationEquiv.symm (P.coroot i) = (2 / P.RootForm (P.root i) (P.root i)) • P.root i := by
   simp [coroot_eq_polarizationEquiv_apply_root]

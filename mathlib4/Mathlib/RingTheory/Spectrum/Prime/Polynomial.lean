@@ -71,7 +71,6 @@ lemma isNilpotent_tensor_residueField_iff
 namespace PrimeSpectrum
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `A` be an `R`-algebra.
 `𝔭 : Spec R` is in the image of `Z(I) ∩ D(f) ⊆ Spec S`
 if and only if `f` is not nilpotent on `κ(𝔭) ⊗ A ⧸ I`. -/

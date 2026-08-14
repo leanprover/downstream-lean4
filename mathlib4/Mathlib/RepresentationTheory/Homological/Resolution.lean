@@ -190,7 +190,6 @@ theorem d_of {n : ℕ} (c : Fin (n + 1) → G) :
     d k G n (.single c 1) = ∑ p : Fin (n + 1), .single (c ∘ p.succAbove) ((-1 : k) ^ p.val) := by
   simp [d]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma d_single {n : ℕ} (c : Fin (n + 1) → G) (r : k) :
     d k G n (.single c r) =
       ∑ p : Fin (n + 1), .single (c ∘ p.succAbove) (r * (-1 : k) ^ p.val) := by

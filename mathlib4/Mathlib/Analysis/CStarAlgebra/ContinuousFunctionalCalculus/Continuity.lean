@@ -735,7 +735,6 @@ variable {X 𝕜 A : Type*} {p : A → Prop} [RCLike 𝕜] [NonUnitalNormedRing 
     [NormedSpace 𝕜 A] [IsScalarTower 𝕜 A A] [SMulCommClass 𝕜 A A] [ContinuousStar A]
     [NonUnitalIsometricContinuousFunctionalCalculus 𝕜 A p]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped NonUnitalContinuousFunctionalCalculus ContinuousMapZero in
 /-- `cfcₙHomSuperset` is continuous in the variable `a : A` when `s : Set 𝕜` is compact and `a`
 varies over elements whose spectrum is contained in `s`, all of which satisfy the predicate `p`. -/

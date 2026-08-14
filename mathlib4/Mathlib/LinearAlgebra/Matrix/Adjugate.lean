@@ -255,7 +255,6 @@ theorem cramer_eq_adjugate_mulVec (A : Matrix n n α) (b : n → α) :
   ext k
   simp [mulVec, dotProduct, mul_comm]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem mul_adjugate_apply (A : Matrix n n α) (i j k) :
     A i k * adjugate A k j = cramer Aᵀ (Pi.single k (A i k)) j := by
   rw [← smul_eq_mul, adjugate, of_apply, ← Pi.smul_apply, ← map_smul, ← Pi.single_smul',

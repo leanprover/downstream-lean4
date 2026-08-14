@@ -636,7 +636,6 @@ def cyclesOfIsCycle₁ (x : G →₀ A) (hx : IsCycle₁ x) :
   ⟨x, (mem_cycles₁_iff (A := Rep.ofDistribMulAction k G A) x).2 hx⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCycle₁_of_mem_cycles₁
     (x : G →₀ A) (hx : x ∈ cycles₁ (Rep.ofDistribMulAction k G A)) :
     IsCycle₁ x := by
@@ -651,7 +650,6 @@ def boundariesOfIsBoundary₁ (x : G →₀ A) (hx : IsBoundary₁ x) :
   ⟨x, hx⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isBoundary₁_of_mem_boundaries₁
     (x : G →₀ A) (hx : x ∈ boundaries₁ (Rep.ofDistribMulAction k G A)) :
     IsBoundary₁ x := hx
@@ -665,7 +663,6 @@ def cyclesOfIsCycle₂ (x : G × G →₀ A) (hx : IsCycle₂ x) :
   ⟨x, (mem_cycles₂_iff (A := Rep.ofDistribMulAction k G A) x).2 hx⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCycle₂_of_mem_cycles₂
     (x : G × G →₀ A) (hx : x ∈ cycles₂ (Rep.ofDistribMulAction k G A)) :
     IsCycle₂ x := (mem_cycles₂_iff (A := Rep.ofDistribMulAction k G A) x).1 hx
@@ -679,7 +676,6 @@ def boundariesOfIsBoundary₂ (x : G × G →₀ A) (hx : IsBoundary₂ x) :
   ⟨x, hx⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isBoundary₂_of_mem_boundaries₂
     (x : G × G →₀ A) (hx : x ∈ boundaries₂ (Rep.ofDistribMulAction k G A)) :
     IsBoundary₂ x := hx
@@ -1001,7 +997,6 @@ lemma mkH1OfIsTrivial_apply (g : G) (a : A) :
       H1π A ((cycles₁IsoOfIsTrivial A).inv (single g a)) := rfl
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a `G`-representation on `A` is trivial, this is the natural map `H₁(G, A) → Gᵃᵇ ⊗[ℤ] A`
 sending `⟦single g a⟧` to `⟦g⟧ ⊗ₜ a`. -/
 def H1ToTensorOfIsTrivial : H1 A →ₗ[ℤ] (Additive <| Abelianization G) ⊗[ℤ] A :=

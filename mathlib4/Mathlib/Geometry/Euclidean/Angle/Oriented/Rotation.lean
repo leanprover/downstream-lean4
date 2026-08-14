@@ -58,7 +58,6 @@ theorem rotationAux_apply (θ : Real.Angle) (x : V) :
     o.rotationAux θ x = Real.Angle.cos θ • x + Real.Angle.sin θ • J x :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A rotation by the oriented angle `θ`. -/
 def rotation (θ : Real.Angle) : V ≃ₗᵢ[ℝ] V :=
   LinearIsometryEquiv.ofLinearIsometry (o.rotationAux θ)
@@ -141,7 +140,6 @@ theorem rotation_pi_div_two : o.rotation (π / 2 : ℝ) = J := by
   ext x
   simp [rotation]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Rotating twice is equivalent to rotating by the sum of the angles. -/
 @[simp]
 theorem rotation_rotation (θ₁ θ₂ : Real.Angle) (x : V) :
@@ -277,7 +275,6 @@ theorem rotation_oangle_eq_iff_norm_eq (x y : V) : o.rotation (o.oangle x y) x =
   · intro h
     rw [o.eq_iff_oangle_eq_zero_of_norm_eq] <;> simp [h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The angle between two nonzero vectors is `θ` if and only if the second vector is the first
 rotated by `θ` and scaled by the ratio of the norms. -/
 theorem oangle_eq_iff_eq_norm_div_norm_smul_rotation_of_ne_zero {x y : V} (hx : x ≠ 0) (hy : y ≠ 0)
@@ -347,7 +344,6 @@ theorem exists_linearIsometryEquiv_eq_of_det_pos {f : V ≃ₗᵢ[ℝ] V}
       o.kahler_comp_rightAngleRotation]
   simp [← this]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem rotation_map (θ : Real.Angle) (f : V ≃ₗᵢ[ℝ] V') (x : V') :
     (Orientation.map (Fin 2) f.toLinearEquiv o).rotation θ x = f (o.rotation θ (f.symm x)) := by
   simp [rotation_apply, o.rightAngleRotation_map]

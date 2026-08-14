@@ -131,7 +131,6 @@ variable [NonUnitalContinuousFunctionalCalculus 𝕜 A p] [IsTopologicalRing A] 
 
 open ContinuousMapZero
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open NonUnitalStarAlgebra.elemental in
 protected theorem Commute.cfcₙHom {a b : A} (ha : p a) (hb₁ : Commute a b)
     (hb₂ : Commute (star a) b) (f : C(quasispectrum 𝕜 a, 𝕜)₀) :

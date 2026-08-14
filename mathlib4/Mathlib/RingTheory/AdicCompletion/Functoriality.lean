@@ -102,7 +102,6 @@ theorem map_zero : map I (0 : M →ₗ[R] N) = 0 :=
 
 end AdicCauchySequence
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A linear map induces a map on adic completions. -/
 def map (f : M →ₗ[R] N) :
     AdicCompletion I M →ₗ[AdicCompletion I R] AdicCompletion I N where
@@ -360,7 +359,6 @@ open Submodule
 
 variable {I}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem exists_smodEq_pow_add_one_smul {f : M →ₗ[R] N}
     (h : Function.Surjective (mkQ (I • ⊤) ∘ₗ f)) {y : N} {n : ℕ}

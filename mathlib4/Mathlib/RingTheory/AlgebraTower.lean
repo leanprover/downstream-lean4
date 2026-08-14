@@ -135,7 +135,6 @@ theorem smulTower_repr (x ij) :
 theorem smulTower_repr_mk (x i j) : (b.smulTower c).repr x (i, j) = b.repr (c.repr x j) i :=
   b.smulTower_repr c x (i, j)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem smulTower_apply (ij) : (b.smulTower c) ij = b ij.1 • c ij.2 := by
   classical

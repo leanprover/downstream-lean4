@@ -162,7 +162,6 @@ instance {U : X.OpenCover} (i) [IsLocallyNoetherian X] : IsLocallyNoetherian (U.
   isLocallyNoetherian_of_isOpenImmersion (U.f i)
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `𝒰` is an open cover of a scheme `X`, then `X` is locally Noetherian if and only if
 `𝒰.X i` are all locally Noetherian. -/
 theorem isLocallyNoetherian_iff_openCover (𝒰 : Scheme.OpenCover X) :

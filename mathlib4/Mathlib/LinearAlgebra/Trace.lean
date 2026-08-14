@@ -268,7 +268,6 @@ theorem trace_comp_comm' (f : M →ₗ[R] N) (g : N →ₗ[R] M) :
   simp only [llcomp_apply', compr₂_apply, flip_apply] at h
   exact h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma trace_smulRight (f : M →ₗ[R] R) (x : M) :
     trace R M (f.smulRight x) = f x := by
@@ -361,7 +360,6 @@ lemma isNilpotent_trace_of_isNilpotent {f : M →ₗ[R] M} (hf : IsNilpotent f) 
   apply Matrix.isNilpotent_trace_of_isNilpotent
   simpa
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma trace_comp_eq_mul_of_commute_of_isNilpotent [IsReduced R] {f g : Module.End R M}
     (μ : R) (h_comm : Commute f g) (hg : IsNilpotent (g - algebraMap R _ μ)) :
     trace R M (f ∘ₗ g) = μ * trace R M f := by

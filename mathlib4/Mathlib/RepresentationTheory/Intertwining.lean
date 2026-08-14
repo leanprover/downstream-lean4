@@ -536,7 +536,6 @@ def equivLinearMapAsModule :
   left_inv f := rfl
   right_inv f := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Composition of intertwining maps. -/
 def llcomp : IntertwiningMap σ τ →ₗ[A] IntertwiningMap ρ σ →ₗ[A] IntertwiningMap ρ τ where

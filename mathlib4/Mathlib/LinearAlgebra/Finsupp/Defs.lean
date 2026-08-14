@@ -107,7 +107,6 @@ theorem lhom_ext' ⦃φ ψ : (α →₀ M) →ₛₗ[σ₁₂] N⦄ (h : ∀ a, 
 def lapply (a : α) : (α →₀ M) →ₗ[R] M :=
   { Finsupp.applyAddHom a with map_smul' := fun _ _ => rfl }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance [Nonempty α] [FaithfulSMul R M] : FaithfulSMul R (α →₀ M) :=
   .of_injective (Finsupp.lsingle <| Classical.arbitrary _) (Finsupp.single_injective _)
 
@@ -328,7 +327,6 @@ namespace Module.End
 
 variable (ι : Type*) {R M : Type*} [Semiring R] [AddCommMonoid M] [Module R M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `M` is an `R`-module and `ι` is a type, then an additive endomorphism of `M` that
 commutes with all `R`-endomorphisms of `M` gives rise to an additive endomorphism of `ι →₀ M`
 that commutes with all `R`-endomorphisms of `ι →₀ M`. -/
@@ -350,7 +348,6 @@ that commutes with all `R`-endomorphisms of `ι →₀ M`. -/
 
 variable {ι}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `M` is an `R`-module and `ι` is a nonempty type, then every additive endomorphism
 of `ι →₀ M` that commutes with all `R`-endomorphisms of `ι →₀ M` comes from an additive
 endomorphism of `M` that commutes with all `R`-endomorphisms of `M`.

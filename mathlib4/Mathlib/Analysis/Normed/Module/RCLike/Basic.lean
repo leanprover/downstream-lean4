@@ -59,7 +59,6 @@ theorem ContinuousLinearEquiv.coord_norm' {x : E} (h : x ≠ 0) :
 
 @[deprecated (since := "2026-02-01")] alias coord_norm' := ContinuousLinearEquiv.coord_norm'
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem LinearMap.bound_of_sphere_bound {r : ℝ} (r_pos : 0 < r) (c : ℝ) (f : E →ₗ[𝕜] 𝕜)
     (h : ∀ z ∈ sphere (0 : E) r, ‖f z‖ ≤ c) (z : E) : ‖f z‖ ≤ c / r * ‖z‖ := by
   by_cases z_zero : z = 0

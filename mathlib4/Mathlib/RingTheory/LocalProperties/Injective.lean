@@ -35,7 +35,6 @@ section
 
 universe u' v'
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open IsLocalizedModule in
 theorem Module.injective_of_isLocalizedModule [Small.{v} R] [IsNoetherianRing R] {Rₛ : Type u'}
     [Small.{v'} Rₛ] [CommRing Rₛ] [Algebra R Rₛ] {Mₛ : Type v'} [AddCommGroup Mₛ] [Module R Mₛ]
@@ -114,7 +113,6 @@ variable
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 attribute [local instance] RingHomInvPair.of_ringEquiv in
 include f in
 /--

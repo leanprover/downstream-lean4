@@ -135,7 +135,6 @@ open QuadraticForm
 
 variable {X Y Z : QuadraticModuleCat.{v} R}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Build a `QuadraticForm.IsometryEquiv` from an isomorphism in the category
 `QuadraticModuleCat R`. -/
 @[simps]

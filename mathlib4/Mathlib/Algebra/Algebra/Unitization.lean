@@ -729,7 +729,6 @@ theorem algHom_ext' {φ ψ : Unitization R A →ₐ[R] C}
     φ = ψ :=
   algHom_ext'' (NonUnitalAlgHom.congr_fun h)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A non-unital algebra homomorphism from `A` into a unital `R`-algebra `C` lifts to a unital
 algebra homomorphism from the unitization into `C`. This is extended to an `Equiv` in
 `Unitization.lift` and that should be used instead. This declaration only exists for performance

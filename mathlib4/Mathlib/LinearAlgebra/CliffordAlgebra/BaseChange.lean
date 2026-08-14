@@ -67,7 +67,6 @@ def ofBaseChange (Q : QuadraticForm R V) :
   Algebra.TensorProduct.lift (Algebra.ofId _ _) (ofBaseChangeAux A Q)
     fun _a _x => Algebra.commutes _ _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp] theorem ofBaseChange_tmul_ι (Q : QuadraticForm R V) (z : A) (v : V) :
     ofBaseChange A Q (z ⊗ₜ ι Q v) = ι (Q.baseChange A) (z ⊗ₜ v) := by
   change algebraMap _ _ z * ofBaseChangeAux A Q (ι Q v) = ι (Q.baseChange A) (z ⊗ₜ[R] v)

@@ -127,7 +127,6 @@ protected lemma ext [CharZero R] [IsDomain R] [IsTorsionFree R M]
   · exact hr ▸ he ▸ P₂.coroot_root_two i
   · exact hr ▸ he ▸ P₂.mapsTo_reflection_root i
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 private lemma coroot_eq_coreflection_of_root_eq' [CharZero R] [IsDomain R] [IsTorsionFree R M]
     (p : M →ₗ[R] N →ₗ[R] R) [p.IsPerfPair]
     (root : ι ↪ M)

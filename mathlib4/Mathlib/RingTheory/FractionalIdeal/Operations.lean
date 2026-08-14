@@ -53,7 +53,6 @@ section
 variable {P' : Type*} [CommRing P'] [Algebra R P']
 variable {P'' : Type*} [CommRing P''] [Algebra R P'']
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem _root_.IsFractional.map (g : P →ₐ[R] P') {I : Submodule R P} :
     IsFractional S I → IsFractional S (Submodule.map g.toLinearMap I)
   | ⟨a, a_nonzero, hI⟩ =>
@@ -951,7 +950,6 @@ theorem _root_.IsFractional.mapEquiv {I : Submodule R K} (hI : IsFractional R⁰
     ← map_mul, ← Algebra.smul_def, ← hr', ringEquivOfRingEquiv_algebraMap]
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The equiv `FractionalIdeal R⁰ K ≃+* FractionalIdeal S⁰ L`
   induced by a ring isomorphism `f : R ≃+* S`. -/
 @[simps -isSimp]
@@ -1018,7 +1016,6 @@ lemma ringEquivOfRingEquiv_refl :
   simp [semilinearEquivOfRingEquiv]
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma ringEquivOfRingEquiv_spanSingleton (x : K) :
     FractionalIdeal.ringEquivOfRingEquiv K L f (spanSingleton R⁰ x) =
       spanSingleton S⁰ (IsFractionRing.ringEquivOfRingEquiv (L := L) f x) := by

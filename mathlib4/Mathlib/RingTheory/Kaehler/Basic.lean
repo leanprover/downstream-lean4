@@ -556,7 +556,6 @@ theorem KaehlerDifferential.derivationQuotKerTotal_apply (x) :
     KaehlerDifferential.derivationQuotKerTotal R S x = 1𝖣x :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem KaehlerDifferential.derivationQuotKerTotal_lift_comp_linearCombination :
     (KaehlerDifferential.derivationQuotKerTotal R S).liftKaehlerDifferential.comp
         (Finsupp.linearCombination S (KaehlerDifferential.D R S)) =
@@ -751,7 +750,6 @@ This is the first map in the exact sequence `B ⊗[A] Ω[A⁄R] → Ω[B⁄R] �
 noncomputable def KaehlerDifferential.mapBaseChange : B ⊗[A] Ω[A⁄R] →ₗ[B] Ω[B⁄R] :=
   (TensorProduct.isBaseChange A Ω[A⁄R] B).lift (KaehlerDifferential.map R R A B)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem KaehlerDifferential.mapBaseChange_tmul (x : B) (y : Ω[A⁄R]) :
     KaehlerDifferential.mapBaseChange R A B (x ⊗ₜ y) = x • KaehlerDifferential.map R R A B y := by
@@ -804,7 +802,6 @@ def KaehlerDifferential.kerToTensor :
     algebraMap_eq_smul_one, RingHom.mem_ker.mp x.prop, TensorProduct.zero_tmul, add_zero,
     RingHom.id_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The map `I/I² → B ⊗[A] Ω[A⁄R]` where `I = ker(A → B)`. -/
 noncomputable
 def KaehlerDifferential.kerCotangentToTensor :

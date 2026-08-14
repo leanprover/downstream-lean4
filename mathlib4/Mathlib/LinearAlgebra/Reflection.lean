@@ -85,7 +85,6 @@ lemma involutive_preReflection (h : f x = 2) :
     Involutive (preReflection x f) :=
   fun y ↦ by simp [map_sub, h, two_smul, preReflection_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma preReflection_preReflection (g : Dual R M) (h : f x = 2) :
     preReflection (preReflection x f y) (preReflection f (Dual.eval R M x) g) =
@@ -181,7 +180,6 @@ open Int Polynomial.Chebyshev
 
 variable {x y : M} {f g : Dual R M} (hf : f x = 2) (hg : g y = 2)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A formula for $(r_1 r_2)^m z$, where $m$ is a natural number and $z \in M$. -/
 lemma reflection_mul_reflection_pow_apply (m : ℕ) (z : M)
@@ -276,7 +274,6 @@ lemma reflection_mul_reflection_zpow (m : ℤ)
   ext z
   simpa using reflection_mul_reflection_zpow_apply hf hg m z t ht
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A formula for $(r_1 r_2)^m x$, where $m$ is an integer. This is the special case of
 `Module.reflection_mul_reflection_zpow_apply` with $z = x$. -/
@@ -319,7 +316,6 @@ lemma reflection_mul_reflection_pow_apply_self (m : ℕ)
       ((S R m).eval t + (S R (m - 1)).eval t) • x + ((S R (m - 1)).eval t * -g x) • y :=
   mod_cast reflection_mul_reflection_zpow_apply_self hf hg m t ht
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A formula for $r_2 (r_1 r_2)^m x$, where $m$ is an integer. -/
 lemma reflection_mul_reflection_mul_reflection_zpow_apply_self (m : ℤ)
@@ -343,7 +339,6 @@ end
 
 /-! ### Lemmas used to prove uniqueness results for root data -/
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- See also `Module.Dual.eq_of_preReflection_mapsTo'` for a variant of this lemma which
 applies when `Φ` does not span.
@@ -411,7 +406,6 @@ lemma Dual.eq_of_preReflection_mapsTo' [CharZero R] [IsDomain R] [IsTorsionFree 
 variable {y}
 variable {g : Dual R M}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Composite of reflections in "parallel" hyperplanes is a shear (special case). -/
 lemma reflection_reflection_iterate

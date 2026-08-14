@@ -37,7 +37,6 @@ theorem map_inf [SemilatticeInf α] [LinearOrder β] [FunLike F β α]
 
 -- Defeq abuse: should mediate between `β` and `βᵒᵈ` explicitly
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem map_sup [SemilatticeSup α] [LinearOrder β] [FunLike F β α]
     [RelHomClass F (· > ·) (· > ·)] (a : F) (m n : β) :
     a (m ⊔ n) = a m ⊔ a n :=

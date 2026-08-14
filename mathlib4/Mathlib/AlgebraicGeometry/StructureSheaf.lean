@@ -414,7 +414,6 @@ def toBasicOpenₗ (f : R) :
     exact Submonoid.powers_le (P := (IsUnit.submonoid _).comap (algebraMap R _)).mpr
       (isUnit_basicOpen_end ..)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 theorem toBasicOpenₗ_mk (s : R) (f : M) (g : Submonoid.powers s) :
@@ -626,7 +625,6 @@ instance (x : PrimeSpectrum.Top R) :
       ↑(TopCat.Presheaf.stalk (moduleStructurePresheaf R M).presheaf x) :=
   .of_algebraMap_smul fun _ _ ↦ rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 variable (R M) in
 def modulePresheafStalkIso (x : PrimeSpectrum.Top R) :
@@ -660,7 +658,6 @@ instance (x : PrimeSpectrum.Top R) :
       ((structurePresheafInModuleCat R M).stalk x) :=
   (modulePresheafStalkIso R M x).toAddEquiv.symm.module _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma toStalk_smul (x : PrimeSpectrum.Top R) (r : R)
     (m : (structurePresheafInModuleCat R M).stalk x) :
     toStalk R x r • m = r • m := by
@@ -684,7 +681,6 @@ theorem toOpenₗ_germ (U : Opens (PrimeSpectrum.Top R)) (x : PrimeSpectrum.Top 
   rfl
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isUnit_toStalk (x : PrimeSpectrum.Top R) (f : R) (hf : x ∈ basicOpen f) :
     IsUnit (toStalk R x f) := by
   convert! (isUnit_basicOpen f).map ((structurePresheafInCommRingCat R).germ _ x hf).hom
@@ -713,7 +709,6 @@ def localizationtoStalkₗ (x : PrimeSpectrum.Top R) :
     (LocalizedModule.mkLinearMap x.asIdeal.primeCompl M)
     (toStalkₗ' R M x).hom fun f ↦ isUnit_toStalkₗ' x f.1 f.2 :)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem localizationtoStalkₗ_mk (x : PrimeSpectrum.Top R) (f : M) (s) :
@@ -827,7 +822,6 @@ instance (x : PrimeSpectrum.Top R) :
   rw! [PrimeSpectrum.basicOpen_one]
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 variable (R M) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of
@@ -865,7 +859,6 @@ instance (x : PrimeSpectrum.Top R) : IsLocalizedModule x.asIdeal.primeCompl (toS
   exact congr($this _)
 
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable (R) in
 /-- The stalk of `Spec R` at `x` is isomorphic to the stalk of `R^~` at `x`. -/
 @[expose] public
@@ -994,7 +987,6 @@ instance to_basicOpen_epi (r : R) :
     (CommRingCat.hom_ext_iff.mp h))⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The ring isomorphism between the ring `R` and the global sections `Γ(X, 𝒪ₓ)`. -/
 @[simps! inv]
 def globalSectionsIso : CommRingCat.of R ≅ (structureSheaf R).1.obj (op ⊤) :=

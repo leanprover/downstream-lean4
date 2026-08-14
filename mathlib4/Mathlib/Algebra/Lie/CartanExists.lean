@@ -95,7 +95,6 @@ set_option backward.privateInPublic.warn false in
 lemma lieCharpoly_natDegree [Nontrivial R] : (lieCharpoly R M x y).natDegree = finrank R M := by
   rw [lieCharpoly, (polyCharpoly_monic _ _).natDegree_map, polyCharpoly_natDegree]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
 variable {R} in

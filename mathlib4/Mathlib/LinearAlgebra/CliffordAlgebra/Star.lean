@@ -49,7 +49,6 @@ theorem star_def' (x : CliffordAlgebra Q) : star x = involute (reverse x) :=
 @[simp]
 theorem star_ι (m : M) : star (ι Q m) = -ι Q m := by rw [star_def, involute_ι, map_neg, reverse_ι]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Note that this not match the `star_smul` implied by `StarModule`; it certainly could if we
 also conjugated all the scalars, but there appears to be nothing in the literature that advocates
 doing this. -/

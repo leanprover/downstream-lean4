@@ -148,7 +148,6 @@ theorem pushforward_mono {f g : CompactlySupportedContinuousMap B ℝ} (h : f �
 
 variable [MeasurableSpace C] [BorelSpace C] (μC : Measure C) [hμC : IsHaarMeasure μC]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `φ : A →* B` and `ψ : B →* C` define a short exact sequence of topological groups, then we
 can integrate a continuous compactly supported function on `B` by integrating over `A` and `C`. -/
 @[to_additive /-- If `φ : A →+ B` and `ψ : B →+ C` define a short exact sequence of additive
@@ -165,7 +164,6 @@ noncomputable def integrate : CompactlySupportedContinuousMap B E →ₗ[ℝ] E 
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 theorem integrate_apply (f : CompactlySupportedContinuousMap B E) :
     H.integrate μA μC f = ∫ c, pushforward H μA f c ∂μC :=
@@ -173,7 +171,6 @@ theorem integrate_apply (f : CompactlySupportedContinuousMap B E) :
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 theorem integrate_mono {f g : CompactlySupportedContinuousMap B ℝ} (h : f ≤ g) :
     integrate H μA μC f ≤ integrate H μA μC g :=
@@ -184,7 +181,6 @@ variable [T2Space B] [MeasurableSpace B] [BorelSpace B]
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `φ : A →* B` and `ψ : B →* C` define a short exact sequence of topological groups, then we
 can define a Haar measure on `B` induced by the Haar measures on `A` and `C`. -/
 @[to_additive /-- If `φ : A →+ B` and `ψ : B →+ C` define a short exact sequence of additive
@@ -195,14 +191,12 @@ noncomputable def inducedMeasure : Measure B :=
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 instance inducedMeasure_regular : (inducedMeasure H μA μC).Regular :=
   RealRMK.regular_rieszMeasure _
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 theorem integral_inducedMeasure (f : CompactlySupportedContinuousMap B ℝ) :
     ∫ b : B, f b ∂(inducedMeasure H μA μC) = integrate H μA μC f := by
@@ -210,7 +204,6 @@ theorem integral_inducedMeasure (f : CompactlySupportedContinuousMap B ℝ) :
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[to_additive]
 instance isHaarMeasure_inducedMeasure : IsHaarMeasure (inducedMeasure H μA μC) where
   lt_top_of_isCompact K hK := by
@@ -251,7 +244,6 @@ instance isHaarMeasure_inducedMeasure : IsHaarMeasure (inducedMeasure H μA μC)
 
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- If `φ : A →* B` and `ψ : B →* C` define a short exact sequence of topological groups, and if
 `ψ` is injective on an open set `U`, then the induced measure on `U` is bounded above by

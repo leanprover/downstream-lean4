@@ -65,7 +65,6 @@ variable [CommSemiring R] [Semiring A] [Algebra R A] [Semiring B] [Algebra R B]
   [CoalgebraStruct R A] [CoalgebraStruct R B] [FunLike F A B]
   [BialgHomClass F R A B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance (priority := 100) toAlgHomClass : AlgHomClass F R A B where
   map_mul := map_mul
@@ -316,7 +315,6 @@ end AlgebraCoalgebra
 
 variable [Bialgebra R A] [Bialgebra R B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Construct a bialgebra hom from an algebra hom respecting counit and comultiplication. -/
 @[simps!]
 def ofAlgHom (f : A →ₐ[R] B) (counit_comp : (counitAlgHom R B).comp f = counitAlgHom R A)

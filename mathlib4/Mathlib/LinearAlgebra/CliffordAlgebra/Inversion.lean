@@ -22,7 +22,6 @@ namespace CliffordAlgebra
 
 variable (Q)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If the quadratic form of a vector is invertible, then so is that vector. -/
 @[instance_reducible]
 def invertibleιOfInvertible (m : M) [Invertible (Q m)] : Invertible (ι Q m) where
@@ -43,14 +42,12 @@ theorem isUnit_ι_of_isUnit {m : M} (h : IsUnit (Q m)) : IsUnit (ι Q m) := by
   let := invertibleιOfInvertible Q m
   exact isUnit_of_invertible (ι Q m)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- $aba^{-1}$ is a vector. -/
 theorem ι_mul_ι_mul_invOf_ι (a b : M) [Invertible (ι Q a)] [Invertible (Q a)] :
     ι Q a * ι Q b * ⅟(ι Q a) = ι Q ((⅟(Q a) * QuadraticMap.polar Q a b) • a - b) := by
   rw [invOf_ι, map_smul, mul_smul_comm, ι_mul_ι_mul_ι, ← map_smul, smul_sub, smul_smul, smul_smul,
     invOf_mul_self, one_smul]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- $a^{-1}ba$ is a vector. -/
 theorem invOf_ι_mul_ι_mul_ι (a b : M) [Invertible (ι Q a)] [Invertible (Q a)] :
     ⅟(ι Q a) * ι Q b * ι Q a = ι Q ((⅟(Q a) * QuadraticMap.polar Q a b) • a - b) := by

@@ -868,12 +868,10 @@ lemma Module.mem_annihilator_iff_lsmul_eq_zero {R : Type*} [CommSemiring R]
 instance (priority := low) : (Module.annihilator R M).IsTwoSided :=
   inferInstanceAs (RingHom.ker _).IsTwoSided
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem LinearMap.annihilator_le_of_injective (f : M →ₗ[R] M') (hf : Function.Injective f) :
     Module.annihilator R M' ≤ Module.annihilator R M := fun x h ↦ by
   rw [Module.mem_annihilator] at h ⊢; exact fun m ↦ hf (by rw [map_smul, h, f.map_zero])
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem LinearMap.annihilator_le_of_surjective (f : M →ₗ[R] M')
     (hf : Function.Surjective f) : Module.annihilator R M ≤ Module.annihilator R M' := fun x h ↦ by
   rw [Module.mem_annihilator] at h ⊢

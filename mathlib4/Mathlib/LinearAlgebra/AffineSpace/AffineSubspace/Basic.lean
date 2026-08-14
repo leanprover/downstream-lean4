@@ -531,7 +531,6 @@ alias AffineMap.vectorSpan_image_eq_submodule_map := AffineMap.map_vectorSpan
 
 namespace AffineSubspace
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The image of an affine subspace under an affine map as an affine subspace. -/
 def map (s : AffineSubspace k P₁) : AffineSubspace k P₂ where
   carrier := f '' s
@@ -725,7 +724,6 @@ end
 
 namespace AffineSubspace
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The preimage of an affine subspace under an affine map as an affine subspace. -/
 def comap (f : P₁ →ᵃ[k] P₂) (s : AffineSubspace k P₂) : AffineSubspace k P₁ where
   carrier := f ⁻¹' s

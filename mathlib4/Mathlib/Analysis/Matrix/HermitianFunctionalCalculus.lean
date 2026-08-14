@@ -134,7 +134,6 @@ protected noncomputable def cfc (f : ℝ → ℝ) : Matrix n n 𝕜 :=
 
 -- Abuses the `defeq` that `IsSelfAdjoint` and `IsHermitian` coincide.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma cfcHom_eq_cfcAux : cfcHom hA.isSelfAdjoint = hA.cfcAux :=
   cfcHom_eq_of_continuous_of_map_id hA hA.cfcAux
     hA.isClosedEmbedding_cfcAux.continuous hA.cfcAux_id

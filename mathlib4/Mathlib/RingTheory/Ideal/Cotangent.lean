@@ -103,7 +103,6 @@ lemma cotangentToQuotientSquare_injective : Function.Injective I.cotangentToQuot
   rw [toCotangent_to_quotient_square] at hx
   rwa [Ideal.toCotangent_eq_zero, ← Submodule.Quotient.mk_eq_zero (I ^ 2)]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma Cotangent.smul_eq_zero_of_mem {I : Ideal R}
     {x} (hx : x ∈ I) (m : I.Cotangent) : x • m = 0 := by
   obtain ⟨m, rfl⟩ := Ideal.toCotangent_surjective _ m
@@ -236,7 +235,6 @@ section Lift
 variable {S : Type*} [CommRing S] [Algebra R S] {I : Ideal S}
 variable {M : Type*} [AddCommGroup M] [Module R M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Lift a linear map `f : I →ₗ[R] M` that vanishes on products to a linear map on the
 cotangent space `I ⧸ I ^ 2`. -/
 def lift (f : I →ₗ[R] M) (hf : ∀ (x y : I), f (x * y) = 0) :

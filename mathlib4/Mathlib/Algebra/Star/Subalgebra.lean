@@ -857,7 +857,6 @@ theorem injective_codRestrict (f : A →⋆ₐ[R] B) (S : StarSubalgebra R B) (h
 def rangeRestrict (f : A →⋆ₐ[R] B) : A →⋆ₐ[R] f.range :=
   StarAlgHom.codRestrict f _ fun x => ⟨x, rfl⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The `StarAlgEquiv` onto the range corresponding to an injective `StarAlgHom`. -/
 @[simps]
 noncomputable def _root_.StarAlgEquiv.ofInjective (f : A →⋆ₐ[R] B)

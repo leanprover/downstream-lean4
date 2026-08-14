@@ -439,7 +439,6 @@ theorem smul_mem_dual_one {x : L} (hx : x ∈ dual A K (1 : FractionalIdeal B⁰
 
 variable [IsTorsionFree B C]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem dual_eq_dual_mul_dual :
     dual A K (1 : FractionalIdeal C⁰ M) = dual B L (1 : FractionalIdeal C⁰ M) *
         (dual A K (1 : FractionalIdeal B⁰ L)).extendedHom M C := by
@@ -688,7 +687,6 @@ variable [IsFractionRing B L] [IsDedekindDomain A] [IsDedekindDomain B]
 
 set_option linter.overlappingInstances false
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 include K L in
 lemma pow_sub_one_dvd_differentIdeal_aux
     {p : Ideal A} [p.IsMaximal] (P : Ideal B) {e : ℕ} (he : e ≠ 0) (hp : p ≠ ⊥)
@@ -848,7 +846,6 @@ theorem not_dvd_differentIdeal_of_isCoprime
       exact Ideal.mul_le_right
   exact not_dvd_differentIdeal_of_isCoprime_of_isSeparable A P Q hPQ hP
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma dvd_differentIdeal_of_not_isSeparable
     [Algebra.IsSeparable (FractionRing A) (FractionRing B)]
     {p : Ideal A} [p.IsMaximal] (hp : p ≠ ⊥)

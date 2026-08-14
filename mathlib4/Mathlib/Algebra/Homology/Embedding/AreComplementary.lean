@@ -310,7 +310,6 @@ noncomputable def shortComplexTruncLEX₃ToTruncGE :
   cokernel.desc _ (K.πTruncGE e₂) (ac.hom_ext _)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc (attr := simp)]
 lemma g_shortComplexTruncLEX₃ToTruncGE :
     (K.shortComplexTruncLE e₁).g ≫ K.shortComplexTruncLEX₃ToTruncGE ac = K.πTruncGE e₂ :=

@@ -585,7 +585,6 @@ theorem iff_of_isAffine [IsAffine Y] : P f ↔ Q f := by
     Q.cancel_left_of_respectsIso]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 900) : IsZariskiLocalAtTarget P := by
   let := isLocal_affineProperty P
   apply IsZariskiLocalAtTarget.mk'

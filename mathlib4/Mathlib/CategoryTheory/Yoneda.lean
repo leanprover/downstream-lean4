@@ -1194,7 +1194,6 @@ lemma uliftCoyonedaEquiv_symm_map {X Y : C} (f : X ⟶ Y) {F : C ⥤ Type (max w
   simp
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma uliftCoyonedaEquiv_uliftCoyoneda_map {X Y : Cᵒᵖ} (f : X ⟶ Y) :
     DFunLike.coe (β := fun _ ↦ ULift.{w} (Y.unop ⟶ X.unop))

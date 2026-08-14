@@ -467,7 +467,6 @@ theorem oangle_add_right_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : ℝ
       LinearIsometryEquiv.norm_map, mul_div_assoc, div_self (norm_ne_zero_iff.2 h), mul_one,
       Real.norm_eq_abs, abs_of_pos hr]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An angle in a right-angled triangle expressed using `arctan`, where one side is a multiple
 of a rotation of another by `π / 2`. -/
 theorem oangle_add_left_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : ℝ) :
@@ -494,7 +493,6 @@ theorem tan_oangle_add_left_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : 
       r⁻¹ := by
   rw [o.oangle_add_left_smul_rotation_pi_div_two h, Real.Angle.tan_coe, Real.tan_arctan]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An angle in a right-angled triangle expressed using `arctan`, where one side is a multiple
 of a rotation of another by `π / 2`, version subtracting vectors. -/
 theorem oangle_sub_right_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : ℝ) :
@@ -506,7 +504,6 @@ theorem oangle_sub_right_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : ℝ
   rw [sub_eq_add_neg, hx, o.oangle_add_right_smul_rotation_pi_div_two]
   simpa [hr] using h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An angle in a right-angled triangle expressed using `arctan`, where one side is a multiple
 of a rotation of another by `π / 2`, version subtracting vectors. -/
 theorem oangle_sub_left_smul_rotation_pi_div_two {x : V} (h : x ≠ 0) (r : ℝ) :

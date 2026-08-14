@@ -451,7 +451,6 @@ variable [CommSemiring R]
 variable [NonUnitalNonAssocSemiring A] [Module R A] [NonUnitalNonAssocSemiring B] [Module R B]
 variable [NonUnitalNonAssocSemiring C] [Module R C] [FunLike F A B] [NonUnitalAlgHomClass F R A B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Range of an `NonUnitalAlgHom` as a non-unital subalgebra. -/
 protected def range (φ : F) : NonUnitalSubalgebra R B where
   toNonUnitalSubsemiring := NonUnitalRingHom.srange (φ : A →ₙ+* B)
@@ -480,7 +479,6 @@ theorem range_comp_le_range (f : A →ₙₐ[R] B) (g : B →ₙₐ[R] C) :
     NonUnitalAlgHom.range (g.comp f) ≤ NonUnitalAlgHom.range g :=
   SetLike.coe_mono (Set.range_comp_subset_range f g)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Restrict the codomain of a non-unital algebra homomorphism. -/
 def codRestrict (f : F) (S : NonUnitalSubalgebra R B) (hf : ∀ x, f x ∈ S) : A →ₙₐ[R] S :=
   { NonUnitalRingHom.codRestrict (f : A →ₙ+* B) S.toNonUnitalSubsemiring hf with
@@ -506,7 +504,6 @@ This is the bundled version of `Set.rangeFactorization`. -/
 abbrev rangeRestrict (f : F) : A →ₙₐ[R] (NonUnitalAlgHom.range f : NonUnitalSubalgebra R B) :=
   NonUnitalAlgHom.codRestrict f (NonUnitalAlgHom.range f) (NonUnitalAlgHom.mem_range_self f)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The equalizer of two non-unital `R`-algebra homomorphisms -/
 def equalizer (ϕ ψ : F) : NonUnitalSubalgebra R A where
   carrier := {a | (ϕ a : B) = ψ a}

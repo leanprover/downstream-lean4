@@ -179,7 +179,6 @@ instance (priority := 75) SubmoduleClass.toNormedSpace : NormedSpace 𝕜 s wher
 
 end SeminormedAddCommGroup
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A linear map from a `Module` to a `NormedSpace` induces a `NormedSpace` structure on the
 domain, using the `SeminormedAddCommGroup.induced` norm.
 
@@ -384,7 +383,6 @@ instance MulOpposite.instNormedAlgebra {E : Type*} [SeminormedRing E] [NormedAlg
 
 end NormedAlgebra
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A non-unital algebra homomorphism from an `Algebra` to a `NormedAlgebra` induces a
 `NormedAlgebra` structure on the domain, using the `SeminormedRing.induced` norm.
 

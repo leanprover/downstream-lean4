@@ -245,7 +245,6 @@ instance : LieModule ℤ L M where
   smul_lie n x m := zsmul_lie x m n
   lie_smul n x m := lie_zsmul x m n
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance LinearMap.instLieRingModule : LieRingModule L (M →ₗ[R] N) where
   bracket x f :=
@@ -272,7 +271,6 @@ instance LinearMap.instLieRingModule : LieRingModule L (M →ₗ[R] N) where
 theorem LieHom.lie_apply (f : M →ₗ[R] N) (x : L) (m : M) : ⁅x, f⁆ m = ⁅x, f m⁆ - f ⁅x, m⁆ :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance LinearMap.instLieModule : LieModule R L (M →ₗ[R] N) where
   smul_lie t x f := by
@@ -488,7 +486,6 @@ theorem LieRingModule.compLieHom_apply (x : L₁) (m : M) :
     ⁅x, m⁆ = ⁅f x, m⁆ :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A Lie module may be pulled back along a morphism of Lie algebras. -/
 theorem LieModule.compLieHom [Module R M] [LieModule R L₂ M] :
@@ -567,7 +564,6 @@ theorem toLinearEquiv_injective : Injective ((↑) : (L₁ ≃ₗ⁅R⁆ L₂) �
 theorem coe_injective : @Injective (L₁ ≃ₗ⁅R⁆ L₂) (L₁ → L₂) (↑) :=
   LinearEquiv.coe_injective.comp toLinearEquiv_injective
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance : LinearEquivClass (L₁ ≃ₗ⁅R⁆ L₂) R L₁ L₂ where
   map_add _ _ _ := by
     rw [← coe_toLinearEquiv, map_add]
@@ -951,7 +947,6 @@ theorem toEquiv_injective : Function.Injective (toEquiv : (M ≃ₗ⁅R,L⁆ N) 
 theorem ext (e₁ e₂ : M ≃ₗ⁅R,L⁆ N) (h : ∀ m, e₁ m = e₂ m) : e₁ = e₂ :=
   toEquiv_injective (Equiv.ext h)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance : LinearEquivClass (M ≃ₗ⁅R,L⁆ N) R M N where
   map_add _ _ _ := by
     rw [← coe_toLinearEquiv, map_add]

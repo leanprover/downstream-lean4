@@ -66,7 +66,6 @@ instance (s : S) [GeometricallyIrreducible f] :
   MorphismProperty.pullback_snd _ _ inferInstance
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (s : S) [GeometricallyIrreducible f] : IrreducibleSpace (f.fiber s) :=
   GeometricallyIrreducible.geometrically_irreducibleSpace _ _ _ (.of_hasPullback _ _)
 

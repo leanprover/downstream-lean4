@@ -342,7 +342,6 @@ lemma equivMvPolynomial_symm_X_1 : (equivMvPolynomial R).symm (.X 1) = X := by
 lemma equivMvPolynomial_symm_C (a : R) : (equivMvPolynomial R).symm (.C a) = C (C a) := by
   simp [equivMvPolynomial]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma pderiv_zero_equivMvPolynomial {R : Type*} [CommRing R] (p : R[X][Y]) :
     (equivMvPolynomial R p).pderiv 0 = equivMvPolynomial R
       (PolynomialModule.equivPolynomialSelf (derivative'.mapCoeffs p)) := by

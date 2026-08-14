@@ -29,7 +29,6 @@ instance [Module.Free R M] (x : R) : Module.Free (R ⧸ Ideal.span {x}) (QuotSMu
   Module.Free.of_equiv ((QuotSMulTop.equivQuotTensor x M).extendScalarsOfSurjective
     Ideal.Quotient.mk_surjective).symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open Pointwise in
 lemma Module.free_quotSMulTop_iff_free [Module.FinitePresentation R M] {x : R}
     (mem : x ∈ (⊥ : Ideal R).jacobson) (reg : IsSMulRegular M x) :

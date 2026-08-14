@@ -180,7 +180,6 @@ theorem FinrankQuotientMap.span_eq_top [IsDomain R] [IsDomain S] [Algebra K L] [
 
 variable [hRK : IsFractionRing R K]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `V` be a vector space over `K = Frac(R)`, `S / R` a ring extension
 and `V'` a module over `S`. If `b`, in the intersection `V''` of `V` and `V'`,
 is linear independent over `S` in `V'`, then it is linear independent over `R` in `V`.

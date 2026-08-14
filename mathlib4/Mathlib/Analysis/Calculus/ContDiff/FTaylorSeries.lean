@@ -979,7 +979,6 @@ lemma iteratedFDeriv_comp_sub (n : ℕ) (a : E) (x : E) :
     iteratedFDeriv 𝕜 n (fun z ↦ f (z - a)) x = iteratedFDeriv 𝕜 n f (x - a) := by
   simp [iteratedFDeriv_comp_sub']
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma iteratedFDerivWithin_comp_neg {f : 𝕜 → F} {s : Set 𝕜} (n : ℕ) (a : 𝕜) :
     iteratedFDerivWithin 𝕜 n (fun x ↦ f (-x)) s a
       = (-1 : 𝕜) ^ n • iteratedFDerivWithin 𝕜 n f (-s) (-a) := by

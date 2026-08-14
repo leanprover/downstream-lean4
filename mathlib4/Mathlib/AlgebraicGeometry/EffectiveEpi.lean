@@ -54,7 +54,6 @@ instance effectiveEpi_base_of_flat {X Y : Scheme.{u}} {f : X ⟶ Y} [Flat f] [Su
 namespace EffectiveEpiConstruction
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `π : X ⟶ Y` is a surjective and flat morphism between affine schemes, then any morphism
 `f : X ⟶ S` to an affine scheme `S` whose two pullbacks to `X ×[Y] X` agree descends to a morphism
 `u : Y ⟶ S` with `π ≫ u = f`. -/

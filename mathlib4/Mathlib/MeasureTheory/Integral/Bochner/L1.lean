@@ -589,7 +589,6 @@ theorem integral_sub (f g : α →₁[μ] E) : integral (f - g) = integral f - i
   simp only [integral]
   exact map_sub integralCLM f g
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[integral_simps]
 theorem integral_smul (c : 𝕜) (f : α →₁[μ] E) : integral (c • f) = c • integral f := by
   rw [integral_eq' 𝕜 f, integral_eq' 𝕜 (c • f), map_smul (integralCLM' 𝕜) c f]

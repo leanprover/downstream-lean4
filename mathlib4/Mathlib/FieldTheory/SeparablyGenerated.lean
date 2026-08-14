@@ -63,7 +63,6 @@ theorem aeval_toPolynomialAdjoinImageCompl_eq_zero
   simp_rw [toPolynomialAdjoinImageCompl, ← AlgEquiv.coe_toAlgHom, ← AlgHom.comp_apply]
   congr; ext; aesop (add simp optionEquivLeft_X_some) (add simp optionEquivLeft_X_none)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem irreducible_toPolynomialAdjoinImageCompl {F : MvPolynomial ι k} (hF : Irreducible F) (i : ι)
     (H : AlgebraicIndependent k fun x : {j | j ≠ i} ↦ a x) :
     Irreducible (toPolynomialAdjoinImageCompl F a i) := by
@@ -135,7 +134,6 @@ theorem isAlgebraic_of_mem_vars_of_forall_totalDegree_le (hFa : F.aeval a = 0) (
       (Finsupp.mem_support_iff.mp hσi) ?_, aeval_toPolynomialAdjoinImageCompl_eq_zero hFa ..⟩
   rw [h, Polynomial.coeff_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 include hp H in

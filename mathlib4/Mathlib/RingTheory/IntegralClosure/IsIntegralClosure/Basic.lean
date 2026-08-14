@@ -320,7 +320,6 @@ lemma Polynomial.Monic.quotient_isIntegralElem {g : S[X]} (mon : g.Monic) {I : I
   nth_rw 3 [(as_sum_range_C_mul_X_pow g)]
   simp only [map_sum, algebraMap_eq, RingHom.coe_comp, Function.comp_apply, map_mul, map_pow]⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /- If `I` is an ideal of the polynomial ring `S[X]` and contains a monic polynomial `f`,
 then `S[X]/I` is integral over `S`. -/
 lemma Polynomial.Monic.quotient_isIntegral {g : S[X]} (mon : g.Monic) {I : Ideal S[X]} (h : g ∈ I) :

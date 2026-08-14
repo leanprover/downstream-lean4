@@ -217,7 +217,6 @@ protected theorem map_zero (f : A →A[R] B) : f (0 : A) = 0 := map_zero f
 
 protected theorem map_add (f : A →A[R] B) (x y : A) : f (x + y) = f x + f y := map_add f x y
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem map_smul (f : A →A[R] B) (c : R) (x : A) :
     f (c • x) = c • f x :=
   map_smul ..

@@ -576,7 +576,6 @@ def coind₁ (π : ContRepresentation R G V) :
 lemma coind₁_apply_apply (π : ContRepresentation R G V) (g : G) (f : C(G, V)) (x : G) :
     π.coind₁ g f x = π g (f (g⁻¹ * x)) := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The functoriality of `coind₁`. -/
 @[simps]
 def coind₁Map {π₁ : ContRepresentation R G V} {π₂ : ContRepresentation R G W} (f : π₁ →ⁱL π₂) :

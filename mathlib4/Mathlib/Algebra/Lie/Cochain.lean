@@ -118,7 +118,6 @@ lemma d₁₂_apply_apply_ofTrivial [LieModule.IsTrivial L M] (f : oneCochain R 
     d₁₂ R L M f x y = - f ⁅x, y⁆ := by
   simp [trivial_lie_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The coboundary operator taking degree 2 cochains to a space containing degree 3 cochains. -/
 def d₂₃ : twoCochain R L M →ₗ[R] L →ₗ[R] L →ₗ[R] L →ₗ[R] M where
   toFun a := {

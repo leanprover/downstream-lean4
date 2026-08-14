@@ -128,14 +128,12 @@ theorem contractLeft_ι_mul (a : M) (b : CliffordAlgebra Q) :
   refine foldr'_ι_mul _ _ ?_ _ _ _
   exact fun m x fx ↦ contractLeftAux_contractLeftAux Q d m x fx
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- This is [grinberg_clifford_2016] Theorem 12 -/
 theorem contractRight_mul_ι (a : M) (b : CliffordAlgebra Q) :
     b * ι Q a⌊d = d a • b - b⌊d * ι Q a := by
   rw [contractRight_eq, reverse.map_mul, reverse_ι, contractLeft_ι_mul, map_sub, map_smul,
     reverse_reverse, reverse.map_mul, reverse_ι, contractRight_eq]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem contractLeft_algebraMap_mul (r : R) (b : CliffordAlgebra Q) :
     d⌋(algebraMap _ _ r * b) = algebraMap _ _ r * (d⌋b) := by
   rw [← Algebra.smul_def, map_smul, Algebra.smul_def]
@@ -186,7 +184,6 @@ theorem contractRight_one : (1 : CliffordAlgebra Q)⌊d = 0 := by
 
 variable {Q}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- This is [grinberg_clifford_2016] Theorem 7 -/
 theorem contractLeft_contractLeft (x : CliffordAlgebra Q) : d⌋(d⌋x) = 0 := by
   induction x using CliffordAlgebra.left_induction with
@@ -199,7 +196,6 @@ theorem contractLeft_contractLeft (x : CliffordAlgebra Q) : d⌋(d⌋x) = 0 := b
 theorem contractRight_contractRight (x : CliffordAlgebra Q) : x⌊d⌊d = 0 := by
   rw [contractRight_eq, contractRight_eq, reverse_reverse, contractLeft_contractLeft, map_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- This is [grinberg_clifford_2016] Theorem 8 -/
 theorem contractLeft_comm (x : CliffordAlgebra Q) : d⌋(d'⌋x) = -(d'⌋(d⌋x)) := by
   induction x using CliffordAlgebra.left_induction with
@@ -290,7 +286,6 @@ theorem changeForm_ι_mul_ι (m₁ m₂ : M) :
     changeForm h (ι Q m₁ * ι Q m₂) = ι Q' m₁ * ι Q' m₂ - algebraMap _ _ (B m₁ m₂) := by
   rw [changeForm_ι_mul, changeForm_ι, contractLeft_ι]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Theorem 23 of [grinberg_clifford_2016] -/
 theorem changeForm_contractLeft (d : Module.Dual R M) (x : CliffordAlgebra Q) :
     changeForm h (d⌋x) = d⌋(changeForm h x) := by

@@ -280,7 +280,6 @@ noncomputable def rieszContent (Λ : C_c(X, ℝ≥0) →ₗ[ℝ≥0] ℝ≥0) : 
 lemma rieszContent_ne_top {K : Compacts X} : rieszContent Λ K ≠ ⊤ := by
   simp [rieszContent, ne_eq, not_false_eq_true]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma contentRegular_rieszContent : (rieszContent Λ).ContentRegular := by
   intro K

@@ -228,7 +228,6 @@ def ofCocone {J : Type*} [Category* J] {F : J ⥤ TopModuleCat R}
     naturality {X Y} f := by ext x; exact congr($(c.ι.naturality f).hom x) }
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a colimit cocone over the underlying modules, equipping the cocone point with
 the coinduced topology gives a colimit cocone in `TopModuleCat R`. -/
 def isColimit {J : Type*} [Category* J] {F : J ⥤ TopModuleCat R}
@@ -267,7 +266,6 @@ variable {R}
 
 variable {M : ModuleCat R} {I : Type*} {X : I → TopModuleCat R} (f : ∀ i, M ⟶ (X i).toModuleCat)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The induced topology on `M` from a family of continuous linear maps from `M`, which is the
 coarsest topology that makes every map continuous. -/
 def induced : TopModuleCat R :=
@@ -405,7 +403,6 @@ def freeObj (X : TopCat.{v}) : TopModuleCat.{max v u} R :=
 
 lemma coe_freeObj (X : TopCat.{v}) : freeObj R X = (X →₀ R) := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
@@ -430,7 +427,6 @@ lemma freeMap_map {X Y : TopCat.{v}} (f : X ⟶ Y) (v : X →₀ R) :
     (freeMap R f : (X →₀ R) → (Y →₀ R)) v = Finsupp.mapDomain f.hom v := rfl
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The free topological module over a topological space as a functor.
 This is left adjoint to the forgetful functor. -/
 @[simps] noncomputable
@@ -441,7 +437,6 @@ def free : TopCat.{v} ⥤ TopModuleCat.{max v u} R :=
     map_comp f g := by ext; exact DFunLike.congr_fun (Finsupp.lmapDomain_comp _ _ f.hom g.hom) _ }
 
 set_option backward.isDefEq.instanceTypes false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in

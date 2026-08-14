@@ -66,7 +66,6 @@ instance : FunLike (LeftInvariantDerivation I G) C^∞⟮I, G; 𝕜⟯ C^∞⟮I
   coe f := f.toDerivation
   coe_injective _ _ h := toDerivation_injective <| DFunLike.ext' h
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance : LinearMapClass (LeftInvariantDerivation I G) 𝕜 C^∞⟮I, G; 𝕜⟯ C^∞⟮I, G; 𝕜⟯ where
   map_add f := map_add f.1
   map_smulₛₗ f := map_smul f.1.1
@@ -102,7 +101,6 @@ protected theorem map_neg : X (-f) = -X f := by simp
 
 protected theorem map_sub : X (f - f') = X f - X f' := by simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 protected theorem map_smul : X (r • f) = r • X f := by simp
 
@@ -256,7 +254,6 @@ instance : LieRing (LeftInvariantDerivation I G) where
     simp only [commutator_apply, coe_add, map_sub, Pi.add_apply]
     ring
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance : LieAlgebra 𝕜 (LeftInvariantDerivation I G) where
   lie_smul r Y Z := by

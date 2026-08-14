@@ -147,7 +147,6 @@ def linearEquivFunOnFintype [Fintype ι] : (Π₀ i, M i) ≃ₗ[R] (Π i, M i) 
   map_add' _ _ := by ext; rfl
   map_smul' _ _ := by ext; rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The `DFinsupp` version of `Finsupp.lsum`.
 

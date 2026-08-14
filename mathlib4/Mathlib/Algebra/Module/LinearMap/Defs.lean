@@ -124,7 +124,6 @@ abbrev LinearMapClass (F : Type*) (R : outParam Type*) (M M₂ : Type*)
     [FunLike F M M₂] :=
   SemilinearMapClass F (RingHom.id R) M M₂
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected lemma LinearMapClass.map_smul {R M M₂ : outParam Type*} [Semiring R] [AddCommMonoid M]
     [AddCommMonoid M₂] [Module R M] [Module R M₂]
     {F : Type*} [FunLike F M M₂] [LinearMapClass F R M M₂] (f : F) (r : R) (x : M) :
@@ -334,7 +333,6 @@ protected theorem map_zero : f 0 = 0 :=
 protected theorem map_smulₛₗ (c : R) (x : M) : f (c • x) = σ c • f x :=
   map_smulₛₗ f c x
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem map_smul (c : R) (x : M) : fₗ (c • x) = c • fₗ x :=
   map_smul fₗ c x
 
@@ -363,13 +361,11 @@ section
 
 variable {R S : Type*} [Semiring S] [SMul R M] [Module S M] [SMul R M₂] [Module S M₂]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (priority := 100) IsScalarTower.compatibleSMul [SMul R S]
     [IsScalarTower R S M] [IsScalarTower R S M₂] :
     CompatibleSMul M M₂ R S :=
   ⟨fun fₗ c x ↦ by rw [← smul_one_smul S c x, ← smul_one_smul S c (fₗ x), map_smul]⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance IsScalarTower.compatibleSMul' [SMul R S] [IsScalarTower R S M] :
     CompatibleSMul S M R S where
   map_smul := (IsScalarTower.smulHomClass R S M (S →ₗ[S] M)).map_smulₛₗ
@@ -384,7 +380,6 @@ theorem _root_.LinearMapClass.map_smul_of_tower {F : Type*} [CompatibleSMul M M�
     fₗ (c • x) = c • fₗ x :=
   LinearMap.CompatibleSMul.map_smul (fₗ : M →ₗ[S] M₂) c x
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable (R R) in
 theorem isScalarTower_of_injective [SMul R S] [CompatibleSMul M M₂ R S] [IsScalarTower R S M₂]
     (f : M →ₗ[S] M₂) (hf : Function.Injective f) : IsScalarTower R S M where

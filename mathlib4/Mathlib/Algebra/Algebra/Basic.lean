@@ -251,7 +251,6 @@ namespace LinearMap
 variable {R : Type*} {A : Type*} {B : Type*} [CommSemiring R] [Semiring A] [Semiring B]
   [Algebra R A] [Algebra R B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An alternate statement of `LinearMap.map_smul` for when `algebraMap` is more convenient to
 work with than `•`. -/
 theorem map_algebraMap_mul (f : A →ₗ[R] B) (a : A) (r : R) :
@@ -504,7 +503,6 @@ section invertibility
 variable {R A B : Type*}
 variable [CommSemiring R] [Semiring A] [Semiring B] [Algebra R A] [Algebra R B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If there is a linear map `f : A →ₗ[R] B` that preserves `1`, then `algebraMap R B r` is
 invertible when `algebraMap R A r` is. -/
 abbrev Invertible.algebraMapOfInvertibleAlgebraMap (f : A →ₗ[R] B) (hf : f 1 = 1) {r : R}
@@ -528,7 +526,6 @@ section algebraMap
 
 variable {F E : Type*} [CommSemiring F] [Semiring E] [Algebra F E] (b : F →ₗ[F] E)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `E` is an `F`-algebra, and there exists an injective `F`-linear map from `F` to `E`,
 then the algebra map from `F` to `E` is also injective. -/
 theorem injective_algebraMap_of_linearMap (hb : Injective b) :
@@ -536,7 +533,6 @@ theorem injective_algebraMap_of_linearMap (hb : Injective b) :
   rw [← mul_one x, ← mul_one y, ← smul_eq_mul, ← smul_eq_mul,
     map_smul, map_smul, Algebra.smul_def, Algebra.smul_def, e]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `E` is an `F`-algebra, and there exists a surjective `F`-linear map from `F` to `E`,
 then the algebra map from `F` to `E` is also surjective. -/
 theorem surjective_algebraMap_of_linearMap (hb : Surjective b) :

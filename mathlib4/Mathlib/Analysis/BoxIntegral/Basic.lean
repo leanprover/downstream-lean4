@@ -148,7 +148,6 @@ theorem integralSum_neg (f : ℝⁿ → E) (vol : ι →ᵇᵃ E →L[ℝ] F) (�
     integralSum (-f) vol π = -integralSum f vol π := by
   simp only [integralSum, Pi.neg_apply, (vol _).map_neg, Finset.sum_neg_distrib]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem integralSum_smul (c : ℝ) (f : ℝⁿ → E) (vol : ι →ᵇᵃ E →L[ℝ] F) (π : TaggedPrepartition I) :
     integralSum (c • f) vol π = c • integralSum f vol π := by

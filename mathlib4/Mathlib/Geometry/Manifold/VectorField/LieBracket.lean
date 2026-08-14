@@ -420,7 +420,6 @@ Instance search follows this path:
             └ @Module.toMulActionWithZero
 ```
 -/
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Pulling back through `extChartAt` the scalar multiplication of a vector field by

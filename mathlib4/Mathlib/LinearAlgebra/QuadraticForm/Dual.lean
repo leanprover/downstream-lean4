@@ -81,7 +81,6 @@ section Semiring
 
 variable [CommSemiring R] [AddCommMonoid M] [AddCommMonoid N] [Module R M] [Module R N]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The quadratic form on `Module.Dual R M × M` defined as `Q (f, x) = f x`. -/
 @[simps]
 def dualProd : QuadraticForm R (Module.Dual R M × M) where

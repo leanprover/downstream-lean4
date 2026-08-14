@@ -460,7 +460,6 @@ theorem coe_eq_algebraMap : (DoubleCentralizer.coe 𝕜 : 𝕜 → 𝓜(𝕜, �
   · refine ContinuousLinearMap.ext fun y => ?_
     exact mul_comm y x  -- `snd` multiplies on the wrong side
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The coercion of an algebra into its multiplier algebra as a non-unital star algebra
 homomorphism. -/
 @[simps]

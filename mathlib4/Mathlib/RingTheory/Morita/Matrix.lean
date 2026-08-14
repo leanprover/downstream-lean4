@@ -73,7 +73,6 @@ lemma mem_toModuleCatObj (i : ι) {x : M} :
     x ∈ toModuleCatObj R M i ↔ ∃ y : M, single i i (1 : R) • y = x :=
   Iff.rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable {R} in
 /-- An `R`-linear map between `Eᵢᵢ • M` and `Eᵢᵢ • N` induced by an `Mₙ(R)`-linear map
   from `M` to `N`. -/

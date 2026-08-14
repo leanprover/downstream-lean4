@@ -403,7 +403,6 @@ theorem repr_injective :
   cases g
   congr
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- `b i` is the `i`th basis vector. -/
 instance instFunLike : FunLike (OrthonormalBasis ι 𝕜 E) ι E where
@@ -422,7 +421,6 @@ instance instFunLike : FunLike (OrthonormalBasis ι 𝕜 E) ι E where
           LinearIsometryEquiv.coe_symm_toLinearEquiv] at h ⊢
         rw [h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem coe_ofRepr [DecidableEq ι] (e : E ≃ₗᵢ[𝕜] EuclideanSpace 𝕜 ι) :
     ⇑(OrthonormalBasis.ofRepr e) = fun i => e.symm (EuclideanSpace.single i (1 : 𝕜)) := by
@@ -430,27 +428,23 @@ theorem coe_ofRepr [DecidableEq ι] (e : E ≃ₗᵢ[𝕜] EuclideanSpace 𝕜 �
   funext
   congr!
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem repr_symm_single [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) (i : ι) :
     b.repr.symm (EuclideanSpace.single i (1 : 𝕜)) = b i := by
   dsimp only [DFunLike.coe]
   congr!
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem repr_self [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) (i : ι) :
     b.repr (b i) = EuclideanSpace.single i (1 : 𝕜) := by
   rw [← b.repr_symm_single i, LinearIsometryEquiv.apply_symm_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem repr_apply_apply (b : OrthonormalBasis ι 𝕜 E) (v : E) (i : ι) :
     b.repr v i = ⟪b i, v⟫ := by
   classical
     rw [← b.repr.inner_map_map (b i) v, b.repr_self i, EuclideanSpace.inner_single_left]
     simp only [one_mul, map_one]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem orthonormal (b : OrthonormalBasis ι 𝕜 E) : Orthonormal 𝕜 b := by
   classical
@@ -459,31 +453,25 @@ protected theorem orthonormal (b : OrthonormalBasis ι 𝕜 E) : Orthonormal �
     rw [← b.repr.inner_map_map (b i) (b j), b.repr_self i, b.repr_self j,
       EuclideanSpace.inner_single_left, PiLp.single_apply, map_one, one_mul]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma norm_eq_one (b : OrthonormalBasis ι 𝕜 E) (i : ι) :
     ‖b i‖ = 1 := b.orthonormal.norm_eq_one i
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma nnnorm_eq_one (b : OrthonormalBasis ι 𝕜 E) (i : ι) :
     ‖b i‖₊ = 1 := b.orthonormal.nnnorm_eq_one i
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma enorm_eq_one (b : OrthonormalBasis ι 𝕜 E) (i : ι) :
     ‖b i‖ₑ = 1 := b.orthonormal.enorm_eq_one i
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma inner_eq_zero (b : OrthonormalBasis ι 𝕜 E) {i j : ι} (hij : i ≠ j) :
     ⟪b i, b j⟫ = 0 := b.orthonormal.inner_eq_zero hij
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma inner_eq_one (b : OrthonormalBasis ι 𝕜 E) (i : ι) : ⟪b i, b i⟫ = 1 := by
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma inner_eq_ite [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) (i j : ι) :
     ⟪b i, b j⟫ = if i = j then 1 else 0 := by
   by_cases h : i = j <;> simp [h]
@@ -492,7 +480,6 @@ lemma inner_eq_ite [DecidableEq ι] (b : OrthonormalBasis ι 𝕜 E) (i j : ι) 
 protected def toBasis (b : OrthonormalBasis ι 𝕜 E) : Basis ι 𝕜 E :=
   Basis.ofEquivFun (b.repr.toLinearEquiv.trans (WithLp.linearEquiv 2 𝕜 (ι → 𝕜)))
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem coe_toBasis (b : OrthonormalBasis ι 𝕜 E) : (⇑b.toBasis : ι → E) = ⇑b := rfl
 
@@ -506,22 +493,18 @@ protected theorem coe_toBasis_repr_apply (b : OrthonormalBasis ι 𝕜 E) (x : E
     b.toBasis.repr x i = b.repr x i := by
   simp [← Basis.equivFun_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem sum_repr (b : OrthonormalBasis ι 𝕜 E) (x : E) : ∑ i, b.repr x i • b i = x := by
   simp_rw [← b.coe_toBasis_repr_apply, ← b.coe_toBasis]
   exact b.toBasis.sum_repr x
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped InnerProductSpace in
 protected theorem sum_repr' (b : OrthonormalBasis ι 𝕜 E) (x : E) : ∑ i, ⟪b i, x⟫_𝕜 • b i = x := by
   nth_rw 2 [← (b.sum_repr x)]
   simp_rw [b.repr_apply_apply x]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem sum_repr_symm (b : OrthonormalBasis ι 𝕜 E) (v : EuclideanSpace 𝕜 ι) :
     ∑ i, v i • b i = b.repr.symm v := by simpa using (b.toBasis.equivFun_symm_apply v).symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem sum_inner_mul_inner (b : OrthonormalBasis ι 𝕜 E) (x y : E) :
     ∑ i, ⟪x, b i⟫ * ⟪b i, y⟫ = ⟪x, y⟫ := by
   have := congr_arg (innerSL 𝕜 x) (b.sum_repr y)
@@ -530,7 +513,6 @@ protected theorem sum_inner_mul_inner (b : OrthonormalBasis ι 𝕜 E) (x y : E)
   rw [map_smul, b.repr_apply_apply, mul_comm]
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma sum_sq_norm_inner_right (b : OrthonormalBasis ι 𝕜 E) (x : E) :
     ∑ i, ‖⟪b i, x⟫‖ ^ 2 = ‖x‖ ^ 2 := by
   rw [@norm_eq_sqrt_re_inner 𝕜, ← OrthonormalBasis.sum_inner_mul_inner b x x, map_sum]
@@ -539,13 +521,11 @@ lemma sum_sq_norm_inner_right (b : OrthonormalBasis ι 𝕜 E) (x : E) :
   rw [Real.sq_sqrt]
   exact Fintype.sum_nonneg fun _ ↦ by positivity
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma sum_sq_norm_inner_left (b : OrthonormalBasis ι 𝕜 E) (x : E) :
     ∑ i, ‖⟪x, b i⟫‖ ^ 2 = ‖x‖ ^ 2 := by
   convert! sum_sq_norm_inner_right b x using 2 with i -
   rw [← inner_conj_symm, RCLike.norm_conj]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped RealInnerProductSpace in
 theorem sum_sq_inner_right {E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] (b : OrthonormalBasis ι ℝ E) (x : E) :
@@ -553,14 +533,12 @@ theorem sum_sq_inner_right {E : Type*} [NormedAddCommGroup E]
   rw [← b.sum_sq_norm_inner_right]
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open scoped RealInnerProductSpace in
 theorem sum_sq_inner_left {ι E : Type*} [NormedAddCommGroup E]
     [InnerProductSpace ℝ E] [Fintype ι] (b : OrthonormalBasis ι ℝ E) (x : E) :
     ∑ i : ι, ⟪x, b i⟫ ^ 2 = ‖x‖ ^ 2 := by
   simp_rw [← b.sum_sq_inner_right, real_inner_comm]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma norm_le_card_mul_iSup_norm_inner (b : OrthonormalBasis ι 𝕜 E) (x : E) :
     ‖x‖ ≤ √(Fintype.card ι) * ⨆ i, ‖⟪b i, x⟫‖ := by
   calc ‖x‖
@@ -576,14 +554,12 @@ lemma norm_le_card_mul_iSup_norm_inner (b : OrthonormalBasis ι 𝕜 E) (x : E) 
     · simp
     · exact le_ciSup_of_le (by simp) (Nonempty.some inferInstance) (by positivity)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem orthogonalProjectionOnto_apply_eq_sum {U : Submodule 𝕜 E}
     [U.HasOrthogonalProjection] (b : OrthonormalBasis ι 𝕜 U) (x : E) :
     U.orthogonalProjectionOnto x = ∑ i, ⟪(b i : E), x⟫ • b i := by
   simpa only [b.repr_apply_apply, inner_orthogonalProjectionOnto_eq_of_mem_left] using
     (b.sum_repr (U.orthogonalProjectionOnto x)).symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[deprecated (since := "2026-05-05")] alias orthogonalProjection_apply_eq_sum :=
   OrthonormalBasis.orthogonalProjectionOnto_apply_eq_sum
 
@@ -593,7 +569,6 @@ protected theorem orthogonalProjectionOnto_eq_sum_rankOne {U : Submodule 𝕜 E}
     U.orthogonalProjectionOnto = ∑ i, InnerProductSpace.rankOne 𝕜 (b i) (b i : E) := by
   ext; simp [b.orthogonalProjectionOnto_apply_eq_sum]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[deprecated (since := "2026-05-05")] alias orthogonalProjection_eq_sum_rankOne :=
   OrthonormalBasis.orthogonalProjectionOnto_eq_sum_rankOne
 
@@ -603,7 +578,6 @@ protected theorem starProjection_eq_sum_rankOne {U : Submodule 𝕜 E} [U.HasOrt
     U.starProjection = ∑ i, InnerProductSpace.rankOne 𝕜 (b i : E) (b i : E) := by
   ext; simp [starProjection, b.orthogonalProjectionOnto_eq_sum_rankOne]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma sum_rankOne_eq_id (b : OrthonormalBasis ι 𝕜 E) :
     ∑ i, InnerProductSpace.rankOne 𝕜 (b i) (b i) = .id 𝕜 E := by ext; simp [b.sum_repr']
 
@@ -612,13 +586,11 @@ protected def map {G : Type*} [NormedAddCommGroup G] [InnerProductSpace 𝕜 G]
     (b : OrthonormalBasis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) : OrthonormalBasis ι 𝕜 G where
   repr := L.symm.trans b.repr
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem map_apply {G : Type*} [NormedAddCommGroup G] [InnerProductSpace 𝕜 G]
     (b : OrthonormalBasis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) (i : ι) : b.map L i = L (b i) :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma coe_map {G : Type*} [NormedAddCommGroup G] [InnerProductSpace 𝕜 G]
     (b : OrthonormalBasis ι 𝕜 E) (L : E ≃ₗᵢ[𝕜] G) : ⇑(b.map L) = L ∘ b := rfl
 
@@ -663,7 +635,6 @@ theorem _root_.Module.Basis.toBasis_toOrthonormalBasis (v : Basis ι 𝕜 E) (hv
     LinearEquiv.isometryOfInner_toLinearEquiv]
   exact v.ofEquivFun_equivFun
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem _root_.Module.Basis.coe_toOrthonormalBasis (v : Basis ι 𝕜 E) (hv : Orthonormal 𝕜 v) :
     (v.toOrthonormalBasis hv : ι → E) = (v : ι → E) :=
@@ -681,7 +652,6 @@ variable (ι 𝕜) in
 protected noncomputable def singleton : OrthonormalBasis ι 𝕜 𝕜 :=
   (Basis.singleton ι 𝕜).toOrthonormalBasis (by simp)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem singleton_apply (i) : OrthonormalBasis.singleton ι 𝕜 i = 1 := Basis.singleton_apply _ _ _
 
@@ -689,7 +659,6 @@ theorem singleton_apply (i) : OrthonormalBasis.singleton ι 𝕜 i = 1 := Basis.
 theorem singleton_repr (x i) : (OrthonormalBasis.singleton ι 𝕜).repr x i = x :=
   Basis.singleton_repr _ _ _ _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem coe_singleton : ⇑(OrthonormalBasis.singleton ι 𝕜) = 1 := by
   ext; simp
@@ -716,7 +685,6 @@ theorem _root_.Pi.orthonormalBasis.toBasis {η : Type*} [Fintype η] {ι : η �
     (Pi.orthonormalBasis B).toBasis =
       ((Pi.basis fun i : η ↦ (B i).toBasis).map (WithLp.linearEquiv 2 _ _).symm) := by ext; rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem _root_.Pi.orthonormalBasis_apply {η : Type*} [Fintype η] [DecidableEq η] {ι : η → Type*}
     [∀ i, Fintype (ι i)] {𝕜 : Type*} [RCLike 𝕜] {E : η → Type*} [∀ i, NormedAddCommGroup (E i)]
@@ -749,7 +717,6 @@ protected def mk (hon : Orthonormal 𝕜 v) (hsp : ⊤ ≤ Submodule.span 𝕜 (
     OrthonormalBasis ι 𝕜 E :=
   (Basis.mk (Orthonormal.linearIndependent hon) hsp).toOrthonormalBasis (by rwa [Basis.coe_mk])
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem coe_mk (hon : Orthonormal 𝕜 v) (hsp : ⊤ ≤ Submodule.span 𝕜 (Set.range v)) :
     ⇑(OrthonormalBasis.mk hon hsp) = v := by
@@ -773,7 +740,6 @@ protected def span [DecidableEq E] {v' : ι' → E} (h : Orthonormal 𝕜 v') (s
         rfl)
   e₀.map φ.symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem span_apply [DecidableEq E] {v' : ι' → E} (h : Orthonormal 𝕜 v') (s : Finset ι')
     (i : s) : (OrthonormalBasis.span h s i : E) = v' i := by
@@ -795,7 +761,6 @@ protected def mkOfOrthogonalEqBot (hon : Orthonormal 𝕜 v) (hsp : (span 𝕜 (
       have : CompleteSpace (span 𝕜 (range v)) := FiniteDimensional.complete 𝕜 _
       rwa [orthogonal_eq_bot_iff] at hsp)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem coe_of_orthogonal_eq_bot_mk (hon : Orthonormal 𝕜 v)
     (hsp : (span 𝕜 (Set.range v))ᗮ = ⊥) : ⇑(OrthonormalBasis.mkOfOrthogonalEqBot hon hsp) = v :=
@@ -807,7 +772,6 @@ variable [Fintype ι']
 def reindex (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι') : OrthonormalBasis ι' 𝕜 E :=
   OrthonormalBasis.ofRepr (b.repr.trans (LinearIsometryEquiv.piLpCongrLeft 2 𝕜 𝕜 e))
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected theorem reindex_apply (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι') (i' : ι') :
     (b.reindex e) i' = b (e.symm i') := by
   classical
@@ -821,13 +785,11 @@ protected theorem reindex_apply (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι'
 theorem reindex_toBasis (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι') :
     (b.reindex e).toBasis = b.toBasis.reindex e := Basis.eq_ofRepr_eq_repr fun _ ↦ congr_fun rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem coe_reindex (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι') :
     ⇑(b.reindex e) = b ∘ e.symm :=
   funext (b.reindex_apply e)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 protected theorem repr_reindex (b : OrthonormalBasis ι 𝕜 E) (e : ι ≃ ι') (x : E) (i' : ι') :
     (b.reindex e).repr x i' = b.repr x (e.symm i') := by
@@ -844,7 +806,6 @@ variable (𝕜 ι)
 noncomputable def basisFun : OrthonormalBasis ι 𝕜 (EuclideanSpace 𝕜 ι) :=
   ⟨LinearIsometryEquiv.refl _ _⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem basisFun_apply [DecidableEq ι] (i : ι) : basisFun ι 𝕜 i = EuclideanSpace.single i 1 :=
   PiLp.basisFun_apply _ _ _ _
@@ -852,12 +813,10 @@ theorem basisFun_apply [DecidableEq ι] (i : ι) : basisFun ι 𝕜 i = Euclidea
 @[simp]
 theorem basisFun_repr (x : EuclideanSpace 𝕜 ι) (i : ι) : (basisFun ι 𝕜).repr x i = x i := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem basisFun_inner (x : EuclideanSpace 𝕜 ι) (i : ι) : ⟪basisFun ι 𝕜 i, x⟫ = x i := by
   simp [← OrthonormalBasis.repr_apply_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem inner_basisFun_real (x : EuclideanSpace ℝ ι) (i : ι) :
     inner ℝ x (basisFun ι ℝ i) = x i := by
@@ -885,7 +844,6 @@ lemma equiv_symm : (b.equiv b' e).symm = b'.equiv b e.symm := by
   apply b'.toBasis.ext_linearIsometryEquiv
   simp [OrthonormalBasis.equiv]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma equiv_apply_basis (i : ι) : b.equiv b' e (b i) = b' (e i) := by
   classical
@@ -894,24 +852,20 @@ lemma equiv_apply_basis (i : ι) : b.equiv b' e (b i) = b' (e i) := by
   ext j
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma equiv_self_rfl : b.equiv b (.refl ι) = .refl 𝕜 E := by
   apply b.toBasis.ext_linearIsometryEquiv
   simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 lemma equiv_apply (x : E) : b.equiv b' e x = ∑ i, b.repr x i • b' (e i) := by
   nth_rw 1 [← b.sum_repr x, map_sum]
   simp_rw [map_smul, equiv_apply_basis]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma equiv_apply_euclideanSpace (x : EuclideanSpace 𝕜 ι) :
     (EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι) x = ∑ i, x i • b i := by
   simp_rw [equiv_apply, EuclideanSpace.basisFun_repr, Equiv.refl_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma coe_equiv_euclideanSpace :
     ⇑((EuclideanSpace.basisFun ι 𝕜).equiv b (Equiv.refl ι)) = fun x ↦ ∑ i, x i • b i := by
   simp_rw [← equiv_apply_euclideanSpace]
@@ -942,7 +896,6 @@ theorem Complex.toBasis_orthonormalBasisOneI :
     Complex.orthonormalBasisOneI.toBasis = Complex.basisOneI :=
   Basis.toBasis_toOrthonormalBasis _ _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem Complex.coe_orthonormalBasisOneI :
     (Complex.orthonormalBasisOneI : Fin 2 → ℂ) = ![1, I] := by
@@ -965,7 +918,6 @@ theorem Complex.isometryOfOrthonormal_symm_apply (v : OrthonormalBasis (Fin 2) �
       (v.toBasis.coord 0 f : ℂ) + (v.toBasis.coord 1 f : ℂ) * I := by
   simp [Complex.isometryOfOrthonormal]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Complex.isometryOfOrthonormal_apply (v : OrthonormalBasis (Fin 2) ℝ F) (z : ℂ) :
     Complex.isometryOfOrthonormal v z = z.re • v 0 + z.im • v 1 := by
   simp [Complex.isometryOfOrthonormal, ← v.sum_repr_symm]

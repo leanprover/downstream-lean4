@@ -45,7 +45,6 @@ end Congr
 
 variable {R S M M' M'' : Type*}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma IsSMulRegular.submodule [Semiring R] [AddCommMonoid M] [Module R M]
     (N : Submodule R M) (r : R) (h : IsSMulRegular M r) : IsSMulRegular N r :=
   h.of_injective N.subtype N.injective_subtype
@@ -81,7 +80,6 @@ lemma isSMulRegular_submodule_iff_right_eq_zero_of_smul :
     Subtype.forall.trans <| by
       simp only [SetLike.mk_smul_mk, Submodule.mk_eq_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma isSMulRegular_quotient_iff_mem_of_smul_mem :
     IsSMulRegular (M ⧸ N) r ↔ ∀ x : M, r • x ∈ N → x ∈ N :=
   isSMulRegular_iff_right_eq_zero_of_smul.trans <|
@@ -170,7 +168,6 @@ lemma smul_top_inf_eq_smul_of_isSMulRegular_on_quot :
   exact Eq.trans (congrArg (· ⊓ N) (map_top _)) (map_comap_eq _ _).symm
 
 -- Who knew this didn't rely on exactness at the right!?
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 open Function in
 lemma QuotSMulTop.map_first_exact_on_four_term_exact_of_isSMulRegular_last

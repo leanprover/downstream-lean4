@@ -89,7 +89,6 @@ lemma dualSubmoduleToDual_injective [IsDomain R] (hB : B.Nondegenerate) [IsTorsi
   intro z hz
   simpa using congr_arg (algebraMap R S) (LinearMap.congr_fun e ⟨z, hz⟩)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma dualSubmodule_span_of_basis {ι} [Finite ι] [DecidableEq ι]
     (hB : B.Nondegenerate) (b : Basis ι S M) :
     B.dualSubmodule (Submodule.span R (Set.range b)) =

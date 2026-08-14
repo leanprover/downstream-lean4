@@ -123,7 +123,6 @@ theorem Matrix.Represents.zero : (0 : Matrix ι ι R).Represents b 0 := by
   delta Matrix.Represents
   rw [map_zero, map_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Matrix.Represents.smul {A : Matrix ι ι R} {f : Module.End R M} (h : A.Represents b f)
     (r : R) : (r • A).Represents b (r • f) := by
   delta Matrix.Represents at h ⊢

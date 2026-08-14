@@ -304,7 +304,6 @@ instance : IsScalarTower R (R ⧸ (I • ⊤ : Ideal R)) (M ⧸ (I • ⊤ : Sub
     rw [← Submodule.Quotient.mk_smul, Ideal.Quotient.mk_eq_mk, mk_smul_mk, smul_assoc]
     rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance smul : SMul (AdicCompletion I R) (AdicCompletion I M) where
   smul r x := {
@@ -317,13 +316,11 @@ instance smul : SMul (AdicCompletion I R) (AdicCompletion I M) where
       rw [smul_mk I hmn]
   }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem smul_eval (n : ℕ) (r : AdicCompletion I R) (x : AdicCompletion I M) :
     (r • x).val n = r.val n • x.val n :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `AdicCompletion I M` is naturally an `AdicCompletion I R` module. -/
 instance module : Module (AdicCompletion I R) (AdicCompletion I M) where
   one_smul b := by
@@ -342,7 +339,6 @@ instance : IsScalarTower R (AdicCompletion I R) (AdicCompletion I M) where
     ext n
     rw [smul_eval, val_smul_apply, val_smul_apply, smul_eval, smul_assoc]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- A priori `AdicCompletion I R` has two `AdicCompletion I R`-module instances.
 Both agree definitionally. -/

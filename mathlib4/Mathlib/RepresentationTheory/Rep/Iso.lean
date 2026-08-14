@@ -69,7 +69,6 @@ variable {k : Type u} {G : Type v} [CommRing k] [Monoid G]
 
 open MonoidAlgebra
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Auxiliary lemma for `toModuleMonoidAlgebra`. -/
 theorem to_Module_monoidAlgebra_map_aux {k G : Type*} [CommRing k] [Monoid G] (V W : Type*)
     [AddCommGroup V] [AddCommGroup W] [Module k V] [Module k W] (ρ : G →* V →ₗ[k] V)

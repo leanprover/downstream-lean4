@@ -253,7 +253,6 @@ theorem smulLeftCLM_apply_apply (g : E → ℂ) (f : 𝓢'(E, F)) (f' : 𝓢(E, 
     smulLeftCLM F g f f' = f (SchwartzMap.smulLeftCLM ℂ g f') := by
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem smulLeftCLM_const (c : ℂ) (f : 𝓢'(E, F)) : smulLeftCLM F (fun _ : E ↦ c) f = c • f := by
   ext1; simp
@@ -270,7 +269,6 @@ theorem smulLeftCLM_compL_smulLeftCLM {g₁ g₂ : E → ℂ} (hg₁ : g₁.HasT
   ext1 f
   simp [hg₁, hg₂]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem smulLeftCLM_smul {g : E → ℂ} (hg : g.HasTemperateGrowth) (c : ℂ) :
     smulLeftCLM F (c • g) = c • smulLeftCLM F g := by
   ext f u
@@ -557,7 +555,6 @@ open LineDeriv Real
 
 variable [NormedAddCommGroup F] [NormedSpace ℂ F]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The line derivative in direction `m` of the Fourier transform is given by the Fourier transform
 of the multiplication with `-(2 * π * Complex.I) • (inner ℝ · m)`. -/
 theorem lineDerivOp_fourier_eq (f : 𝓢'(E, F)) (m : E) :
@@ -566,7 +563,6 @@ theorem lineDerivOp_fourier_eq (f : 𝓢'(E, F)) (m : E) :
   have : (inner ℝ · m).HasTemperateGrowth := by fun_prop
   simp [SchwartzMap.fourier_lineDerivOp_eq, ← smulLeftCLM_ofReal ℂ this]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The Fourier transform of line derivative in direction `m` is given by multiplication of
 `(2 * π * Complex.I) • (inner ℝ · m)` with the Fourier transform. -/
 theorem fourier_lineDerivOp_eq (f : 𝓢'(E, F)) (m : E) :
@@ -575,7 +571,6 @@ theorem fourier_lineDerivOp_eq (f : 𝓢'(E, F)) (m : E) :
   have : (inner ℝ · m).HasTemperateGrowth := by fun_prop
   simp [SchwartzMap.lineDerivOp_fourier_eq, ← smulLeftCLM_ofReal ℂ this]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The line derivative in direction `m` of the inverse Fourier transform is given by the inverse
 Fourier transform of the multiplication with `(2 * π * Complex.I) • (inner ℝ · m)`. -/
 theorem lineDerivOp_fourierInv_eq (f : 𝓢'(E, F)) (m : E) :
@@ -584,7 +579,6 @@ theorem lineDerivOp_fourierInv_eq (f : 𝓢'(E, F)) (m : E) :
   have : (inner ℝ · m).HasTemperateGrowth := by fun_prop
   simp [SchwartzMap.fourierInv_lineDerivOp_eq, ← smulLeftCLM_ofReal ℂ this]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The inverse Fourier transform of line derivative in direction `m` is given by multiplication of
 `-(2 * π * Complex.I) • (inner ℝ · m)` with the inverse Fourier transform. -/
 theorem fourierInv_lineDerivOp_eq (f : 𝓢'(E, F)) (m : E) :

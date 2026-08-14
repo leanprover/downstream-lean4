@@ -83,7 +83,6 @@ theorem toMatrix_update [DecidableEq ι'] (x : M) :
   · rw [h, update_self j x v]
   · rw [update_of_ne h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The basis constructed by `unitsSMul` has vectors given by a diagonal matrix. -/
 @[simp]
@@ -124,7 +123,6 @@ theorem toLin_toMatrix [Finite ι] [Fintype ι'] [DecidableEq ι'] (v : Basis ι
     Matrix.toLin v e (e.toMatrix v) = LinearMap.id :=
   v.ext fun i => by cases nonempty_fintype ι; rw [toLin_self, id_apply, e.sum_toMatrix_smul_self]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- From a basis `e : ι → M`, build a linear equivalence between families of vectors `v : ι → M`,
 and matrices, making the matrix whose columns are the vectors `v i` written in the basis `e`. -/
 def toMatrixEquiv [Fintype ι] (e : Basis ι R M) : (ι → M) ≃ₗ[R] Matrix ι ι R where

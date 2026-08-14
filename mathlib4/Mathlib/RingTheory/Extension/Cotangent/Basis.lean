@@ -55,7 +55,6 @@ variable {P} {b}
 variable (D : Aux P b)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `T = R[X₁, ..., Xₙ] / (b₁, ..., bᵣ)` where the `bᵢ` are lifts of the basis elements
 of `I/I²` in `I`. -/
 abbrev T :=
@@ -347,7 +346,6 @@ Then `respectTransparency false` and `instanceTypes false` can both go.
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 open PresentationOfFreeCotangent in
 /--
 Version of `Algebra.Generators.exists_presentation_of_free_cotangent` taking a basis instead
@@ -403,7 +401,6 @@ public lemma exists_presentation_of_basis_cotangent [Algebra.FinitePresentation 
 
 open PresentationOfFreeCotangent in
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `S` be a finitely presented `R`-algebra and suppose `P : R[X] → S` generates `S` with
 kernel `I`. If `I/I²` is free, there exists an `R`-presentation `P'` of `S` extending `P` with
 kernel `I'`, such that `I'/I'²` is free on the images of the relations of `P'`.

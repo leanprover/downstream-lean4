@@ -710,7 +710,6 @@ theorem rescale_mul (a b : σ → R) : rescale (a * b) = (rescale b).comp (resca
   ext
   simp [← rescale_rescale]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- Rescaling a homogeneous power series -/
 lemma rescale_homogeneous_eq_smul {n : ℕ} {r : R} {f : MvPowerSeries σ R}

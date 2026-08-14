@@ -147,7 +147,6 @@ variable {X Y Z : Type v}
 variable [Ring X] [Ring Y] [Ring Z]
 variable [Bialgebra R X] [Bialgebra R Y] [Bialgebra R Z]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Build an isomorphism in the category `BialgCat R` from a
 `BialgEquiv`. -/
 @[simps]

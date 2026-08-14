@@ -104,7 +104,6 @@ theorem lineDeriv_eq_fourierMultiplierCLM (m : E) (f : 𝓢(E, F)) :
 
 open Laplacian
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem laplacian_eq_fourierMultiplierCLM (f : 𝓢(E, F)) :
     Δ f = -(2 * π) ^ 2 • fourierMultiplierCLM F (‖·‖ ^ 2) f := by
   let ι := Fin (Module.finrank ℝ E)
@@ -153,7 +152,6 @@ theorem fourierMultiplierCLM_apply_apply (g : E → ℂ) (f : 𝓢'(E, F)) (u : 
     fourierMultiplierCLM F g f u = f (𝓕 (SchwartzMap.smulLeftCLM ℂ g (𝓕⁻ u))) := by
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem fourierMultiplierCLM_const (c : ℂ) :
     fourierMultiplierCLM F (fun (_ : E) ↦ c) = c • ContinuousLinearMap.id _ _ := by
@@ -207,7 +205,6 @@ theorem lineDeriv_eq_fourierMultiplierCLM (m : E) (f : 𝓢'(E, F)) :
 
 open Laplacian
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem laplacian_eq_fourierMultiplierCLM (f : 𝓢'(E, F)) :
     Δ f = -(2 * π) ^ 2 • fourierMultiplierCLM F (fun x ↦ Complex.ofReal (‖x‖ ^ 2)) f := by
   let ι := Fin (Module.finrank ℝ E)

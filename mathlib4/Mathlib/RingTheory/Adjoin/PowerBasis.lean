@@ -92,7 +92,6 @@ variable {R : Type*} [CommRing R] [Algebra R S] [Algebra R K] [IsScalarTower R K
 variable {A : Type*} [CommRing A] [Algebra R A] [Algebra S A]
 variable [IsScalarTower R S A] {B : PowerBasis S A}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If `B : PowerBasis S A` is such that `IsIntegral R B.gen`, then
 `IsIntegral R (B.basis.repr (B.gen ^ n) i)` for all `i` if
 `minpoly S B.gen = (minpoly R B.gen).map (algebraMap R S)`. This is the case if `R` is a GCD domain
@@ -168,7 +167,6 @@ theorem repr_pow_isIntegral (hB : IsIntegral R B.gen) {x : A}
     rw [pow_succ]
     exact repr_mul_isIntegral hB (fun _ => hn _ le_rfl (fun _ => hx _) _) hx hmin
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Let `B B' : PowerBasis K S` be such that `IsIntegral R B.gen`, and let `P : R[X]` be such that
 `aeval B.gen P = B'.gen`. Then `IsIntegral R (B.basis.to_matrix B'.basis i j)` for all `i` and `j`
 if `minpoly K B.gen = (minpoly R B.gen).map (algebraMap R L)`. This is the case

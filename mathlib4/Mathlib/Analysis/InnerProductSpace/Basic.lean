@@ -874,7 +874,6 @@ section Induced
 variable {G : Type*} [SeminormedAddCommGroup E] [InnerProductSpace 𝕜 E] [AddCommGroup G]
     [Module 𝕜 G]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A linear map from a `Module` to an `InnerProductSpace` induces an `InnerProductSpace`
 structure on the domain using the `SeminormedAddCommGroup.induced` norm.
 

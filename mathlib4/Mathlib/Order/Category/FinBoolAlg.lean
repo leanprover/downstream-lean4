@@ -61,7 +61,6 @@ instance largeCategory : LargeCategory FinBoolAlg :=
 
 -- Would need to have a new type synonym for the `FunLike` instance for the induced category.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance concreteCategory : ConcreteCategory FinBoolAlg (BoundedLatticeHom · ·) :=
   inferInstanceAs <| ConcreteCategory (InducedCategory _ toBoolAlg) _
 

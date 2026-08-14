@@ -222,7 +222,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {L : Submodule ℤ E} [DiscreteTopology L] [IsZLattice ℝ L]
 variable {ι : Type*} [Fintype ι] (b : Basis ι ℤ L)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- A version of `ZLattice.covolume.tendsto_card_div_pow` for the general case;
 see the `Naming convention` section in the introduction. -/
@@ -254,7 +253,6 @@ private theorem tendsto_card_le_div''_aux
     (inv_pos_of_pos hc).le, inv_pow, inv_mul_le_iff₀ (pow_pos hc _), mul_one, and_congr_left_iff]
   exact fun _ ↦ ⟨fun h ↦ (smul_inv_smul₀ hc.ne' x) ▸ hX h hc, fun h ↦ hX h (inv_pos_of_pos hc)⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A version of `ZLattice.covolume.tendsto_card_le_div` for the general case;
 see the `Naming conventions` section in the introduction. -/
 theorem tendsto_card_le_div'' [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]

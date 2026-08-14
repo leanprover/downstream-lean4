@@ -68,7 +68,6 @@ instance (s : S) [GeometricallyReduced f] :
   MorphismProperty.pullback_snd _ _ inferInstance
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (s : S) [GeometricallyReduced f] : IsReduced (f.fiber s) :=
   GeometricallyReduced.geometrically_isReduced _ _ _ (.of_hasPullback _ _)
 

@@ -224,7 +224,6 @@ we have `Module k[G] (restrictScalars k k[G] M)`.
 -/
 
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem ofModule_asAlgebraHom_apply_apply (r : k[G])
@@ -494,7 +493,6 @@ end
 variable {k G V : Type*} [CommSemiring k] [Group G] [AddCommMonoid V] [Module k V]
   (ρ : Representation k G V)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma asAlgebraHom_ofMulAction_smul_eq_mul (x y : k[G]) :
     (ofMulAction k G G).asAlgebraHom x y = x * y := by
@@ -739,7 +737,6 @@ lemma free_single_single (g h : G) (i : α) (r : k) :
 variable (k G) (α : Type*)
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The free `k[G]`-module on a type `α` is isomorphic to the representation `free k G α`. -/
 noncomputable def finsuppLEquivFreeAsModule : (α →₀ k[G]) ≃ₗ[k[G]] (free k G α).asModule where
   toAddEquiv := (asModuleEquiv _).symm.toAddEquiv

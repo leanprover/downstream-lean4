@@ -155,7 +155,6 @@ variable (𝕜 : Type*) [CommSemiring 𝕜]
 variable (A : Type*) [TopologicalSpace A] [Semiring A] [IsTopologicalSemiring A] [StarRing A]
 variable [ContinuousStar A] [Algebra 𝕜 A]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `ContinuousMap.compStarAlgHom'` as a `StarAlgEquiv` when the continuous map `f` is
 actually a homeomorphism. -/
 @[simps]

@@ -403,7 +403,6 @@ theorem logEmbeddingQuot_apply (x : (𝓞 K)ˣ) :
       logEmbedding K (Additive.ofMul x) := rfl
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem logEmbeddingQuot_injective :
     Function.Injective (logEmbeddingQuot K) := by
   unfold logEmbeddingQuot

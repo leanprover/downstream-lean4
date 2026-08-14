@@ -263,7 +263,6 @@ end IsPrecomplete
 
 namespace AdicCompletion
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `AdicCompletion` is the submodule of compatible families in
 `∀ n : ℕ, M ⧸ (I ^ n • ⊤)`. -/
 def submodule : Submodule R (∀ n : ℕ, M ⧸ (I ^ n • ⊤ : Submodule R M)) where
@@ -679,7 +678,6 @@ theorem of_ofLinearEquiv_symm (x : AdicCompletion I M) :
 
 end Bijective
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 theorem pow_smul_top_le_ker_eval (n : ℕ) : I ^ n • ⊤ ≤ (eval I M n).ker := by
   simp only [smul_le, mem_top, LinearMap.mem_ker, map_smul, coe_eval, forall_const]

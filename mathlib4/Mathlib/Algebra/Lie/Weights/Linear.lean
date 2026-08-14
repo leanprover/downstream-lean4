@@ -96,7 +96,6 @@ end Weight
 
 attribute [local instance 100] LieRing.ofAssociativeRing
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- For an Abelian Lie algebra, the weights of any Lie module are linear. -/
 instance instLinearWeightsOfIsLieAbelian [IsLieAbelian L] [IsDomain R] [Module.IsTorsionFree R M] :
     LinearWeights R L M :=
@@ -136,7 +135,6 @@ lemma zero_lt_finrank_genWeightSpace {χ : L → R} (hχ : genWeightSpace M χ �
   rwa [← LieSubmodule.nontrivial_iff_ne_bot, ← rank_pos_iff_nontrivial (R := R), ← finrank_eq_rank,
     Nat.cast_pos] at hχ
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- In characteristic zero, the weights of any finite-dimensional Lie module are linear and vanish
 on the derived ideal. -/
 instance instLinearWeightsOfCharZero [CharZero R] :

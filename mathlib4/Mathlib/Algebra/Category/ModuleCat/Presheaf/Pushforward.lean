@@ -141,7 +141,6 @@ can go.
 -/
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `@[simp]`-normal form of `pushforward_obj_map_apply`. -/
 @[simp]
 lemma pushforward_obj_map_apply' (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f : X ⟶ Y)
@@ -177,7 +176,6 @@ can go.
 -/
 set_option backward.isDefEq.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `@[simp]`-normal form of `pushforward_map_app_apply`. -/
 @[simp]
 lemma pushforward_map_app_apply' {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (X : Cᵒᵖ)

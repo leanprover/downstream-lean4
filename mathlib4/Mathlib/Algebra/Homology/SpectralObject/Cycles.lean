@@ -295,7 +295,6 @@ noncomputable def toCycles (n : ℤ) :
   kernel.lift _ ((X.H n).map (twoδ₁Toδ₀ f g fg h)) (by simp)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (n : ℤ) : Epi (X.toCycles f g fg h n) :=
   (ShortComplex.exact_iff_epi_kernel_lift _).1 (X.exact₃ f g fg h n (n + 1))
 
@@ -328,7 +327,6 @@ noncomputable def fromOpcycles (n : ℤ) :
   cokernel.desc _ ((X.H n).map (twoδ₂Toδ₁ f g fg h)) (by simp)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance (n : ℤ) : Mono (X.fromOpcycles f g fg h n) :=
   (ShortComplex.exact_iff_mono_cokernel_desc _).1 (X.exact₁ f g fg h (n - 1) n)
 

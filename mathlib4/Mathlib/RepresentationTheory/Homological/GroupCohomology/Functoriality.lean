@@ -46,7 +46,6 @@ theorem congr {f₁ f₂ : G →* H} (h : f₁ = f₂) {φ : res f₁ A ⟶ B} {
   subst h
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a group homomorphism `f : G →* H` and a representation morphism `φ : Res(f)(A) ⟶ B`,
 this is the chain map sending `x : Hⁿ → A` to `(g : Gⁿ) ↦ φ (x (f ∘ g))`. -/
 @[simps! -isSimp f f_hom]
@@ -60,18 +59,15 @@ noncomputable def cochainsMap :
     simpa [inhomogeneousCochains.d_hom_apply, Fin.comp_contractNth, CochainComplex.of.d]
       using! (hom_comm_apply φ _ _).symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma cochainsMap_id :
     cochainsMap (MonoidHom.id _) (𝟙 A) = 𝟙 (inhomogeneousCochains A) := by
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma cochainsMap_id_f_hom_eq_compLeft {A B : Rep k G} (f : A ⟶ B) (i : ℕ) :
     ((cochainsMap (MonoidHom.id G) f).f i).hom = f.hom.toLinearMap.compLeft _ := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc]
 lemma cochainsMap_comp {G H K : Type u} [Group G] [Group H]
     [Group K] {A : Rep k K} {B : Rep k H} {C : Rep k G} (f : H →* K) (g : G →* H)
@@ -80,18 +76,15 @@ lemma cochainsMap_comp {G H K : Type u} [Group G] [Group H]
       cochainsMap f φ ≫ cochainsMap g ψ := by
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc]
 lemma cochainsMap_id_comp {A B C : Rep k G} (φ : A ⟶ B) (ψ : B ⟶ C) :
     cochainsMap (MonoidHom.id G) (φ ≫ ψ) =
       cochainsMap (MonoidHom.id G) φ ≫ cochainsMap (MonoidHom.id G) ψ := by
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma cochainsMap_zero : cochainsMap (A := A) (B := B) f 0 = 0 := by rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma cochainsMap_f_map_mono (hf : Function.Surjective f) [Mono φ] (i : ℕ) :
     Mono ((cochainsMap f φ).f i) := by
   simpa [ModuleCat.mono_iff_injective] using!
@@ -102,7 +95,6 @@ instance cochainsMap_id_f_map_mono {A B : Rep k G} (φ : A ⟶ B) [Mono φ] (i :
     Mono ((cochainsMap (MonoidHom.id G) φ).f i) :=
   cochainsMap_f_map_mono (MonoidHom.id G) φ (fun x => ⟨x, rfl⟩) i
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma cochainsMap_f_map_epi (hf : Function.Injective f) [Epi φ] (i : ℕ) :
     Epi ((cochainsMap f φ).f i) := by
   simpa [ModuleCat.epi_iff_surjective] using!
@@ -125,7 +117,6 @@ lemma cochainsMap_congr {f g : G →* H} {φ : res f A ⟶ B} {ψ : res g A ⟶ 
     cochainsMap f φ = cochainsMap g ψ := by
   subst hfg; congr; ext; simp [hφψ]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma cocyclesMap_id : cocyclesMap (MonoidHom.id G) (𝟙 B) n = 𝟙 _ :=
   HomologicalComplex.cyclesMap_id _ _
@@ -162,7 +153,6 @@ theorem π_map (n : ℕ) :
     π A n ≫ map f φ n = cocyclesMap f φ n ≫ π B n := by
   simp [map, cocyclesMap]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma map_id : map (MonoidHom.id G) (𝟙 B) n = 𝟙 _ := HomologicalComplex.homologyMap_id _ _
 
@@ -225,12 +215,10 @@ lemma cochainsMap_f_0_comp_cochainsIso₀ :
   simp only [cochainsMap_f, Unique.eq_default (f ∘ _)]
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc (attr := simp), elementwise (attr := simp)]
 lemma cochainsMap_f_1_comp_cochainsIso₁ :
     (cochainsMap f φ).f 1 ≫ (cochainsIso₁ B).hom = (cochainsIso₁ A).hom ≫ cochainsMap₁ f φ := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc (attr := simp), elementwise (attr := simp)]
 lemma cochainsMap_f_2_comp_cochainsIso₂ :
     (cochainsMap f φ).f 2 ≫ (cochainsIso₂ B).hom = (cochainsIso₂ A).hom ≫ cochainsMap₂ f φ := by
@@ -239,7 +227,6 @@ lemma cochainsMap_f_2_comp_cochainsIso₂ :
   rcongr x
   fin_cases x <;> rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[reassoc (attr := simp), elementwise (attr := simp)]
 lemma cochainsMap_f_3_comp_cochainsIso₃ :
     (cochainsMap f φ).f 3 ≫ (cochainsIso₃ B).hom = (cochainsIso₃ A).hom ≫ cochainsMap₃ f φ := by
@@ -344,7 +331,6 @@ lemma mapCocycles₁_comp_i :
 lemma coe_mapCocycles₁ (x) :
     ⇑(mapCocycles₁ f φ x) = cochainsMap₁ f φ x := rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[reassoc (attr := simp), elementwise (attr := simp)]
 lemma cocyclesMap_comp_isoCocycles₁_hom :
@@ -532,10 +518,8 @@ noncomputable def cochainsFunctor : Rep k G ⥤ CochainComplex (ModuleCat k) ℕ
   map_comp φ ψ := cochainsMap_comp (MonoidHom.id G) (MonoidHom.id G) φ ψ
 
 instance : (cochainsFunctor k G).PreservesZeroMorphisms where
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance : (cochainsFunctor k G).Additive where
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The functor sending a `G`-representation `A` to `Hⁿ(G, A)`. -/
 @[simps]
@@ -547,14 +531,12 @@ noncomputable def functor (n : ℕ) : Rep k G ⥤ ModuleCat k where
     simp only [← HomologicalComplex.homologyMap_comp]
     rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 instance (n : ℕ) : (functor k G n).PreservesZeroMorphisms where
   map_zero _ _ := by simp [map]
 
 variable {G}
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given a group homomorphism `f : G →* H`, this is a natural transformation between the functors
 sending `A : Rep k H` to `Hⁿ(H, A)` and to `Hⁿ(G, Res(f)(A))`. -/
@@ -569,7 +551,6 @@ noncomputable def resNatTrans (n : ℕ) :
       ← cochainsMap_comp, res_obj_ρ, Category.comp_id]
     rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given a normal subgroup `S ≤ G`, this is a natural transformation between the functors
 sending `A : Rep k G` to `Hⁿ(G ⧸ S, A^S)` and to `Hⁿ(G, A)`. -/

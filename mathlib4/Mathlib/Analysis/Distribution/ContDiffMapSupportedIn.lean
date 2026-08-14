@@ -313,7 +313,6 @@ lemma toBoundedContinuousFunctionLM_eq_of_scalars (𝕜' : Type*) [NontriviallyN
     (toBoundedContinuousFunctionLM 𝕜 : 𝓓^{n}_{K}(E, F) → _) = toBoundedContinuousFunctionLM 𝕜' :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable {𝕜} in
 -- Note: generalizing this to a semilinear setting would require a semilinear version of
 -- `CompatibleSMul`.
@@ -541,7 +540,6 @@ instance isUniformAddGroup : IsUniformAddGroup 𝓓^{n}_{K}(E, F) := by
   rw [ContDiffMapSupportedIn.uniformSpace_eq_iInf]
   exact isUniformAddGroup_iInf fun _ ↦ IsUniformAddGroup.comap _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance continuousSMul : ContinuousSMul 𝕜 𝓓^{n}_{K}(E, F) :=
   continuousSMul_iInf fun i ↦ continuousSMul_induced (structureMapLM 𝕜 n i)
 
@@ -954,7 +952,6 @@ protected theorem integrable_bilin (B : F₁ →L[𝕜] F₂ →L[𝕜] F₃) {�
 
 variable [SMulCommClass ℝ 𝕜 F₁] [NormedSpace ℝ F₃] [SMulCommClass ℝ 𝕜 F₃]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 -- TODO: semilinearize
 /-- Given a continuous `𝕜`-bilinear map `B : F₁ →L[𝕜] F₂ →L[𝕜] F₃`, a measure `μ` on `E`,
 and a function `φ : E → F₂` which is `μ`-integrable on `K`, this is the `𝕜`-linear map

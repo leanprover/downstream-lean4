@@ -150,7 +150,6 @@ end LeibnizProperties
 
 -- this can also be proved via `dotProduct_eq_zero_iff` and `triple_product_eq_det`, but
 -- that would require much heavier imports.
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma crossProduct_ne_zero_iff_linearIndependent {F : Type*} [Field F] {v w : Fin 3 → F} :
     crossProduct v w ≠ 0 ↔ LinearIndependent F ![v, w] := by
   rw [not_iff_comm]

@@ -146,7 +146,6 @@ theorem tprod_mul_tprod {na nb} (a : Fin na → M) (b : Fin nb → M) :
   apply funext
   apply Fin.addCases <;> simp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem one_mul {n} (a : ⨂[R]^n M) : cast R M (zero_add n) (ₜ1 ₜ* a) = a := by
   rw [gMul_def, gOne_def]
   induction a using PiTensorProduct.induction_on with
@@ -159,7 +158,6 @@ theorem one_mul {n} (a : ⨂[R]^n M) : cast R M (zero_add n) (ₜ1 ₜ* a) = a :
   | add x y hx hy =>
     rw [TensorProduct.tmul_add, map_add, map_add, hx, hy]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem mul_one {n} (a : ⨂[R]^n M) : cast R M (add_zero _) (a ₜ* ₜ1) = a := by
   rw [gMul_def, gOne_def]
   induction a using PiTensorProduct.induction_on with
@@ -211,19 +209,16 @@ theorem algebraMap₀_eq_smul_one (r : R) : (algebraMap₀ r : (⨂[R]^0) M) = r
 theorem algebraMap₀_one : (algebraMap₀ 1 : (⨂[R]^0) M) = ₜ1 :=
   (algebraMap₀_eq_smul_one 1).trans (one_smul _ _)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem algebraMap₀_mul {n} (r : R) (a : ⨂[R]^n M) :
     cast R M (zero_add _) (algebraMap₀ r ₜ* a) = r • a := by
   rw [gMul_eq_coe_linearMap, algebraMap₀_eq_smul_one, LinearMap.map_smul₂, map_smul,
     ← gMul_eq_coe_linearMap, one_mul]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem mul_algebraMap₀ {n} (r : R) (a : ⨂[R]^n M) :
     cast R M (add_zero _) (a ₜ* algebraMap₀ r) = r • a := by
   rw [gMul_eq_coe_linearMap, algebraMap₀_eq_smul_one, map_smul, map_smul, ← gMul_eq_coe_linearMap,
     mul_one]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem algebraMap₀_mul_algebraMap₀ (r s : R) :
     cast R M (add_zero _) (algebraMap₀ r ₜ* algebraMap₀ s) = algebraMap₀ (r * s) := by
   rw [← smul_eq_mul, map_smul]

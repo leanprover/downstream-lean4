@@ -289,7 +289,6 @@ section Module.IsTorsionFree
 
 set_option backward.isDefEq.respectTransparency false in
 -- Can't be an instance because the basis can't be inferred.
-set_option backward.isDefEq.respectTransparency.outParams false in
 protected lemma isTorsionFree (b : Basis ι R M) :
     Module.IsTorsionFree R M := b.repr.injective.moduleIsTorsionFree _ (by simp)
 

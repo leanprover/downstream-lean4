@@ -379,7 +379,6 @@ theorem iff_of_iSup_eq_top [IsAffine Y] {ι : Type*}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance : IsZariskiLocalAtSource P := by
   apply HasAffineProperty.isZariskiLocalAtSource
   intro X Y f _ 𝒰

@@ -311,7 +311,6 @@ section SMulRight
 variable [Semiring R] [AddCommMonoid M] [AddCommMonoid M₁] [Module R M] [Module R M₁]
 variable [Semiring S] [Module R S] [Module S M] [IsScalarTower R S M]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- When `f` is an `R`-linear map taking values in `S`, then `fun b ↦ f b • x` is an `R`-linear
 map. -/
 def smulRight (f : M₁ →ₗ[R] S) (x : M) : M₁ →ₗ[R] M where
@@ -380,7 +379,6 @@ variable [CommSemiring R] [AddCommMonoid M] [AddCommMonoid M₂] [AddCommMonoid 
 variable [Module R M] [Module R M₂] [Module R M₃]
 variable (f : M →ₗ[R] M₂)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Applying a linear map at `v : M`, seen as a linear map from `M →ₗ[R] M₂` to `M₂`.
 See also `LinearMap.applyₗ'` for a version that works with two different semirings.
 

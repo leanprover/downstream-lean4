@@ -159,7 +159,6 @@ theorem add_left (x y z : E) : inner_ 𝕜 (x + y) z = inner_ 𝕜 x z + inner_ 
   abel_nf at * -- TODO this should be `module_nf` (then the `smul_add` above can go)
   linear_combination (- h1 + h2 + h3 - h4 + I * (- h5 + h6 + h7 - h8)) / 8
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 private theorem rat_prop (r : ℚ) : innerProp' E (r : 𝕜) := by
   intro x y
   let hom : 𝕜 →ₗ[ℚ] 𝕜 := AddMonoidHom.toRatLinearMap <|

@@ -299,7 +299,6 @@ lemma lie_incl_mem_ker {E : Extension R M L} (x : E.L) (y : M) :
     ⁅x, E.incl y⁆ ∈ E.proj.ker := by
   rw [LieHom.mem_ker, LieHom.map_lie, proj_incl, lie_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- The Lie algebra isomorphism from the kernel of an extension to the kernel of the projection. -/
 noncomputable def toKer (E : Extension R M L) :
@@ -352,7 +351,6 @@ lemma ringModuleOf_bracket_proj [IsLieAbelian M] (E : Extension R M L) (y : M) (
     Subtype.ext_iff, LieSubmodule.coe_bracket, lie_toKer_apply, ZeroMemClass.coe_zero, ← hx,
     LieHom.coe_toLinearMap, ← LieHom.map_lie, trivial_lie_zero M M x y, map_zero]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given an extension of `L` by `M` whose kernel `M` is abelian, the kernel `M` gets an `R`-linear
 `L`-module structure. We do not make this an instance, because we may have to work with more than
 one extension. -/
@@ -425,7 +423,6 @@ noncomputable def twoCocycleOf [IsLieAbelian M] (E : Extension R M L) {s : L →
       sub_add_cancel_right, map_add, neg_add_rev]
     abel_nf
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 1-cochain attached to a pair of splittings of an extension. -/
 @[simps]
 noncomputable def oneCochainOfTwoSplitting (E : Extension R M L) {s₁ s₂ : L →ₗ[R] E.L}

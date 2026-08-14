@@ -181,7 +181,6 @@ theorem range_proj_eq_span (A : Finset β) :
     use b i
     rw [ContinuousLinearMap.coe_coe, proj_apply_basis_mem, ite_eq_left (Finset.mem_coe.mp hi)]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 open scoped Classical in
 /-- Composition of projections: `proj A (proj B x) = proj (A ∩ B) x`. -/
@@ -476,7 +475,6 @@ lemma basisCoeff_spec (n : ℕ) (x : X) :
     basisCoeff D n x • D.e n = (succSub D.P n) x :=
   Classical.choose_spec (exists_coeff D n x)
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Constructs a Schauder basis from rank one decomposition. -/
 def basis : SchauderBasis 𝕜 X :=
   let coeff := basisCoeff D

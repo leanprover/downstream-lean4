@@ -238,7 +238,6 @@ noncomputable instance instNormedRing : NormedRing (Unitization 𝕜 A) where
   norm_mul_le := normedRingAux.norm_mul_le
   norm := normedRingAux.norm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Pull back the normed algebra structure from `𝕜 × (A →L[𝕜] A)` to `Unitization 𝕜 A` using the
 algebra homomorphism `Unitization.splitMul 𝕜 A`. -/
 instance instNormedAlgebra : NormedAlgebra 𝕜 (Unitization 𝕜 A) where

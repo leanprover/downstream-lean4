@@ -497,11 +497,9 @@ section StarHomClass
 variable {B F : Type*} [AddCommGroup B] [Module ℂ B] [StarAddMonoid B] [StarModule ℂ B]
     [FunLike F A B] [StarHomClass F A B] [LinearMapClass F ℂ A B]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma map_realPart (f : F) (x : A) : f (ℜ x) = ℜ (f x) := by
   simp [realPart_apply_coe, ← Complex.coe_smul, map_star]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma map_imaginaryPart (f : F) (x : A) : f (ℑ x) = ℑ (f x) := by
   simp [imaginaryPart_apply_coe, ← Complex.coe_smul, map_star]
 
@@ -655,7 +653,6 @@ lemma mem_unitary_iff_isStarNormal_and_realPart_sq_add_imaginaryPart_sq_eq_one [
     exact ⟨this, by simp [sq, ← star_mul_self_eq_realPart_sq_add_imaginaryPart_sq x, h]⟩
   · simp [← hx.star_comm_self.eq, star_mul_self_eq_realPart_sq_add_imaginaryPart_sq, ← sq, h]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 instance {F E A : Type*} [AddCommGroup E] [PartialOrder E]
     [StarAddMonoid E] [SelfAdjointDecompose E] [Module ℂ E] [StarModule ℂ E]
     [NonUnitalRing A] [PartialOrder A] [StarRing A]

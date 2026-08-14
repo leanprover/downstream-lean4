@@ -32,7 +32,6 @@ variable (f₁ : M₁ →ₗ[R] M₁') [IsLocalizedModule S f₁]
 variable {M₂ M₂'} [AddCommMonoid M₂] [AddCommMonoid M₂'] [Module R M₂] [Module R M₂']
 variable (f₂ : M₂ →ₗ[R] M₂') [IsLocalizedModule S f₂]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Localization of modules is an exact functor, proven here for `LocalizedModule`.
 See `IsLocalizedModule.map_exact` for the more general version. -/
 lemma LocalizedModule.map_exact (g : M₀ →ₗ[R] M₁) (h : M₁ →ₗ[R] M₂) (ex : Exact g h) :

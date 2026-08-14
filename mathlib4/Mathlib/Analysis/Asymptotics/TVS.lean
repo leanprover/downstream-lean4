@@ -417,7 +417,6 @@ lemma isLittleOTVS_sup : f =o[𝕜; l₁ ⊔ l₂] g ↔ f =o[𝕜; l₁] g ∧ 
 lemma IsLittleOTVS.sup (hf₁ : f =o[𝕜; l₁] g) (hf₂ : f =o[𝕜; l₂] g) : f =o[𝕜; l₁ ⊔ l₂] g :=
   isLittleOTVS_sup.mpr ⟨hf₁, hf₂⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma _root_.ContinuousLinearMap.isBigOTVS_id {l : Filter E} (f : E →L[𝕜] F) : f =O[𝕜; l] id :=
   ⟨fun U hU ↦ ⟨f ⁻¹' U, (map_continuous f).tendsto' 0 0 (map_zero f) hU, .of_forall <|
     (mapsTo_preimage f U).egauge_le 𝕜 f⟩⟩
@@ -428,7 +427,6 @@ lemma _root_.ContinuousLinearMap.isBigOTVS_comp (g : E →L[𝕜] F) : (g ∘ f)
 lemma _root_.ContinuousLinearMap.isBigOTVS_fun_comp (g : E →L[𝕜] F) : (g <| f ·) =O[𝕜; l] f :=
   g.isBigOTVS_comp
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma _root_.LinearMap.isBigOTVS_rev_comp (g : E →ₗ[𝕜] F) (hg : comap g (𝓝 0) ≤ 𝓝 0) :
     f =O[𝕜; l] (g ∘ f) := by
   constructor

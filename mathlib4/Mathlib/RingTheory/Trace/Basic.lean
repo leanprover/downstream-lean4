@@ -382,7 +382,6 @@ theorem traceMatrix_of_basis [Fintype κ] [DecidableEq κ] (b : Basis κ A B) :
   ext (i j)
   rw [traceMatrix_apply, traceForm_apply, traceForm_toMatrix]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem traceMatrix_of_basis_mulVec [Fintype ι] (b : Basis ι A B) (z : B) :
     traceMatrix A b *ᵥ b.equivFun z = fun i => trace A B (z * b i) := by
   ext i

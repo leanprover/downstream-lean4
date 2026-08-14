@@ -250,7 +250,6 @@ theorem det_comp (f g : M →ₗ[A] M) :
 theorem det_id : LinearMap.det (LinearMap.id : M →ₗ[A] M) = 1 :=
   LinearMap.det.map_one
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Multiplying a map by a scalar `c` multiplies its determinant by `c ^ dim M`. -/
 @[simp]
@@ -344,7 +343,6 @@ theorem finite_of_det_ne_one {f : M →ₗ[R] M} (hf : f.det ≠ 1) : Module.Fin
     exact Module.Finite.of_basis hs
   · classical simp [LinearMap.coe_det, H] at hf
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If the determinant of a map vanishes, then the map is not injective. -/
 theorem bot_lt_ker_of_det_eq_zero [IsDomain R] [Free R M] {f : M →ₗ[R] M} (hf : f.det = 0) :
@@ -595,7 +593,6 @@ theorem LinearMap.associated_det_comp_equiv {N : Type*} [AddCommGroup N] [Module
 
 namespace Module.Basis
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The determinant of a family of vectors with respect to some basis, as an alternating
@@ -616,30 +613,24 @@ nonrec def det : M [⋀^ι]→ₗ[R] R where
     apply det_zero_of_row_eq hij
     rw [updateRow_ne hij.symm, updateRow_self]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_apply (v : ι → M) : e.det v = Matrix.det (e.toMatrix v) :=
   rfl
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_self : e.det e = 1 := by simp [e.det_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem det_isEmpty [IsEmpty ι] : e.det = AlternatingMap.constOfIsEmpty R M ι 1 := by
   ext v
   exact Matrix.det_isEmpty
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- `Basis.det` is not the zero map. -/
 theorem det_ne_zero [Nontrivial R] : e.det ≠ 0 := fun h => by simpa [h] using e.det_self
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem smul_det {G} [Group G] [DistribMulAction G M] [SMulCommClass G R M]
     (g : G) (v : ι → M) :
     (g • e).det v = e.det (g⁻¹ • v) := by
   simp_rw [det_apply, toMatrix_smul_left]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem is_basis_iff_det {v : ι → M} :
     LinearIndependent R v ∧ span R (Set.range v) = ⊤ ↔ IsUnit (e.det v) := by
   constructor
@@ -658,13 +649,11 @@ theorem is_basis_iff_det {v : ι → M} :
     rw [← this]
     exact ⟨v'.linearIndependent, v'.span_eq⟩
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isUnit_det (e' : Basis ι R M) : IsUnit (e.det e') :=
   (is_basis_iff_det e).mp ⟨e'.linearIndependent, e'.span_eq⟩
 
 end Module.Basis
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Any alternating map to `R` where `ι` has the cardinality of a basis equals the determinant
 map with respect to that basis, multiplied by the value of that alternating map on that basis. -/
 theorem AlternatingMap.eq_smul_basis_det (f : M [⋀^ι]→ₗ[R] R) : f = f e • e.det := by
@@ -690,7 +679,6 @@ variable {A : Type*} [CommRing A] [Module A M]
 
 namespace Module.Basis
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem det_comp (e : Basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :
     e.det (f ∘ v) = (LinearMap.det f) * e.det v := by
@@ -698,7 +686,6 @@ theorem det_comp (e : Basis ι A M) (f : M →ₗ[A] M) (v : ι → M) :
     e.toMatrix_eq_toMatrix_constr (f ∘ v), e.toMatrix_eq_toMatrix_constr v, ← toMatrix_comp,
     e.constr_comp]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem det_comp_basis [Module A M'] (b : Basis ι A M) (b' : Basis ι A M') (f : M →ₗ[A] M') :
     b'.det (f ∘ b) = LinearMap.det (f ∘ₗ (b'.equiv b (Equiv.refl ι) : M' →ₗ[A] M)) := by
@@ -707,13 +694,11 @@ theorem det_comp_basis [Module A M'] (b : Basis ι A M) (b' : Basis ι A M') (f 
   congr 1; ext i j
   rw [toMatrix_apply, LinearMap.toMatrix_apply, Function.comp_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem det_basis (b : Basis ι A M) (b' : Basis ι A M) :
     LinearMap.det (b'.equiv b (Equiv.refl ι)).toLinearMap = b'.det b :=
   (b.det_comp_basis b' (LinearMap.id)).symm
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_mul_det (b b' b'' : Basis ι A M) :
     b.det b' * b'.det b'' = b.det b'' := by
   have : b'' = (b'.equiv b'' (Equiv.refl ι)).toLinearMap ∘ b' := by
@@ -721,48 +706,40 @@ theorem det_mul_det (b b' b'' : Basis ι A M) :
   conv_rhs =>
     rw [this, Basis.det_comp, det_basis, mul_comm]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_inv (b : Basis ι A M) (b' : Basis ι A M) :
     (b.isUnit_det b').unit⁻¹ = b'.det b := by
   rw [← Units.mul_eq_one_iff_inv_eq, IsUnit.unit_spec, ← det_basis, ← det_basis]
   exact LinearEquiv.det_mul_det_symm _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_reindex {ι' : Type*} [Fintype ι'] [DecidableEq ι'] (b : Basis ι R M) (v : ι' → M)
     (e : ι ≃ ι') : (b.reindex e).det v = b.det (v ∘ e) := by
   rw [det_apply, toMatrix_reindex', det_reindexAlgEquiv, det_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_reindex' {ι' : Type*} [Fintype ι'] [DecidableEq ι'] (b : Basis ι R M)
     (e : ι ≃ ι') : (b.reindex e).det = b.det.domDomCongr e :=
   AlternatingMap.ext fun _ => det_reindex _ _ _
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_reindex_symm {ι' : Type*} [Fintype ι'] [DecidableEq ι'] (b : Basis ι R M)
     (v : ι → M) (e : ι' ≃ ι) : (b.reindex e.symm).det (v ∘ e) = b.det v := by
   rw [det_reindex, Function.comp_assoc, e.self_comp_symm, Function.comp_id]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 theorem det_map (b : Basis ι R M) (f : M ≃ₗ[R] M') (v : ι → M') :
     (b.map f).det v = b.det (f.symm ∘ v) := by
   rw [det_apply, toMatrix_map, det_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem det_map' (b : Basis ι R M) (f : M ≃ₗ[R] M') :
     (b.map f).det = b.det.compLinearMap f.symm :=
   AlternatingMap.ext <| b.det_map f
 
 end Module.Basis
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem Pi.basisFun_det : (Pi.basisFun R ι).det = Matrix.detRowAlternating := by
   ext M
   rw [Basis.det_apply, Basis.coePiBasisFun.toMatrix_eq_transpose, det_transpose, det]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem Pi.basisFun_det_apply (v : ι → ι → R) :
     (Pi.basisFun R ι).det v = (Matrix.of v).det := by
   rw [Pi.basisFun_det]
@@ -770,7 +747,6 @@ theorem Pi.basisFun_det_apply (v : ι → ι → R) :
 
 namespace Module.Basis
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If we fix a background basis `e`, then for any other basis `v`, we can characterise the
 coordinates provided by `v` in terms of determinants relative to `e`. -/
 theorem det_smul_mk_coord_eq_det_update {v : ι → M} (hli : LinearIndependent R v)
@@ -786,7 +762,6 @@ theorem det_smul_mk_coord_eq_det_update {v : ι → M} (hli : LinearIndependent 
   · rw [mk_coord_apply_ne hik, mul_zero, eq_comm]
     exact e.det.map_eq_zero_of_eq _ (by simp [hik]) hik
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- If a basis is multiplied columnwise by scalars `w : ι → Rˣ`, then the determinant with respect
 to this basis is multiplied by the product of the inverse of these scalars. -/
 theorem det_unitsSMul (e : Basis ι R M) (w : ι → Rˣ) :
@@ -799,13 +774,11 @@ theorem det_unitsSMul (e : Basis ι R M) (w : ι → Rˣ) :
   convert! Matrix.det_mul_column (fun i => (↑(w i)⁻¹ : R)) fun i j => e.repr (f j) i
   simp [← Finset.prod_inv_distrib]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The determinant of a basis constructed by `unitsSMul` is the product of the given units. -/
 @[simp]
 theorem det_unitsSMul_self (w : ι → Rˣ) : e.det (e.unitsSMul w) = ∏ i, (w i : R) := by
   simp [det_apply]
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The determinant of a basis constructed by `isUnitSMul` is the product of the given units. -/
 @[simp]
 theorem det_isUnitSMul {w : ι → R} (hw : ∀ i, IsUnit (w i)) :

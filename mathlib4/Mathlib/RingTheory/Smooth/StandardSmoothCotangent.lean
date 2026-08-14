@@ -260,7 +260,6 @@ instance : Module.Free S (Generators.localizationAway S r).toExtension.Cotangent
     Module.Free S ((SubmersivePresentation.localizationAway S r).toExtension.Cotangent)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 variable (S) in
 /-- The image of `g * X - 1` in `I/I²` if `I` is the kernel of the canonical presentation
 of the localization of `S` away from `g`. -/
@@ -269,7 +268,6 @@ abbrev Generators.cMulXSubOneCotangent : (Generators.localizationAway S r).toExt
   Extension.Cotangent.mk ⟨C r * X () - 1, C_mul_X_sub_one_mem_ker _⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma Generators.cMulXSubOneCotangent_eq :
     cMulXSubOneCotangent S r = Extension.Cotangent.mk ⟨C r * X () - 1, C_mul_X_sub_one_mem_ker _⟩ :=
   rfl

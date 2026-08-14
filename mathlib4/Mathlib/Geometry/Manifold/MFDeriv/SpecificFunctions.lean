@@ -481,7 +481,6 @@ theorem MDifferentiable.prodMap (hf : MDiff f) (hg : MDiff g) : MDiff (Prod.map 
   (hf p.1).prodMap' (hg p.2)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma HasMFDerivWithinAt.prodMap {s : Set <| M × M'} {p : M × M'} {f : M → N} {g : M' → N'}
     {df : TangentSpace% p.1 →L[𝕜] TangentSpace% (f p.1)}
     (hf : HasMFDerivAt[Prod.fst '' s] f p.1 df)

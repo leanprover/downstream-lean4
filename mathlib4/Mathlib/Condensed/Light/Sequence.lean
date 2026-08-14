@@ -53,7 +53,6 @@ lemma mem_fibres_iff (π : T → S × Option X) (σ : Option X → S → T) (t :
   simp [fibres]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma fibres_compl_eq_iUnion (π : T → S × Option X) (σ : Option X → S → T)
     (hσ' : ∀ (x : Option X) (s : S), (π (σ x s)).2 = x) :
     (fibres π σ)ᶜ =
@@ -245,7 +244,6 @@ noncomputable def cocone {X : LightCondMod R} {S T : LightProfinite} (π : T ⟶
     simp [pullback.condition]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- Given a surjective map of light profinite spaces `T ⟶ S ⊗ ℕ∪{∞}`,
 construct a (non-cartesian) commutative square
 ```

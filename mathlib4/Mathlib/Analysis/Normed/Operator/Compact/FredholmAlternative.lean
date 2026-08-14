@@ -45,7 +45,6 @@ variable {T : X →L[𝕜] X} {μ : 𝕜}
 
 open Module End
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 open Filter Topology in
 /-- If `T : X →L[𝕜] X` is a compact operator on a Banach space `X`, and `μ ≠ 0` is not an
 eigenvalue of `T`, then `T - μ • 1` is antilipschitz with positive constant.

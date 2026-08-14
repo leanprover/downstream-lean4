@@ -101,7 +101,6 @@ variable [CommSemiring A] [Monoid G] [AddCommMonoid W] [Module A W]
   {ρ : Representation A G W} [AddCommMonoid M] [Module A[G] M]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- A subrepresentation of `ρ` can be thought of as an `A[G]` submodule of `ρ.asModule`.
 -/
 def asSubmodule (σ : Subrepresentation ρ) : Submodule A[G] ρ.asModule where
@@ -116,7 +115,6 @@ def asSubmodule (σ : Subrepresentation ρ) : Submodule A[G] ρ.asModule where
 
 -- Type-correct statement would be `(Representation.asModuleEquiv ρ).symm v ∈ asSubmodule σ`.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma mem_asSubmodule_iff {σ : Subrepresentation ρ} {v : W} :
     v ∈ asSubmodule σ ↔ v ∈ σ := by rfl
@@ -138,7 +136,6 @@ def asSubmodule' (σ : Subrepresentation (Representation.ofModule (k := A) (G :=
 -- Type-correct statement would be
 -- `m ∈ asSubmodule' σ ↔ Representation.asModuleEquiv (Representation.ofModule M) m ∈ σ`.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma mem_asSubmodule'_iff {σ : Subrepresentation (Representation.ofModule (k := A) (G := G) M)}
     {m : M} : m ∈ asSubmodule' σ ↔ m ∈ σ := by rfl
@@ -156,12 +153,10 @@ def ofSubmodule (N : Submodule A[G] M) :
 -- Type-correct statement would be
 -- `Representation.asModuleEquiv (Representation.ofModule M) m ∈ ofSubmodule N ↔ m ∈ N`.
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma mem_ofSubmodule_iff {N : Submodule A[G] M} {m : M} : m ∈ ofSubmodule N ↔ m ∈ N := by rfl
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- An `A[G]`-submodule of `ρ.asModule` can be thought of as a subrepresentation of `ρ`.
 -/
 def ofSubmodule' (N : Submodule A[G] ρ.asModule) : Subrepresentation ρ where
@@ -175,7 +170,6 @@ def ofSubmodule' (N : Submodule A[G] ρ.asModule) : Subrepresentation ρ where
     exact h
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 @[simp]
 lemma mem_ofSubmodule'_iff {N : Submodule A[G] ρ.asModule} {w : W} : w ∈ ofSubmodule' N ↔ w ∈ N :=
   .rfl

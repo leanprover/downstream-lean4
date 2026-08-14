@@ -153,7 +153,6 @@ lemma residueField_map_bijective [IsNoetherianRing R] [IsLocalRing R] :
       (algebraMap R (AdicCompletion (maximalIdeal R) R))) :=
     AdicCompletion.residueField_map_bijective_of_fg (maximalIdeal R).fg_of_isNoetherianRing
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 lemma spanFinrank_maximalIdeal_eq [IsNoetherianRing R] [IsLocalRing R] :
     (maximalIdeal (AdicCompletion (maximalIdeal R) R)).spanFinrank =
     (maximalIdeal R).spanFinrank := by

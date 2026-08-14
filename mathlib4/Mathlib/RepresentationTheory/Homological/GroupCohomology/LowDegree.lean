@@ -91,7 +91,6 @@ end Cochains
 
 section Differentials
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 0th differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `A → Fun(G, A)`. It sends `(a, g) ↦ ρ_A(g)(a) - a.` -/
 @[simps!]
@@ -118,7 +117,6 @@ lemma subtype_comp_d₀₁ : ModuleCat.ofHom (A.ρ.invariants.subtype) ≫ d₀�
   rw [← sub_eq_zero] at hx
   exact hx
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 1st differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `Fun(G, A) → Fun(G × G, A)`. It sends
 `(f, (g₁, g₂)) ↦ ρ_A(g₁)(f(g₂)) - f(g₁g₂) + f(g₁).` -/
@@ -129,7 +127,6 @@ def d₁₂ : ModuleCat.of k (G → A) ⟶ ModuleCat.of k (G × G → A) :=
     map_add' x y := funext fun g => by dsimp; rw [map_add, add_add_add_comm, add_sub_add_comm]
     map_smul' r x := funext fun g => by dsimp; rw [map_smul, smul_add, smul_sub] }
 
-set_option backward.isDefEq.respectTransparency.outParams false in
 /-- The 2nd differential in the complex of inhomogeneous cochains of `A : Rep k G`, as a
 `k`-linear map `Fun(G × G, A) → Fun(G × G × G, A)`. It sends
 `(f, (g₁, g₂, g₃)) ↦ ρ_A(g₁)(f(g₂, g₃)) - f(g₁g₂, g₃) + f(g₁, g₂g₃) - f(g₁, g₂).` -/
@@ -563,7 +560,6 @@ def cocyclesOfIsCocycle₁ {f : G → A} (hf : IsCocycle₁ f) :
   ⟨f, (mem_cocycles₁_iff (A := Rep.ofDistribMulAction k G A) f).2 hf⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCocycle₁_of_mem_cocycles₁
     (f : G → A) (hf : f ∈ cocycles₁ (Rep.ofDistribMulAction k G A)) :
     IsCocycle₁ f :=
@@ -578,7 +574,6 @@ def coboundariesOfIsCoboundary₁ {f : G → A} (hf : IsCoboundary₁ f) :
   ⟨f, hf.choose, funext hf.choose_spec⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCoboundary₁_of_mem_coboundaries₁
     (f : G → A) (hf : f ∈ coboundaries₁ (Rep.ofDistribMulAction k G A)) :
     IsCoboundary₁ f := by
@@ -594,7 +589,6 @@ def cocyclesOfIsCocycle₂ {f : G × G → A} (hf : IsCocycle₂ f) :
   ⟨f, (mem_cocycles₂_iff (A := Rep.ofDistribMulAction k G A) f).2 hf⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCocycle₂_of_mem_cocycles₂
     (f : G × G → A) (hf : f ∈ cocycles₂ (Rep.ofDistribMulAction k G A)) :
     IsCocycle₂ f := (mem_cocycles₂_iff (A := Rep.ofDistribMulAction k G A) f).1 hf
@@ -608,7 +602,6 @@ def coboundariesOfIsCoboundary₂ {f : G × G → A} (hf : IsCoboundary₂ f) :
   ⟨f, hf.choose,funext fun g ↦ hf.choose_spec g.1 g.2⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isCoboundary₂_of_mem_coboundaries₂
     (f : G × G → A) (hf : f ∈ coboundaries₂ (Rep.ofDistribMulAction k G A)) :
     IsCoboundary₂ f := by
@@ -703,7 +696,6 @@ def cocyclesOfIsMulCocycle₁ {f : G → M} (hf : IsMulCocycle₁ f) :
   ⟨Additive.ofMul ∘ f, (mem_cocycles₁_iff (A := Rep.ofMulDistribMulAction G M) f).2 hf⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isMulCocycle₁_of_mem_cocycles₁
     (f : G → M) (hf : f ∈ cocycles₁ (Rep.ofMulDistribMulAction G M)) :
     IsMulCocycle₁ (Additive.toMul ∘ f) :=
@@ -718,7 +710,6 @@ def coboundariesOfIsMulCoboundary₁ {f : G → M} (hf : IsMulCoboundary₁ f) :
   ⟨Additive.ofMul ∘ f, hf.choose, funext hf.choose_spec⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isMulCoboundary₁_of_mem_coboundaries₁
     (f : G → M) (hf : f ∈ coboundaries₁ (Rep.ofMulDistribMulAction G M)) :
     IsMulCoboundary₁ (M := M) (Additive.ofMul ∘ f) := by
@@ -734,7 +725,6 @@ def cocyclesOfIsMulCocycle₂ {f : G × G → M} (hf : IsMulCocycle₂ f) :
   ⟨Additive.ofMul ∘ f, (mem_cocycles₂_iff (A := Rep.ofMulDistribMulAction G M) f).2 hf⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isMulCocycle₂_of_mem_cocycles₂
     (f : G × G → M) (hf : f ∈ cocycles₂ (Rep.ofMulDistribMulAction G M)) :
     IsMulCocycle₂ (Additive.toMul ∘ f) :=
@@ -748,7 +738,6 @@ def coboundariesOfIsMulCoboundary₂ {f : G × G → M} (hf : IsMulCoboundary₂
   ⟨Additive.ofMul ∘ f, hf.choose, funext fun g ↦ hf.choose_spec g.1 g.2⟩
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.outParams false in
 theorem isMulCoboundary₂_of_mem_coboundaries₂
     (f : G × G → M) (hf : f ∈ coboundaries₂ (Rep.ofMulDistribMulAction G M)) :
     IsMulCoboundary₂ (M := M) (Additive.toMul ∘ f) := by
