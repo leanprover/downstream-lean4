@@ -132,10 +132,10 @@ lemma small_subsheafify_of_small
       grind [Witness.eval]
     | amalgamate hR hy hmem ht ih =>
       choose x hx using ih
-      #adaptation_note /-- Before https://github.com/leanprover/lean4/pull/14727, `grind`
-      closed this on its own. It now fails to instantiate the remaining existential with
-      `hy`, because `simp` leaves the family eta-expanded as
-      `fun x x_1 hr ↦ y x_1 hr`, and `grind` does not identify
+      #adaptation_note /-- Before https://github.com/leanprover/lean4/pull/14727, the proof
+      `exact ⟨.amalgamate hR x, by simp [Witness.eval, hx]; grind⟩` was sufficient. The `grind`
+      now fails to instantiate the remaining existential with `hy`, because `simp` leaves the
+      family eta-expanded as `fun x x_1 hr ↦ y x_1 hr`, and `grind` does not identify
       `Presieve.FamilyOfElements.Compatible` at that spelling with `hy : y.Compatible`.
       Supplying `hy` by hand and finishing with uniqueness avoids the issue. -/
       exact ⟨.amalgamate hR x, by
