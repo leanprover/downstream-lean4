@@ -291,6 +291,39 @@ lemma rightShift_smul (a n' : ℤ) (hn' : n' + a = n) (x : R) :
   dsimp
   simp only [rightShift_v _ a n' hn' p q hpq _ rfl, smul_v, Linear.smul_comp]
 
+#adaptation_note
+/--
+We had to use the `instanceSearchTypes` backward compatibility option.
+Concretely, the following instance cannot be synthesized:
+`SMulCommClass R ℤˣ (K.X (p + a) ⟶ L.X q)`
+It is needed because `leftShift` carries a sign `u : ℤˣ`, so the closing `simp only` fires
+`smul_comm x`.
+
+The failure happens while applying `@Units.smulCommClass_right`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `SMul R (K.X (p + a) ⟶ L.X q)`, whereas the assigned value
+`DistribMulAction.toDistribSMul.toSMul` has type
+```
+SMul R (((CategoryTheory.shiftFunctor (CochainComplex C ℤ) a).obj K).X p ⟶ L.X q)
+```
+Lean falls back to synthesize an instance of the correct type, but the candidate is again not defeq
+to the result. Both comparisons bottom out at
+```
+K.X (p + a) ⟶ L.X q =?= ((CategoryTheory.shiftFunctor (CochainComplex C ℤ) a).obj K).X p ⟶ L.X q
+```
+Since `SMulCommClass` stays unsynthesizable, `smul_comm x` never fires and the goal
+`u • x • f = x • u • f` is left unsolved.
+
+`CategoryTheory.shiftFunctor` is already `@[implicit_reducible]`, but the
+`CochainComplex.shiftFunctor` underneath it is semireducible, so the two hom types cannot be seen
+to agree at either transparency. Marking it implicit-reducible makes the assignment go through,
+since Lean bumps transparency for instance-implicit arguments to `implicit`.
+
+Potential fix: mark `CochainComplex.shiftFunctor` implicit-reducible at its definition site; then
+the local `attribute` and `allowUnsafeReducibility` here can be dropped.
+-/
+set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma leftShift_smul (a n' : ℤ) (hn' : n + a = n') (x : R) :

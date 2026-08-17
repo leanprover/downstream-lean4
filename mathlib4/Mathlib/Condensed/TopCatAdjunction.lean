@@ -91,7 +91,40 @@ noncomputable def topCatAdjunctionCounit (X : TopCat.{u + 1}) : X.toCondensedSet
       rw [continuous_coinduced_dom]
       continuity }
 
+#adaptation_note
+/--
+We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
+succeed. Concretely, the following instance cannot be synthesized:
+`DFunLike C(C(PUnit, ↑X), ↑X) ?m ?m`
+It is needed by the `DFunLike.coe` below, whose `F` annotation leaves the topology on `C(PUnit, X)`
+to be determined by unification.
+
+The failure happens while applying `@ContinuousMap.instFunLike`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `TopologicalSpace C(PUnit, ↑X)`, whereas the assigned value `X.toCondensedSet.toTopCat.str` has
+type `TopologicalSpace ↑X.toCondensedSet.toTopCat`. The two carrier spellings are defeq at
+`.default`, but seeing that requires unfolding the whole `toCondensedSet`/`toTopCat` chain down to
+`ContinuousMap =?= X.toCondensedSet.obj.1`, which does not happen at `.instances`. Lean falls back
+to synthesize an instance of the correct type, which succeeds, but it returns
+`ContinuousMap.compactOpen`, which is a genuinely different topology from the coinduced one carried
+by `X.toCondensedSet.toTopCat.str`, so it is not defeq to the assigned value at any transparency
+(see the `apply_rfl` example below). Hence the fallback cannot repair this case, and only the direct
+check could: that would need the carrier chain to unfold at `.instances`.
+
+With the metavariable unsolved, `DFunLike` synthesis fails and `x` is no longer known to be a
+function.
+
+Potential fix: Unclear. With an explicit type on the `x : C(PUnit, X)` parameter, the explicit
+`F` argument is no longer needed to make the lemma elaborate. However, that would change the
+lemma's statement and also its discrimination key. A last resort is to explicitly supply the
+desired instance. Alternatively, one could investigate whether `ContinuousMap.compactOpen` and
+`X.toCondensedSet.toTopCat.str` can be made defeq at implicit transparency, but this should be done
+with care: If many declarations need to be made implicit-reducible, it might degrade performance
+in other places.
+-/
 set_option backward.isDefEq.respectTransparency.types false in
+set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 /-- `simp`-normal form of the lemma that `@[simps]` would generate. -/
 @[simp] lemma topCatAdjunctionCounit_hom_apply (X : TopCat) (x) :
     -- We have to specify here to not infer the `TopologicalSpace` instance on `C(PUnit, X)`,
