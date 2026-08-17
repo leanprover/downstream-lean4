@@ -115,13 +115,8 @@ def spawnLeanTarDecompress (config : Array Lean.Json) (force : Bool) : IO UInt32
 
 /-- Bump this number to invalidate the cache, in case the existing hashing inputs are insufficient.
 It is not a global counter, and can be reset to 0 as long as the lean githash or lake manifest has
-changed since the last time this counter was touched.
-
-NOTE: making changes to the generated `.ltar` files invalidates them while it *does not* change
-the file hash! This means any such change needs to be accompanied by a change
-to the root hash affecting *all* files
-(e.g. any modification to lakefile, lean-toolchain or manifest). -/
-def rootHashGeneration : UInt64 := 5
+changed since the last time this counter was touched. -/
+def rootHashGeneration : UInt64 := 3
 
 /--
 `CacheM` stores the following information:
@@ -311,8 +306,6 @@ def mkBuildPaths (mod : Name) : CacheM <| List (FilePath × Bool) := do
     (packageDir / LIBDIR / path.withExtension "olean.private.hash", false),
     (packageDir / LIBDIR / path.withExtension "ilean", true),
     (packageDir / LIBDIR / path.withExtension "ilean.hash", true),
-    (packageDir / LIBDIR / path.withExtension "ir.sig", false),
-    (packageDir / LIBDIR / path.withExtension "ir.sig.hash", false),
     (packageDir / LIBDIR / path.withExtension "ir", false),
     (packageDir / LIBDIR / path.withExtension "ir.hash", false),
     (packageDir / IRDIR  / path.withExtension "c", true),
