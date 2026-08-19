@@ -99,7 +99,8 @@ Remove elements for which `p` returns `false` from the given `DiscrTree`.
 The removed elements are folded over using `f` and `init`, so `f` is called
 once for each removed element and the final state of type `σ` is returned.
 -/
-def filterDiscrTree [Inhabited σ] (p : α → Bool) (f : σ → α → σ) (init : σ)
+@[inline]
+def filterDiscrTree (p : α → Bool) (f : σ → α → σ) (init : σ)
     (t : DiscrTree α) : DiscrTree α × σ := Id.run $
   filterDiscrTreeM (λ a => pure (p a)) (λ s a => pure (f s a)) init t
 
