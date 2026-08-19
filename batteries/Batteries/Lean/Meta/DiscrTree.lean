@@ -39,6 +39,15 @@ namespace Trie
 Merge two `Trie`s. Duplicate values are preserved.
 -/
 partial def mergePreservingDuplicates : Trie α → Trie α → Trie α
+  | chain k₁ c₁, chain k₂ c₂ =>
+    if k₁ == k₂ then
+      .chain k₁ (mergePreservingDuplicates c₁ c₂)
+    else
+      node #[] (mergeChildren #[(k₁, c₁)] #[(k₂, c₂)])
+  | chain k₁ c₁, node vs₂ cs₂ =>
+    node vs₂ (mergeChildren #[(k₁, c₁)] cs₂)
+  | node vs₁ cs₁, chain k₂ c₂ =>
+    node vs₁ (mergeChildren cs₁ #[(k₂, c₂)])
   | node vs₁ cs₁, node vs₂ cs₂ =>
     node (vs₁ ++ vs₂) (mergeChildren cs₁ cs₂)
 where

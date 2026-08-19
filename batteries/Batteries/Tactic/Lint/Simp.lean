@@ -106,6 +106,7 @@ partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
 where
   /-- Returns the list of elements in the trie. -/
   trieElements (arr)
+  | Trie.chain _ c => trieElements arr c
   | Trie.node vs children =>
     children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
 
