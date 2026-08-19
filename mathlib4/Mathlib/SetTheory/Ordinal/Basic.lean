@@ -1202,6 +1202,7 @@ theorem mk_Ioi_lt {α : Type*} [LinearOrder α] [WellFoundedGT α] (i : α) (h :
 theorem mk_Iio_toType_ord_lt {c : Cardinal} (i : c.ord.ToType) : #(Iio i) < c := by
   simpa using mk_Iio_lt i
 
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-20")] alias mk_Iio_ord_toType := mk_Iio_toType_ord_lt
 
 @[deprecated mk_Iio_lt +typeChanged (since := "2026-03-20")]

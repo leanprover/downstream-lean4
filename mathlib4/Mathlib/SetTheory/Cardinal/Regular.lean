@@ -173,7 +173,7 @@ theorem blsub_lt_ord_of_isRegular {o : Ordinal} {f : ∀ a < o, Ordinal} {c} (hc
     (ho : o.card < c) : (∀ i hi, f i hi < c.ord) → Ordinal.blsub o f < c.ord :=
   blsub_lt_ord (by rwa [hc.cof_ord])
 
-@[deprecated iSup_lt_ord_lift_of_isRegular +typeChanged (since := "2026-03-22")]
+@[deprecated Ordinal.lift_iSup_lt_of_lt_cof +typeChanged (since := "2026-03-22")]
 theorem bsup_lt_ord_lift_of_isRegular {o : Ordinal} {f : ∀ a < o, Ordinal} {c} (hc : IsRegular c)
     (hι : Cardinal.lift.{v, u} o.card < c) :
     (∀ i hi, f i hi < c.ord) → Ordinal.bsup.{u, v} o f < c.ord :=

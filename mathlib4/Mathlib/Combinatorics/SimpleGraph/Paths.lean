@@ -926,7 +926,7 @@ lemma length_le_bypass_length_iff (p : G.Walk u v) :
 alias bypass_eq_self_of_length_le_length_bypass := length_le_bypass_length_iff
 
 @[deprecated (since := "2026-05-25")]
-alias bypass_eq_self_of_length_le := bypass_eq_self_of_length_le_length_bypass
+alias bypass_eq_self_of_length_le := length_le_bypass_length_iff
 
 @[simp]
 lemma bypass_cons_nil (hadj : G.Adj u v) : (cons hadj nil).bypass = cons hadj nil := by

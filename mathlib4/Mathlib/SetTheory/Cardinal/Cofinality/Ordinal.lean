@@ -65,6 +65,7 @@ theorem cof_toType (o : Ordinal) : Order.cof o.ToType = o.cof := by
 @[deprecated (since := "2026-02-18")] alias le_cof_type := le_cof_iff
 @[deprecated (since := "2026-02-18")] alias cof_type_le := cof_le
 @[deprecated (since := "2026-02-18")] alias lt_cof_type := cof_le
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-02-18")] alias cof_eq := Order.cof_eq
 
 @[simp]
@@ -438,6 +439,7 @@ theorem nfp_lt_ord {f : Ordinal → Ordinal} {c} (hc : ℵ₀ < cof c) (hf : ∀
     a < c → nfp f a < c :=
   nfpFamily_lt_ord_lift hc (by simpa using Cardinal.one_lt_aleph0.trans hc) fun _ => hf
 
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated exists_lsub_cof +typeChanged (since := "2026-03-21")]
 theorem exists_blsub_cof (o : Ordinal) :
     ∃ f : ∀ a < (cof o).ord, Ordinal, blsub.{u, u} _ f = o := by
@@ -526,7 +528,7 @@ theorem cof_preOmega {o : Ordinal} (ho : IsSuccPrelimit o) : (preOmega o).cof = 
 theorem cof_omega {o : Ordinal} (ho : IsSuccLimit o) : (ω_ o).cof = o.cof :=
   cof_map_of_isNormal isNormal_omega ho
 
-@[deprecated Order.cof_eq +typeChanged (since := "2026-03-20")]
+@[deprecated Order.exists_cof_eq +typeChanged (since := "2026-03-20")]
 theorem cof_eq' (r : α → α → Prop) [H : IsWellOrder α r] (h : IsSuccLimit (type r)) :
     ∃ S : Set α, (∀ a, ∃ b ∈ S, r a b) ∧ #S = cof (type r) := by
   classical
