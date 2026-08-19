@@ -229,36 +229,9 @@ noncomputable instance [Small.{u} σ] : CoproductsOfShapeDisjoint Scheme.{u} σ 
 instance : HasFiniteCoproducts Scheme.{u} where
   out := inferInstance
 
-#adaptation_note
-/--
-We had to add `(X := X)` in the `inferInstanceAs` below to make an instance search succeed.
-
-Was:
-```lean
 instance : MonoCoprod Scheme.{u} :=
   .mk' fun X Y ↦
     ⟨.mk coprod.inl coprod.inr, coprodIsCoprod X Y, inferInstanceAs <| Mono coprod.inl⟩
-```
-Concretely, without the pin the following instance cannot be synthesized:
-`Mono coprod.inl`
-
-The failure happens while applying `@Mono.inl_of_binaryCoproductDisjoint`: assigning one of its
-instance-implicit-argument metavariables is rejected because the metavariable's type and the type
-of the assigned value do not match at `.instances` transparency. The metavariable's expected type
-is `HasBinaryCoproduct ((pair X Y).obj { as := WalkingPair.left }) Y`, whereas the assigned value
-`Scheme.IsLocallyDirected.instHasColimit (pair X Y)` has type `HasColimit (pair X Y)`. Lean falls
-back to synthesize an instance of the correct type, which succeeds, but the candidate is again not
-defeq to the result. The direct check bottoms out at
-`(pair X Y).obj { as := WalkingPair.left } =?= X` and the fallback comparison at the same pair the
-other way around, so `pair` unfolds neither at `.instances` nor at `.implicit`.
-
-The unpinned `inferInstanceAs` leaves the elaborator free to spell the coproduct leg as
-`(pair X Y).obj { as := WalkingPair.left }` rather than `X`; pinning `(X := X)` fixes that
-spelling up front. An alternative fix is to make `pair` implicit-reducible.
--/
-instance : MonoCoprod Scheme.{u} :=
-  .mk' fun X Y ↦
-    ⟨.mk coprod.inl coprod.inr, coprodIsCoprod X Y, inferInstanceAs <| Mono coprod.inl (X := X)⟩
 
 /-- The cover of `∐ X` by the `Xᵢ`. -/
 @[simps!]
