@@ -6,6 +6,7 @@ Authors: Gabriel Ebner
 module
 
 public meta import Lean.Meta.Tactic.Simp.Main
+public meta import Lean.Meta.DiscrTree.Util
 public meta import Batteries.Tactic.Lint.Basic
 public meta import Batteries.Tactic.OpenPrivate
 public meta import Batteries.Util.LibraryNote
@@ -101,14 +102,9 @@ def isSimpTheorem (declName : Name) : MetaM Bool := do
 
 open Lean.Meta.DiscrTree in
 /-- Returns the list of elements in the discrimination tree. -/
+@[deprecated Lean.Meta.DiscrTree.values (since := "2026-08-18")]
 partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
-  d.root.foldl (init := #[]) fun arr _ => trieElements arr
-where
-  /-- Returns the list of elements in the trie. -/
-  trieElements (arr)
-  | Trie.chain _ c => trieElements arr c
-  | Trie.node vs children =>
-    children.foldl (init := arr ++ vs) fun arr (_, child) => trieElements arr child
+  d.values
 
 /-- Add message `msg` to any errors thrown inside `k`. -/
 def decorateError (msg : MessageData) (k : MetaM α) : MetaM α := do
