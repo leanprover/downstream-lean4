@@ -259,7 +259,7 @@ theorem ne_one_of_map {R S F : Type*} [One R] [One S] [FunLike F R S] [OneHomCla
 
 /-- Turn an element of a type `F` satisfying `OneHomClass F M N` into an actual
 `OneHom`. This is declared as the default coercion from `F` to `OneHom M N`. -/
-@[to_additive (attr := coe)
+@[to_additive (attr := coe, instance_reducible)
 /-- Turn an element of a type `F` satisfying `ZeroHomClass F M N` into an actual
 `ZeroHom`. This is declared as the default coercion from `F` to `ZeroHom M N`. -/]
 def OneHomClass.toOneHom [OneHomClass F M N] (f : F) : OneHom M N where
@@ -332,7 +332,7 @@ lemma map_comp_mul [MulHomClass F M N] (f : F) (g h : ι → M) : f ∘ (g * h) 
 
 /-- Turn an element of a type `F` satisfying `MulHomClass F M N` into an actual
 `MulHom`. This is declared as the default coercion from `F` to `M →ₙ* N`. -/
-@[to_additive (attr := coe)
+@[to_additive (attr := coe, instance_reducible)
 /-- Turn an element of a type `F` satisfying `AddHomClass F M N` into an actual
 `AddHom`. This is declared as the default coercion from `F` to `M →ₙ+ N`. -/]
 def MulHomClass.toMulHom [MulHomClass F M N] (f : F) : M →ₙ* N where
@@ -400,7 +400,7 @@ variable [FunLike F M N]
 
 /-- Turn an element of a type `F` satisfying `MonoidHomClass F M N` into an actual
 `MonoidHom`. This is declared as the default coercion from `F` to `M →* N`. -/
-@[to_additive (attr := coe)
+@[to_additive (attr := coe, instance_reducible)
 /-- Turn an element of a type `F` satisfying `AddMonoidHomClass F M N` into an
 actual `MonoidHom`. This is declared as the default coercion from `F` to `M →+ N`. -/]
 def MonoidHomClass.toMonoidHom [MonoidHomClass F M N] (f : F) : M →* N :=
@@ -923,17 +923,23 @@ def MulHom.inverse [Mul M] [Mul N] (f : M →ₙ* N) (g : N → M)
       _ = g (f (g x * g y)) := by rw [f.map_mul]
       _ = g x * g y := h₁ _
 
-/-- If `M` and `N` have multiplications, `f : M →ₙ* N` is a surjective multiplicative map,
+/-- If `M` and `N` have multiplications, `f` is a surjective multiplicative map,
 and `M` is commutative, then `N` is commutative. -/
 @[to_additive
-/-- If `M` and `N` have additions, `f : M →ₙ+ N` is a surjective additive map,
+/-- If `M` and `N` have additions, `f` is a surjective additive map,
 and `M` is commutative, then `N` is commutative. -/]
-theorem Function.Surjective.mul_comm [Mul M] [Mul N] {f : M →ₙ* N} (is_surj : Function.Surjective f)
-    (is_comm : IsMulCommutative M) : IsMulCommutative N where
+theorem Function.Surjective.isMulCommutative [Mul M] [Mul N] [FunLike F M N] [MulHomClass F M N]
+    {f : F} (is_surj : Function.Surjective f) (is_comm : IsMulCommutative M) :
+    IsMulCommutative N where
   is_comm.comm a b := by
     have ⟨a', ha'⟩ := is_surj a
     have ⟨b', hb'⟩ := is_surj b
     simp [← ha', ← hb', ← map_mul, mul_comm']
+
+@[deprecated (since := "2026-08-11")]
+alias Function.Surjective.add_comm := Function.Surjective.isAddCommutative
+@[to_additive existing, deprecated (since := "2026-08-11")]
+alias Function.Surjective.mul_comm := Function.Surjective.isMulCommutative
 
 /-- The inverse of a bijective `MonoidHom` is a `MonoidHom`. -/
 @[to_additive (attr := simps)

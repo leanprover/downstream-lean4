@@ -1189,6 +1189,7 @@ theorem card_typein_lt {r : α → α → Prop} [IsWellOrder α r] (x : α) (h :
   rw [← lt_ord, h]
   apply typein_lt_type
 
+@[simp]
 theorem mk_Iio_lt [LinearOrder α] [WellFoundedLT α] (i : α) (h : ord #α = typeLT α) :
     #(Iio i) < #α :=
   card_typein_lt (r := LT.lt) i h
@@ -1201,6 +1202,7 @@ theorem mk_Ioi_lt {α : Type*} [LinearOrder α] [WellFoundedGT α] (i : α) (h :
 theorem mk_Iio_toType_ord_lt {c : Cardinal} (i : c.ord.ToType) : #(Iio i) < c := by
   simpa using mk_Iio_lt i
 
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-20")] alias mk_Iio_ord_toType := mk_Iio_toType_ord_lt
 
 @[deprecated mk_Iio_lt +typeChanged (since := "2026-03-20")]
@@ -1254,6 +1256,20 @@ theorem ord.orderEmbedding_coe : (ord.orderEmbedding : Cardinal → Ordinal) = o
 lemma nonempty_ord_toType {c : Cardinal} (h : c ≠ 0) :
     Nonempty c.ord.ToType := by
   rwa [Ordinal.nonempty_toType_iff, ne_eq, ord_eq_zero]
+
+lemma exists_le_of_small {ι : Type*} [Small.{u} ι] (κ : ι → Cardinal.{u}) :
+    ∃ (κ' : Cardinal.{u}), ∀ (i : ι), κ i ≤ κ' := by
+  let T (i : Shrink.{u} ι) : Type u := (κ ((equivShrink _).symm i)).ord.ToType
+  refine ⟨Cardinal.mk (Sigma T), fun i ↦ ?_⟩
+  obtain ⟨i, rfl⟩ := (equivShrink.{u} _).symm.surjective i
+  simpa [T] using Cardinal.mk_le_of_injective
+    (sigma_mk_injective (β := fun i ↦ (κ ((equivShrink _).symm i)).ord.ToType))
+
+lemma mk_iio_le_lift (κ : Cardinal.{u}) :
+    Cardinal.mk (Set.Iio κ) ≤ Cardinal.lift.{u + 1} κ := by
+  conv_rhs => rw [← card_ord κ, ← mk_Iio_ordinal]
+  rw [Cardinal.le_def]
+  exact ⟨⟨fun ⟨a, ha⟩ ↦ ⟨a.ord, by simpa⟩, fun _ _ h ↦ by aesop⟩⟩
 
 end Cardinal
 

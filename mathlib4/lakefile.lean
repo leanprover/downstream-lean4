@@ -6,17 +6,17 @@ open Lake DSL
 ## Mathlib dependencies on upstream projects
 -/
 
-require "leanprover-community" / "batteries" @ git "main"
+require "leanprover-community" / "batteries" @ git "nightly-testing"
 require "leanprover-community" / "Qq" @ git "master"
 
-require "leanprover-community" / "aesop" @ git "master"
-require "leanprover-community" / "proofwidgets" @ git "main"
+require "leanprover-community" / "aesop" @ git "nightly-testing"
+require "leanprover-community" / "proofwidgets" @ git "nightly-testing"
   with NameMap.empty.insert `errorOnBuild
     "ProofWidgets failed to reuse pre-built JS code. \
     Please report this issue on the Lean Zulip."
 require "leanprover-community" / "importGraph" @ git "main"
 require "leanprover-community" / "LeanSearchClient" @ git "main"
-require "leanprover-community" / "plausible" @ git "main"
+require "leanprover-community" / "plausible" @ git "nightly-testing"
 
 
 /-!
@@ -92,6 +92,19 @@ lean_lib Archive where
 
 lean_lib Counterexamples where
   leanOptions := mathlibLeanOptions
+
+/-- Wanted statements: `Wanted/X/Y/Z.lean` contains the `proof_wanted` statements
+corresponding to `Mathlib/X/Y/Z.lean`. Each file carries a copyright header naming the
+author of the original statements, but beyond that contains only imports, context setup
+(`open`/`namespace`/`variable`) and `proof_wanted` statements; in particular there are no
+module docstrings, so the header style linter is disabled.
+`proof_wanted` elaborates to a `private` placeholder declaration, so every module here
+consists solely of private declarations; the `privateModule` linter is disabled accordingly
+(neither `@[expose] public section` nor a `public` modifier suppresses it, since the
+placeholder is unconditionally `private`). -/
+lean_lib Wanted where
+  leanOptions := mathlibLeanOptions.push ⟨`weak.linter.style.header, false⟩
+    |>.push ⟨`weak.linter.privateModule, false⟩
 
 /-- Additional documentation in the form of modules that only contain module docstrings. -/
 lean_lib docs where

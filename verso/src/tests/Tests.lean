@@ -19,6 +19,7 @@ import Tests.ExpanderSignaturesLegacy
 import Tests.Html
 import Tests.HtmlEntities
 import Tests.InlineStringPositions
+import Tests.Tags
 import Tests.Integration
 import Tests.Integration.SampleDoc
 import Tests.Integration.CodeContent
@@ -40,6 +41,7 @@ import Tests.Refs
 import Tests.SearchJs
 import Tests.ExtensionResolution
 import Tests.Serialization
+import Tests.HoverMerge
 import Tests.TeX
 import Tests.TexUnit
 import Tests.TexUtil

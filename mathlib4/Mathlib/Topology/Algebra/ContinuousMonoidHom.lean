@@ -28,7 +28,7 @@ assert_not_exists ContinuousLinearEquiv
 
 section
 
-open Function Topology
+open Function
 
 variable (F A B C D E : Type*)
 variable [Monoid A] [Monoid B] [Monoid C] [Monoid D]
@@ -489,7 +489,7 @@ theorem symm_apply_eq (e : M ≃ₜ* N) {x y} : e.symm x = y ↔ x = e y :=
 theorem eq_symm_apply (e : M ≃ₜ* N) {x y} : y = e.symm x ↔ e y = x :=
   e.toEquiv.eq_symm_apply
 
-@[to_additive (attr := deprecated eq_symm_apply (since := "2026-07-26"))]
+@[to_additive (attr := deprecated eq_symm_apply +typeChanged (since := "2026-07-26"))]
 theorem apply_eq_iff_symm_apply (e : M ≃ₜ* N) {x : M} {y : N} : e x = y ↔ x = e.symm y :=
   e.eq_symm_apply.symm
 

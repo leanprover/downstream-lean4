@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Group.Submonoid.Defs
 public import Mathlib.Data.Set.Inclusion
 public import Mathlib.Tactic.Common
 public import Mathlib.Tactic.FastInstance
+public import Mathlib.Tactic.Attr.Core
 
 /-!
 # Subgroups
@@ -399,10 +400,10 @@ theorem toSubmonoid_le {p q : Subgroup G} : p.toSubmonoid ≤ q.toSubmonoid ↔ 
 @[to_additive]
 lemma coe_nonempty (s : Subgroup G) : (s : Set G).Nonempty := ⟨1, one_mem _⟩
 
-attribute [deprecated OneMemClass.coe_nonempty
-  +typeChanged (since := "2026-04-20")] Subgroup.coe_nonempty
-attribute [deprecated ZeroMemClass.coe_nonempty
-  +typeChanged (since := "2026-04-20")] AddSubgroup.coe_nonempty
+attribute [deprecated OneMemClass.coe_nonempty +typeChanged (since := "2026-04-20")]
+  Subgroup.coe_nonempty
+attribute [deprecated ZeroMemClass.coe_nonempty +typeChanged (since := "2026-04-20")]
+  AddSubgroup.coe_nonempty
 
 end Subgroup
 
@@ -600,8 +601,6 @@ lemma inclusion_inj {H K : Subgroup G} (h : H ≤ K) {x y : H} :
 theorem subtype_comp_inclusion {H K : Subgroup G} (hH : H ≤ K) :
     K.subtype.comp (inclusion hH) = H.subtype :=
   rfl
-
-open Set
 
 /-- A subgroup `H` is normal if whenever `n ∈ H`, then `g * n * g⁻¹ ∈ H` for every `g : G` -/
 structure Normal : Prop where

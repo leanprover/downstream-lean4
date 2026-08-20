@@ -408,12 +408,12 @@ theorem span_mul_span (S T : Set R) [(span S).IsTwoSided] :
     span S * span T = span (S * T) :=
   Submodule.span_smul_span S T
 
-theorem span_mul_span' (S T : Set R) [(span S).IsTwoSided] : span S * span T = span (S * T) :=
-  (span_mul_span S T).trans <| congr_arg span <| Set.ext <| by simp [Set.mem_mul, eq_comm]
+@[deprecated (since := "2026-08-14")]
+alias span_mul_span' := span_mul_span
 
 theorem span_singleton_mul_span_singleton (r s : R) [(span {r}).IsTwoSided] :
     span {r} * span {s} = (span {r * s} : Ideal R) := by
-  rw [span_mul_span', Set.singleton_mul_singleton]
+  rw [span_mul_span, Set.singleton_mul_singleton]
 
 theorem span_singleton_pow (s : R) [(span {s}).IsTwoSided] (n : ℕ) :
     span {s} ^ n = (span {s ^ n} : Ideal R) := by
@@ -512,7 +512,7 @@ theorem mul_top [I.IsTwoSided] : I * ⊤ = I :=
 
 theorem span_pair_mul_span_pair (w x y z : R) [(span {w, x}).IsTwoSided] :
     (span {w, x} : Ideal R) * span {y, z} = span {w * y, w * z, x * y, x * z} := by
-  rw [span_mul_span']; congr; ext r; simp [Set.mem_mul, or_assoc, eq_comm (a := r)]
+  rw [span_mul_span]; congr; ext r; simp [Set.mem_mul, or_assoc, eq_comm (a := r)]
 
 variable (R) in
 theorem top_pow (n : ℕ) : (⊤ ^ n : Ideal R) = ⊤ :=
@@ -965,7 +965,7 @@ theorem radical_eq_sInf (I : Ideal R) : radical I = sInf { J : Ideal R | I ≤ J
     hrm <|
       this.radical.symm ▸ (sInf_le ⟨hIm, this⟩ : sInf { J : Ideal R | I ≤ J ∧ IsPrime J } ≤ m) hr
 
-@[deprecated isRadical_bot (since := "2026-08-03")]
+@[deprecated isRadical_bot +typeChanged (since := "2026-08-03")]
 theorem isRadical_bot_of_noZeroDivisors {R} [CommSemiring R] [NoZeroDivisors R] :
     (⊥ : Ideal R).IsRadical := isRadical_bot
 

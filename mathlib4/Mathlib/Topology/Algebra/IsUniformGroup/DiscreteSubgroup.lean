@@ -19,7 +19,7 @@ be used in other files without requiring lots of group-theoretic imports.
 
 @[expose] public section
 
-open Filter Topology Uniformity
+open Filter Topology
 
 variable {G : Type*} [Group G] [TopologicalSpace G]
 
@@ -35,7 +35,8 @@ def Subgroup.subgroupOfContinuousMulEquivOfLe {H K : Subgroup G} (hHK : H ≤ K)
     simp only [subgroupOfEquivOfLe, Topology.IsInducing.subtypeVal.isOpen_iff,
       exists_exists_and_eq_and]
     simpa [Set.ext_iff] using fun s ↦ exists_congr
-      fun t ↦ and_congr_right fun _ ↦ ⟨fun aux g hgh ↦ aux g (hHK hgh) hgh, by grind⟩)
+      fun t ↦ and_congr_right fun _ ↦
+        ⟨fun aux g hgh ↦ aux g (hHK hgh) hgh, by grind [Subgroup.mem_subgroupOf]⟩)
 
 @[to_additive (attr := simp)]
 lemma Subgroup.subgroupOfContinuousMulEquivOfLe_symm_apply
@@ -74,8 +75,8 @@ lemma Subgroup.Commensurable.discreteTopology_iff
     {H K : Subgroup G} (h : Commensurable H K) :
     DiscreteTopology H ↔ DiscreteTopology K :=
   calc DiscreteTopology H ↔ DiscreteTopology ↑(H ⊓ K) :=
-    haveI : IsFiniteRelIndex (H ⊓ K) H := ⟨Subgroup.inf_relIndex_left H K ▸ h.2⟩
+    haveI : IsFiniteRelIndex (H ⊓ K) H := ⟨Subgroup.inf_relIndex_left H K ▸ h.2.relIndex_ne_zero⟩
     (Subgroup.discreteTopology_iff_of_isFiniteRelIndex inf_le_left).symm
   _ ↔ DiscreteTopology K :=
-    haveI : IsFiniteRelIndex (H ⊓ K) K := ⟨Subgroup.inf_relIndex_right H K ▸ h.1⟩
+    haveI : IsFiniteRelIndex (H ⊓ K) K := ⟨Subgroup.inf_relIndex_right H K ▸ h.1.relIndex_ne_zero⟩
     Subgroup.discreteTopology_iff_of_isFiniteRelIndex inf_le_right

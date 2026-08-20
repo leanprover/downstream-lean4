@@ -5,7 +5,6 @@ Authors: Dagur Asgeirsson
 -/
 module
 
-public import Mathlib.CategoryTheory.Sites.Sheaf
 public import Mathlib.Topology.Category.LightProfinite.EffectiveEpi
 /-!
 
@@ -20,7 +19,7 @@ public section
 
 universe u v w
 
-open CategoryTheory Limits
+open CategoryTheory
 
 /--
 `LightCondensed.{u} C` is the category of light condensed objects in a category `C`, which are
@@ -47,7 +46,9 @@ lemma comp_hom {X Y Z : LightCondensed.{u} C} (f : X ⟶ Y) (g : Y ⟶ Z) :
     (f ≫ g).hom = f.hom ≫ g.hom :=
   rfl
 
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-05")] alias id_val := id_hom
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-05")] alias comp_val := comp_hom
 
 @[ext]

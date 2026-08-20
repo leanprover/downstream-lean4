@@ -53,7 +53,6 @@ def rightShift (a n' : ℤ) (hn' : n' + a = n) : Cochain K (L⟦a⟧) n' :=
   Cochain.mk (fun p q hpq => γ.v p (p + n) rfl ≫
     (L.shiftFunctorObjXIso a q (p + n) (by lia)).inv)
 
-set_option backward.isDefEq.respectTransparency false in
 lemma rightShift_v (a n' : ℤ) (hn' : n' + a = n) (p q : ℤ) (hpq : p + n' = q)
     (p' : ℤ) (hp' : p + n = p') :
     (γ.rightShift a n' hn').v p q hpq = γ.v p p' hp' ≫
@@ -292,6 +291,39 @@ lemma rightShift_smul (a n' : ℤ) (hn' : n' + a = n) (x : R) :
   dsimp
   simp only [rightShift_v _ a n' hn' p q hpq _ rfl, smul_v, Linear.smul_comp]
 
+#adaptation_note
+/--
+We had to use the `instanceSearchTypes` backward compatibility option.
+Concretely, the following instance cannot be synthesized:
+`SMulCommClass R ℤˣ (K.X (p + a) ⟶ L.X q)`
+It is needed because `leftShift` carries a sign `u : ℤˣ`, so the closing `simp only` fires
+`smul_comm x`.
+
+The failure happens while applying `@Units.smulCommClass_right`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `SMul R (K.X (p + a) ⟶ L.X q)`, whereas the assigned value
+`DistribMulAction.toDistribSMul.toSMul` has type
+```
+SMul R (((CategoryTheory.shiftFunctor (CochainComplex C ℤ) a).obj K).X p ⟶ L.X q)
+```
+Lean falls back to synthesize an instance of the correct type, but the candidate is again not defeq
+to the result. Both comparisons bottom out at
+```
+K.X (p + a) ⟶ L.X q =?= ((CategoryTheory.shiftFunctor (CochainComplex C ℤ) a).obj K).X p ⟶ L.X q
+```
+Since `SMulCommClass` stays unsynthesizable, `smul_comm x` never fires and the goal
+`u • x • f = x • u • f` is left unsolved.
+
+`CategoryTheory.shiftFunctor` is already `@[implicit_reducible]`, but the
+`CochainComplex.shiftFunctor` underneath it is semireducible, so the two hom types cannot be seen
+to agree at either transparency. Marking it implicit-reducible makes the assignment go through,
+since Lean bumps transparency for instance-implicit arguments to `implicit`.
+
+Potential fix: mark `CochainComplex.shiftFunctor` implicit-reducible at its definition site; then
+the local `attribute` and `allowUnsafeReducibility` here can be dropped.
+-/
+set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma leftShift_smul (a n' : ℤ) (hn' : n + a = n') (x : R) :
@@ -435,7 +467,6 @@ lemma δ_rightShift (a n' m' : ℤ) (hn' : n' + a = n) (m : ℤ) (hm' : m' + a =
     rw [δ_shape _ _ hnm', δ_shape _ _ hnm, rightShift_zero, smul_zero]
 
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.respectTransparency false in
 lemma δ_rightUnshift {a n' : ℤ} (γ : Cochain K (L⟦a⟧) n') (n : ℤ) (hn : n' + a = n)
     (m m' : ℤ) (hm' : m' + a = m) :
     δ n m (γ.rightUnshift n hn) = a.negOnePow • (δ n' m' γ).rightUnshift m hm' := by
@@ -470,7 +501,6 @@ lemma δ_leftShift (a n' m' : ℤ) (hn' : n + a = n') (m : ℤ) (hm' : m + a = m
     rw [δ_shape _ _ hnm', δ_shape _ _ hnm, leftShift_zero, smul_zero]
 
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.respectTransparency false in
 lemma δ_leftUnshift {a n' : ℤ} (γ : Cochain (K⟦a⟧) L n') (n : ℤ) (hn : n + a = n')
     (m m' : ℤ) (hm' : m + a = m') :
     δ n m (γ.leftUnshift n hn) = a.negOnePow • (δ n' m' γ).leftUnshift m hm' := by
@@ -495,7 +525,6 @@ lemma δ_shift (a m : ℤ) :
   · rw [δ_shape _ _ hnm, δ_shape _ _ hnm, shift_zero, smul_zero]
 
 set_option backward.defeqAttrib.useBackward true in
-set_option backward.isDefEq.respectTransparency false in
 lemma leftShift_rightShift (a n' : ℤ) (hn' : n' + a = n) :
     (γ.rightShift a n' hn').leftShift a n hn' =
       (a * n + (a * (a - 1)) / 2).negOnePow • γ.shift a := by

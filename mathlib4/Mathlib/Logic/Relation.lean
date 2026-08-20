@@ -66,8 +66,6 @@ variable {r : α → α → Prop}
 
 @[deprecated (since := "2026-03-27")] alias Std.Refl.reflexive := refl
 
-@[deprecated (since := "2026-01-09")] alias IsRefl.reflexive := refl
-
 /-- To show a reflexive relation `r : α → α → Prop` holds over `x y : α`,
 it suffices to show it holds when `x ≠ y`. -/
 theorem Std.Refl.rel_of_ne_imp [Std.Refl r] {x y : α} (hr : x ≠ y → r x y) : r x y := by
@@ -279,7 +277,7 @@ lemma _root_.IsTrans.map {r : α → α → Prop} [IsTrans α r] {f : α → β}
 
 @[deprecated (since := "2026-03-27")] alias isTrans_map := IsTrans.map
 
-@[deprecated (since := "2026-02-21")] alias map_transitive := isTrans_map
+@[deprecated (since := "2026-02-21")] alias map_transitive := IsTrans.map
 
 lemma map_equivalence {r : α → α → Prop} (hr : Equivalence r) (f : α → β) (hf : f.Surjective)
     (hf_ker : ∀ x y, f x = f y → r x y) : Equivalence (Relation.Map r f f) where

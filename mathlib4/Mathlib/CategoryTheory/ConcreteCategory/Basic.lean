@@ -109,6 +109,7 @@ abbrev instFunLike {X Y : C} :
     rw [← ofHom_hom f, ← ofHom_hom g]
     simp_all
 
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-04-03")] alias _root_.CategoryTheory.HasForget.instFunLike :=
   instFunLike
 
@@ -185,7 +186,6 @@ theorem hom_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g : ToType X �
 
 open ConcreteCategory
 
-set_option backward.isDefEq.respectTransparency false in
 instance InducedCategory.concreteCategory {C : Type u} {D : Type u'} [Category.{v'} D]
     {FD : D → D → Type*} {CD : D → Type w} [∀ X Y, FunLike (FD X Y) (CD X) (CD Y)]
     [ConcreteCategory.{w} D FD] (f : C → D) :

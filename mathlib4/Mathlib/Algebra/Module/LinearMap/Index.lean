@@ -65,6 +65,31 @@ public lemma index_of_surjective (hf : Surjective f) :
   rw [index_eq_finrank_sub, range_eq_top.mpr hf]
   simp [finrank_eq_zero_of_subsingleton]
 
+#adaptation_note
+/--
+We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
+succeed. Concretely, the following instance cannot be synthesized:
+`Module.Free R ↥⊥`
+It is needed by `finrank_eq_zero_of_subsingleton` in the closing `simp`.
+
+The failure happens while applying `Free.of_subsingleton`: assigning one of its
+instance-implicit-argument metavariables is rejected because the metavariable's type and the type
+of the assigned value do not match at `.instances` transparency. The metavariable's expected type
+is `AddCommMonoid ↥⊥`, whereas the assigned value `id.ker.addCommMonoid` has type
+`AddCommMonoid ↥id.ker`. Lean falls back to synthesize an instance of the correct type, but the
+candidate is again not defeq to the result `⊥.addCommMonoid`. Both comparisons bottom out at
+`id.ker =?= ⊥`, and `ker` is semireducible, so it does not unfold at the `.instances` transparency
+that instance search runs at.
+
+The two spellings meet because `simp` mixes them: after `range_id`, the `@[simp]` `rfl`-lemma
+`ker_id` rewrites the carrier `↥(ker id)` to `↥⊥` but keeps the old `id.ker.*` instance arguments.
+Since `Free` stays unsynthesizable, `finrank R ↥⊥` is left unrewritten and the goal
+`finrank R ↥⊥ = 0` is not closed.
+
+Potential fix: mark `LinearMap.ker` implicit-reducible, then remove both backward compatibility
+options.
+-/
+set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 @[simp] public lemma index_id :
     (id : M →ₗ[R] M).index = 0 := by

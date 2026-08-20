@@ -5,7 +5,6 @@ Authors: Adam Topaz
 -/
 module
 
-public import Mathlib.CategoryTheory.Sites.Sheaf
 public import Mathlib.Topology.Category.CompHaus.EffectiveEpi
 
 /-!
@@ -32,7 +31,7 @@ as we do not impose cardinality bounds, and manage universes carefully instead.
 
 public section
 
-open CategoryTheory Limits
+open CategoryTheory
 
 open CategoryTheory
 
@@ -61,8 +60,9 @@ lemma id_hom (X : Condensed.{u} C) : (𝟙 X : X ⟶ X).hom = 𝟙 _ := rfl
 @[deprecated ObjectProperty.FullSubcategory.comp_hom +typeChanged (since := "2026-04-08")]
 lemma comp_hom {X Y Z : Condensed.{u} C} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g).hom = f.hom ≫ g.hom :=
   rfl
-
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-05")] alias id_val := id_hom
+set_option linter.deprecated.deprecatedTarget false in
 @[deprecated (since := "2026-03-05")] alias comp_val := comp_hom
 
 @[ext]
