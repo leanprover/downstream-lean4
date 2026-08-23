@@ -62,7 +62,7 @@ theorem opow_add_one (a b : Ordinal) : a ^ (b + 1) = a ^ b * a := by
   · rw [opow_of_ne_zero h, opow_of_ne_zero h]
     exact limitRecOn_add_one ..
 
-@[deprecated opow_add_one (since := "2026-06-17")]
+@[deprecated opow_add_one +typeChanged (since := "2026-06-17")]
 theorem opow_succ (a b : Ordinal) : a ^ succ b = a ^ b * a :=
   opow_add_one a b
 
