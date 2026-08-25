@@ -235,7 +235,7 @@ partial def dumpExpr (e : Expr) : M Nat := do
 partial def dumpConstant (c : Name) : M Unit := do
   let some declar := (← read).env.find? c
     | if (← get).ignoreMissing then return else panic! s!"Constant {c} not found in environment."
-  if (declar.isUnsafe && !(← get).exportUnsafe) || (← get).visitedConstants.contains c then
+  if ((declar.isUnsafe || declar.isPartial) && !(← get).exportUnsafe) || (← get).visitedConstants.contains c then
     return
   modify fun st => { st with visitedConstants := st.visitedConstants.insert c }
   match declar with
