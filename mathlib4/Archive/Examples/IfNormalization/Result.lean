@@ -5,7 +5,6 @@ Authors: Chris Hughes
 -/
 import Archive.Examples.IfNormalization.Statement
 import Mathlib.Data.List.AList
-import Mathlib.Tactic.Recall
 
 /-!
 # A solution to the if normalization challenge in Lean.

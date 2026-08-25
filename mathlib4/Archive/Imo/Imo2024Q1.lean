@@ -9,7 +9,6 @@ import Mathlib.Algebra.Order.Archimedean.Real.Basic
 import Mathlib.Algebra.Order.BigOperators.Group.LocallyFinite
 import Mathlib.Algebra.Order.ToIntervalMod
 import Mathlib.Tactic.Peel
-import Mathlib.Tactic.Recall
 
 /-!
 # IMO 2024 Q1
