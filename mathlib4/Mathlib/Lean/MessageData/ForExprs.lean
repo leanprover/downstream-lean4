@@ -69,7 +69,6 @@ where
       let some ppCtx := ctx?.map (mkPPContext nctx) | return .yield s
       goFmt ppCtx fwi.infos s fwi.fmt
     | .ofOriginatingSyntax _ m => go nctx ctx? s m
-    | .ofCodeQualityEntry _ m => go nctx ctx? s m
   /-- Iterate over the tags of a `Format` using `f`. -/
   goFmt (ppCtx : PPContext) (infos) (s : σ) : Format → m (ForInStep σ)
     | .tag n fmt => do

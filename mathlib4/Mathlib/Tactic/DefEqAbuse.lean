@@ -114,7 +114,7 @@ where
       | .ascend a? => return a?.getD empty
     | .compose a b => return combine (← go a) (← go b)
     | .nest _ m | .group m | .tagged _ m | .withContext _ m | .withNamingContext _ m
-    | .ofOriginatingSyntax _ m | .ofCodeQualityEntry _ m => go m
+    | .ofOriginatingSyntax _ m => go m
     | .ofLazy _ _ | .ofWidget _ _ | .ofGoal _ | .ofFormatWithInfos _ => return empty
 
 /-- Convenience wrapper which accumulates the results of `visitM` across `arr`, attempting to
@@ -146,7 +146,6 @@ partial def withPPOptions (msg : MessageData) (modify : Options → Options) : M
   | .tagged t m => .tagged t (withPPOptions m modify)
   | .ofOriginatingSyntax stx m => .ofOriginatingSyntax stx (withPPOptions m modify)
   | .withNamingContext nc m => .withNamingContext nc (withPPOptions m modify)
-  | .ofCodeQualityEntry qe m => .ofCodeQualityEntry qe (withPPOptions m modify)
   | .trace td header children =>
     .trace td (withPPOptions header modify) (children.map (withPPOptions · modify))
   | .ofWidget w m => .ofWidget w (withPPOptions m modify)
