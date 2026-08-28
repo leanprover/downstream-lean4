@@ -298,6 +298,7 @@ lemma lift_map_apply {g : γ → α} (f : {f : α → α → β // ∀ a₁ a₂
   conv_rhs => rw [← lift_comp_map, comp_apply]
 
 section Membership
+variable {x : α}
 
 /-! ### Membership and set coercion -/
 
@@ -359,6 +360,9 @@ theorem out_fst_mem (e : Sym2 α) : e.out.1 ∈ e :=
 
 theorem out_snd_mem (e : Sym2 α) : e.out.2 ∈ e :=
   ⟨e.out.1, by rw [eq_swap, Sym2.mk, e.out_eq]⟩
+
+@[simp] lemma fst_out_mk_self : (Quot.out s(x, x)).1 = x := by simpa using out_fst_mem s(x, x)
+@[simp] lemma snd_out_mk_self : (Quot.out s(x, x)).2 = x := by simpa using out_snd_mem s(x, x)
 
 theorem ball {p : α → Prop} {a b : α} : (∀ c ∈ s(a, b), p c) ↔ p a ∧ p b := by
   simp
@@ -850,7 +854,7 @@ private theorem perm_card_two_iff {a₁ b₁ a₂ b₂ : α} :
     mpr := fun
         | .inl ⟨h₁, h₂⟩ | .inr ⟨h₁, h₂⟩ => by
           rw [h₁, h₂]
-          first | done | constructor }
+          first | done | apply List.Perm.swap }
 
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
@@ -860,7 +864,7 @@ def sym2EquivSym' : Equiv (Sym2 α) (Sym' α 2) where
     Quot.map (fun x : α × α => ⟨[x.1, x.2], rfl⟩)
       (by
         rintro _ _ ⟨_⟩
-        · constructor; apply List.Perm.refl
+        · apply List.Perm.cons; apply List.Perm.refl
         apply List.Perm.swap'
         rfl)
   invFun :=

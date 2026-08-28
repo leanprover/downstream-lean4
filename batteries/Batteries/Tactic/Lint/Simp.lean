@@ -5,6 +5,7 @@ Authors: Gabriel Ebner
 -/
 module
 
+public meta import Lean.Meta.DiscrTree.Util
 public meta import Lean.Meta.Tactic.Simp.Main
 public meta import Lean.Meta.DiscrTree.Util
 public meta import Batteries.Tactic.Lint.Basic
@@ -102,7 +103,7 @@ def isSimpTheorem (declName : Name) : MetaM Bool := do
 
 open Lean.Meta.DiscrTree in
 /-- Returns the list of elements in the discrimination tree. -/
-@[deprecated Lean.Meta.DiscrTree.values (since := "2026-08-18")]
+@[deprecated Lean.Meta.DiscrTree.values (since := "2026-08-25")]
 partial def _root_.Lean.Meta.DiscrTree.elements (d : DiscrTree α) : Array α :=
   d.values
 
