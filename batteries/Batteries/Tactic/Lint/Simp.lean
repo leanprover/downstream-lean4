@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Meta.DiscrTree.Util
 public meta import Lean.Meta.Tactic.Simp.Main
+public meta import Lean.Meta.DiscrTree.Util
 public meta import Batteries.Tactic.Lint.Basic
 public meta import Batteries.Tactic.OpenPrivate
 public meta import Batteries.Util.LibraryNote
