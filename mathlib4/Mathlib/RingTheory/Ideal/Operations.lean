@@ -1093,8 +1093,8 @@ theorem subset_union_prime' {R : Type u} [CommRing R] {s : Finset ι} {f : ι �
         exact ⟨hp.1, hp.2.2⟩
       have hiu : i ∉ u := mt Finset.mem_insert_of_mem hit
       have hn' : (insert i u).card = n := by
-        rwa [Finset.card_insert_of_notMem] at hn ⊢
-        exacts [hiu, hju]
+        rw [Finset.card_insert_of_notMem] at hn ⊢
+        exacts [hn, hiu, hju]
       have h' : (I : Set R) ⊆ f a ∪ f b ∪ ⋃ k ∈ (↑(insert i u) : Set ι), f k := by
         rw [Finset.coe_insert] at h ⊢
         rw [Finset.coe_insert] at h
