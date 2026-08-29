@@ -42,6 +42,7 @@ COMMANDS:
   check-lint            check if there is a properly configured lint driver
   clean                 remove build outputs
   shake                 minimize imports in source files
+  challenge             judge a solution against a challenge
   env <cmd> <args>...   execute a command in Lake's environment
   lean <file>           elaborate a Lean file in Lake's context
   update                update dependencies and save them to the manifest
