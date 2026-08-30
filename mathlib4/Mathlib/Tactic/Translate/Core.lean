@@ -902,7 +902,7 @@ def warnAttrCore (stx : Syntax) (f : Environment → Name → Bool)
       else ""
 
 /-- Warn the user when the declaration has a simple scoped attribute. -/
-def warnAttr {α β : Type} [Inhabited β] (stx : Syntax) (attr : SimpleScopedEnvExtension α β)
+def warnAttr {α β : Type} (stx : Syntax) (attr : SimpleScopedEnvExtension α β)
     (f : β → Name → Bool) (thisAttr attrName src tgt : Name) : CoreM Unit :=
   warnAttrCore stx (f <| attr.getState ·) thisAttr attrName src tgt
 
