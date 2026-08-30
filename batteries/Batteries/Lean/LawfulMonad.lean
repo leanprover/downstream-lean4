@@ -31,7 +31,7 @@ instance : LawfulMonad BaseIO := inferInstanceAs <| LawfulMonad (ST _)
 instance : LawfulMonad IO := inferInstanceAs <| LawfulMonad (EIO _)
 
 instance : LawfulMonad CoreM :=
-  inferInstanceAs <| LawfulMonad (ReaderT _ <| StateRefT' _ _ (EIO Exception))
+  inferInstanceAs <| LawfulMonad (ReaderT _ <| ReaderT _ <| StateRefT' _ _ (EIO Exception))
 instance : LawfulMonad MetaM :=
   inferInstanceAs <| LawfulMonad (ReaderT _ <| StateRefT' _ _ CoreM)
 instance : LawfulMonad TermElabM :=

@@ -142,7 +142,7 @@ Note: It is expensive to create two new `IO.Ref`s for every `MetaM` operation,
   -- mstate.modify fun s => { cache := s.cache }
   -- cstate.modify fun s => { env := s.env, cache := s.cache, ngen := s.ngen }
   let mctx := { keyedConfig := Config.toConfigWithKey { transparency := .reducible } }
-  match ← (((act name constInfo) mctx mstate) cctx cstate).toBaseIO with
+  match ← (((act name constInfo) mctx mstate) cctx { currRecDepth := 0 } cstate).toBaseIO with
   | .ok a =>
     return a.foldl (fun t (val, entries) =>
       entries.foldl (fun t (key, entry) => t.push key (entry, val)) t) tree
