@@ -167,6 +167,7 @@ jobs:
           issue: ${{ steps.original-pr.outputs.number }}
           body-path: ${{ runner.temp }}/report/report.md
           marker: build-report
+          repost: true
 
   post-report-zulip:
     if:
