@@ -899,7 +899,7 @@ instance : SuccOrder Ordinal.{u} :=
 
 instance : SuccAddOrder Ordinal := ⟨fun _ => rfl⟩
 
-@[deprecated Order.one_le_iff_ne_zero (since := "2026-03-24")]
+@[deprecated Order.one_le_iff_ne_zero +typeChanged (since := "2026-03-24")]
 protected theorem one_le_iff_ne_zero {o : Ordinal} : 1 ≤ o ↔ o ≠ 0 :=
   Order.one_le_iff_ne_zero
 
@@ -911,7 +911,7 @@ theorem succ_pos (o : Ordinal) : 0 < succ o :=
 theorem add_one_ne_zero (o : Ordinal) : o + 1 ≠ 0 :=
   (add_pos_of_right zero_lt_one o).ne'
 
-@[deprecated Order.lt_one_iff (since := "2026-03-24")]
+@[deprecated Order.lt_one_iff +typeChanged (since := "2026-03-24")]
 theorem lt_one_iff_zero {a : Ordinal} : a < 1 ↔ a = 0 :=
   Order.lt_one_iff
 
@@ -919,7 +919,7 @@ theorem lt_one_iff_zero {a : Ordinal} : a < 1 ↔ a = 0 :=
 protected theorem le_one_iff {a : Ordinal} : a ≤ 1 ↔ a = 0 ∨ a = 1 :=
   Order.le_one_iff
 
-@[deprecated Nat.cast_add_one (since := "2026-05-21")]
+@[deprecated Nat.cast_add_one +typeChanged (since := "2026-05-21")]
 theorem natCast_succ (n : ℕ) : ↑n.succ = succ (n : Ordinal) :=
   n.cast_add_one
 
