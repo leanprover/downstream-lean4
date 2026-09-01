@@ -5,10 +5,6 @@ description: >
   branch and pull request in its own upstream repository.
 
 inputs:
-  app-token:
-    description: GitHub app token.
-    required: true
-
   subrepo:
     description: >
       The name of the subrepo (as it appears in repos.toml and the build report)
@@ -41,6 +37,12 @@ inputs:
       The branch in push-repo to push the export to and open the export PR from.
     required: true
 
+  push-token:
+    description: >
+      GitHub token used to push the export branch to push-repo. If not supplied,
+      the existing credentials of downstream-clone are used.
+    required: false
+
   target-repo:
     description: >
       The upstream repository to open the export PR against, in "owner/repo"
@@ -49,6 +51,10 @@ inputs:
 
   target-branch:
     description: The branch in target-repo to open the export PR against.
+    required: true
+
+  target-token:
+    description: GitHub app token used to find and create the export PR.
     required: true
 
   pr-title:

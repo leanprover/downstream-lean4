@@ -20806,6 +20806,9 @@ var ExitCode;
   ExitCode2[ExitCode2["Success"] = 0] = "Success";
   ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
 })(ExitCode || (ExitCode = {}));
+function setSecret(secret) {
+  issueCommand("add-mask", {}, secret);
+}
 function getInput(name, options) {
   const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
   if (options && options.required && !val) {
@@ -24958,18 +24961,20 @@ async function findPrFor(octo2, repo, branchName, options = {}) {
 }
 
 // actions/export-pr-create/main.ts
-var appToken = getInput2("app-token");
 var subrepo = getInput2("subrepo");
 var buildReportPath = getInput2("build-report-path");
 var downstreamClone = getInput2("downstream-clone");
 var trackingBranch = getInput2("tracking-branch");
 var pushRepo = parseRepo(getInput2("push-repo"));
 var pushBranch = getInput2("push-branch");
+var pushToken = getInputOpt("push-token");
 var targetRepo = parseRepo(getInput2("target-repo"));
 var targetBranch = getInput2("target-branch");
+var targetToken = getInput2("target-token");
 var prTitle = getInput2("pr-title");
 var prBody = getInputOpt("pr-body");
-var octo = getOctokit(appToken);
+if (pushToken !== null) setSecret(pushToken);
+var octo = getOctokit(targetToken);
 async function dRun(cmd, args, options) {
   return await exec(cmd, args, { ...options, cwd: downstreamClone });
 }
@@ -25027,12 +25032,8 @@ async function prepareExportBranch() {
   }
 }
 async function pushExportBranch() {
-  await dRun("git", [
-    "push",
-    "--force",
-    `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
-    `HEAD:refs/heads/${pushBranch}`
-  ]);
+  const url = pushToken ? `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git` : `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+  await dRun("git", ["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]);
 }
 async function createExportPr() {
   info("Creating export PR...");

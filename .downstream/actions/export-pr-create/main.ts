@@ -14,19 +14,22 @@ import {
   parseRepo,
 } from "../lib/util";
 
-const appToken = getInput("app-token");
 const subrepo = getInput("subrepo");
 const buildReportPath = getInput("build-report-path");
 const downstreamClone = getInput("downstream-clone");
 const trackingBranch = getInput("tracking-branch");
 const pushRepo = parseRepo(getInput("push-repo"));
 const pushBranch = getInput("push-branch");
+const pushToken = getInputOpt("push-token");
 const targetRepo = parseRepo(getInput("target-repo"));
 const targetBranch = getInput("target-branch");
+const targetToken = getInput("target-token");
 const prTitle = getInput("pr-title");
 const prBody = getInputOpt("pr-body");
 
-const octo = github.getOctokit(appToken);
+if (pushToken !== null) core.setSecret(pushToken);
+
+const octo = github.getOctokit(targetToken);
 
 async function dRun(
   cmd: string,
@@ -106,12 +109,12 @@ async function prepareExportBranch(): Promise<boolean> {
 }
 
 async function pushExportBranch(): Promise<void> {
-  await dRun("git", [
-    "push",
-    "--force",
-    `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
-    `HEAD:refs/heads/${pushBranch}`,
-  ]);
+  // If no push-token was given, fall back to the credentials already
+  // configured for downstream-clone rather than overwriting them.
+  const url = pushToken
+    ? `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`
+    : `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+  await dRun("git", ["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]);
 }
 
 async function createExportPr(): Promise<number> {
