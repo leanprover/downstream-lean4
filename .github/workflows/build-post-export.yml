@@ -25,7 +25,7 @@ jobs:
         with:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
-          repositories: downstream-lean4,downstream-lean4-fork-batteries
+          repositories: downstream-lean4
 
       - name: Create GitHub App token (leanprover-community organization)
         uses: actions/create-github-app-token@v3
@@ -67,15 +67,16 @@ jobs:
         id: export-pr
         uses: ./.downstream/actions/export-pr-create
         with:
-          app-token: ${{ steps.app-token-leanprover-community.outputs.token }}
           subrepo: batteries
           build-report-path: ${{ runner.temp }}/report/build-report.json
           downstream-clone: .
           tracking-branch: export/batteries
-          push-repo: leanprover/downstream-lean4-fork-batteries
+          push-repo: leanprover-community/batteries
           push-branch: downstream-lean4-export
+          push-token: ${{ steps.app-token-leanprover-community.outputs.token }}
           target-repo: leanprover-community/batteries
           target-branch: nightly-testing
+          target-token: ${{ steps.app-token-leanprover-community.outputs.token }}
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           pr-body: >
@@ -152,7 +153,6 @@ jobs:
         id: export-pr
         uses: ./.downstream/actions/export-pr-create
         with:
-          app-token: ${{ steps.app-token.outputs.token }}
           subrepo: cslib
           build-report-path: ${{ runner.temp }}/report/build-report.json
           downstream-clone: .
@@ -161,6 +161,7 @@ jobs:
           push-branch: downstream-lean4-export
           target-repo: leanprover/cslib # TODO Obtain from repos.toml?
           target-branch: nightly-testing # TODO Obtain from repos.toml?
+          target-token: ${{ steps.app-token.outputs.token }}
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           pr-body: >
