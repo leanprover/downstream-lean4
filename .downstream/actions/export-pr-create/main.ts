@@ -109,21 +109,12 @@ async function prepareExportBranch(): Promise<boolean> {
 }
 
 async function pushExportBranch(): Promise<void> {
-  const args: string[] = [];
-  let url = `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
-
-  // If no push-token was given, fall back to the credentials already configured
-  // for downstream-clone rather than overwriting them.
-  if (pushToken) {
-    // downstream-clone may already carry an inherited http.extraHeader (e.g.
-    // from actions/checkout) that applies to all github.com requests and would
-    // otherwise silently override the URL-embedded credentials.
-    args.push("-c", "http.extraHeader=");
-    url = `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
-  }
-
-  args.push("push", "--force", url, `HEAD:refs/heads/${pushBranch}`);
-  await dRun("git", args);
+  // If no push-token was given, fall back to the credentials already
+  // configured for downstream-clone rather than overwriting them.
+  const url = pushToken
+    ? `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`
+    : `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+  await dRun("git", ["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]);
 }
 
 async function createExportPr(): Promise<number> {
