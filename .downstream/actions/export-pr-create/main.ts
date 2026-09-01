@@ -49,8 +49,16 @@ async function loadBuildReport(): Promise<BuildReport> {
 }
 
 // Check whether the tracking branch is a true ancestor (i.e. not identical to)
-// the specified commit hash.
+// the specified commit hash. If the tracking branch does not exist yet (e.g. on
+// the first export), we treat it as an ancestor.
 async function trackingBranchIsTrueAncestor(sha: string): Promise<boolean> {
+  const verifyExitCode = await dRun(
+    "git",
+    ["rev-parse", "--verify", "--quiet", `origin/${trackingBranch}`],
+    { ignoreReturnCode: true, silent: true },
+  );
+  if (verifyExitCode !== 0) return true;
+
   const trackingSha = await dCapture("git", [
     "rev-parse",
     `origin/${trackingBranch}`,

@@ -24984,6 +24984,12 @@ async function loadBuildReport() {
   return JSON.parse(raw);
 }
 async function trackingBranchIsTrueAncestor(sha) {
+  const verifyExitCode = await dRun(
+    "git",
+    ["rev-parse", "--verify", "--quiet", `origin/${trackingBranch}`],
+    { ignoreReturnCode: true, silent: true }
+  );
+  if (verifyExitCode !== 0) return true;
   const trackingSha = await dCapture("git", [
     "rev-parse",
     `origin/${trackingBranch}`
