@@ -6,6 +6,100 @@ on:
     types: [completed]
 
 jobs:
+  batteries:
+    if:
+      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/batteries
+      cancel-in-progress: false
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token (leanprover organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: downstream-lean4,downstream-lean4-fork-batteries
+
+      - name: Create GitHub App token (leanprover-community organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover-community
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          owner: leanprover-community
+          repositories: batteries
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token-leanprover.outputs.token }}
+          filter: tree:0
+          fetch-depth: 0
+
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token-leanprover.outputs.app-slug }}[bot]
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Create export PR
+        id: export-pr
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          app-token: ${{ steps.app-token-leanprover-community.outputs.token }}
+          subrepo: batteries
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          downstream-clone: .
+          tracking-branch: export/batteries
+          push-repo: leanprover/downstream-lean4-fork-batteries
+          push-branch: downstream-lean4-export
+          target-repo: leanprover-community/batteries
+          target-branch: nightly-testing
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+          pr-body: >
+            This PR contains the latest nightly adaptations from the
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            repository.
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-batteries
+          topic: downstream-lean4 PRs
+          content: >
+            PR batteries#${{ steps.export-pr.outputs.number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.
+
   cslib:
     if:
       ${{ github.event.workflow_run.conclusion != 'cancelled' &&
@@ -25,7 +119,7 @@ jobs:
         with:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
-          repositories: ${{ github.repository }},cslib
+          repositories: downstream-lean4,cslib
 
       - name: Checkout
         uses: actions/checkout@v6
