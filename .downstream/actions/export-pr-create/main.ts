@@ -1,4 +1,6 @@
 import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
 
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
@@ -20,14 +22,14 @@ const downstreamClone = getInput("downstream-clone");
 const trackingBranch = getInput("tracking-branch");
 const pushRepo = parseRepo(getInput("push-repo"));
 const pushBranch = getInput("push-branch");
-const pushToken = getInputOpt("push-token");
+const pushToken = getInput("push-token");
 const targetRepo = parseRepo(getInput("target-repo"));
 const targetBranch = getInput("target-branch");
 const targetToken = getInput("target-token");
 const prTitle = getInput("pr-title");
 const prBody = getInputOpt("pr-body");
 
-if (pushToken !== null) core.setSecret(pushToken);
+core.setSecret(pushToken);
 
 const octo = github.getOctokit(targetToken);
 
@@ -108,13 +110,26 @@ async function prepareExportBranch(): Promise<boolean> {
   }
 }
 
+// Push HEAD of downstream-clone to push-repo from a fresh, throwaway git repo
+// rather than from downstream-clone itself. This way, our access token won't be
+// overwritten by actions/checkout's persistent credentials.
 async function pushExportBranch(): Promise<void> {
-  // If no push-token was given, fall back to the credentials already
-  // configured for downstream-clone rather than overwriting them.
-  const url = pushToken
-    ? `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`
-    : `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
-  await dRun("git", ["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]);
+  const tempRepo = await fs.mkdtemp(path.join(os.tmpdir(), "export-pr-"));
+  try {
+    await exec.exec("git", ["init", "--quiet", tempRepo]);
+    await exec.exec("git", [
+      ...["-C", tempRepo],
+      ...["fetch", "--quiet", path.resolve(downstreamClone), "HEAD"],
+    ]);
+
+    const url = `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+    await exec.exec("git", [
+      ...["-C", tempRepo],
+      ...["push", "--force", url, `FETCH_HEAD:refs/heads/${pushBranch}`],
+    ]);
+  } finally {
+    await fs.rm(tempRepo, { recursive: true, force: true });
+  }
 }
 
 async function createExportPr(): Promise<number> {

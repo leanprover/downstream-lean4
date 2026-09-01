@@ -38,10 +38,8 @@ inputs:
     required: true
 
   push-token:
-    description: >
-      GitHub token used to push the export branch to push-repo. If not supplied,
-      the existing credentials of downstream-clone are used.
-    required: false
+    description: GitHub token used to push the export branch to push-repo.
+    required: true
 
   target-repo:
     description: >
