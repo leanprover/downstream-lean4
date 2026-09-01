@@ -110,7 +110,7 @@ async function pushExportBranch(): Promise<void> {
     "push",
     "--force",
     `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
-    `HEAD:${pushBranch}`,
+    `HEAD:refs/heads/${pushBranch}`,
   ]);
 }
 

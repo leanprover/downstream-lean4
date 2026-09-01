@@ -25031,7 +25031,7 @@ async function pushExportBranch() {
     "push",
     "--force",
     `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
-    `HEAD:${pushBranch}`
+    `HEAD:refs/heads/${pushBranch}`
   ]);
 }
 async function createExportPr() {
