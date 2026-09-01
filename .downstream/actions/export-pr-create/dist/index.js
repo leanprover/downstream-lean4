@@ -25032,8 +25032,14 @@ async function prepareExportBranch() {
   }
 }
 async function pushExportBranch() {
-  const url = pushToken ? `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git` : `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
-  await dRun("git", ["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]);
+  const args = [];
+  let url = `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+  if (pushToken) {
+    args.push("-c", "http.extraHeader=");
+    url = `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
+  }
+  args.push("push", "--force", url, `HEAD:refs/heads/${pushBranch}`);
+  await dRun("git", args);
 }
 async function createExportPr() {
   info("Creating export PR...");
