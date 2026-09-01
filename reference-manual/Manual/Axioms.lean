@@ -202,6 +202,9 @@ Uses of this axiom are not intended to occur in finished proofs, as it can be us
    sorryAx {α : Sort u} (synthetic := true) : α
    ```
 
+In addition to the standard axioms, proofs by native evaluation introduce a dedicated axiom for each computation that is asserted by the compiled code.
+These axioms track proofs that depend on the correctness of the entire compiler, and not just on the much smaller {tech}`kernel`.
+
 :::example "Axioms and the `native_decide` Tactic"
 The {tactic}`native_decide` tactic creates a bespoke axiom for each invocation.
 This allows each axiom to be audited for the precise statement that it proves.
