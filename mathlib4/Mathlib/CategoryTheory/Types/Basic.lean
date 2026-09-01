@@ -261,7 +261,7 @@ theorem map_comp_apply (f : X ⟶ Y) (g : Y ⟶ Z) (a : F.obj X) :
 theorem map_id_apply (a : F.obj X) : (F.map (𝟙 X)) a = a :=
   F.map_id_apply X a
 
-@[deprecated NatTrans.comp_app_apply (since := "2026-03-09")]
+@[deprecated NatTrans.comp_app_apply +typeChanged (since := "2026-03-09")]
 theorem comp (x : F.obj X) : (σ ≫ τ).app X x = τ.app X (σ.app X x) :=
   σ.comp_app_apply τ X x
 

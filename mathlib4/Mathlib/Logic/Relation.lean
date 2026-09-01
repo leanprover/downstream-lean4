@@ -642,7 +642,7 @@ theorem transGen_eq_self [IsTrans α r] : TransGen r = r :=
       | single hc => exact hc
       | tail _ hcd hac => exact IsTrans.trans _ _ _ hac hcd, TransGen.single⟩
 
-@[deprecated transGen_eq_self (since := "2026-03-27"), grind =]
+@[deprecated transGen_eq_self +typeChanged (since := "2026-03-27"), grind =]
 theorem transGen_idem : TransGen (TransGen r) = TransGen r :=
   transGen_eq_self
 
@@ -728,7 +728,7 @@ instance : IsPreorder α (ReflTransGen r) where
 @[deprecated inferInstance +typeChanged (since := "2026-03-27")]
 theorem reflexive_reflTransGen : Std.Refl (ReflTransGen r) := inferInstance
 
-@[deprecated reflTransGen_eq_self (since := "2026-03-27"), grind =]
+@[deprecated reflTransGen_eq_self +typeChanged (since := "2026-03-27"), grind =]
 theorem reflTransGen_idem : ReflTransGen (ReflTransGen r) = ReflTransGen r :=
   reflTransGen_eq_self
 
