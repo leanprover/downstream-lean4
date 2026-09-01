@@ -25036,15 +25036,14 @@ async function prepareExportBranch() {
 async function pushExportBranch() {
   const tempRepo = await fs3.mkdtemp(path4.join(os6.tmpdir(), "export-pr-"));
   try {
-    await exec("git", ["init", "--quiet", tempRepo]);
     await exec("git", [
-      ...["-C", tempRepo],
-      ...["fetch", "--quiet", path4.resolve(downstreamClone), "HEAD"]
+      ...["clone", "--bare", "--quiet"],
+      ...[path4.resolve(downstreamClone), tempRepo]
     ]);
     const url = `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
     await exec("git", [
       ...["-C", tempRepo],
-      ...["push", "--force", url, `FETCH_HEAD:refs/heads/${pushBranch}`]
+      ...["push", "--force", url, `HEAD:refs/heads/${pushBranch}`]
     ]);
   } finally {
     await fs3.rm(tempRepo, { recursive: true, force: true });

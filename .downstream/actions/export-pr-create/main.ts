@@ -116,16 +116,16 @@ async function prepareExportBranch(): Promise<boolean> {
 async function pushExportBranch(): Promise<void> {
   const tempRepo = await fs.mkdtemp(path.join(os.tmpdir(), "export-pr-"));
   try {
-    await exec.exec("git", ["init", "--quiet", tempRepo]);
+    // Fetching instead of cloning here runs into issues with shallow commits.
     await exec.exec("git", [
-      ...["-C", tempRepo],
-      ...["fetch", "--quiet", path.resolve(downstreamClone), "HEAD"],
+      ...["clone", "--bare", "--quiet"],
+      ...[path.resolve(downstreamClone), tempRepo],
     ]);
 
     const url = `https://x-access-token:${pushToken}@github.com/${pushRepo.owner}/${pushRepo.repo}.git`;
     await exec.exec("git", [
       ...["-C", tempRepo],
-      ...["push", "--force", url, `FETCH_HEAD:refs/heads/${pushBranch}`],
+      ...["push", "--force", url, `HEAD:refs/heads/${pushBranch}`],
     ]);
   } finally {
     await fs.rm(tempRepo, { recursive: true, force: true });
