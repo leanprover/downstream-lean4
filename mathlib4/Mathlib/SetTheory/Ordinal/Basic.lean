@@ -688,20 +688,20 @@ theorem enum_zero_le' {o : Ordinal} (h0 : 0 < o) (a : o.ToType) :
 
 /-- Given two ordinals `α ≤ β`, then `initialSegToType α β` is the initial segment embedding of
 `α.ToType` into `β.ToType`. -/
-@[deprecated type_le_iff (since := "2026-04-12")]
+@[deprecated type_le_iff +typeChanged (since := "2026-04-12")]
 noncomputable def initialSegToType {α β : Ordinal} (h : α ≤ β) : α.ToType ≤i β.ToType := by
   apply Classical.choice (type_le_iff.mp _)
   rwa [type_toType, type_toType]
 
 /-- Given two ordinals `α < β`, then `principalSegToType α β` is the principal segment embedding
 of `α.ToType` into `β.ToType`. -/
-@[deprecated type_lt_iff (since := "2026-04-12")]
+@[deprecated type_lt_iff +typeChanged (since := "2026-04-12")]
 noncomputable def principalSegToType {α β : Ordinal} (h : α < β) : α.ToType <i β.ToType := by
   apply Classical.choice (type_lt_iff.mp _)
   rwa [type_toType, type_toType]
 
 /-- `o.ToType` is an `OrderBot` whenever `o ≠ 0`. -/
-@[instance_reducible, deprecated WellFoundedLT.toOrderBot (since := "2026-04-12")]
+@[instance_reducible, deprecated WellFoundedLT.toOrderBot +typeChanged (since := "2026-04-12")]
 noncomputable def toTypeOrderBot {o : Ordinal} (ho : o ≠ 0) : OrderBot o.ToType where
   bot := (enum (· < ·)) ⟨0, _⟩
   bot_le := enum_zero_le' (bot_lt_iff_ne_bot.2 ho)

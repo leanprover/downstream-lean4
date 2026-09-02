@@ -118,9 +118,8 @@ theorem le_iff_subset : s ≤ t ↔ s ⊆ t :=
 theorem lt_iff_ssubset : s < t ↔ s ⊂ t :=
   Iff.rfl
 
--- `alias` fills in the aliased theorem as the deprecation target, and here that theorem is
--- itself deprecated. There is no better target to point at: the message is the whole advice,
--- since both sides are syntactically equal and the call can simply be dropped.
+-- `alias` fills in `le_iff_subset` as the deprecation target, and that is itself deprecated
+-- without a replacement, as `≤` and `⊆` are now syntactically equal.
 set_option linter.deprecated.deprecatedTarget false in
 @[deprecated "this is now a syntactic identity" +typeChanged (since := "2026-05-24")]
 alias ⟨_root_.LE.le.subset, _root_.HasSubset.Subset.le⟩ := le_iff_subset

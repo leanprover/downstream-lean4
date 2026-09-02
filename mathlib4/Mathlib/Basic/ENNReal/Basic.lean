@@ -374,9 +374,11 @@ theorem toReal_ofReal_eq_iff {a : ℝ} : (ENNReal.ofReal a).toReal = a ↔ 0 ≤
 
 @[simp, norm_cast, gcongr] theorem coe_lt_coe : (↑r : ℝ≥0∞) < ↑q ↔ r < q := WithTop.coe_lt_coe
 
-@[deprecated +typeChanged (since := "2026-08-04")] alias ⟨_, coe_le_coe_of_le⟩ := coe_le_coe
+@[deprecated coe_le_coe +typeChanged (since := "2026-08-04")]
+alias ⟨_, coe_le_coe_of_le⟩ := coe_le_coe
 
-@[deprecated +typeChanged (since := "2026-08-04")] alias ⟨_, coe_lt_coe_of_lt⟩ := coe_lt_coe
+@[deprecated coe_lt_coe +typeChanged (since := "2026-08-04")]
+alias ⟨_, coe_lt_coe_of_lt⟩ := coe_lt_coe
 
 theorem coe_mono : Monotone ofNNReal := fun _ _ => coe_le_coe.2
 
