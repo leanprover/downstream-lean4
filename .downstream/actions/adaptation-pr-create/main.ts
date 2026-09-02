@@ -33,6 +33,7 @@ const appSlug = getInput("app-slug");
 const upstreamRepo = github.context.repo;
 const upstreamPr = parseInt(getInput("upstream-pr"), 10);
 const upstreamCiGreen = parseBool(getInput("upstream-ci-green"));
+const upstreamCiGreenMsg = getInput("upstream-ci-green-msg");
 const upstreamBranch = getInput("upstream-branch");
 const upstreamLabel = getInput("upstream-label");
 const downstreamRepo = parseRepo(getInput("downstream-repo"));
@@ -136,10 +137,7 @@ async function ensureCorrectMergeBase(prefix: string, uPr: Pr): Promise<void> {
 
 async function ensureUpstreamCiGreen(prefix: string, uPr: Pr): Promise<void> {
   if (upstreamCiGreen) return;
-  await updateStatus(
-    uPr,
-    prefix + "The adaptation PR will be created or updated once CI is green.",
-  );
+  await updateStatus(uPr, prefix + upstreamCiGreenMsg);
   exit("upstream CI is not green");
 }
 

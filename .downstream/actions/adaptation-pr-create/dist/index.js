@@ -25002,6 +25002,7 @@ var appSlug = getInput2("app-slug");
 var upstreamRepo = context2.repo;
 var upstreamPr = parseInt(getInput2("upstream-pr"), 10);
 var upstreamCiGreen = parseBool(getInput2("upstream-ci-green"));
+var upstreamCiGreenMsg = getInput2("upstream-ci-green-msg");
 var upstreamBranch = getInput2("upstream-branch");
 var upstreamLabel = getInput2("upstream-label");
 var downstreamRepo = parseRepo(getInput2("downstream-repo"));
@@ -25080,10 +25081,7 @@ async function ensureCorrectMergeBase(prefix, uPr) {
 }
 async function ensureUpstreamCiGreen(prefix, uPr) {
   if (upstreamCiGreen) return;
-  await updateStatus(
-    uPr,
-    prefix + "The adaptation PR will be created or updated once CI is green."
-  );
+  await updateStatus(uPr, prefix + upstreamCiGreenMsg);
   exit("upstream CI is not green");
 }
 async function switchToAdaptationBranch(aBranchName, aBranchExists) {

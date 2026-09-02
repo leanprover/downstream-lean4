@@ -20,6 +20,13 @@ inputs:
       action will not attempt to create an adaptation PR.
     default: true
 
+  upstream-ci-green-msg:
+    description: >
+      Message to display in the upstream PR when waiting for the upstream CI to
+      turn green.
+    default: >
+      The adaptation PR will be created or updated once CI is green.
+
   upstream-branch:
     description: >
       Branch in the upstream repo that marks the latest commit with green
