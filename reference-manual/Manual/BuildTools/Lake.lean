@@ -371,8 +371,8 @@ The facets available for packages are:
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
-  `package.optRelease, `package.release, `package.transDeps]
+info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.modules, `package.optBarrel,
+  `package.optCache, `package.optRelease, `package.release, `package.transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
