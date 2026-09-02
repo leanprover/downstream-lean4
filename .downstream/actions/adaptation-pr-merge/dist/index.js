@@ -24996,6 +24996,27 @@ async function dCapture(cmd, args) {
   });
   return stdout.trim();
 }
+async function tell(aPr, body) {
+  await postOrUpdateStatus({
+    octo,
+    appSlug,
+    repo: downstreamRepo,
+    issueNumber: aPr.number,
+    body
+  });
+}
+async function tellMerging(aPr) {
+  const body = "The upstream PR has landed. This adaptation PR is being merged.";
+  await tell(aPr, body);
+}
+async function tellClosing(aPr) {
+  const body = "The upstream PR has landed. This adaptation PR is being closed because it has no changes.";
+  await tell(aPr, body);
+}
+async function tellAuthorToMerge(uPr, aPr) {
+  const body = `The automatic merge failed. @${uPr.user.login}, please fix any merge conflicts and merge this PR manually.`;
+  await tell(aPr, body);
+}
 async function switchToAdaptationBranch(aBranchName) {
   await dRun("git", ["switch", "-c", aBranchName, `origin/${aBranchName}`]);
 }
@@ -25018,6 +25039,22 @@ async function undoOverridesAndCommit(aPr) {
 }
 async function pushAdaptationBranch(aBranchName) {
   await dRun("git", ["push", "-u", "origin", aBranchName]);
+}
+async function hasChanges(aPr) {
+  const returnCode = await dRun(
+    "git",
+    ["diff", "--quiet", `origin/${aPr.base.ref}`, "HEAD"],
+    { ignoreReturnCode: true }
+  );
+  return returnCode !== 0;
+}
+async function closeEmptyAdaptationPr(aPr) {
+  await octo.rest.pulls.update({
+    ...downstreamRepo,
+    pull_number: aPr.number,
+    state: "closed"
+  });
+  info(`Closed empty adaptation PR #${aPr.number}`);
 }
 async function waitForMergeability(prNumber) {
   const attempts = 10;
@@ -25050,16 +25087,6 @@ async function squashMergeAdaptationPr(aPr) {
     }
     throw error2;
   }
-}
-async function tellAuthorToMerge(uPr, aPr) {
-  const body = `The automatic merge failed. @${uPr.user.login}, please fix any merge conflicts and merge this PR manually.`;
-  await postOrUpdateStatus({
-    octo,
-    appSlug,
-    repo: downstreamRepo,
-    issueNumber: aPr.number,
-    body
-  });
 }
 async function addMergeLabel(aPr) {
   info(
@@ -25114,6 +25141,12 @@ async function mergeForPr(aPr) {
   }
   await switchToAdaptationBranch(aPr.head.ref);
   await undoOverridesAndCommit(aPr);
+  if (!await hasChanges(aPr)) {
+    await tellClosing(aPr);
+    await closeEmptyAdaptationPr(aPr);
+    return true;
+  }
+  await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
   await waitForMergeability(aPr.number);
   if (await squashMergeAdaptationPr(aPr)) return true;

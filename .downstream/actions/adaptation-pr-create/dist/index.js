@@ -25042,7 +25042,8 @@ async function updateStatus(uPr, message, final = false) {
     repo: upstreamRepo,
     issueNumber: uPr.number,
     body: message,
-    final
+    final,
+    repost: true
   });
 }
 async function getBranch(repo, branch) {

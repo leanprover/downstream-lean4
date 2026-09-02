@@ -85,6 +85,7 @@ async function updateStatus(
     issueNumber: uPr.number,
     body: message,
     final: final,
+    repost: true,
   });
 }
 
