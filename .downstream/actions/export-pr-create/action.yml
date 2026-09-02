@@ -15,9 +15,20 @@ inputs:
     description: Path to the JSON build report produced by `build.py --report`.
     required: true
 
-  downstream-clone:
+  downstream-repo:
     description: >
-      Path to a (potentially treeless) clone of the downstream repository.
+      The downstream repository to export from, in "owner/repo" format. Defaults
+      to the current repo.
+    required: false
+
+  downstream-path:
+    description: >
+      Path to an empty or nonexistent directory to clone the downstream
+      repository into.
+    required: true
+
+  downstream-token:
+    description: Github token used to interact with the downstream repository.
     required: true
 
   tracking-branch:
