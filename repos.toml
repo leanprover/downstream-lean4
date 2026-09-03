@@ -82,6 +82,11 @@ build_targets = ["Mathlib", "Archive", "Counterexamples", "Wanted"]
 build_options = ["--wfail"]
 test_options = ["--iofail"]
 
+[nerodia]
+url = "https://github.com/leanprover/nerodia"
+rev = "master"
+critical = false
+
 [plausible]
 url = "https://github.com/leanprover-community/plausible"
 rev = "nightly-testing"
