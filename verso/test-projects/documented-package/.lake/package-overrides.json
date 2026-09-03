@@ -1,4 +1,15 @@
 {
   "version": "1.1.0",
-  "packages": []
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "subverso",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../../../subverso"
+    }
+  ]
 }

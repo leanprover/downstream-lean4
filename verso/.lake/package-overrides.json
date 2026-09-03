@@ -20,6 +20,16 @@
       "inherited": false,
       "configFile": "lakefile.toml",
       "dir": "../plausible"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "subverso",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../subverso"
     }
   ]
 }
