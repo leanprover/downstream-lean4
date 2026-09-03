@@ -24279,9 +24279,9 @@ function renderDelta(report, statusReport, reportStyle2) {
   const stayedRed = [];
   const stayedGreen = [];
   for (const repo of report.repos) {
-    const wasGreen = statusReport[repo.name];
-    if (wasGreen === true && !repo.green) turnedRed.push(repo);
-    else if (wasGreen === false && repo.green) turnedGreen.push(repo);
+    const wasGreen = statusReport[repo.name] ?? true;
+    if (wasGreen && !repo.green) turnedRed.push(repo);
+    else if (!wasGreen && repo.green) turnedGreen.push(repo);
     else if (repo.green) stayedGreen.push(repo);
     else stayedRed.push(repo);
   }
