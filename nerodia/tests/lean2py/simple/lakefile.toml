@@ -1,0 +1,12 @@
+name = "test"
+defaultTargets = ["Test"]
+
+[[require]]
+name = "nerodia"
+path = "../../.."
+
+[[lean_lib]]
+name = "Test"
+
+[[lean_exe]]
+name = "lpl"
