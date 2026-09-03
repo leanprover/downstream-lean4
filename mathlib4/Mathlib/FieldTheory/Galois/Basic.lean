@@ -623,7 +623,9 @@ theorem restrictRestrictAlgEquivMapHom_apply (φ : Gal(E/L)) (x : K) :
 theorem restrictRestrictAlgEquivMapHom_injective (h : K ⊔ L = ⊤) :
     Function.Injective (restrictRestrictAlgEquivMapHom F K L E) := by
   refine (injective_iff_map_eq_one _).mpr fun φ hφ ↦ ?_
-  suffices h : MulSemiringAction.toAlgAut Gal(E/L) F E φ = 1 by rwa [AlgEquiv.ext_iff] at h ⊢
+  suffices h : MulSemiringAction.toAlgAut Gal(E/L) F E φ = 1 by
+    rw [AlgEquiv.ext_iff] at h ⊢
+    assumption
   rw [← Subgroup.mem_bot, ← fixingSubgroup_top, ← h, fixingSubgroup_sup]
   exact ⟨fun x ↦ (hφ ▸ restrictRestrictAlgEquivMapHom_apply K L φ x).symm, φ.commutes⟩
 

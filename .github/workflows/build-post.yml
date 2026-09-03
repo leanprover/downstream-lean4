@@ -167,6 +167,7 @@ jobs:
           issue: ${{ steps.original-pr.outputs.number }}
           body-path: ${{ runner.temp }}/report/report.md
           marker: build-report
+          repost: true
 
   post-report-zulip:
     if:
@@ -333,7 +334,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green-${{ steps.nightly.outputs.nightly }}
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Update green branch
         uses: ./.github/actions/update-branch
@@ -341,7 +342,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Determine current date
         id: current-date
@@ -353,7 +354,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           tag: first-green-${{ steps.current-date.outputs.day }}
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Determine lean4 nightly sha
         id: lean4-nightly

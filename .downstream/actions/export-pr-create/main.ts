@@ -14,33 +14,58 @@ import {
   parseRepo,
 } from "../lib/util";
 
-const appToken = getInput("app-token");
 const subrepo = getInput("subrepo");
 const buildReportPath = getInput("build-report-path");
-const downstreamClone = getInput("downstream-clone");
+const downstreamRepo = parseRepo(
+  getInputOpt("downstream-repo") ??
+    `${github.context.repo.owner}/${github.context.repo.repo}`,
+);
+const downstreamPath = getInput("downstream-path");
+const downstreamToken = getInput("downstream-token");
 const trackingBranch = getInput("tracking-branch");
 const pushRepo = parseRepo(getInput("push-repo"));
 const pushBranch = getInput("push-branch");
+const pushToken = getInput("push-token");
 const targetRepo = parseRepo(getInput("target-repo"));
 const targetBranch = getInput("target-branch");
+const targetToken = getInput("target-token");
 const prTitle = getInput("pr-title");
 const prBody = getInputOpt("pr-body");
 
-const octo = github.getOctokit(appToken);
+core.setSecret(downstreamToken);
+core.setSecret(pushToken);
+core.setSecret(targetToken);
+
+const octo = github.getOctokit(targetToken);
 
 async function dRun(
   cmd: string,
   args: string[],
   options?: exec.ExecOptions,
 ): Promise<number> {
-  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
+  return await exec.exec(cmd, args, { ...options, cwd: downstreamPath });
 }
 
 async function dCapture(cmd: string, args: string[]): Promise<string> {
   const { stdout } = await exec.getExecOutput(cmd, args, {
-    cwd: downstreamClone,
+    cwd: downstreamPath,
   });
   return stdout.trim();
+}
+
+function authUrl(token: string, repo: { owner: string; repo: string }): string {
+  return `https://x-access-token:${token}@github.com/${repo.owner}/${repo.repo}.git`;
+}
+
+// Clone the downstream repo into downstream-path, as a treeless partial clone
+// with full history. We skip the initial checkout since we immediately check
+// out a specific commit afterward.
+async function cloneDownstreamRepo(): Promise<void> {
+  core.info(`Cloning ${downstreamRepo.owner}/${downstreamRepo.repo}...`);
+  await exec.exec("git", [
+    ...["clone", "--quiet", "--filter=tree:0", "--no-checkout"],
+    ...[authUrl(downstreamToken, downstreamRepo), downstreamPath],
+  ]);
 }
 
 async function loadBuildReport(): Promise<BuildReport> {
@@ -49,8 +74,16 @@ async function loadBuildReport(): Promise<BuildReport> {
 }
 
 // Check whether the tracking branch is a true ancestor (i.e. not identical to)
-// the specified commit hash.
+// the specified commit hash. If the tracking branch does not exist yet (e.g. on
+// the first export), we treat it as an ancestor.
 async function trackingBranchIsTrueAncestor(sha: string): Promise<boolean> {
+  const verifyExitCode = await dRun(
+    "git",
+    ["rev-parse", "--verify", "--quiet", `origin/${trackingBranch}`],
+    { ignoreReturnCode: true, silent: true },
+  );
+  if (verifyExitCode !== 0) return true;
+
   const trackingSha = await dCapture("git", [
     "rev-parse",
     `origin/${trackingBranch}`,
@@ -70,13 +103,8 @@ async function prepareExportBranch(): Promise<boolean> {
   const exitCode = await dRun(
     "python",
     [
-      ".downstream/split.py",
-      ".",
-      subrepo,
-      "-m",
-      prTitle,
-      "--rebase",
-      "--fail-if-empty",
+      ...[".downstream/split.py", ".", subrepo],
+      ...["-m", prTitle, "--rebase", "--fail-if-empty"],
     ],
     { ignoreReturnCode: true },
   );
@@ -99,10 +127,8 @@ async function prepareExportBranch(): Promise<boolean> {
 
 async function pushExportBranch(): Promise<void> {
   await dRun("git", [
-    "push",
-    "--force",
-    `https://github.com/${pushRepo.owner}/${pushRepo.repo}.git`,
-    `HEAD:${pushBranch}`,
+    ...["push", "--force"],
+    ...[authUrl(pushToken, pushRepo), `HEAD:refs/heads/${pushBranch}`],
   ]);
 }
 
@@ -145,6 +171,9 @@ async function run(): Promise<void> {
     core.setOutput("number", String(existingPr.number));
     exit(`Export PR #${existingPr.number} already exists.`);
   }
+
+  // Delaying the clone until we need it to avoid unnecessary overhead.
+  await cloneDownstreamRepo();
 
   // We use the tracking branch to avoid re-doing work, and to avoid
   // out-of-order exports in the case that CI checks a newer commit before an

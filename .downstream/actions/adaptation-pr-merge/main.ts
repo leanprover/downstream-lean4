@@ -42,6 +42,36 @@ async function dCapture(cmd: string, args: string[]): Promise<string> {
   return stdout.trim();
 }
 
+async function tell(aPr: ListPr, body: string): Promise<void> {
+  await postOrUpdateStatus({
+    octo,
+    appSlug,
+    repo: downstreamRepo,
+    issueNumber: aPr.number,
+    body,
+  });
+}
+
+async function tellMerging(aPr: ListPr): Promise<void> {
+  const body =
+    "The upstream PR has landed. This adaptation PR is being merged.";
+  await tell(aPr, body);
+}
+
+async function tellClosing(aPr: ListPr): Promise<void> {
+  const body =
+    "The upstream PR has landed. " +
+    "This adaptation PR is being closed because it has no changes.";
+  await tell(aPr, body);
+}
+
+async function tellAuthorToMerge(uPr: Pr, aPr: ListPr): Promise<void> {
+  const body =
+    "The automatic merge failed. " +
+    `@${uPr.user.login}, please fix any merge conflicts and merge this PR manually.`;
+  await tell(aPr, body);
+}
+
 async function switchToAdaptationBranch(aBranchName: string): Promise<void> {
   await dRun("git", ["switch", "-c", aBranchName, `origin/${aBranchName}`]);
 }
@@ -72,6 +102,26 @@ async function undoOverridesAndCommit(aPr: ListPr): Promise<void> {
 
 async function pushAdaptationBranch(aBranchName: string): Promise<void> {
   await dRun("git", ["push", "-u", "origin", aBranchName]);
+}
+
+// True iff the adaptation branch (as checked out in `downstreamClone`) still
+// differs from its base branch, i.e. merging it would have an effect.
+async function hasChanges(aPr: ListPr): Promise<boolean> {
+  const returnCode = await dRun(
+    "git",
+    ["diff", "--quiet", `origin/${aPr.base.ref}`, "HEAD"],
+    { ignoreReturnCode: true },
+  );
+  return returnCode !== 0;
+}
+
+async function closeEmptyAdaptationPr(aPr: ListPr): Promise<void> {
+  await octo.rest.pulls.update({
+    ...downstreamRepo,
+    pull_number: aPr.number,
+    state: "closed",
+  });
+  core.info(`Closed empty adaptation PR #${aPr.number}`);
 }
 
 // After pushing to the adaptation branch, GitHub resets the PR's `mergeable`
@@ -110,21 +160,6 @@ async function squashMergeAdaptationPr(aPr: ListPr): Promise<boolean> {
     }
     throw error;
   }
-}
-
-async function tellAuthorToMerge(uPr: Pr, aPr: ListPr): Promise<void> {
-  const body =
-    `The automatic merge failed. ` +
-    `@${uPr.user.login}, please fix any merge conflicts ` +
-    `and merge this PR manually.`;
-
-  await postOrUpdateStatus({
-    octo,
-    appSlug,
-    repo: downstreamRepo,
-    issueNumber: aPr.number,
-    body,
-  });
 }
 
 async function addMergeLabel(aPr: ListPr): Promise<void> {
@@ -190,6 +225,16 @@ async function mergeForPr(aPr: ListPr): Promise<boolean> {
   // Attempt to merge the adaptation PR using the GitHub API
   await switchToAdaptationBranch(aPr.head.ref);
   await undoOverridesAndCommit(aPr);
+
+  // Merging an adaptation PR without changes results in an empty commit and
+  // unnecessary wait time for CI. Instead, we just close the PR with a message.
+  if (!(await hasChanges(aPr))) {
+    await tellClosing(aPr);
+    await closeEmptyAdaptationPr(aPr);
+    return true;
+  }
+
+  await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
   await waitForMergeability(aPr.number);
   if (await squashMergeAdaptationPr(aPr)) return true;
