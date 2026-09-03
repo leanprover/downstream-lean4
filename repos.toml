@@ -78,7 +78,7 @@ url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
 aliases = ["https://github.com/leanprover-community/mathlib4"]
 rev = "nightly-testing"
 critical = true
-build_targets = ["Mathlib", "Archive", "Counterexamples"]
+build_targets = ["Mathlib", "Archive", "Counterexamples", "Wanted"]
 build_options = ["--wfail"]
 test_options = ["--iofail"]
 
