@@ -1,0 +1,51 @@
+on:
+  push:
+  pull_request:
+  merge_group:
+
+name: Formalities
+
+jobs:
+  build:
+    name: check-imports-and-headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Don't 'import Lean', use precise imports
+        if: always()
+        run: |
+          ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
+
+      - name: Verify .lean files start with a copyright header.
+        run: |
+          FILES=$(find ./src ./demo ./demo-toml -not -path '*/.lake/*' -type f -name "*.lean" -exec perl -ne 'BEGIN { $/ = undef; } print "$ARGV\n" if !m{\A/-\nCopyright}; exit;' {} \;)
+          if [ -n "$FILES" ]; then
+            echo "Found .lean files which do not have a copyright header:"
+            echo "$FILES"
+            exit 1
+          else
+            echo "All copyright headers present."
+          fi
+
+  orphan-modules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Check for orphaned modules
+        run: |
+          out="$(lake query SubVerso:orphanMods)"
+          if [ -n "$(printf '%s' "$out" | tr -d '[:space:]')" ]; then
+            echo "Found orphaned modules (under src/SubVerso/* but not imported by SubVerso.lean):"
+            echo "$out"
+            exit 1
+          fi
+          echo "No orphaned modules."
