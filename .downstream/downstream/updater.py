@@ -54,6 +54,9 @@ class Updater:
         graph: dict[str, set[str]] = {}
         for subrepo in self.subrepos:
             deps: set[str] = set()
+            graph[subrepo.name] = deps
+            if subrepo.assume_empty_manifest and not subrepo.manifest_path.exists():
+                continue
             manifest = json.loads(subrepo.manifest_path.read_text())
             for package in manifest["packages"]:
                 if package["type"] != "git":
@@ -63,7 +66,6 @@ class Updater:
                     deps.add(dep.name)
                 elif external:
                     deps.add(github_full_name(url) or url)
-            graph[subrepo.name] = deps
         return graph
 
     def topo_subrepos(self) -> list[Subrepo]:
