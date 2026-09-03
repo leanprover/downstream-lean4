@@ -111,6 +111,12 @@ url = "https://github.com/leanprover-community/repl"
 rev = "master"
 critical = false
 
+[subverso]
+url = "https://github.com/leanprover/subverso"
+rev = "main"
+critical = false
+assume_empty_manifest = true
+
 [verso]
 url = "https://github.com/leanprover/verso"
 rev = "nightly-testing"
