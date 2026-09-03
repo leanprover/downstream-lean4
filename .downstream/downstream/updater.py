@@ -259,6 +259,12 @@ class Updater:
         else:
             return self.add_subrepo(subrepo)
 
+    def add_or_fixup_subrepo(self, subrepo: Subrepo) -> CommitStatus:
+        if subrepo.path.exists():
+            return self.fixup_subrepo(subrepo)
+        else:
+            return self.add_subrepo(subrepo)
+
     def prune_subrepos(self) -> CommitStatus:
         status = CommitStatus.unit()
         for path in Path().iterdir():
