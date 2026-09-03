@@ -206,6 +206,22 @@ partial def hlStringWithMessages : Highlighting.Highlighted → String
   | .text s | .token ⟨_, s⟩ | .unparsed s => s
 
 open Lean Elab Command in
+/--
+Runs the highlighting of a snippet in the environment that processing the snippet produced, the way
+`subverso-extract-mod` highlights a module in the environment its elaboration ended in.
+
+The highlighter falls back to the ambient environment for constants that the `ContextInfo` of an
+occurrence does not know yet. Without this, that fallback is this test module's own environment,
+which knows nothing the snippet declared — and a `structure`/`class` field declaration does carry
+term info for its projection while the structure is still being elaborated, so neither environment
+has it and looking up its signature fails.
+-/
+def highlightInEnv (env : Environment) (act : CommandElabM α) : CommandElabM α :=
+  withoutModifyingEnv do
+    setEnv env
+    act
+
+open Lean Elab Command in
 def highlightWithPrefixedMessages (input : String) (msgPrefix := "subverso_test") :
     CommandElabM Highlighting.Highlighted := do
   let inputCtx := Parser.mkInputContext input "<input>"
@@ -216,19 +232,20 @@ def highlightWithPrefixedMessages (input : String) (msgPrefix := "subverso_test"
   let (result, { commandState, commands, .. }) ← Compat.Frontend.processCommands mkNullNode
     |>.run { inputCtx } |>.run { commandState, parserState := {}, cmdPos := 0 }
   let result := result.items.filter (·.commandSyntax.getKind != ``Lean.Parser.Command.eoi)
-  let mut hls : Highlighting.Highlighted := .empty
-  let mut lastPos : Compat.String.Pos := 0
-  let allMessages := result.map (·.messages.toArray) |>.flatten
-  for cmd in result do
-    let hl ← runTermElabM fun _ =>
-      withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
-        let msgs ← allMessages.filterM fun msg =>
-          return (← msg.toString).startsWith msgPrefix
-        Highlighting.highlightIncludingUnparsed cmd.commandSyntax (startPos? := lastPos)
-          msgs cmd.info
-    lastPos := Compat.getTrailingTailPos? cmd.commandSyntax |>.getD lastPos
-    hls := hls ++ hl
-  return hls
+  highlightInEnv commandState.env do
+    let mut hls : Highlighting.Highlighted := .empty
+    let mut lastPos : Compat.String.Pos := 0
+    let allMessages := result.map (·.messages.toArray) |>.flatten
+    for cmd in result do
+      let hl ← runTermElabM fun _ =>
+        withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
+          let msgs ← allMessages.filterM fun msg =>
+            return (← msg.toString).startsWith msgPrefix
+          Highlighting.highlightIncludingUnparsed cmd.commandSyntax (startPos? := lastPos)
+            msgs cmd.info
+      lastPos := Compat.getTrailingTailPos? cmd.commandSyntax |>.getD lastPos
+      hls := hls ++ hl
+    return hls
 
 /--
 `#evalHighlight inp exp` highlights `inp` using the including-unparsed
@@ -288,16 +305,17 @@ def highlightFromString (input : String) : CommandElabM Highlighting.Highlighted
   }
   let (_, { commandState, commands, .. }) ← Frontend.processCommands
     |>.run { inputCtx } |>.run { commandState, parserState := {}, cmdPos := 0 }
-  let mut hls : Highlighting.Highlighted := .empty
-  for stx in commands do
-    let hl ← runTermElabM fun _ =>
-      withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
-        let msgs := commandState.messages.toArray
-        unless msgs.isEmpty do
-          throwError "Unwanted messages: {← msgs.mapM (·.toString)}"
-        Highlighting.highlight stx msgs commandState.infoState.trees
-    hls := hls ++ hl
-  return hls
+  highlightInEnv commandState.env do
+    let mut hls : Highlighting.Highlighted := .empty
+    for stx in commands do
+      let hl ← runTermElabM fun _ =>
+        withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
+          let msgs := commandState.messages.toArray
+          unless msgs.isEmpty do
+            throwError "Unwanted messages: {← msgs.mapM (·.toString)}"
+          Highlighting.highlight stx msgs commandState.infoState.trees
+      hls := hls ++ hl
+    return hls
 
 open Lean Elab Command in
 /--
@@ -313,12 +331,13 @@ def highlightModuleStyleSegments (input : String) : CommandElabM (Array Highligh
   let commandState :=
     let sc := commandState.scopes[0]!
     { commandState with scopes := { sc with opts := sc.opts.setBool `pp.tagAppFns true } :: commandState.scopes.tail! }
-  let (result, _) ← Compat.Frontend.processCommands headerStx
+  let (result, { commandState, .. }) ← Compat.Frontend.processCommands headerStx
     |>.run { inputCtx } |>.run { commandState, parserState, cmdPos := parserState.pos }
   let result := result.updateLeading input
-  runTermElabM fun _ =>
-    withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
-      Highlighting.highlightFrontendResult result
+  highlightInEnv commandState.env do
+    runTermElabM fun _ =>
+      withTheReader Core.Context (fun ctx => { ctx with fileMap := inputCtx.fileMap }) do
+        Highlighting.highlightFrontendResult result
 
 open Lean Elab Command in
 @[inherit_doc highlightModuleStyleSegments]
