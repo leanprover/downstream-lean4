@@ -5,6 +5,16 @@
       "type": "path",
       "subDir": null,
       "scope": "",
+      "name": "subverso",
+      "manifestFile": "lake-manifest.json",
+      "inherited": false,
+      "configFile": "lakefile.lean",
+      "dir": "../subverso"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
       "name": "verso",
       "manifestFile": "lake-manifest.json",
       "inherited": false,
