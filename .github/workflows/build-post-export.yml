@@ -186,7 +186,7 @@ jobs:
           to: nightly-testing-mathlib
           topic: downstream-lean4 PRs
           content: >
-            PR #${{ steps.export-pr.outputs.number }} with
+            PR nightly#${{ steps.export-pr.outputs.number }} with
             [downstream-lean4](https://github.com/leanprover/downstream-lean4)
             adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
             been opened. Please review the changes. No new adaptation PRs will
