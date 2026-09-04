@@ -78,15 +78,7 @@ async function switchToAdaptationBranch(aBranchName: string): Promise<void> {
 
 // Undo the overrides applied by the create action's `applyOverridesAndCommit`,
 // by resetting them to the merge base state.
-async function undoOverridesAndCommit(aPr: ListPr): Promise<void> {
-  const aBranchName = aPr.head.ref;
-  const baseBranchName = aPr.base.ref;
-  const mergeBase = await dCapture("git", [
-    "merge-base",
-    `origin/${baseBranchName}`,
-    `origin/${aBranchName}`,
-  ]);
-
+async function undoOverridesAndCommit(mergeBase: string): Promise<void> {
   // Undo overrideToolchain
   await dRun("git", ["checkout", mergeBase, "--", "lean-toolchain"]);
 
@@ -104,14 +96,10 @@ async function pushAdaptationBranch(aBranchName: string): Promise<void> {
   await dRun("git", ["push", "-u", "origin", aBranchName]);
 }
 
-// True iff the adaptation branch (as checked out in `downstreamClone`) still
-// differs from its base branch, i.e. merging it would have an effect.
-async function hasChanges(aPr: ListPr): Promise<boolean> {
-  const returnCode = await dRun(
-    "git",
-    ["diff", "--quiet", `origin/${aPr.base.ref}`, "HEAD"],
-    { ignoreReturnCode: true },
-  );
+async function hasChanges(mergeBase: string): Promise<boolean> {
+  const returnCode = await dRun("git", ["diff", "--quiet", mergeBase, "HEAD"], {
+    ignoreReturnCode: true,
+  });
   return returnCode !== 0;
 }
 
@@ -222,13 +210,19 @@ async function mergeForPr(aPr: ListPr): Promise<boolean> {
     return true;
   }
 
+  const mergeBase = await dCapture("git", [
+    "merge-base",
+    `origin/${aPr.base.ref}`,
+    `origin/${aPr.head.ref}`,
+  ]);
+
   // Attempt to merge the adaptation PR using the GitHub API
   await switchToAdaptationBranch(aPr.head.ref);
-  await undoOverridesAndCommit(aPr);
+  await undoOverridesAndCommit(mergeBase);
 
   // Merging an adaptation PR without changes results in an empty commit and
   // unnecessary wait time for CI. Instead, we just close the PR with a message.
-  if (!(await hasChanges(aPr))) {
+  if (!(await hasChanges(mergeBase))) {
     await tellClosing(aPr);
     await closeEmptyAdaptationPr(aPr);
     return true;

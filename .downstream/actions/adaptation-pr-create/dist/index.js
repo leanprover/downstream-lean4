@@ -25005,6 +25005,7 @@ var upstreamCiGreen = parseBool(getInput2("upstream-ci-green"));
 var upstreamCiGreenMsg = getInput2("upstream-ci-green-msg");
 var upstreamBranch = getInput2("upstream-branch");
 var upstreamLabel = getInput2("upstream-label");
+var upstreamLabelForce = getInputOpt("upstream-label-force");
 var downstreamRepo = parseRepo(getInput2("downstream-repo"));
 var downstreamClone = getInput2("downstream-clone");
 var downstreamBranch = getInput2("downstream-branch");
@@ -25018,14 +25019,6 @@ async function dRun(cmd, args, options) {
 function ensurePrIsUnmerged(pr) {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   info("PR is unmerged, continuing...");
-}
-function ensurePrIsLabeled(pr, label) {
-  const labeled = pr.labels.some((l) => l.name === label);
-  if (labeled) {
-    info(`PR is labeled "${label}", continuing...`);
-    return;
-  }
-  exit(`PR is not labeled "${label}", exiting...`);
 }
 function statusPrefix(aPr) {
   if (aPr === void 0) return "";
@@ -25184,7 +25177,10 @@ async function createAdaptationPrFor(uPr, aBranchName) {
 async function run() {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
   ensurePrIsUnmerged(uPr);
-  ensurePrIsLabeled(uPr, upstreamLabel);
+  const uPrLabels = new Set(uPr.labels.map((l) => l.name));
+  const hasForceLabel = upstreamLabelForce !== null && uPrLabels.has(upstreamLabelForce);
+  const hasLabel = hasForceLabel || uPrLabels.has(upstreamLabel);
+  if (!hasLabel) exit("PR is not labeled, exiting...");
   const aBranchName = adaptationBranchNameFor(uPr.number);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
   const aPr = aBranch === void 0 ? void 0 : await findPrFor(octo, downstreamRepo, aBranchName);
@@ -25200,8 +25196,10 @@ async function run() {
   if (aPr !== void 0 && aPr.labels.some((l) => l.name === downstreamLabelMerge)) {
     exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
   }
-  if (aBranch === void 0) await ensureCorrectMergeBase(prefix, uPr);
-  await ensureUpstreamCiGreen(prefix, uPr);
+  if (!hasForceLabel) {
+    if (aBranch === void 0) await ensureCorrectMergeBase(prefix, uPr);
+    await ensureUpstreamCiGreen(prefix, uPr);
+  }
   assert(overrideToolchain !== null, "at least one override is required");
   await switchToAdaptationBranch(aBranchName, aBranch !== void 0);
   await applyOverridesAndCommit();

@@ -25020,14 +25020,7 @@ async function tellAuthorToMerge(uPr, aPr) {
 async function switchToAdaptationBranch(aBranchName) {
   await dRun("git", ["switch", "-c", aBranchName, `origin/${aBranchName}`]);
 }
-async function undoOverridesAndCommit(aPr) {
-  const aBranchName = aPr.head.ref;
-  const baseBranchName = aPr.base.ref;
-  const mergeBase = await dCapture("git", [
-    "merge-base",
-    `origin/${baseBranchName}`,
-    `origin/${aBranchName}`
-  ]);
+async function undoOverridesAndCommit(mergeBase) {
   await dRun("git", ["checkout", mergeBase, "--", "lean-toolchain"]);
   const committed = await addAndCommit(
     downstreamClone,
@@ -25040,12 +25033,10 @@ async function undoOverridesAndCommit(aPr) {
 async function pushAdaptationBranch(aBranchName) {
   await dRun("git", ["push", "-u", "origin", aBranchName]);
 }
-async function hasChanges(aPr) {
-  const returnCode = await dRun(
-    "git",
-    ["diff", "--quiet", `origin/${aPr.base.ref}`, "HEAD"],
-    { ignoreReturnCode: true }
-  );
+async function hasChanges(mergeBase) {
+  const returnCode = await dRun("git", ["diff", "--quiet", mergeBase, "HEAD"], {
+    ignoreReturnCode: true
+  });
   return returnCode !== 0;
 }
 async function closeEmptyAdaptationPr(aPr) {
@@ -25139,9 +25130,14 @@ async function mergeForPr(aPr) {
     );
     return true;
   }
+  const mergeBase = await dCapture("git", [
+    "merge-base",
+    `origin/${aPr.base.ref}`,
+    `origin/${aPr.head.ref}`
+  ]);
   await switchToAdaptationBranch(aPr.head.ref);
-  await undoOverridesAndCommit(aPr);
-  if (!await hasChanges(aPr)) {
+  await undoOverridesAndCommit(mergeBase);
+  if (!await hasChanges(mergeBase)) {
     await tellClosing(aPr);
     await closeEmptyAdaptationPr(aPr);
     return true;

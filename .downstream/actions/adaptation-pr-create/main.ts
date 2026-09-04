@@ -36,6 +36,7 @@ const upstreamCiGreen = parseBool(getInput("upstream-ci-green"));
 const upstreamCiGreenMsg = getInput("upstream-ci-green-msg");
 const upstreamBranch = getInput("upstream-branch");
 const upstreamLabel = getInput("upstream-label");
+const upstreamLabelForce = getInputOpt("upstream-label-force");
 const downstreamRepo = parseRepo(getInput("downstream-repo"));
 const downstreamClone = getInput("downstream-clone");
 const downstreamBranch = getInput("downstream-branch");
@@ -55,15 +56,6 @@ async function dRun(
 function ensurePrIsUnmerged(pr: Pr): void {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   core.info("PR is unmerged, continuing...");
-}
-
-function ensurePrIsLabeled(pr: Pr, label: string): void {
-  const labeled = pr.labels.some((l) => l.name === label);
-  if (labeled) {
-    core.info(`PR is labeled "${label}", continuing...`);
-    return;
-  }
-  exit(`PR is not labeled "${label}", exiting...`);
 }
 
 function statusPrefix(aPr: number | undefined): string {
@@ -262,7 +254,12 @@ async function run(): Promise<void> {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
 
   ensurePrIsUnmerged(uPr);
-  ensurePrIsLabeled(uPr, upstreamLabel);
+
+  const uPrLabels = new Set(uPr.labels.map((l) => l.name));
+  const hasForceLabel =
+    upstreamLabelForce !== null && uPrLabels.has(upstreamLabelForce);
+  const hasLabel = hasForceLabel || uPrLabels.has(upstreamLabel);
+  if (!hasLabel) exit("PR is not labeled, exiting...");
 
   const aBranchName = adaptationBranchNameFor(uPr.number);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
@@ -296,13 +293,15 @@ async function run(): Promise<void> {
     exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
   }
 
-  // We want to check the merge base before checking the CI status so users
-  // don't wait for green CI only to then be told to rebase, which they could've
-  // done all along. Also, if we eventually support automatic rebase, we don't
-  // want to delay it by waiting for CI.
-  if (aBranch === undefined) await ensureCorrectMergeBase(prefix, uPr);
+  if (!hasForceLabel) {
+    // We want to check the merge base before checking the CI status so users
+    // don't wait for green CI only to then be told to rebase, which they could've
+    // done all along. Also, if we eventually support automatic rebase, we don't
+    // want to delay it by waiting for CI.
+    if (aBranch === undefined) await ensureCorrectMergeBase(prefix, uPr);
 
-  await ensureUpstreamCiGreen(prefix, uPr);
+    await ensureUpstreamCiGreen(prefix, uPr);
+  }
 
   // This check should occur only after the CI check because before that, our
   // users might not have sufficient information to provide usable overrides.
