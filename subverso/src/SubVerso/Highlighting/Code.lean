@@ -839,7 +839,12 @@ def termInfoKind
   let k ← exprKind ci termInfo.lctx termInfo.stx termInfo.expr (allowUnknownTyped := allowUnknownTyped)
   if (← read).definitionsPossible then
     if let some (.const name sig docs _isDef pp?, prettySig) := k then
-      let isDef ← withEnv (constEnv ci.env (← getEnv) name) <| isDefinition name termInfo.stx
+      -- Unlike `constEnv`, the command's environment is preferred here: declaration ranges are
+      -- registered as the command finishes, so they are missing from a node's environment even
+      -- when it already contains the constant, and `isDefinition` would then see no definition.
+      let cmdEnv ← getEnv
+      let env := if cmdEnv.contains name then cmdEnv else ci.env
+      let isDef ← withEnv env <| isDefinition name termInfo.stx
       return some (.const name sig docs isDef pp?, prettySig)
   return k
 
