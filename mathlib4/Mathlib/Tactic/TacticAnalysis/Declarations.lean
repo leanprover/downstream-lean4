@@ -234,11 +234,21 @@ def Mathlib.TacticAnalysis.rwaSuggestion : TacticAnalysis.Config where
     for first in seq.toList, second in seq.toList.tail do
       match first.tacI.stx, second.tacI.stx with
       | `(tactic| rw $rws:rwRuleSeq $[$loc:location]?), `(tactic| assumption) => do
+        -- Since `lean4#14937` the location-less and the single-hypothesis forms of `rwa` are
+        -- separate syntaxes, and every other location (`at *`, `at ⊢`, several hypotheses) is
+        -- only reachable through the deprecated legacy syntax, so nothing is suggested there.
+        let rwa? ← match loc with
+          | none => some <$> `(tactic| rwa $rws:rwRuleSeq)
+          | some loc =>
+            match loc with
+            | `(Lean.Parser.Tactic.location| at $h:ident) =>
+              some <$> `(tactic| rwa $rws:rwRuleSeq at $h)
+            | _ => pure none
+        if let some rwa := rwa? then
         if let some start := first.tacI.stx.getPos? then
         if let some stop := second.tacI.stx.getTailPos? then
           let span := Syntax.setInfo (SourceInfo.synthetic start stop) first.tacI.stx
-          Elab.Command.liftCoreM <|
-            Tactic.TryThis.addSuggestion span (← `(tactic| rwa $rws:rwRuleSeq $[$loc:location]?))
+          Elab.Command.liftCoreM <| Tactic.TryThis.addSuggestion span rwa
       | _, _ => pure ()
 
 /-- Suggest merging two adjacent `rw` tactics if that also solves the goal. -/

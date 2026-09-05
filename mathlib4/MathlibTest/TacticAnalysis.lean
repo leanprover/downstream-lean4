@@ -78,6 +78,13 @@ example (a b c : ℕ) (h₁ : a = b) (h₂ : b = c) : a = c := by
     assumption
   exact h
 
+-- The only `rwa` syntax taking a location is `rwa [rules] at h` (`lean4#14937`); for any other
+-- location there is nothing but the deprecated legacy syntax, so the linter must not fire.
+#guard_msgs in
+example (P : ℕ → Prop) (a b : ℕ) (hab : a = b) (h : P a) : P b := by
+  rw [hab] at *
+  assumption
+
 -- `rwa` doesn't support `(config := ...)`, so the linter must not fire here.
 #guard_msgs in
 example (a b c : ℕ) (h₁ : a = b) (h₂ : b = c) : a = c := by
