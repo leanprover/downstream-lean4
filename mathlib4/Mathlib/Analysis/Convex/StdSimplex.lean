@@ -230,8 +230,8 @@ section Topology
 variable {ι : Type*} [Fintype ι]
 
 /-- Every vector in `stdSimplex 𝕜 ι` has `max`-norm at most `1`. -/
-@[deprecated StdSimplex.range_toFun_comp_weights_subset_closedBall
-  +typeChanged (since := "2026-08-29")]
+@[deprecated StdSimplex.range_toFun_comp_weights_subset_closedBall +typeChanged
+  (since := "2026-08-29")]
 theorem stdSimplex_subset_closedBall : stdSimplex ℝ ι ⊆ Metric.closedBall 0 1 := fun f hf ↦ by
   rw [Metric.mem_closedBall, dist_pi_le_iff zero_le_one]
   intro x
@@ -281,8 +281,8 @@ lemma stdSimplexHomeomorphUnitInterval_one :
 variable {ι}
 
 /-- The (sup metric) diameter of a standard simplex is less than or equal to 1. -/
-@[deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall
-  +typeChanged (since := "2026-08-29")]
+@[deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall +typeChanged
+  (since := "2026-08-29")]
 theorem diam_stdSimplex_le : Metric.diam (stdSimplex ℝ ι) ≤ 1 :=
   Metric.diam_le_of_forall_dist_le zero_le_one fun x hx y hy ↦
     (dist_pi_le_iff zero_le_one).2 fun i ↦ by
@@ -291,16 +291,16 @@ theorem diam_stdSimplex_le : Metric.diam (stdSimplex ℝ ι) ≤ 1 :=
       grind [Real.dist_eq]
 
 /-- The (sup metric) diameter of a standard simplex indexed by a subsingleton is 0. -/
-@[simp, deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall_eq_zero
-  +typeChanged (since := "2026-08-29")]
+@[simp, deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall_eq_zero +typeChanged
+  (since := "2026-08-29")]
 theorem diam_stdSimplex_of_subsingleton [Subsingleton ι] : Metric.diam (stdSimplex ℝ ι) = 0 := by
   cases isEmpty_or_nonempty ι with
   | inl h => rw [stdSimplex_of_isEmpty_index, Metric.diam_empty]
   | inr h => rw [stdSimplex_unique, Metric.diam_singleton]
 
 /-- The (sup metric) diameter of a standard simplex indexed by a nontrivial index is 1. -/
-@[simp, deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall_eq_one
-  +typeChanged (since := "2026-08-29")]
+@[simp, deprecated StdSimplex.diam_range_toFun_comp_weights_subset_closedBall_eq_one +typeChanged
+  (since := "2026-08-29")]
 theorem diam_stdSimplex [Nontrivial ι] : Metric.diam (stdSimplex ℝ ι) = 1 := by
   refine le_antisymm diam_stdSimplex_le ?_
   obtain ⟨i, j, hij⟩ := exists_pair_ne ι

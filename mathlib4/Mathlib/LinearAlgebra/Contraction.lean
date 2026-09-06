@@ -304,8 +304,7 @@ noncomputable def dualTensorHomEquiv : Dual R M ⊗[R] N ≃ₗ[R] M →ₗ[R] N
 
 end FiniteProjective
 
-@[deprecated dualTensorHomEquivOfBasis_eq_dualTensorHomEquiv +typeChanged
-  (since := "2026-08-31")]
+@[deprecated dualTensorHomEquivOfBasis_eq_dualTensorHomEquiv +typeChanged (since := "2026-08-31")]
 theorem dualTensorHomEquiv_eq_dualTensorHomEquivOfBasis
     (b : Basis ι R M) [DecidableEq ι] [Fintype ι] :
     have := Module.Finite.of_basis b; have := Module.Free.of_basis b
