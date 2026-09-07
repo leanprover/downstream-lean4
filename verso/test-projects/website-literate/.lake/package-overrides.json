@@ -2,14 +2,16 @@
   "version": "1.1.0",
   "packages": [
     {
-      "type": "path",
-      "subDir": null,
+      "url": "../../..",
+      "type": "git",
+      "subDir": "subverso",
       "scope": "",
+      "rev": "HEAD",
       "name": "subverso",
       "manifestFile": "lake-manifest.json",
+      "inputRev": "HEAD",
       "inherited": false,
-      "configFile": "lakefile.lean",
-      "dir": "../../../subverso"
+      "configFile": "lakefile.lean"
     }
   ]
 }
