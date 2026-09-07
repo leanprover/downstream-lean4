@@ -417,7 +417,7 @@ theorem reflTransGen_mono_closed (h₁ : r₁ ≤ r₂) (h₂ : r₂ ≤ ReflTra
   ext a b
   exact ⟨ReflTransGen.mono h₁ a b, reflTransGen_closed h₂ a b⟩
 
-@[deprecated Relation.ReflGen.stdSymm (since := "2026-09-03")]
+@[deprecated Relation.ReflGen.stdSymm +typeChanged (since := "2026-09-03")]
 lemma ReflGen.symmGen_symm : ReflGen (SymmGen r) a b → ReflGen (SymmGen r) b a :=
   Std.Symm.symm a b
 
