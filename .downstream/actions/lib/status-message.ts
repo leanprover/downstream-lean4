@@ -54,6 +54,8 @@ export async function postOrUpdateStatus(
       issue_number: issueNumber,
       body: fullBody,
     });
+  } else if (comment.body === fullBody) {
+    // Nothing changed, don't bother updating or reposting.
   } else if (repost) {
     await octo.rest.issues.deleteComment({
       ...repo,

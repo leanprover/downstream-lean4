@@ -71,33 +71,9 @@ jobs:
           push-repo: leanprover-community/batteries
           push-branch: downstream-lean4-export
           push-token: ${{ steps.app-token-leanprover-community.outputs.token }}
-          target-repo: leanprover-community/batteries
-          target-branch: nightly-testing
-          target-token:
-            ${{ steps.app-token-leanprover-community.outputs.token }}
+          push-directly: true
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
-          pr-body: >
-            This PR contains the latest nightly adaptations from the
-            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
-            repository.
-
-      - name: Post message to Zulip
-        if: ${{ fromJSON(steps.export-pr.outputs.created) }}
-        uses: zulip/github-actions-zulip/send-message@v2
-        with:
-          api-key: ${{ secrets.ZULIP_API_KEY }}
-          email: ${{ vars.ZULIP_EMAIL }}
-          organization-url: "https://leanprover.zulipchat.com"
-          type: stream
-          to: nightly-testing-batteries
-          topic: downstream-lean4 PRs
-          content: >
-            PR batteries#${{ steps.export-pr.outputs.number }} with
-            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
-            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
-            been opened. Please review the changes. No new adaptation PRs will
-            be opened while this PR is still open.
 
   mathlib4:
     if:
@@ -162,35 +138,11 @@ jobs:
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
           tracking-branch: export/mathlib4
           push-repo: leanprover-community/mathlib4-nightly-testing
-          push-branch: downstream-lean4-export
+          push-branch: nightly-testing
           push-token: ${{ steps.app-token-leanprover-community.outputs.token }}
-          target-repo: leanprover-community/mathlib4-nightly-testing
-          target-branch: nightly-testing
-          target-token:
-            ${{ steps.app-token-leanprover-community.outputs.token }}
+          push-directly: true
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
-          pr-body: >
-            This PR contains the latest nightly adaptations from the
-            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
-            repository.
-
-      - name: Post message to Zulip
-        if: ${{ fromJSON(steps.export-pr.outputs.created) }}
-        uses: zulip/github-actions-zulip/send-message@v2
-        with:
-          api-key: ${{ secrets.ZULIP_API_KEY }}
-          email: ${{ vars.ZULIP_EMAIL }}
-          organization-url: "https://leanprover.zulipchat.com"
-          type: stream
-          to: nightly-testing-mathlib
-          topic: downstream-lean4 PRs
-          content: >
-            PR nightly#${{ steps.export-pr.outputs.number }} with
-            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
-            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
-            been opened. Please review the changes. No new adaptation PRs will
-            be opened while this PR is still open.
 
   cslib:
     if:

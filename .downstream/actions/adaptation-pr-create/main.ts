@@ -1,3 +1,14 @@
+// on:
+//   pull_request_target:
+//     types:
+//       - labeled
+//       - closed
+//       - reopened
+//       - converted_to_draft
+//       - ready_for_review
+//       - synchronize
+//       - edited
+
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
@@ -57,6 +68,10 @@ async function dRun(
 function ensurePrIsUnmerged(pr: Pr): void {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   core.info("PR is unmerged, continuing...");
+}
+
+function adaptationPrTitleFor(uPr: Pr): string {
+  return `[#${uPr.number}] ${uPr.title}`;
 }
 
 function statusPrefix(aPr: number | undefined): string {
@@ -223,6 +238,18 @@ async function getDownstreamDefaultBranch(): Promise<string> {
   return data.default_branch;
 }
 
+async function syncTitle(uPr: Pr, aPr: ListPr): Promise<void> {
+  const expectedTitle = adaptationPrTitleFor(uPr);
+  if (aPr.title === expectedTitle) return;
+
+  core.info(`Updating title of adaptation PR #${aPr.number}...`);
+  await octo.rest.pulls.update({
+    ...downstreamRepo,
+    pull_number: aPr.number,
+    title: expectedTitle,
+  });
+}
+
 async function syncState(uPr: Pr, aPr: ListPr): Promise<void> {
   // If any of the PRs is merged, there is not really any state left to sync.
   if (uPr.merged_at !== null) exit("PR is merged, exiting...");
@@ -279,7 +306,7 @@ async function createAdaptationPrFor(
     ...downstreamRepo,
     base: defaultBranch,
     head: aBranchName,
-    title: `[#${uPr.number}] ${uPr.title}`,
+    title: adaptationPrTitleFor(uPr),
     body: `This is the adaptation PR for ${uPrRef}.`,
     draft: uPr.draft,
   });
@@ -320,7 +347,10 @@ async function run(): Promise<void> {
   const prefix = statusPrefix(aPr?.number);
   if (aPr !== undefined) core.setOutput("number", String(aPr.number));
 
-  if (aPr !== undefined) await syncState(uPr, aPr);
+  if (aPr !== undefined) {
+    await syncTitle(uPr, aPr);
+    await syncState(uPr, aPr);
+  }
   if (uPr.state !== "open") exit("PR is closed, exiting...");
 
   if (aBranch === undefined)
