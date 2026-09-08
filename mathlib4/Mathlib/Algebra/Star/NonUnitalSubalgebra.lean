@@ -1293,7 +1293,7 @@ variable (R) in
 `star` of elements in this set, then `adjoin R s` is a non-unital commutative semiring.
 
 See note [reducible non-instances]. -/
-@[deprecated isMulCommutative_adjoin (since := "2026-03-11")]
+@[deprecated isMulCommutative_adjoin +typeChanged (since := "2026-03-11")]
 abbrev adjoinNonUnitalCommSemiringOfComm {s : Set A} (hnormal : ∀ x ∈ s, IsStarNormal x)
     (hcomm : s.Pairwise Commute) (hcomm_star : s.Pairwise (Commute · <| star ·)) :
     NonUnitalCommSemiring (adjoin R s) :=

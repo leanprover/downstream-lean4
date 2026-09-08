@@ -1230,7 +1230,7 @@ variable (R) in
 semiring.
 
 See note [reducible non-instances]. -/
-@[deprecated isMulCommutative_adjoin (since := "2026-03-11")]
+@[deprecated isMulCommutative_adjoin +typeChanged (since := "2026-03-11")]
 abbrev adjoinNonUnitalCommSemiringOfComm {s : Set A} (hcomm : s.Pairwise Commute) :
     NonUnitalCommSemiring (adjoin R s) :=
   have := isMulCommutative_adjoin R hcomm
