@@ -1281,11 +1281,8 @@ instance : PseudoMetricSpace αᵒᵈ where
   toUniformSpace := inferInstance
   uniformity_dist := (Metric.uniformity_basis_dist.comap _).eq_biInf
   toBornology := inferInstance
-  cobounded_sets := Set.ext fun s ↦ by
-    change (OrderDual.toDual ⁻¹' s) ∈ Bornology.cobounded α ↔ _
-    rw [← Filter.mem_sets, PseudoMetricSpace.cobounded_sets (α := α)]
-    exact ⟨fun ⟨C, hC⟩ ↦ ⟨C, fun x hx y hy ↦ hC (OrderDual.ofDual x) hx (OrderDual.ofDual y) hy⟩,
-      fun ⟨C, hC⟩ ↦ ⟨C, fun x hx y hy ↦ hC (OrderDual.toDual x) hx (OrderDual.toDual y) hy⟩⟩
+  cobounded_sets := by
+    unsealing_newtype OrderDual => exact PseudoMetricSpace.cobounded_sets (α := α)
 
 section
 

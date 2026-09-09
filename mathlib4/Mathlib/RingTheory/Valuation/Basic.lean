@@ -1111,14 +1111,12 @@ variable (f : R → Γ₀) (h0 : f 0 = ⊤) (h1 : f 1 = 0)
 variable (hadd : ∀ x y, min (f x) (f y) ≤ f (x + y)) (hmul : ∀ x y, f (x * y) = f x + f y)
 
 /-- An alternate constructor of `AddValuation`, that doesn't reference `Multiplicative Γ₀ᵒᵈ` -/
-def of : AddValuation R Γ₀ :=
-  show Valuation R (Multiplicative Γ₀ᵒᵈ) from
-    { toFun := fun r ↦ Multiplicative.ofAdd (OrderDual.toDual (f r))
-      map_one' := congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) h1
-      map_zero' := congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) h0
-      map_add_le_max' := hadd
-      map_mul' := fun x y ↦
-        congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) (hmul x y) }
+def of : AddValuation R Γ₀ where
+  toFun r := Multiplicative.ofAdd (OrderDual.toDual (f r))
+  map_one' := by unsealing_newtype OrderDual => exact h1
+  map_zero' := by unsealing_newtype OrderDual => exact h0
+  map_add_le_max' := hadd
+  map_mul' := by unsealing_newtype OrderDual => exact hmul
 
 variable {h0} {h1} {hadd} {hmul} {r : R}
 
@@ -1245,14 +1243,10 @@ theorem comap_comp {S₁ : Type*} {S₂ : Type*} [Ring S₁] [Ring S₂] (f : S�
 -/
 def map (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : Monotone f) (v : AddValuation R Γ₀) :
     AddValuation R Γ'₀ :=
-  @Valuation.map R (Multiplicative Γ₀ᵒᵈ) (Multiplicative Γ'₀ᵒᵈ) _ _ _
-    { toFun := fun x ↦ Multiplicative.ofAdd
-        (OrderDual.toDual (f (OrderDual.ofDual (Multiplicative.toAdd x))))
-      map_mul' := fun _ _ ↦
-        congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) (f.map_add _ _)
-      map_one' := congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) f.map_zero
-      map_zero' := congrArg (fun x ↦ Multiplicative.ofAdd (OrderDual.toDual x)) ht }
-      (fun _ _ h => hf h) v
+  of (fun r => f (v r))
+    (by rw [v.map_zero, ht]) (by rw [v.map_one, f.map_zero])
+    (fun x y => hf.map_min.symm.trans_le (hf (v.map_add x y)))
+    (fun x y => by rw [v.map_mul, f.map_add])
 
 @[simp]
 lemma map_apply (f : Γ₀ →+ Γ'₀) (ht : f ⊤ = ⊤) (hf : Monotone f) (v : AddValuation R Γ₀) (r : R) :

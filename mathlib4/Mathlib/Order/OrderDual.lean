@@ -45,12 +45,10 @@ notation:max α "ᵒᵈ" => OrderDual α
 namespace OrderDual
 
 /-- `toDual` is the identity function to the `OrderDual` of a linear order. -/
-@[implicit_reducible]
 def toDual : α ≃ αᵒᵈ :=
   ⟨mk, ofDual', fun _ ↦ rfl, fun _ ↦ rfl⟩
 
 /-- `ofDual` is the identity function from the `OrderDual` of a linear order. -/
-@[implicit_reducible]
 def ofDual : αᵒᵈ ≃ α :=
   toDual.symm
 

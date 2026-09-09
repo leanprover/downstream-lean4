@@ -180,14 +180,8 @@ instance (priority := 100) OrderDual.opensMeasurableSpace {α : Type*} [Topologi
       GenerateMeasurable.basic _ (IsOpen.preimage continuous_toDual hs)
 
 instance (priority := 100) OrderDual.borelSpace {α : Type*} [TopologicalSpace α]
-    [MeasurableSpace α] [h : BorelSpace α] : BorelSpace αᵒᵈ where
-  measurable_eq := by
-    have : OpensMeasurableSpace α := ⟨ge_of_eq h.measurable_eq⟩
-    refine le_antisymm (fun s hs ↦ ?_) (OrderDual.opensMeasurableSpace (α := α)).borel_le
-    refine continuous_ofDual.borel_measurable
-      (show MeasurableSet[borel α] (⇑OrderDual.toDual ⁻¹' s) from ?_)
-    rw [← h.measurable_eq]
-    exact hs
+    [MeasurableSpace α] [h : BorelSpace α] : BorelSpace αᵒᵈ := by
+  unsealing_newtype OrderDual => exact ⟨h.measurable_eq⟩
 
 /-- In a `BorelSpace` all open sets are measurable. -/
 instance (priority := 100) BorelSpace.opensMeasurable {α : Type*} [TopologicalSpace α]

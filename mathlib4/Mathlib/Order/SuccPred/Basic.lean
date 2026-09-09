@@ -896,26 +896,12 @@ open scoped Classical in
 noncomputable instance Set.OrdConnected.succOrder [SuccOrder α] : SuccOrder s where
   succ x := if h : Order.succ x.1 ∈ s then ⟨Order.succ x.1, h⟩ else x
   le_succ := fun ⟨x, hx⟩ ↦ by dsimp; split <;> simp_all [Order.le_succ]
-  max_of_succ_le := @fun ⟨x, hx⟩ h ↦ by
-    dsimp at h
-    split_ifs at h with h'
-    · simp only [Subtype.mk_le_mk, Order.succ_le_iff_isMax] at h
-      rintro ⟨y, _⟩ hy
-      simp [h hy]
-    · rintro ⟨y, hy⟩ h
-      rcases h.lt_or_eq with h | h
-      · simp only [Subtype.mk_lt_mk] at h
-        have := h.succ_le
-        absurd h'
-        apply out' hx hy
-        simp [this, Order.le_succ]
-      · simp [h]
-  succ_le_of_lt := @fun ⟨b, hb⟩ ⟨c, hc⟩ h ↦ by
-    rw [Subtype.mk_lt_mk] at h
-    dsimp only
-    split
-    · exact h.succ_le
-    · exact h.le
+  max_of_succ_le := by
+    unsealing_newtype OrderDual =>
+      exact (Set.OrdConnected.predOrder (α := αᵒᵈ) (s := OrderDual.ofDual ⁻¹' s)).min_of_le_pred
+  succ_le_of_lt := by
+    unsealing_newtype OrderDual =>
+      exact (Set.OrdConnected.predOrder (α := αᵒᵈ) (s := OrderDual.ofDual ⁻¹' s)).le_pred_of_lt
 
 @[simp, norm_cast]
 lemma coe_succ_of_mem [SuccOrder α] {a : s} (h : succ ↑a ∈ s) :

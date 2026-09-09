@@ -298,19 +298,22 @@ end GaloisInsertion
 `β`. -/
 @[to_dual /-- Make a `GaloisCoinsertion` between `αᵒᵈ` and `βᵒᵈ` from a `GaloisInsertion` between
 `α` and `β`. -/]
-def GaloisCoinsertion.dual [Preorder α] [Preorder β] {l : α → β} {u : β → α} :
-    GaloisCoinsertion l u → GaloisInsertion (toDual ∘ u ∘ ofDual) (toDual ∘ l ∘ ofDual) :=
-  fun x => ⟨fun b h => OrderDual.toDual (x.choice (OrderDual.ofDual b) h), x.gc.dual,
-    fun a => x.u_l_le (OrderDual.ofDual a),
-    fun a h => congrArg OrderDual.toDual (x.choice_eq (OrderDual.ofDual a) h)⟩
+def GaloisCoinsertion.dual [Preorder α] [Preorder β] {l : α → β} {u : β → α}
+    (x : GaloisCoinsertion l u) :
+    GaloisInsertion (toDual ∘ u ∘ ofDual) (toDual ∘ l ∘ ofDual) where
+  choice b h := toDual (x.choice (ofDual b) h)
+  gc := x.gc.dual
+  le_l_u := by unsealing_newtype OrderDual => exact x.u_l_le
+  choice_eq := by unsealing_newtype OrderDual => exact x.choice_eq
 
 /-- Make a `GaloisInsertion` between `α` and `β` from a `GaloisCoinsertion` between `αᵒᵈ` and
 `βᵒᵈ`. -/
 @[to_dual /-- Make a `GaloisCoinsertion` between `α` and `β` from a `GaloisInsertion` between `αᵒᵈ`
 and `βᵒᵈ`. -/]
-def GaloisCoinsertion.ofDual [Preorder α] [Preorder β] {l : αᵒᵈ → βᵒᵈ} {u : βᵒᵈ → αᵒᵈ} :
-    GaloisCoinsertion l u → GaloisInsertion (ofDual ∘ u ∘ toDual) (ofDual ∘ l ∘ toDual) :=
-  fun x => ⟨fun b h => OrderDual.ofDual (x.choice (OrderDual.toDual b) h),
-    fun a b => (x.gc (OrderDual.toDual b) (OrderDual.toDual a)).symm,
-    fun a => x.u_l_le (OrderDual.toDual a),
-    fun a h => congrArg OrderDual.ofDual (x.choice_eq (OrderDual.toDual a) h)⟩
+def GaloisCoinsertion.ofDual [Preorder α] [Preorder β] {l : αᵒᵈ → βᵒᵈ} {u : βᵒᵈ → αᵒᵈ}
+    (x : GaloisCoinsertion l u) :
+    GaloisInsertion (ofDual ∘ u ∘ toDual) (ofDual ∘ l ∘ toDual) where
+  choice b h := OrderDual.ofDual (x.choice (toDual b) h)
+  gc := by unsealing_newtype OrderDual => exact x.gc.dual
+  le_l_u := by unsealing_newtype OrderDual => exact x.u_l_le
+  choice_eq := by unsealing_newtype OrderDual => exact x.choice_eq

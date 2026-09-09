@@ -91,27 +91,11 @@ instance (priority := 100) [OrderTopology α] [Countable α] :
   · exact OrderTopology.topology_eq_generate_intervals
 
 instance [t : OrderTopology α] : OrderTopology αᵒᵈ := by
-  have hind : (OrderDual.instTopologicalSpace : TopologicalSpace αᵒᵈ) =
-      TopologicalSpace.induced OrderDual.ofDual ts := by
-    refine TopologicalSpace.ext_iff.2 fun s ↦
-      ⟨fun hs ↦ ⟨OrderDual.toDual ⁻¹' s, hs, rfl⟩, ?_⟩
-    rintro ⟨u, hu, rfl⟩
-    exact hu
-  constructor
-  rw [hind, t.topology_eq_generate_intervals]
-  simp only [Preorder.topology]
-  rw [induced_generateFrom_eq]
-  congr 1
-  ext s
-  constructor
-  · rintro ⟨u, ⟨a, rfl | rfl⟩, rfl⟩
-    · exact ⟨OrderDual.toDual a, Or.inr Set.Iio_toDual.symm⟩
-    · exact ⟨OrderDual.toDual a, Or.inl Set.Ioi_toDual.symm⟩
-  · rintro ⟨a, rfl | rfl⟩
-    · exact ⟨Iio (OrderDual.ofDual a), ⟨OrderDual.ofDual a, Or.inr rfl⟩,
-        Set.Ioi_toDual.symm⟩
-    · exact ⟨Ioi (OrderDual.ofDual a), ⟨OrderDual.ofDual a, Or.inl rfl⟩,
-        Set.Iio_toDual.symm⟩
+  unsealing_newtype OrderDual =>
+    constructor
+    rcases t.topology_eq_generate_intervals with rfl
+    simp_rw [Preorder.topology, or_comm]
+    rfl
 
 @[to_dual none]
 protected theorem OrderTopology.continuous_iff [OrderTopology α] [TopologicalSpace β] {f : β → α} :

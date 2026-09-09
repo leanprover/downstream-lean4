@@ -603,36 +603,24 @@ def mapSetOfPredMaximal (f : s ≃o t) : {x | Maximal (· ∈ s) x} ≃o {x | Ma
 @[deprecated (since := "2026-07-28")] alias mapSetOfMaximal := mapSetOfPredMaximal
 
 /-- If two sets are antitonically order isomorphic, their minimals/maximals are too. -/
+@[to_dual /-- If two sets are antitonically order isomorphic, their maximals/minimals are too. -/]
 def setOfPredMinimalIsoSetOfPredMaximal (f : s ≃o tᵒᵈ) :
-    {x | Minimal (· ∈ s) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} :=
-  (f.trans (show (↑t)ᵒᵈ ≃o ↑(⇑ofDual ⁻¹' t) from
-      { toFun := fun x ↦ ⟨toDual (ofDual x).1, (ofDual x).2⟩
-        invFun := fun x ↦ toDual ⟨ofDual x.1, x.2⟩
-        left_inv := fun _ ↦ rfl
-        right_inv := fun _ ↦ rfl
-        map_rel_iff' := Iff.rfl })).mapSetOfPredMinimal.trans
-    (show {x : βᵒᵈ | Minimal (· ∈ ⇑ofDual ⁻¹' t) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} from
-      { toFun := fun x ↦ ⟨x.1, minimal_toDual.1 x.2⟩
-        invFun := fun x ↦ ⟨x.1, minimal_toDual.2 x.2⟩
-        left_inv := fun _ ↦ rfl
-        right_inv := fun _ ↦ rfl
-        map_rel_iff' := Iff.rfl })
-
-/-- If two sets are antitonically order isomorphic, their maximals/minimals are too. -/
-def setOfPredMaximalIsoSetOfPredMinimal (f : s ≃o tᵒᵈ) :
-    {x | Maximal (· ∈ s) x} ≃o {x | Minimal (· ∈ t) (ofDual x)} :=
-  (f.trans (show (↑t)ᵒᵈ ≃o ↑(⇑ofDual ⁻¹' t) from
-      { toFun := fun x ↦ ⟨toDual (ofDual x).1, (ofDual x).2⟩
-        invFun := fun x ↦ toDual ⟨ofDual x.1, x.2⟩
-        left_inv := fun _ ↦ rfl
-        right_inv := fun _ ↦ rfl
-        map_rel_iff' := Iff.rfl })).mapSetOfPredMaximal.trans
-    (show {x : βᵒᵈ | Maximal (· ∈ ⇑ofDual ⁻¹' t) x} ≃o {x | Minimal (· ∈ t) (ofDual x)} from
-      { toFun := fun x ↦ ⟨x.1, ⟨x.2.1, fun y hy hxy ↦ x.2.2 (y := toDual y) hy hxy⟩⟩
-        invFun := fun x ↦ ⟨x.1, ⟨x.2.1, fun _ hy hxy ↦ x.2.2 hy hxy⟩⟩
-        left_inv := fun _ ↦ rfl
-        right_inv := fun _ ↦ rfl
-        map_rel_iff' := Iff.rfl })
+    {x | Minimal (· ∈ s) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} where
+  toFun x := ⟨toDual (ofDual (f ⟨x.1, x.2.1⟩)).1, by
+    unsealing_newtype OrderDual =>
+      exact ((show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal x).2⟩
+  invFun x := ⟨(f.symm (toDual ⟨ofDual x.1, x.2.1⟩)).1, by
+    unsealing_newtype OrderDual =>
+      exact ((show ofDual ⁻¹' t ≃o s from f.symm).mapSetOfPredMinimal x).2⟩
+  left_inv x := by
+    unsealing_newtype OrderDual =>
+      exact (show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal.left_inv x
+  right_inv x := by
+    unsealing_newtype OrderDual =>
+      exact (show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal.right_inv x
+  map_rel_iff' := by
+    unsealing_newtype OrderDual =>
+      exact (show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal.map_rel_iff
 
 @[deprecated (since := "2026-07-09")]
 alias setOfMinimalIsoSetOfMaximal := setOfPredMinimalIsoSetOfPredMaximal

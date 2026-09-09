@@ -62,13 +62,14 @@ private theorem isGLB_sInf {s : Set (Πₗ i, α i)} : IsGLB s (sInf s) := by
     refine ha.2.not_ge <| le_sInf_apply fun f hf hf' ↦ apply_le_of_toLex (h hf) ?_
     simp_all
 
+private def ofDual (f : Πₗ i, (α i)ᵒᵈ) : Πₗ i, α i :=
+  toLex fun i => OrderDual.ofDual (f i)
+
 -- TODO: figure out how to use `to_dual` here
 
 @[no_expose]
 instance : SupSet (Πₗ i, α i) where
-  sSup s := toLex fun i ↦ OrderDual.ofDual <|
-    sInf (α := Πₗ i, (α i)ᵒᵈ)
-      ((fun f ↦ toLex fun i ↦ OrderDual.ofDual (f i)) ⁻¹' s) i
+  sSup s := ofDual (sInf (ofDual ⁻¹' s))
 
 theorem sSup_apply (s : Set (Πₗ i, α i)) (i : ι) :
     sSup s i = ⨆ e : {e ∈ s | ∀ j < i, e j = sSup s j}, e.1 i := by
@@ -109,14 +110,15 @@ end Lex
 /-! ### Colexicographic ordering -/
 
 namespace Colex
+
+private def ofLexDual (f : Πₗ i : ιᵒᵈ, α (OrderDual.ofDual i)) : Colex ((i : ι) → α i) :=
+  toColex fun i => f (OrderDual.toDual i)
+
 variable [WellFoundedGT ι]
 
-set_option backward.isDefEq.respectTransparency false in
 @[no_expose]
 instance : InfSet (Colex ((i : ι) → α i)) where
-  sInf s := toColex fun i ↦
-    sInf (α := Πₗ j : ιᵒᵈ, α (OrderDual.ofDual j))
-      ((fun f ↦ toColex fun j ↦ f (OrderDual.toDual j)) ⁻¹' s) (OrderDual.toDual i)
+  sInf s := ofLexDual (sInf (ofLexDual ⁻¹' s))
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sInf_apply (s : Set (Colex ((i : ι) → α i))) (i : ι) :
@@ -138,12 +140,9 @@ theorem le_sInf_apply {s : Set (Colex ((i : ι) → α i))} {i : ι} {e : Colex 
 
 -- TODO: figure out how to use `to_dual` here
 
-set_option backward.isDefEq.respectTransparency false in
 @[no_expose]
 instance : SupSet (Colex ((i : ι) → α i)) where
-  sSup s := toColex fun i ↦
-    sSup (α := Πₗ j : ιᵒᵈ, α (OrderDual.ofDual j))
-      ((fun f ↦ toColex fun j ↦ f (OrderDual.toDual j)) ⁻¹' s) (OrderDual.toDual i)
+  sSup s := ofLexDual (sSup (ofLexDual ⁻¹' s))
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sSup_apply (s : Set (Colex ((i : ι) → α i))) (i : ι) :

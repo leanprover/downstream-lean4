@@ -1244,11 +1244,7 @@ protected def _root_.Ideal.minimalPrimes.equivIrreducibleComponents (I : Ideal R
   refine (OrderIso.setOfPredMinimalIsoSetOfPredMaximal
     (e.trans ((PrimeSpectrum.zeroLocusEquivIrreducibleCloseds (I : Set R)).trans
     (TopologicalSpace.IrreducibleCloseds.orderIsoSubtype' (zeroLocus (I : Set R))).dual))).trans ?_
-  exact { toFun := fun x ↦ OrderDual.toDual ⟨OrderDual.ofDual x.1, x.2⟩
-          invFun := fun x ↦ ⟨OrderDual.toDual (OrderDual.ofDual x).1, (OrderDual.ofDual x).2⟩
-          left_inv := fun _ ↦ rfl
-          right_inv := fun _ ↦ rfl
-          map_rel_iff' := Iff.rfl }
+  exact OrderIso.subtypeDual (fun s => Maximal (fun s => IsClosed s ∧ IsIrreducible s) s)
 
 variable (R)
 
@@ -1263,11 +1259,7 @@ protected def _root_.minimalPrimes.equivIrreducibleComponents :
   refine (OrderIso.setOfPredMinimalIsoSetOfPredMaximal
     (e.trans ((PrimeSpectrum.pointsEquivIrreducibleCloseds R).trans
     (TopologicalSpace.IrreducibleCloseds.orderIsoSubtype' (PrimeSpectrum R)).dual))).trans ?_
-  exact { toFun := fun x ↦ OrderDual.toDual ⟨OrderDual.ofDual x.1, x.2⟩
-          invFun := fun x ↦ ⟨OrderDual.toDual (OrderDual.ofDual x).1, (OrderDual.ofDual x).2⟩
-          left_inv := fun _ ↦ rfl
-          right_inv := fun _ ↦ rfl
-          map_rel_iff' := Iff.rfl }
+  exact OrderIso.subtypeDual (fun s => Maximal (fun s => IsClosed s ∧ IsIrreducible s) s)
 
 lemma vanishingIdeal_irreducibleComponents :
     vanishingIdeal '' (irreducibleComponents <| PrimeSpectrum R) = minimalPrimes R := by

@@ -72,6 +72,15 @@ section LE
 
 variable [LE α] [LE β]
 
+/-- Taking the order dual commutes with taking a subtype. -/
+@[simps! apply symm_apply]
+def subtypeDual (p : α → Prop) : {x : αᵒᵈ // p (ofDual x)} ≃o {x : α // p x}ᵒᵈ where
+  toFun x := toDual ⟨ofDual x.1, x.2⟩
+  invFun x := ⟨toDual (ofDual x).1, (ofDual x).2⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+  map_rel_iff' := Iff.rfl
+
 theorem range_eq (e : α ≃o β) : Set.range e = Set.univ :=
   e.surjective.range_eq
 

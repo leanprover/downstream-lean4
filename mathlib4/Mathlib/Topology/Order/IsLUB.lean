@@ -393,24 +393,17 @@ theorem DenseRange.exists_seq_strictMono_tendsto {β : Type*} [LinearOrder β] [
 theorem IsGLB.exists_seq_strictAnti_tendsto_of_notMem {t : Set α} {x : α}
     [IsCountablyGenerated (𝓝 x)] (htx : IsGLB t x) (notMem : x ∉ t) (ht : t.Nonempty) :
     ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t := by
-  obtain ⟨v, hvx, hvt⟩ := exists_seq_forall_of_frequently (htx.frequently_mem ht)
-  replace hvx := hvx.mono_right nhdsWithin_le_nhds
-  have hvx' : ∀ {n}, x < v n :=
-    (htx.1 (hvt _)).lt_of_ne (Ne.symm (ne_of_mem_of_not_mem (hvt _) notMem))
-  have : ∀ k, ∀ᶠ l in atTop, v l < v k := fun k => hvx.eventually (gt_mem_nhds hvx')
-  choose N hN hvN using fun k => ((eventually_gt_atTop k).and (this k)).exists
-  refine ⟨fun k => v (N^[k] 0), strictAnti_nat_of_succ_lt fun _ => ?_, fun _ => hvx',
-    hvx.comp (strictMono_nat_of_lt_succ fun _ => ?_).tendsto_atTop, fun _ => hvt _⟩
-  · rw [iterate_succ_apply']; exact hvN _
-  · rw [iterate_succ_apply']; exact hN _
+  unsealing_newtype OrderDual =>
+    let : IsCountablyGenerated (𝓝 (OrderDual.toDual x)) := ‹IsCountablyGenerated (𝓝 x)›
+    exact IsLUB.exists_seq_strictMono_tendsto_of_notMem (α := αᵒᵈ)
+      (x := OrderDual.toDual x) htx notMem ht
 
 theorem IsGLB.exists_seq_antitone_tendsto {t : Set α} {x : α} [IsCountablyGenerated (𝓝 x)]
     (htx : IsGLB t x) (ht : t.Nonempty) :
     ∃ u : ℕ → α, Antitone u ∧ (∀ n, x ≤ u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t := by
-  by_cases h : x ∈ t
-  · exact ⟨fun _ => x, antitone_const, fun n => le_rfl, tendsto_const_nhds, fun _ => h⟩
-  · rcases htx.exists_seq_strictAnti_tendsto_of_notMem h ht with ⟨u, hu⟩
-    exact ⟨u, hu.1.antitone, fun n => (hu.2.1 n).le, hu.2.2⟩
+  unsealing_newtype OrderDual =>
+    let : IsCountablyGenerated (𝓝 (OrderDual.toDual x)) := ‹IsCountablyGenerated (𝓝 x)›
+    exact IsLUB.exists_seq_monotone_tendsto (α := αᵒᵈ) (x := OrderDual.toDual x) htx ht
 
 theorem exists_seq_strictAnti_tendsto' [DenselyOrdered α] [FirstCountableTopology α] {x y : α}
     (hy : x < y) : ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, u n ∈ Ioo x y) ∧ Tendsto u atTop (𝓝 x) := by

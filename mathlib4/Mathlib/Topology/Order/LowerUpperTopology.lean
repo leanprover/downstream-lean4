@@ -556,20 +556,9 @@ instance instIsUpperProd [Preorder α] [TopologicalSpace α] [IsUpper α]
     [OrderTop α] [Preorder β] [TopologicalSpace β] [IsUpper β] [OrderTop β] :
     IsUpper (α × β) where
   topology_eq_upperTopology := by
-    refine le_antisymm (le_generateFrom ?_) ?_
-    · rintro _ ⟨x, rfl⟩
-      exact (isClosed_Iic.prod isClosed_Iic).isOpen_compl
-    rw [(IsUpper.isTopologicalBasis.prod
-      IsUpper.isTopologicalBasis).eq_generateFrom, le_generateFrom_iff_subset_isOpen,
-      image2_subset_iff]
-    rintro _ ⟨s, hs, rfl⟩ _ ⟨t, ht, rfl⟩
-    dsimp
-    simp_rw [coe_lowerClosure, compl_iUnion, prod_eq, preimage_iInter, preimage_compl]
-    -- without `let`, `refine` tries to use the product topology and fails
-    let _ : TopologicalSpace (α × β) := upper (α × β)
-    refine (hs.isOpen_biInter fun a _ => ?_).inter (ht.isOpen_biInter fun b _ => ?_)
-    · exact GenerateOpen.basic _ ⟨(a, ⊤), by simp [Iic_prod_eq, prod_univ]⟩
-    · exact GenerateOpen.basic _ ⟨(⊤, b), by simp [Iic_prod_eq, univ_prod]⟩
+    unsealing_newtype OrderDual =>
+      suffices IsLower (α × β)ᵒᵈ from IsLower.topology_eq_lowerTopology (α := (α × β)ᵒᵈ)
+      exact instIsLowerProd (α := αᵒᵈ) (β := βᵒᵈ)
 
 section CompleteLattice_IsLower
 

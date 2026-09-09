@@ -369,22 +369,13 @@ variable (α)
 noncomputable def OrderEmbedding.ofAntisymmetrization : Antisymmetrization α (· ≤ ·) ↪o α :=
   { Quotient.outRelEmbedding _ with toFun := _root_.ofAntisymmetrization _ }
 
-set_option backward.isDefEq.respectTransparency false in
 /-- `Antisymmetrization` and `orderDual` commute. -/
 def OrderIso.dualAntisymmetrization :
     (Antisymmetrization α (· ≤ ·))ᵒᵈ ≃o Antisymmetrization αᵒᵈ (· ≤ ·) where
-  toFun a := Quotient.map' (s₁ := AntisymmRel.setoid α (· ≤ ·))
-    (s₂ := AntisymmRel.setoid αᵒᵈ (· ≤ ·)) OrderDual.mk (fun _ _ h => ⟨h.2, h.1⟩)
-    (OrderDual.ofDual a)
-  invFun a := OrderDual.toDual (Quotient.map' (s₁ := AntisymmRel.setoid αᵒᵈ (· ≤ ·))
-    (s₂ := AntisymmRel.setoid α (· ≤ ·)) OrderDual.ofDual' (fun _ _ h => ⟨h.2, h.1⟩) a)
-  left_inv a := by
-    cases a with | _ q => induction q using Quotient.inductionOn' with | _ x => rfl
-  right_inv a := by induction a using Quotient.inductionOn' with | _ x => rfl
-  map_rel_iff' := @fun a b => by
-    cases a with | _ qa => cases b with | _ qb =>
-      induction qa using Quotient.inductionOn' with | _ x =>
-        induction qb using Quotient.inductionOn' with | _ y => exact Iff.rfl
+  toEquiv := ofDual.trans (Quotient.congr toDual fun _ _ => and_comm)
+  map_rel_iff' := by
+    unsealing_newtype OrderDual =>
+      exact @fun a b => Quotient.inductionOn₂' a b fun _ _ => Iff.rfl
 
 @[simp]
 theorem OrderIso.dualAntisymmetrization_apply (a : α) :

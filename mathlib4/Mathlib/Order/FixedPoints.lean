@@ -190,12 +190,9 @@ def prevFixed (x : α) (hx : f x ≤ x) : fixedPoints f :=
 `x` is a point such that `x ≤ f x`, then `f.nextFixed x hx` is the least fixed point of `f`
 that is greater than or equal to `x`. -/
 def nextFixed (x : α) (hx : x ≤ f x) : fixedPoints f :=
-  ⟨(const α x ⊔ f).lfp,
-    calc
-      f (const α x ⊔ f).lfp = x ⊔ f (const α x ⊔ f).lfp :=
-        Eq.symm <| sup_of_le_right <| hx.trans (f.mono <| f.le_lfp_const_sup x)
-      _ = (const α x ⊔ f).lfp := (const α x ⊔ f).map_lfp
-      ⟩
+  ⟨(const α x ⊔ f).lfp, by
+    unsealing_newtype OrderDual =>
+      exact (f.dual.prevFixed x hx).property⟩
 
 theorem prevFixed_le {x : α} (hx : f x ≤ x) : ↑(f.prevFixed x hx) ≤ x :=
   f.gfp_const_inf_le x
