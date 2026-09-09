@@ -880,6 +880,9 @@ where
         children.flatMap (getFromSyntax text) ++ here
       | _ => #[]
     isFoldable : Name → Bool
+      | `Lean.Doc.Parser.Block.codeblock | `Lean.Doc.Parser.Block.directive
+      | `Lean.Doc.Parser.Block.metadata_block | `Lean.Doc.Parser.Block.blockquote
+      | `Lean.Doc.Parser.Block.ol | `Lean.Doc.Parser.Block.ul | `Lean.Doc.Parser.Block.dl => true
       | `Lean.Doc.Syntax.codeblock | `Lean.Doc.Syntax.directive | `Lean.Doc.Syntax.metadata_block | `Lean.Doc.Syntax.blockquote
       | `Lean.Doc.Syntax.ol | `Lean.Doc.Syntax.ul | `Lean.Doc.Syntax.dl => true
       | `Verso.Syntax.codeblock | `Verso.Syntax.directive | `Verso.Syntax.metadata_block | `Verso.Syntax.blockquote

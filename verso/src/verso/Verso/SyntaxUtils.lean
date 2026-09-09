@@ -16,15 +16,13 @@ namespace Verso.Parser
 open Lean Doc Parser
 
 
-public def textLine (allowNewlines := true) : ParserFn := many1Fn (inline { allowNewlines })
-
 public def nl := satisfyFn (· == '\n') "newline"
 
 /--
 Parses a line that contains only spaces.
 -/
 public def blankLine : ParserFn :=
-  nodeFn `blankLine <| atomicFn <| asStringFn <| takeWhileFn (· == ' ') >> nl
+  nodeFn `blankLine <| atomicFn <| asTokenFn <| takeWhileFn (· == ' ') >> nl
 
 private def skipToNewline : ParserFn :=
     takeUntilFn (· == '\n')

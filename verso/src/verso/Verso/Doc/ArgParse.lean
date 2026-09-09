@@ -6,7 +6,7 @@ Author: David Thrane Christiansen
 module
 public import Verso.Doc
 public import Verso.Hover
-import Verso.Parser
+public import Verso.Parser
 public import Verso.SyntaxUtils
 import Lean.Parser
 import Lean.Elab.GuardMsgs
