@@ -48,7 +48,8 @@ meta partial def headerTagLinter : Linter where
     let text ← getFileMap
 
     discard <| stx.replaceM fun block => do
-      if let `(block|header($n){$inls*}) := block then
+      if let some hdr := Lean.Doc.HeaderView.of ⟨block⟩ then
+        let inls := hdr.content
         let some ⟨start, stop⟩ := block.getRange?
           | return none
         let mut nextLine : String.Legacy.Iterator := {s := text.source, i := stop}
@@ -89,8 +90,10 @@ meta partial def headerTagLinter : Linter where
             if s.stxStack.size = 1 then
               pure (s.stxStack.get! 0)
             else return none
-        if let`(block|%%%%$tk1 $fieldOrAbbrev* %%%%$tk2) := nextStx then
-          let metadataStx ← `(term| { $fieldOrAbbrev* })
+        if let some metaView := Lean.Doc.MetadataView.of ⟨nextStx⟩ then
+          let fieldOrAbbrev := metaView.fields
+          let metadataStx : Term :=
+            ⟨(← `(Lean.Parser.Term.structInst| { $[$fieldOrAbbrev],* })).raw⟩
           let isMissing ← runTermElabM fun _ => do
             let type := .const `Verso.Genre.Manual.PartMetadata []
             let metadataTerm ← Term.elabTerm metadataStx (some type)
@@ -102,9 +105,9 @@ meta partial def headerTagLinter : Linter where
           if isMissing && noFieldIsTag fieldOrAbbrev then
             let name := suggestId inls
             -- Find the beginning of the line after the token
-            let some ⟨start1, stop1⟩ := tk1.getRange?
+            let some ⟨start1, stop1⟩ := metaView.opener.getRange?
               | return none
-            let some ⟨start2, stop2⟩ := tk2.getRange?
+            let some ⟨start2, stop2⟩ := metaView.closer.getRange?
               | return none
             let blockStr := start.extract text.source stop
             let suggestions : Array Meta.Hint.Suggestion := #[
@@ -125,17 +128,19 @@ where
       | `(Lean.Parser.Term.structInstField|$x:ident := $_ ) => x.getId ≠ `tag
       | _ => true
 
-  suggestId (name : TSyntaxArray `inline) : String :=
+  suggestId (name : TSyntaxArray ``Lean.Doc.Parser.inline) : String :=
     suggestId' name |>.sluggify |>.toString
 
-  suggestId' (name : TSyntaxArray `inline) : String := Id.run do
+  suggestId' (name : TSyntaxArray ``Lean.Doc.Parser.inline) : String := Id.run do
     let mut strTitle := ""
     for inl in name do
-      match inl with
-      | `(inline|$s:str) => strTitle := strTitle ++ s.getString.toLower
-      | `(inline|code($s)) => strTitle := strTitle ++ s.getString
-      | `(inline|_[$i*]) | `(inline|*[$i*]) | `(inline|link[$i*]$_) | `(inline|role{$_ $_*}[$i*]) =>
-        strTitle := strTitle ++ suggestId' i
+      match Lean.Doc.InlineView.of inl with
+      | some (.text s) => strTitle := strTitle ++ s.getVersoText.toLower
+      | some (.code c) => strTitle := strTitle ++ c.getVersoCode
+      | some (.emph e) => strTitle := strTitle ++ suggestId' e.content
+      | some (.bold b) => strTitle := strTitle ++ suggestId' b.content
+      | some (.link l) => strTitle := strTitle ++ suggestId' l.content
+      | some (.role r) => strTitle := strTitle ++ suggestId' r.content
       | _ => pure ()
     return strTitle
 

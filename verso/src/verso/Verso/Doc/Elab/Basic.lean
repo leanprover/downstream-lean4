@@ -111,7 +111,7 @@ public def PartFrame.close (fr : PartFrame) (endPos : String.Pos.Raw) : Finished
 
 /-- References that must be local to the current blob of concrete document syntax -/
 public structure DocDef (α : Type) where
-  defSite : TSyntax `str
+  defSite : Syntax
   val : α
 deriving Repr
 

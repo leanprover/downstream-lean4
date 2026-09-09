@@ -54,21 +54,28 @@ def galleryImpl : DirectiveExpanderOf Unit
     let #[stx] := stxs
       | logErrorAt (mkNullNode stxs) "Expected one block"
         return (← `(sorry))
-    let `(block| dl{ $item*}) := stx
+    let some dl := Lean.Doc.DescListView.of stx
       | throwErrorAt stx "Expected definition list"
-    let items ← item.mapM getItem
+    let items ← dl.items.mapM getItem
     ``(Block.other (Blog.BlockExt.component $(quote `gallery) Json.null) #[$(items),*])
 where
-  getItem : TSyntax `desc_item → DocElabM Term
-    | `(desc_item|: $inls* => $desc $descs*) => do
-      let #[inl] := inls.filter (fun
-          | `(inline|$s:str) => s.getString.any (not ∘ Char.isWhitespace)
-          | _ => true)
-        | throwErrorAt (mkNullNode inls) "Expected one inline"
-      let `(inline|image($alt)($url)) := inl
-        | throwErrorAt inl "Expected an image"
-      `(Block.other (.component $(quote `image) (.arr #[$alt, $url])) #[$(← elabBlock desc), $(← descs.mapM elabBlock),*])
-    | stx => throwErrorAt stx "Expected an image and description, got {stx}"
+  getItem (item : Lean.Doc.DescItemView) : DocElabM Term := do
+    let #[inl] := item.term.filter (fun i =>
+        match Lean.Doc.TextView.of i with
+        | some t => t.getVersoText.any (not ∘ Char.isWhitespace)
+        | none => true)
+      | throwErrorAt (mkNullNode (item.term.map (·.raw))) "Expected one inline"
+    let some img := Lean.Doc.ImageView.of inl
+      | throwErrorAt inl "Expected an image"
+    let .url _ _ url _ := img.target
+      | throwErrorAt inl "Expected an image with a URL"
+    let some desc := item.desc[0]?
+      | throwErrorAt item.stx "Expected a description"
+    let descs := item.desc.extract 1 item.desc.size
+    `(Block.other
+        (.component $(quote `image)
+          (.arr #[$(quote img.getAlt), $(quote url.getVersoLinkUrl)]))
+        #[$(← elabBlock desc), $(← descs.mapM elabBlock),*])
 
 block_component +directive button' (onclick : String) where
   toHtml id _ _ goB contents := do

@@ -5,6 +5,7 @@ Author: David Thrane Christiansen
 -/
 module
 
+public import Lean.DocString.View
 public import Lean.Environment
 
 public section
@@ -15,12 +16,12 @@ open Lean
 
 structure IOExampleContext where
   leanCodeName : Ident
-  code : Option StrLit := none
-  inputFiles : Array (System.FilePath × StrLit) := #[]
-  outputFiles : Array (System.FilePath × StrLit) := #[]
-  stdin : Option StrLit := none
-  stdout : Option StrLit := none
-  stderr : Option StrLit := none
+  code : Option Doc.VersoCodeBlock := none
+  inputFiles : Array (System.FilePath × Doc.VersoCodeBlock) := #[]
+  outputFiles : Array (System.FilePath × Doc.VersoCodeBlock) := #[]
+  stdin : Option Doc.VersoCodeBlock := none
+  stdout : Option Doc.VersoCodeBlock := none
+  stderr : Option Doc.VersoCodeBlock := none
 deriving Repr
 
 initialize ioExampleCtx : EnvExtension (Option IOExampleContext) ←

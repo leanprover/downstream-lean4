@@ -86,7 +86,7 @@ section
 
 open Lean Widget Elab Term Meta Illuminate
 
-private meta unsafe def evalDiagramUnsafe (str : StrLit) (stx : Syntax) :
+private meta unsafe def evalDiagramUnsafe (str : Syntax) (stx : Syntax) :
     TermElabM (String × Float) := do
   let diaTy ← Meta.mkAppM ``Diagram #[.const ``SVG []]
   let e ← Elab.Term.elabTerm stx (some diaTy)
@@ -129,7 +129,7 @@ private meta unsafe def evalDiagramUnsafe (str : StrLit) (stx : Syntax) :
   pure (svgStr, diagramWidth)
 
 @[implemented_by evalDiagramUnsafe]
-private opaque evalDiagramImpl (str : StrLit) (stx : Syntax) :
+private opaque evalDiagramImpl (str : Syntax) (stx : Syntax) :
     TermElabM (String × Float)
 
 end
@@ -145,10 +145,10 @@ section variables for the Manual genre). It defaults to the identity.
 Genre-specific code-block expanders call this to do the shared evaluation work and then emit
 their own `GenreDiagram.diagramBlock` term.
 -/
-public def elabAndStoreDiagram (str : StrLit)
+public def elabAndStoreDiagram [Verso.VersoLiteral k] (str : TSyntax k)
     (scope : {α : Type} → TermElabM α → TermElabM α := fun act => act) :
     DocElabM (String × Float) := do
   let stx ← parseStrLitAsCategory `term str
   if stx.isMissing then
     return ("", 0)
-  scope (evalDiagramImpl str stx)
+  scope (evalDiagramImpl str.raw stx)

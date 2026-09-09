@@ -425,125 +425,114 @@ meta def decodeLeanTokens (data : Array Nat) : Array SemanticTokenEntry := Id.ru
 
 deriving instance Repr, BEq for SemanticTokenType
 
-meta partial def versoTokens (text : FileMap) (stx : Syntax) : Array SemanticTokenEntry := Id.run do
-  match stx with
-  | `(inline|$_s:str) =>
-    mkTok text .string stx
-  | `(inline|_[%$s $inlines* ]%$e) | `(inline|*[%$s $inlines* ]%$e) =>
-    mkTok text .keyword s ++ versoTokens text (mkNullNode inlines) ++ mkTok text .keyword e
-  | `(inline|role{%$s $f $args*}%$e [%$s' $inlines* ]%$e') =>
-    mkTok text .keyword s ++
-    mkTok text .function f ++
-    versoTokens text (mkNullNode args) ++
-    mkTok text .keyword e ++
-    mkTok text .keyword s' ++
-    versoTokens text (mkNullNode inlines) ++
-    mkTok text .keyword e'
-  | `(inline|link[%$s $inlines* ]%$e (%$s' $tgt )%$e')
-  | `(inline|link[%$s $inlines* ]%$e [%$s' $tgt ]%$e') =>
-    mkTok text .keyword s ++
-    versoTokens text (mkNullNode inlines) ++
-    mkTok text .keyword e ++
-    mkTok text .keyword s' ++
-    mkTok text .parameter tgt ++
-    mkTok text .keyword e'
-  | `(inline|image(%$s $alt )%$e (%$s' $tgt )%$e')
-  | `(inline|image(%$s $alt )%$e [%$s' $tgt ]%$e') =>
-    mkTok text .keyword s ++
-    versoTokens text alt ++
-    mkTok text .keyword e ++
-    mkTok text .keyword s' ++
-    mkTok text .parameter tgt ++
-    mkTok text .keyword e'
-  | `(inline|footnote(%$s $note )%$e) =>
-    mkTok text .keyword s ++
-    mkTok text .parameter note ++
-    mkTok text .keyword e
-  | `(inline|code(%$s $_str )%$e) =>
-    mkTok text .keyword s ++
-    -- None for str, so Lean's can pass through
-    mkTok text .keyword e
-  | `(inline|\math%$m code(%$s $str )%$e)
-  | `(inline|\displaymath%$m code(%$s $str )%$e) =>
-    mkTok text .keyword m ++
-    mkTok text .keyword s ++
-     -- Enum member arbitrarily chosen for uniqueness
-    mkTok text .enumMember str ++
-    mkTok text .keyword e
-  | `(desc_item| :%$s $inlines* =>%$e $blocks*) =>
-    mkTok text .keyword s ++
-    versoTokens text (mkNullNode inlines) ++
-    mkTok text .keyword e ++
-    versoTokens text (mkNullNode blocks)
-  | `(list_item| *%$bulletOrNum $contents*) =>
-    mkTok text .keyword bulletOrNum ++
-    versoTokens text (mkNullNode contents)
-  | `(block| :::%$s $f $args* {%$s' $body* }%$e) =>
-    mkTok text .keyword s ++
-    mkTok text .function f ++
-    versoTokens text (mkNullNode args) ++
-    mkTok text .keyword s' ++
-    versoTokens text (mkNullNode body) ++
-    mkTok text .keyword e
-  | `(block| ```%$s $f $args* |%$s' $_code ```%$e) =>
-    mkTok text .keyword s ++
-    mkTok text .function f ++
-    versoTokens text (mkNullNode args) ++
-    mkTok text .keyword s' ++
-    -- No token for the code, because we want Lean's tokens to shine through
-    mkTok text .keyword e
-  | `(block| >%$s $blocks*) =>
-    mkTok text .keyword s ++ versoTokens text (mkNullNode blocks)
-  | `(block|header(%$s $n )%$e {%$s' $txt* }%$e') =>
-    mkTok text .keyword s ++
-    versoTokens text n ++
-    mkTok text .keyword e ++
-    mkTok text .keyword s' ++
-    versoTokens text (mkNullNode txt) ++
-    mkTok text .keyword e'
-  | `(block|[^%$s $n ]:%$e $txt*) =>
-    mkTok text .keyword s ++
-    mkTok text .parameter n ++
-    mkTok text .keyword e ++
-    versoTokens text (mkNullNode txt)
-  | `(block|[%$s $n ]:%$e $url) =>
-    mkTok text .keyword s ++
-    mkTok text .parameter n ++
-    mkTok text .keyword e ++
-    mkTok text .parameter url
-  | `(block| %%%%$s $_defs* %%%%$e) =>
-    mkTok text .keyword s ++
-    -- No tokens for defs, because Lean should supply them
-    mkTok text .keyword e
-  | `(block| command{%$s $f $args* }%$e) =>
-    mkTok text .keyword s ++
-    mkTok text .function f ++
-    versoTokens text (mkNullNode args) ++
-    mkTok text .keyword e
-  | `(doc_arg| $x:ident :=%$eq $v:arg_val) =>
-    mkTok text .parameter x ++
-    mkTok text .keyword eq ++
-    versoTokens text v
-  | `(doc_arg| $v:arg_val) =>
-    versoTokens text v
-  -- In the next three cases, no token is returned. This is to allow Lean's to shine through, if
-  -- there are any. It would be nice to add a priority mechanism to fall back to these defaults if
-  -- Lean didn't provide any.
-  | `(arg_val| $_v:num) =>
-    --mkTok text .number v
-    #[]
-  | `(arg_val| $_v:ident) =>
-    -- mkTok text .variable v
-    #[]
-  | `(arg_val| $_v:str) =>
-    -- mkTok text .string v
-    #[]
-  | _ =>
+meta partial def versoTokens (text : FileMap) (stx : Syntax) : Array SemanticTokenEntry :=
+    Id.run do
+  if let some v := Lean.Doc.InlineView.of ⟨stx⟩ then inlineTokens text v
+  else if let some v := Lean.Doc.BlockView.of ⟨stx⟩ then blockTokens text v
+  else if let some v := Lean.Doc.DescItemView.of ⟨stx⟩ then
+    mkTok text .keyword v.marker ++
+    versoTokens text (mkNullNode (v.term.map (·.raw))) ++
+    versoTokens text (mkNullNode (v.desc.map (·.raw)))
+  else if let some v := Lean.Doc.UnorderedListItemView.of ⟨stx⟩ then
+    mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.contents.map (·.raw)))
+  else if let some v := Lean.Doc.OrderedListItemView.of ⟨stx⟩ then
+    mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.contents.map (·.raw)))
+  else if let some v := Lean.Doc.ArgView.of ⟨stx⟩ then
+    match v with
+    | .anon _ val => versoTokens text val
+    | .named _ _ x eq val =>
+      mkTok text .parameter x ++ mkTok text .keyword eq ++ versoTokens text val
+    | .flag _ sign x _ => mkTok text .keyword sign ++ mkTok text .parameter x
+  -- An argument value yields no token, so that Lean's own tokens show through.
+  else if (Lean.Doc.ArgValView.of ⟨stx⟩).isSome then #[]
+  else Id.run do
     let mut out := #[]
     for arg in stx.getArgs do
       out := out ++ versoTokens text arg
     return out
 where
+  inlineTokens (text : FileMap) : Lean.Doc.InlineView → Array SemanticTokenEntry
+    | .text v => mkTok text .string v.stx
+    | .linebreak _ => #[]
+    | .emph v =>
+      mkTok text .keyword v.opener ++
+      versoTokens text (mkNullNode (v.content.map (·.raw))) ++
+      mkTok text .keyword v.closer
+    | .bold v =>
+      mkTok text .keyword v.opener ++
+      versoTokens text (mkNullNode (v.content.map (·.raw))) ++
+      mkTok text .keyword v.closer
+    | .role v =>
+      mkTok text .keyword v.braceOpen ++
+      mkTok text .function v.name ++
+      versoTokens text (mkNullNode (v.args.map (·.raw))) ++
+      mkTok text .keyword v.braceClose ++
+      (v.brackets.map (fun (o, _) => mkTok text .keyword o) |>.getD #[]) ++
+      versoTokens text (mkNullNode (v.content.map (·.raw))) ++
+      (v.brackets.map (fun (_, c) => mkTok text .keyword c) |>.getD #[])
+    | .link v =>
+      mkTok text .keyword v.opener ++
+      versoTokens text (mkNullNode (v.content.map (·.raw))) ++
+      mkTok text .keyword v.closer ++
+      targetTokens text v.target
+    | .image v =>
+      mkTok text .keyword v.opener ++
+      mkTok text .string v.alt ++
+      mkTok text .keyword v.closer ++
+      targetTokens text v.target
+    | .footnote v =>
+      mkTok text .keyword v.opener ++
+      mkTok text .parameter v.name ++
+      mkTok text .keyword v.closer
+    -- No token for the code itself, so that Lean's tokens show through.
+    | .code v => mkTok text .keyword v.opener ++ mkTok text .keyword v.closer
+    | .math v =>
+      mkTok text .keyword v.marker ++
+      mkTok text .keyword v.code.opener ++
+      -- Enum member arbitrarily chosen for uniqueness
+      mkTok text .enumMember v.code.content ++
+      mkTok text .keyword v.code.closer
+
+  targetTokens (text : FileMap) : Lean.Doc.LinkTargetView → Array SemanticTokenEntry
+    | .url _ o url c | .ref _ o url c =>
+      mkTok text .keyword o ++ mkTok text .parameter url ++ mkTok text .keyword c
+
+  blockTokens (text : FileMap) : Lean.Doc.BlockView → Array SemanticTokenEntry
+    | .para v => versoTokens text (mkNullNode (v.content.map (·.raw)))
+    | .ul v => versoTokens text (mkNullNode (v.items.map (·.stx.raw)))
+    | .ol v => versoTokens text (mkNullNode (v.items.map (·.stx.raw)))
+    | .dl v => versoTokens text (mkNullNode (v.items.map (·.stx.raw)))
+    | .blockquote v =>
+      mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.content.map (·.raw)))
+    | .directive v =>
+      mkTok text .keyword v.opener ++
+      mkTok text .function v.name ++
+      versoTokens text (mkNullNode (v.args.map (·.raw))) ++
+      versoTokens text (mkNullNode (v.content.map (·.raw))) ++
+      mkTok text .keyword v.closer
+    -- No token for the code, because Lean's tokens should show through.
+    | .codeblock v =>
+      mkTok text .keyword v.openFence ++
+      (v.name?.map (mkTok text .function ·) |>.getD #[]) ++
+      versoTokens text (mkNullNode (v.args.map (·.raw))) ++
+      mkTok text .keyword v.closeFence
+    | .command v =>
+      mkTok text .function v.name ++ versoTokens text (mkNullNode (v.args.map (·.raw)))
+    | .header v =>
+      mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.content.map (·.raw)))
+    | .footnoteRef v =>
+      mkTok text .keyword v.opener ++
+      mkTok text .parameter v.name ++
+      mkTok text .keyword v.closer ++
+      versoTokens text (mkNullNode (v.content.map (·.raw)))
+    | .linkRef v =>
+      mkTok text .keyword v.opener ++
+      mkTok text .parameter v.name ++
+      mkTok text .keyword v.closer ++
+      mkTok text .parameter v.url
+    -- No tokens for the fields, because Lean should supply them.
+    | .metadata v => mkTok text .keyword v.opener ++ mkTok text .keyword v.closer
+
   mkTok (text : FileMap) (tokenType : SemanticTokenType) (stx : Syntax) : Array SemanticTokenEntry := Id.run do
     let (some startPos, some endPos) := (stx.getPos?, stx.getTailPos?)
       | return #[]
