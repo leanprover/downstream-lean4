@@ -18,7 +18,6 @@ public section
 namespace Verso.Parser
 
 open Verso.SyntaxUtils
-open Lean.Doc.Syntax
 open Lean Parser
 
 export Lean.Doc.Parser (skipFn ignoreFn)
@@ -306,21 +305,6 @@ export Lean.Doc.Parser (
 /-- One or more inline elements. With `allowNewlines`, they may continue onto the following lines. -/
 def textLine (allowNewlines := true) : ParserFn := many1Fn (inlineFn { allowNewlines })
 
-/-- An inline element. -/
-def inline (ctxt : InlineCtxt) : ParserFn := inlineFn ctxt
-
-/-- A block element. -/
-def block (ctxt : BlockCtxt) : ParserFn := blockFn ctxt
-
-/-- Zero or more block elements. -/
-def blocks (ctxt : BlockCtxt) : ParserFn := blocksFn ctxt
-
-/-- One or more block elements. -/
-def blocks1 (ctxt : BlockCtxt) : ParserFn := blocks1Fn ctxt
-
-/-- A metadata block. -/
-def metadataBlock : ParserFn := metadataBlockFn
-
 /--
 Some number of blank lines followed by zero or more blocks.
 
@@ -349,6 +333,6 @@ public def stringToInlines [Monad m] [MonadFileMap m] [MonadError m] [MonadEnv m
 open Lean Elab Term in
 public def stringToBlocks [Monad m] [MonadFileMap m] [MonadError m] [MonadEnv m] [MonadQuotation m] (s : StrLit) : m (Array Syntax) :=
   withRef s do
-    return (← parseMarkupStrLit (blocks {}) s).getArgs
+    return (← parseMarkupStrLit (blocksFn {}) s).getArgs
 
 end Verso.Doc.Concrete

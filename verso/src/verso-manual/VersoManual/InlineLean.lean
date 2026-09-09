@@ -37,7 +37,7 @@ open SubVerso.Highlighting
 
 open Verso.SyntaxUtils (runParserCategory' SyntaxError parseStrLitAsCategory strLitInputContext)
 
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView RoleView)
 open Lean.Elab.Tactic.GuardMsgs
 
 namespace Verso.Genre.Manual.InlineLean
@@ -200,7 +200,7 @@ private meta def quoteHighlightViaSerialization (hls : Highlighted) : DocElabM T
 De-indents and returns (syntax of) a Block representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanBlock [Verso.VersoLiteral k] (shouldShow : Bool)
+private meta def toHighlightedLeanBlock [VersoLiteral k] (shouldShow : Bool)
     (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Block.concat #[])
@@ -214,18 +214,18 @@ private meta def toHighlightedLeanBlock [Verso.VersoLiteral k] (shouldShow : Boo
   let range := range.map (← getFileMap).utf8RangeToLspRange
   ``(Block.other
       (Block.lean $(← quoteHighlightViaSerialization hls) (some $(quote (← getFileName))) $(quote range))
-      #[Block.code $(quote (Verso.decode str))])
+      #[Block.code $(quote (decode str))])
 
 /--
 Returns (syntax of) an Inline representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanInline [Verso.VersoLiteral k] (shouldShow : Bool)
+private meta def toHighlightedLeanInline [VersoLiteral k] (shouldShow : Bool)
     (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Inline.concat #[])
 
-  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote (Verso.decode str))])
+  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote (decode str))])
 
 
 /--
@@ -248,14 +248,14 @@ private meta partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTre
     .node info (children.map disableUnusedVarLinterInInfoTree)
   | .hole id => .hole id
 
-meta def elabCommands [Verso.VersoLiteral k] (config : LeanBlockConfig) (str : TSyntax k)
+meta def elabCommands [VersoLiteral k] (config : LeanBlockConfig) (str : TSyntax k)
     (toHighlightedLeanContent :
       (shouldShow : Bool) → (hls : Highlighted) → (str : TSyntax k) → DocElabM Term)
     (minCommands : Option Nat := none)
     (maxCommands : Option Nat := none) :
     DocElabM Term :=
   withoutAsync <| do
-    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 (Verso.decode str)))
+    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 (decode str)))
       (kind := Lsp.SymbolKind.file)
       (detail? := some ("Lean code" ++ config.outlineMeta))
 
@@ -352,8 +352,6 @@ meta def elabCommands [Verso.VersoLiteral k] (config : LeanBlockConfig) (str : T
 
       reportMessages config.error str cmdState.messages
 
-      if config.show then
-        warnLongLines col? str.raw
 where
   runCommand (act : Command.CommandElabM Unit) (stx : Syntax)
       (cctx : Command.Context) (cmdState : Command.State) :
@@ -378,7 +376,10 @@ Elaborates the provided Lean command in the context of the current Verso module.
 -/
 @[code_block]
 meta def lean : CodeBlockExpanderOf LeanBlockConfig
-  | config, str => elabCommands config str toHighlightedLeanBlock
+  | config, str => do
+    -- Only a code block is rendered wide enough for its line lengths to matter.
+    if config.show then warnLongLines str
+    elabCommands config str toHighlightedLeanBlock
 
 @[role]
 meta def leanCommand : RoleExpanderOf LeanBlockConfig
@@ -469,7 +470,7 @@ meta def leanInline : RoleExpanderOf LeanInlineConfig
   | config, inlines => withoutAsync do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let some ⟨_, _, term, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := term, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let leveller :=
@@ -528,9 +529,9 @@ meta def leanInline : RoleExpanderOf LeanInlineConfig
 
     pushInfoTree (disableUnusedVarLinterInInfoTree tree)
 
-    if let `(inline|role{%$s $f $_*}%$e[$_*]) ← getRef then
-      Hover.addCustomHover (mkNullNode #[s, e]) type
-      Hover.addCustomHover f type
+    if let some v := RoleView.of ⟨← getRef⟩ then
+      Hover.addCustomHover (mkNullNode #[v.braceOpen, v.braceClose]) type
+      Hover.addCustomHover v.name type
 
     if config.error then
       if newMsgs.hasErrors then
@@ -559,7 +560,7 @@ meta def inst : RoleExpanderOf LeanBlockConfig
   | config, inlines => withoutAsync <| do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let some ⟨_, _, term, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := term, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let stx ← parseStrLitAsCategory `term term
@@ -861,7 +862,7 @@ meta def constTok [Monad m] [MonadEnv m] [MonadLiftT MetaM m] [MonadLiftT IO m]
 @[role]
 meta def name : RoleExpanderOf NameConfig
   | cfg, #[arg] => do
-    let some ⟨_, _, name, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
     let exampleName := name.getVersoCode.toName
     let identStx := mkIdentFrom arg (cfg.full.getD exampleName) (canonical := true)
@@ -889,7 +890,7 @@ meta def name : RoleExpanderOf NameConfig
 @[role]
 meta def module : RoleExpanderOf Unit
   | (), #[arg] => do
-    let some ⟨_, _, name, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the module's name"
     let exampleName := name.getVersoCode.toName
     let identStx := mkIdentFrom arg exampleName (canonical := true)

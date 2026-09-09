@@ -15,7 +15,8 @@ public section
 open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
-open Lean.Doc.Syntax
+open Lean.Doc (UnorderedListView)
+open Lean.Doc.Parser
 
 open Lean Elab
 
@@ -194,13 +195,13 @@ meta def table : DirectiveExpanderOf TableConfig
     -- The table should be a list of lists. Extract them!
     let #[oneBlock] := contents
       | throwError "Expected a single unordered list"
-    let some outer := Lean.Doc.UnorderedListView.of oneBlock
+    let some outer := UnorderedListView.of oneBlock
       | throwErrorAt oneBlock "Expected a single unordered list"
     let preRows := outer.items.map (·.contents)
     let rows ← preRows.mapM fun blks => do
       let #[oneInRow] := blks.filter (·.raw.isOfKind ``Lean.Doc.Parser.Block.ul)
         | throwError "Each row should have exactly one list in it"
-      let some inner := Lean.Doc.UnorderedListView.of oneInRow
+      let some inner := UnorderedListView.of oneInRow
         | throwErrorAt oneInRow "Each row should have exactly one list in it"
       pure (inner.items.map (·.contents))
     if h : rows.size = 0 then

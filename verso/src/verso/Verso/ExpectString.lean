@@ -19,6 +19,7 @@ public section
 set_option doc.verso true
 
 open Lean Elab
+open Lean.Doc
 
 namespace Verso.ExpectString
 
@@ -46,10 +47,10 @@ are good candidates for {name}`preEq`.
 
 Errors are logged, not thrown; the returned {name}`Bool` indicates whether an error was logged.
 -/
-def expectStringOrDiff [Verso.VersoLiteral k] (expected : TSyntax k) (actual : String)
+def expectStringOrDiff [VersoLiteral k] (expected : TSyntax k) (actual : String)
     (preEq : String → String := id)
     (useLine : String → Bool := fun _ => true) : m (Option MessageData) := do
-  let expectedLines := (Verso.decode expected).splitOn "\n" |>.filter useLine |>.toArray
+  let expectedLines := (decode expected).splitOn "\n" |>.filter useLine |>.toArray
   let actualLines := actual.splitOn "\n" |>.filter useLine |>.toArray
 
   unless expectedLines.map preEq == actualLines.map preEq do
@@ -72,10 +73,10 @@ are good candidates for {name}`preEq`.
 
 Errors are logged, not thrown; the returned {name}`Bool` indicates whether an error was logged.
 -/
-def expectString [Verso.VersoLiteral k] (what : String) (expected : TSyntax k) (actual : String)
+def expectString [VersoLiteral k] (what : String) (expected : TSyntax k) (actual : String)
     (preEq : String → String := id)
     (useLine : String → Bool := fun _ => true) : m Bool := do
-  let expectedLines := (Verso.decode expected).splitOn "\n" |>.filter useLine |>.toArray
+  let expectedLines := (decode expected).splitOn "\n" |>.filter useLine |>.toArray
   let actualLines := actual.splitOn "\n" |>.filter useLine |>.toArray
 
   unless expectedLines.map preEq == actualLines.map preEq do

@@ -10,9 +10,9 @@ open Verso Genre Blog
 section
 open Verso Doc Elab ArgParse
 open Lean
+open Lean.Doc (DescListView DescItemView TextView ImageView)
 open Verso Output Html
 open Template
-open scoped Lean.Doc.Syntax
 
 set_option pp.rawOnError true
 
@@ -54,20 +54,20 @@ def galleryImpl : DirectiveExpanderOf Unit
     let #[stx] := stxs
       | logErrorAt (mkNullNode stxs) "Expected one block"
         return (← `(sorry))
-    let some dl := Lean.Doc.DescListView.of stx
+    let some dl := DescListView.of stx
       | throwErrorAt stx "Expected definition list"
     let items ← dl.items.mapM getItem
     ``(Block.other (Blog.BlockExt.component $(quote `gallery) Json.null) #[$(items),*])
 where
-  getItem (item : Lean.Doc.DescItemView) : DocElabM Term := do
+  getItem (item : DescItemView) : DocElabM Term := do
     let #[inl] := item.term.filter (fun i =>
-        match Lean.Doc.TextView.of i with
+        match TextView.of i with
         | some t => t.getVersoText.any (not ∘ Char.isWhitespace)
         | none => true)
       | throwErrorAt (mkNullNode (item.term.map (·.raw))) "Expected one inline"
-    let some img := Lean.Doc.ImageView.of inl
+    let some img := ImageView.of inl
       | throwErrorAt inl "Expected an image"
-    let .url _ _ url _ := img.target
+    let .url (url := url) .. := img.target
       | throwErrorAt inl "Expected an image with a URL"
     let some desc := item.desc[0]?
       | throwErrorAt item.stx "Expected a description"

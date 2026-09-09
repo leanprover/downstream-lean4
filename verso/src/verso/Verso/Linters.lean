@@ -15,7 +15,7 @@ set_option linter.missingDocs true
 public section
 
 open Lean Linter Elab Command
-open Lean.Doc.Syntax
+open Lean.Doc (BlockView InlineView)
 
 /-- Generates curly-quote suggestions -/
 register_option linter.typography.quotes : Bool := {
@@ -77,7 +77,7 @@ def typography : Linter where
         logLintIf linter strLit (m!"Use {what} ('{replacement}')" ++ h)
 
     discard <| stx.replaceM fun stx => do
-      let some (.text s) := Lean.Doc.InlineView.of ⟨stx⟩
+      let some (.text s) := InlineView.of ⟨stx⟩
         | pure none
       if let some ⟨start, stop⟩ := s.content.raw.getRange? then
           let mut state : PunctuationState :=
@@ -190,7 +190,7 @@ def emphasisMinimization : Linter where
     let text ← getFileMap
 
     discard <| stx.replaceM fun stx => do
-      match Lean.Doc.InlineView.of ⟨stx⟩ with
+      match InlineView.of ⟨stx⟩ with
       | some (.emph e) =>
         lintDelimited linter.verso.markup.emph text e.opener e.closer '_'
         pure none
@@ -213,10 +213,10 @@ def codeMinimization : Linter where
     let text ← getFileMap
 
     discard <| stx.replaceM fun stx => do
-      if let some (.code c) := Lean.Doc.InlineView.of ⟨stx⟩ then
+      if let some (.code c) := InlineView.of ⟨stx⟩ then
         lintDelimited linter.verso.markup.code text c.opener c.closer '`'
         pure none
-      else if let some (.codeblock c) := Lean.Doc.BlockView.of ⟨stx⟩ then
+      else if let some (.codeblock c) := BlockView.of ⟨stx⟩ then
         lintDelimited linter.verso.markup.codeBlock text c.openFence c.closeFence '`' (minimal := 3)
         pure none
       else pure none

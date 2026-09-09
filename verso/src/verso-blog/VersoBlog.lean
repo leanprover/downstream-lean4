@@ -34,7 +34,7 @@ open Verso.Output Html
 namespace Verso.Genre.Blog
 
 
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView RoleView)
 open Verso ArgParse Doc Elab
 open Lean Elab
 open Verso.SyntaxUtils (parserInputString strLitInputContext)
@@ -373,7 +373,7 @@ meta instance : FromArgs NoArgs m where
 @[role]
 meta def leanKw : RoleExpanderOf NoArgs
   | ⟨⟩, #[arg] => do
-    let some ⟨_, _, kw, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := kw, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the keyword"
     let hl : SubVerso.Highlighting.Highlighted := .token ⟨.keyword none none none, kw.getVersoCode⟩
     ``(Inline.other (Blog.InlineExt.customHighlight $(quote hl)) #[Inline.code $(quote kw.getVersoCode)])
@@ -396,7 +396,7 @@ meta instance : FromArgs LeanTermArgs DocElabM where
 @[role]
 meta def leanTerm : RoleExpanderOf LeanTermArgs
   | {project, showProofStates}, #[arg] => withTraceNode `Elab.Verso.block.lean (fun _ => pure m!"leanTerm") <| do
-    let some ⟨_, _, name, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
     let exampleName := name.getVersoCode.toName
     let projectExamples ← getSubproject project
@@ -611,7 +611,7 @@ private meta def leanInlineImpl : RoleExpanderOf LeanInlineConfig
   | config, elts => withTraceNode `Elab.Verso.block.lean (fun _ => pure m!"lean block") <| do
     let #[code] := elts
       | throwError "Expected precisely one code element"
-    let some ⟨_, _, str, _⟩ := Lean.Doc.CodeView.of code
+    let some { content := str, .. } := CodeView.of code
       | throwErrorAt code "Expected an inline code element"
     let x := config.exampleContext
     let (commandState, _) ← match exampleContextExt.getState (← getEnv) |>.contexts.find? x.getId with
@@ -677,9 +677,9 @@ private meta def leanInlineImpl : RoleExpanderOf LeanInlineConfig
 
       pushInfoTree tree
 
-      if let `(inline|role{%$s $f $_*}%$e[$_*]) ← getRef then
-        Hover.addCustomHover (mkNullNode #[s, e]) type
-        Hover.addCustomHover f type
+      if let some v := RoleView.of ⟨← getRef⟩ then
+        Hover.addCustomHover (mkNullNode #[v.braceOpen, v.braceClose]) type
+        Hover.addCustomHover v.name type
 
       for msg in newMsgs.toArray do
           logMessage {msg with
@@ -815,7 +815,7 @@ elab "define_lexed_text" blockName:ident " ← " lexerName:ident : command => do
   elabCommand <| ← `(@[role]
     def $(mkIdent <| blockName.getId ++ `role) : Doc.Elab.RoleExpanderOf NoArgs
       | ⟨⟩, #[inl] => do
-        let some ⟨_, _, str, _⟩ := Lean.Doc.CodeView.of inl
+        let some { content := str, .. } := CodeView.of inl
           | throwErrorAt inl "Expected code"
         let out ← Verso.Genre.Blog.LexedText.highlight $(mkIdentFrom lexerName lexer) str.getVersoCode
         ``(Inline.other (Blog.InlineExt.lexedText $$(quote out)) #[])

@@ -30,7 +30,9 @@ namespace Verso.Doc.Elab
 
 open Lean
 open Lean.Elab
-open Lean.Doc.Syntax
+open Lean.Doc (BlockView BoldView CodeView EmphView HeaderView InlineView LinebreakView RoleView
+  TextView VersoCodeBlock VersoRefName)
+open Lean.Doc.Parser
 open Std (HashMap HashSet)
 open Verso.ArgParse (FromArgs SigDoc)
 
@@ -51,32 +53,34 @@ private def footnoteRefName [Monad m] [MonadQuotation m] (genre : Term) (docName
   ``(HasNote.contents $(quote ref) $(quote docName) (genre := $genre))
 
 
--- For use in IDE features and previews and such
+-- For use in IDE features and previews and such.
+-- `inline_to_string` takes its key literally rather than resolving it, so these names are
+-- written in full.
 @[inline_to_string Lean.Doc.Parser.Inline.text]
 public meta def _root_.Lean.Doc.Parser.Inline.text.inline_to_string : InlineToString
-  | _, stx => Lean.Doc.TextView.of ⟨stx⟩ |>.map (·.getVersoText)
+  | _, stx => TextView.of ⟨stx⟩ |>.map (·.getVersoText)
 
 @[inline_to_string Lean.Doc.Parser.Inline.linebreak]
 public meta def _root_.Lean.Doc.Parser.Inline.linebreak.inline_to_string : InlineToString
-  | _, stx => Lean.Doc.LinebreakView.of ⟨stx⟩ |>.map fun _ => " "
+  | _, stx => LinebreakView.of ⟨stx⟩ |>.map fun _ => " "
 
 @[inline_to_string Lean.Doc.Parser.Inline.emph]
 public meta def _root_.Lean.Doc.Parser.Inline.emph.inline_to_string : InlineToString
-  | env, stx => Lean.Doc.EmphView.of ⟨stx⟩ |>.map fun v =>
+  | env, stx => EmphView.of ⟨stx⟩ |>.map fun v =>
     String.intercalate " " (v.content.toList.map (inlineToString env ·.raw))
 
 @[inline_to_string Lean.Doc.Parser.Inline.bold]
 public meta def _root_.Lean.Doc.Parser.Inline.bold.inline_to_string : InlineToString
-  | env, stx => Lean.Doc.BoldView.of ⟨stx⟩ |>.map fun v =>
+  | env, stx => BoldView.of ⟨stx⟩ |>.map fun v =>
     String.intercalate " " (v.content.toList.map (inlineToString env ·.raw))
 
 @[inline_to_string Lean.Doc.Parser.Inline.code]
 public meta def _root_.Lean.Doc.Parser.Inline.code.inline_to_string : InlineToString
-  | _, stx => Lean.Doc.CodeView.of ⟨stx⟩ |>.map (·.getVersoCode)
+  | _, stx => CodeView.of ⟨stx⟩ |>.map (·.getVersoCode)
 
 @[inline_to_string Lean.Doc.Parser.Inline.role]
 public meta def _root_.Lean.Doc.Parser.Inline.role.inline_to_string : InlineToString
-  | env, stx => Lean.Doc.RoleView.of ⟨stx⟩ |>.map fun v =>
+  | env, stx => RoleView.of ⟨stx⟩ |>.map fun v =>
     String.join (v.content.toList.map (inlineToString env ·.raw))
 
 @[inline_to_string null]
@@ -104,7 +108,7 @@ public def inlineSyntaxToString (env : Environment) (inlines : Syntax) : String 
       "<missing>"
 
 public def headerStxToString (env : Environment) (headerStx : Syntax) : String :=
-  match Lean.Doc.HeaderView.of ⟨headerStx⟩ with
+  match HeaderView.of ⟨headerStx⟩ with
   | some v => inlinesToString env (v.content.map (·.raw))
   | none =>
     dbg_trace "didn't understand {headerStx} for string"
@@ -346,7 +350,7 @@ public def PartElabM.addBlock (block : TSyntax `term) (blockInternalDocReconstru
 public def PartElabM.addPart (finished : FinishedPart) : PartElabM Unit := modifyThe State fun st =>
   { st with partContext.priorParts := st.partContext.priorParts.push finished }
 
-public def PartElabM.addLinkDef (refName : Lean.Doc.VersoRefName) (url : String) :
+public def PartElabM.addLinkDef (refName : VersoRefName) (url : String) :
     PartElabM Unit := do
   let strName := refName.getVersoRefName
   let docName ← currentDocName
@@ -364,12 +368,12 @@ public def PartElabM.addLinkDef (refName : Lean.Doc.VersoRefName) (url : String)
     }
     setReducibilityStatus n .implicitReducible
     Meta.addInstance n AttributeKind.global (eval_prio default)
-    modifyThe State fun st => {st with linkDefs := st.linkDefs.insert strName ⟨refName.raw, url⟩}
+    modifyThe State fun st => {st with linkDefs := st.linkDefs.insert strName ⟨refName, url⟩}
 
   | some ⟨_, url'⟩ =>
     throwErrorAt refName "Already defined link [{strName}] as '{url'}'"
 
-public def DocElabM.addLinkRef (refName : Lean.Doc.VersoRefName) : DocElabM (TSyntax `term) := do
+public def DocElabM.addLinkRef (refName : VersoRefName) : DocElabM (TSyntax `term) := do
   let strName := refName.getVersoRefName
   match (← readThe DocElabContext).refsAllowed with
     | .always => pure ()
@@ -386,7 +390,7 @@ public def DocElabM.addLinkRef (refName : Lean.Doc.VersoRefName) : DocElabM (TSy
     linkRefName (← currentDocName) strName
 
 
-public def PartElabM.addFootnoteDef (refName : Lean.Doc.VersoRefName)
+public def PartElabM.addFootnoteDef (refName : VersoRefName)
     (content : Array (TSyntax `term)) : PartElabM Unit := do
   let strName := refName.getVersoRefName
   let docName ← currentDocName
@@ -408,11 +412,11 @@ public def PartElabM.addFootnoteDef (refName : Lean.Doc.VersoRefName)
     }
     setReducibilityStatus n .implicitReducible
     Meta.addInstance n AttributeKind.global (eval_prio default)
-    modifyThe State fun st => {st with footnoteDefs := st.footnoteDefs.insert strName ⟨refName.raw, content⟩}
+    modifyThe State fun st => {st with footnoteDefs := st.footnoteDefs.insert strName ⟨refName, content⟩}
   | some _ =>
     throwErrorAt refName m!"Already defined footnote [^{strName}]"
 
-public def DocElabM.addFootnoteRef (refName : Lean.Doc.VersoRefName) :
+public def DocElabM.addFootnoteRef (refName : VersoRefName) :
     DocElabM (TSyntax `term) := do
   let strName := refName.getVersoRefName
   let genre := (← readThe DocElabContext).genreSyntax
@@ -452,7 +456,7 @@ public def closes (openTok closeTok : Syntax) : DocElabM Unit := do
   let lineStr := if lineStr.startsWith "`" || lineStr.endsWith "`" then " " ++ lineStr ++ " " else lineStr.copy
   Hover.addCustomHover closeTok (.markdown s!"Closes line {line + 1}: ``````````{lineStr}``````````")
 
-public abbrev InlineExpander := Lean.Doc.InlineView → DocElabM (TSyntax `term)
+public abbrev InlineExpander := InlineView → DocElabM (TSyntax `term)
 
 initialize inlineExpanderAttr : KeyedDeclsAttribute InlineExpander ←
   mkDocExpanderAttribute `inline_expander ``InlineExpander "Indicates that this function expands inline elements of a given name" `inlineExpanderAttr
@@ -537,7 +541,7 @@ public def FinishedPart.toVersoDoc
   ``(VersoDoc.mk (fun $docReconstructionPlaceholder => $finishedSyntax) $(quote reconstJson.compress))
 
 
-public abbrev BlockExpander := Lean.Doc.BlockView → DocElabM (TSyntax `term)
+public abbrev BlockExpander := BlockView → DocElabM (TSyntax `term)
 
 initialize blockExpanderAttr : KeyedDeclsAttribute BlockExpander ←
   mkDocExpanderAttribute `block_expander ``BlockExpander "Indicates that this function expands block elements of a given name" `blockExpanderAttr
@@ -580,7 +584,7 @@ initialize expanderSignatureExt :
 public def sig (α) [inst : FromArgs α DocElabM] : Option ArgParse.SigDoc :=
   inst.fromArgs.signature
 
-public abbrev PartCommand := Lean.Doc.BlockView → PartElabM Unit
+public abbrev PartCommand := BlockView → PartElabM Unit
 
 initialize partCommandAttr : KeyedDeclsAttribute PartCommand ←
   mkDocExpanderAttribute `part_command ``PartCommand "Indicates that this function is used for side effects on the structure of the document" `partCommandAttr
@@ -764,16 +768,16 @@ unsafe initialize registerBuiltinAttribute {
 
 
 public abbrev CodeBlockExpander :=
-  Array Arg → Lean.Doc.VersoCodeBlock → DocElabM (Array (TSyntax `term))
+  Array Arg → VersoCodeBlock → DocElabM (Array (TSyntax `term))
 
-public abbrev CodeBlockExpanderOf α := α → Lean.Doc.VersoCodeBlock → DocElabM Term
+public abbrev CodeBlockExpanderOf α := α → VersoCodeBlock → DocElabM Term
 
 
 initialize codeBlockExpanderAttr : KeyedDeclsAttribute CodeBlockExpander ←
   mkDocExpanderAttribute `code_block_expander ``CodeBlockExpander "Indicates that this function is used to implement a given code block" `codeBlockExpanderAttr
 
 public def toCodeBlock {α : Type} [FromArgs α DocElabM]
-    (expander : α → Lean.Doc.VersoCodeBlock → DocElabM Term) : CodeBlockExpander :=
+    (expander : α → VersoCodeBlock → DocElabM Term) : CodeBlockExpander :=
   fun args str => do
     let v ← ArgParse.parse args
     return #[← expander v str]

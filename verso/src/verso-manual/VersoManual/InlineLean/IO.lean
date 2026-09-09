@@ -28,6 +28,7 @@ public section
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
 open Lean Elab
+open Lean.Doc (VersoCodeBlock)
 
 open Lean.Elab.Tactic.GuardMsgs
 
@@ -300,7 +301,7 @@ meta def startExample [Monad m] [MonadEnv m] [MonadError m] [MonadQuotation m] [
     modifyEnv fun env =>
       ioExampleCtx.setState env (some {leanCodeName})
 
-meta def saveLeanCode (src : Lean.Doc.VersoCodeBlock) : DocElabM Ident := do
+meta def saveLeanCode (src : VersoCodeBlock) : DocElabM Ident := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set Lean code - not in an IO example"
   | some st =>
@@ -311,19 +312,19 @@ meta def saveLeanCode (src : Lean.Doc.VersoCodeBlock) : DocElabM Ident := do
     else throwError "Code already specified"
 
 
-meta def saveInputFile [Monad m] [MonadEnv m] [MonadError m] (name : System.FilePath) (contents : Lean.Doc.VersoCodeBlock) : m Unit := do
+meta def saveInputFile [Monad m] [MonadEnv m] [MonadError m] (name : System.FilePath) (contents : VersoCodeBlock) : m Unit := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't save file - not in an IO example"
   | some st =>
     modifyEnv fun env => ioExampleCtx.setState env (some {st with inputFiles := st.inputFiles.push (name, contents)})
 
-meta def saveOutputFile [Monad m] [MonadEnv m] [MonadError m] (name : System.FilePath) (contents : Lean.Doc.VersoCodeBlock) : m Unit := do
+meta def saveOutputFile [Monad m] [MonadEnv m] [MonadError m] (name : System.FilePath) (contents : VersoCodeBlock) : m Unit := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't save file - not in an IO example"
   | some st =>
     modifyEnv fun env => ioExampleCtx.setState env (some {st with outputFiles := st.outputFiles.push (name, contents)})
 
-meta def saveStdin [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.VersoCodeBlock) : m Unit := do
+meta def saveStdin [Monad m] [MonadEnv m] [MonadError m] (contents : VersoCodeBlock) : m Unit := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't save stdin - not in an IO example"
   | some st =>
@@ -331,7 +332,7 @@ meta def saveStdin [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.Ve
     | none => modifyEnv fun env => ioExampleCtx.setState env (some {st with stdin := some contents})
     | some _ => throwError "stdin already specified"
 
-meta def saveStdout [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.VersoCodeBlock) : m Unit := do
+meta def saveStdout [Monad m] [MonadEnv m] [MonadError m] (contents : VersoCodeBlock) : m Unit := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't save stdout - not in an IO example"
   | some st =>
@@ -339,7 +340,7 @@ meta def saveStdout [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.V
     | none => modifyEnv fun env => ioExampleCtx.setState env (some {st with stdout := some contents})
     | some _ => throwError "stdout already specified"
 
-meta def saveStderr [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.VersoCodeBlock) : m Unit := do
+meta def saveStderr [Monad m] [MonadEnv m] [MonadError m] (contents : VersoCodeBlock) : m Unit := do
   match ioExampleCtx.getState (← getEnv) with
   | none => throwError "Can't save stderr - not in an IO example"
   | some st =>
@@ -349,9 +350,9 @@ meta def saveStderr [Monad m] [MonadEnv m] [MonadError m] (contents : Lean.Doc.V
 
 
 meta def check
-    (leanCode : Lean.Doc.VersoCodeBlock) (leanCodeName : Name)
-    (inputFiles outputFiles : Array (System.FilePath × Lean.Doc.VersoCodeBlock))
-    (stdin stdout stderr : Option Lean.Doc.VersoCodeBlock) : DocElabM Highlighted :=
+    (leanCode : VersoCodeBlock) (leanCodeName : Name)
+    (inputFiles outputFiles : Array (System.FilePath × VersoCodeBlock))
+    (stdin stdout stderr : Option VersoCodeBlock) : DocElabM Highlighted :=
   IO.FS.withTempDir fun dirname => do
     let toolchain : String ← IO.FS.readFile "lean-toolchain"
     let leanCodeName : String :=

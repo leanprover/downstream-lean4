@@ -13,7 +13,6 @@ public meta import Verso.Doc.Elab.Monad
 
 public section
 
-open scoped Lean.Doc.Syntax
 
 open Verso Doc Elab
 open Lean

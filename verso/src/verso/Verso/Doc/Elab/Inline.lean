@@ -13,7 +13,8 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc.Syntax
+open Lean.Doc (InlineView)
+open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
 set_option backward.privateInPublic false
@@ -36,7 +37,7 @@ public partial def elabInline (inline : TSyntax ``Lean.Doc.Parser.inline) :
         withRef stxNew <|
           elabInline ⟨stxNew⟩
     | none =>
-      let some view := Lean.Doc.InlineView.of ⟨stx⟩
+      let some view := InlineView.of ⟨stx⟩
         | throwUnexpected stx
       let exp ← inlineExpandersFor kind
       for e in exp do
