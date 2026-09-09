@@ -40,7 +40,7 @@ def warnLongLines [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
   let lines := code.getVersoCodeBlockLines
   for h : i in [0:lines.size] do
     let line := lines[i]
-    let width := line.getVersoCodeBlockLine.trimAsciiEnd.length
+    let width := line.getVersoCodeBlockLine.trimAsciiEnd.positions.length
     if width > maxCodeColumns then
       let note :=
         MessageData.note m!"Example code is shown on mobile devices and other narrow contexts. \
