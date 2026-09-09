@@ -164,7 +164,7 @@ example : Nat := 0
 
 -- Errors on underscores, but not when they appear in a URL:
 /--
-warning: expected '_' without preceding space
+warning: unterminated emphasis; expected '_'
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 -/
@@ -181,7 +181,19 @@ warning: expected identifier
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 ---
-warning: unexpected end of input; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
+warning: expected identifier
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: unexpected ' '; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: expected identifier
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: unexpected ' '; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 -/
@@ -198,7 +210,19 @@ warning: expected identifier
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 ---
-warning: unexpected end of input; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
+warning: expected identifier
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: unexpected ' '; expected '![', '$$', '*', '[', '[^', '_', '`', '{' or backticks to open inline code
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: expected identifier
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: unexpected ' '; expected '![', '$$', '*', '[', '[^', '_', '`', '{' or backticks to open inline code
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 -/
