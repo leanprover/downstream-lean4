@@ -15,6 +15,7 @@ namespace Verso.Parser
 -- TODO: make public upstream and delete these
 
 open Lean Doc Parser
+open Lean.Doc
 
 
 public def nl := satisfyFn (· == '\n') "newline"
@@ -155,7 +156,7 @@ public def strLitInputContext [Monad m] [MonadFileMap m] [MonadError m] (str : S
 Given a string literal, constructs a Lean string that can be parsed by the Lean parser, yielding
 correct source positions for items in the string literal.
 -/
-public def parserInputString [Monad m] [MonadFileMap m] [Verso.VersoLiteral k]
+public def parserInputString [Monad m] [MonadFileMap m] [VersoLiteral k]
     (str : TSyntax k) :
     m String := do
   let text ← getFileMap
@@ -173,7 +174,7 @@ public def parserInputString [Monad m] [MonadFileMap m] [Verso.VersoLiteral k]
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
     start.extract text.source stop
-  code := code ++ strOriginal?.getD (Verso.decode str)
+  code := code ++ strOriginal?.getD (decode str)
   return code
 
 
@@ -336,9 +337,9 @@ actual string contents. When the literal's source text differs from its contents
 sequences, the decoded contents are parsed and the resulting positions are mapped back to the
 source.
 -/
-public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Verso.VersoLiteral k] (p : ParserFn) (input : TSyntax k) : m Syntax := do
+public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [VersoLiteral k] (p : ParserFn) (input : TSyntax k) : m Syntax := do
   let text ← getFileMap
-  let inputText := Verso.decode input
+  let inputText := decode input
   if let some startPos := input.raw.getPos? then
     let endPos := input.raw.getTailPos?.getD startPos
     let stopPos := if endPos > text.source.rawEndPos then text.source.rawEndPos else endPos
@@ -384,7 +385,7 @@ Parses an original string literal as part of a syntax category.
 The provided string literal is used only for source positions; the `FileMap` is used to acquire the
 actual string contents.
 -/
-public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Verso.VersoLiteral k] (catName : Name) (input : TSyntax k) : m Syntax :=
+public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [VersoLiteral k] (catName : Name) (input : TSyntax k) : m Syntax :=
   parseStrLitWith (andthenFn whitespace (categoryParserFnImpl catName)) input
 
 /--

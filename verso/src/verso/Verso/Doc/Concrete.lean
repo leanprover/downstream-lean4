@@ -255,7 +255,7 @@ private meta def versoBlockCommandFn : ParserFn := fun c s =>
   let iniSz  := s.stackSize
   let lastPos? := lastVersoEndPosExt.getState c.env
   let s := lastPos? |>.map s.setPos |>.getD s
-  let s := recoverBlockWith #[.missing] (Verso.Parser.block {}) c s
+  let s := recoverBlockWith #[.missing] (blockFn {}) c s
   if s.hasError then s
   else
     let s := ignoreFn (manyFn blankLine) c s
@@ -367,8 +367,6 @@ private meta def finishDoc : Command.CommandElabM Unit:= do
 syntax (name := replaceDoc) "#doc " "(" term ") " str " =>" : command
 elab_rules : command
   | `(command|#doc ( $genreSyntax:term ) $title:str =>%$tok) => open Lean Parser Elab Command in do
-  elabCommand <| ← `(open scoped Lean.Doc.Syntax)
-
   startDoc genreSyntax title
 
   -- Sets up basic incremental evaluation of documents by replacing Lean's command-by-command parser

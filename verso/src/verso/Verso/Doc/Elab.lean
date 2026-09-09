@@ -19,7 +19,8 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc.Syntax
+open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode)
+open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
 set_option backward.privateInPublic false
@@ -48,7 +49,7 @@ public meta def _root_.Lean.Doc.Parser.Inline.bold.expand : InlineExpander
   | _ => throwUnsupportedSyntax
 
 meta def parseArgVal (val : TSyntax ``Lean.Doc.Parser.argVal) : DocElabM ArgVal := do
-  match Lean.Doc.ArgValView.of val with
+  match ArgValView.of val with
   | some (.str s _) => pure <| .str s
   | some (.name x) => pure <| .name x
   | some (.num n _) => pure <| .num n
@@ -58,10 +59,10 @@ public meta def parseArgs (argStx : TSyntaxArray ``Lean.Doc.Parser.arg) :
     DocElabM (Array Arg) := do
   let mut argVals := #[]
   for arg in argStx do
-    match Lean.Doc.ArgView.of arg with
-    | some (.anon _ v) =>
+    match ArgView.of arg with
+    | some (.anon (val := v) ..) =>
       argVals := argVals.push (.anon (← parseArgVal v))
-    | some (.named _ none x _ v) => do
+    | some (.named (parens := none) (name := x) (val := v) ..) => do
       -- A named argument without parentheses is the deprecated spelling.
       let src := (← getFileMap).source
       if let some ⟨s, e⟩ := x.raw.getRange? (canonicalOnly := true) then
@@ -69,9 +70,9 @@ public meta def parseArgs (argStx : TSyntaxArray ``Lean.Doc.Parser.arg) :
           let hint ← MessageData.hint m!"Replace with the updated syntax:" #[s!"({s.extract src e} := {s'.extract src e'})"] (ref? := some arg)
           logWarningAt arg m!"Deprecated named argument syntax for `{x}`{hint}"
       argVals := argVals.push (.named arg x (← parseArgVal v))
-    | some (.named _ (some _) x _ v) =>
+    | some (.named (parens := some _) (name := x) (val := v) ..) =>
       argVals := argVals.push (.named arg x (← parseArgVal v))
-    | some (.flag _ _ x isOn) =>
+    | some (.flag (name := x) (isOn := isOn) ..) =>
       argVals := argVals.push (.flag arg x isOn)
     | none => throwErrorAt arg "Can't decode argument '{repr arg}'"
   pure argVals
@@ -149,8 +150,8 @@ public meta def _root_.Lean.Doc.Parser.Inline.link.expand : InlineExpander
   | .link v => do
     let url : TSyntax `term ←
       match v.target with
-      | .url _ _ u _ => pure (quote u.getVersoLinkUrl)
-      | .ref _ _ name _ => addLinkRef name
+      | .url (url := u) .. => pure (quote u.getVersoLinkUrl)
+      | .ref (name := name) .. => addLinkRef name
     ``(Inline.link #[$[$(← v.content.mapM elabInline)],*] $url)
   | _ => throwUnsupportedSyntax
 
@@ -166,8 +167,8 @@ public meta def _root_.Lean.Doc.Parser.Inline.image.expand : InlineExpander
   | .image v => do
     let url : TSyntax `term ←
       match v.target with
-      | .url _ _ u _ => pure (quote u.getVersoLinkUrl)
-      | .ref _ _ name _ => addLinkRef name
+      | .url (url := u) .. => pure (quote u.getVersoLinkUrl)
+      | .ref (name := name) .. => addLinkRef name
     ``(Inline.image $(quote v.getAlt) $url)
   | _ => throwUnsupportedSyntax
 
@@ -198,7 +199,7 @@ public meta def partCommand (cmd : TSyntax ``Lean.Doc.Parser.block) : PartElabM 
   withRef cmd <| withFreshMacroScope <| do
   match cmd.raw with
   | stx@(.node _ kind _) =>
-    let some view := Lean.Doc.BlockView.of ⟨stx⟩
+    let some view := BlockView.of ⟨stx⟩
       | fallback
     let exp ← partCommandsFor kind
     for e in exp do
@@ -386,7 +387,7 @@ public meta def _root_.Lean.Doc.Parser.Block.ol.expand : BlockExpander
   | _ =>
     throwUnsupportedSyntax
 
-meta def elabDesc (item : Lean.Doc.DescItemView) : DocElabM (Syntax × TSyntax `term) :=
+meta def elabDesc (item : DescItemView) : DocElabM (Syntax × TSyntax `term) :=
   withRef item.stx <| do
     let genre := (← readThe DocElabContext).genreSyntax
     let item' ← ``(DescItem.mk (α := Inline $(⟨genre⟩)) (β := Block $(⟨genre⟩))  #[$[$(← item.term.mapM elabInline)],*] #[$[$(← item.desc.mapM elabBlock)],*])

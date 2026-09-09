@@ -42,7 +42,7 @@ open SubVerso Highlighting
 
 open Lean Meta Hint
 open Std
-open Lean.Doc.Syntax
+open Lean.Doc (RoleView VersoCodeBlock)
 
 namespace Verso.Code.External
 
@@ -193,7 +193,7 @@ where
       if k > n then n := k
     n.fold (fun _ _ s => s.push '`') ""
 
-meta def moduleContentBlock (args : Array Arg) (code : Lean.Doc.VersoCodeBlock) :
+meta def moduleContentBlock (args : Array Arg) (code : VersoCodeBlock) :
     DocElabM (Array Term) := do
     let cfg@{ module := moduleName, project, anchor?, showProofStates := _, defSite := _ } ← parseThe CodeContext args
     withAnchored project moduleName anchor? fun hl => do
@@ -399,7 +399,7 @@ public meta def anchorTerm : RoleExpander
     else
       throwError "Expected a positional argument first (the anchor name)"
 
-public meta def moduleTermBlock (args : Array Arg) (term : Lean.Doc.VersoCodeBlock) :
+public meta def moduleTermBlock (args : Array Arg) (term : VersoCodeBlock) :
     DocElabM (Array Term) := do
   let cfg@{module := moduleName, project, anchor?, showProofStates := _, defSite := _} ← parseThe CodeContext args
 
@@ -471,7 +471,7 @@ private meta partial def findTrace? (header : String) : MessageContents Highligh
     if msg.toString == header then pure t
     else chs.findSome? (findTrace? header)
 
-public meta def outputBlock (args : Array Arg) (str : Lean.Doc.VersoCodeBlock) :
+public meta def outputBlock (args : Array Arg) (str : VersoCodeBlock) :
     DocElabM (Array Term) := do
   let {module := moduleName, project, anchor?, severity, expandTraces, onlyTrace, showProofStates := _, defSite := _} ← parseThe MessageContext args
   let strText := str.getVersoCodeBlock
@@ -627,7 +627,7 @@ public meta def moduleOutInline (args : Array Arg) (inls : TSyntaxArray ``Lean.D
 
       -- A role's content is the better place to report at than the role as a whole.
       let ref :=
-        match Lean.Doc.RoleView.of ⟨← getRef⟩ with
+        match RoleView.of ⟨← getRef⟩ with
         | some v => if h : v.content.size = 1 then v.content[0].raw else str.raw
         | none => str.raw
 
@@ -652,11 +652,14 @@ public meta def moduleOutInline (args : Array Arg) (inls : TSyntaxArray ``Lean.D
           else pure <| msg
       let err := m!"Expected one of:{indentD (m!"\n".joinSep <| candidates.toList.map (·.toString (expandTraces := expandTraces)))}"
       Lean.logError m!"No expected term provided. {err}"
-      if let `(inline|role{$_ $_*} [%$tok1 $contents* ]%$tok2) := (← getRef) then
+      if let some v := RoleView.of ⟨← getRef⟩ then
         let stx :=
-          if tok1.getHeadInfo matches .original .. && tok2.getHeadInfo matches .original .. then
-            mkNullNode #[tok1, tok2]
-          else mkNullNode contents
+          match v.brackets with
+          | some (tok1, tok2) =>
+            if tok1.getHeadInfo matches .original .. && tok2.getHeadInfo matches .original .. then
+              mkNullNode #[tok1, tok2]
+            else mkNullNode (v.content.map (·.raw))
+          | none => mkNullNode (v.content.map (·.raw))
         for (msg, _) in infos do
           let str := msg.toString |>.trimAscii |>.copy
           Suggestion.saveSuggestion stx (quoteCode <| ExpectString.abbreviateString str) (quoteCode str)

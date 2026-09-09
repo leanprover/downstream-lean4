@@ -55,7 +55,7 @@ open Verso.Doc.Elab.PartElabM
 open Verso.Code
 open Verso.ArgParse
 open Verso.Code.Highlighted.WebAssets
-open Lean.Doc.Syntax
+open Lean.Doc (CodeView)
 
 open SubVerso.Highlighting
 
@@ -1833,7 +1833,7 @@ meta def tacticInline : RoleExpanderOf TacticInlineOptions
   | {«show»}, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let some ⟨_, _, tac, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := tac, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the tactic name"
     let tacTok := tac.getVersoCode
     let tacName := tac.getVersoCode.toName
@@ -1990,7 +1990,7 @@ meta def convInline : RoleExpander
   | _args, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let some ⟨_, _, convTac, _⟩ := Lean.Doc.CodeView.of arg
+    let some { content := convTac, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the conv tactic name"
     let convTacName := convTac.getVersoCode.toName
     let convTacDoc ← getConvTactic (.inr (mkIdent convTacName)) none

@@ -12,7 +12,7 @@ open Verso Genre Manual
 
 section
 open Lean
-open Lean.Doc.Syntax
+open Lean.Doc (ArgValView ArgView BlockView CodeBlockView DescItemView InlineView LinebreakView OrderedListItemView ParaView UnorderedListItemView mkVersoTextFromRef)
 
 variable [Monad m] [MonadError m] [MonadQuotation m]
 
@@ -21,8 +21,8 @@ def newlinesToSpace (inls : TSyntaxArray ``Lean.Doc.Parser.inline) :
   let mut out := #[]
   for h : i in [:inls.size] do
     let inl := inls[i]
-    if (Lean.Doc.LinebreakView.of inl).isSome && i < inls.size - 1 then
-      out := out.push (← `(Lean.Doc.Parser.inline| $(← Lean.Doc.mkVersoTextFromRef " "):versoText))
+    if (LinebreakView.of inl).isSome && i < inls.size - 1 then
+      out := out.push (← `(Lean.Doc.Parser.inline| $(← mkVersoTextFromRef " "):versoText))
     else out := out.push inl
   return out
 
@@ -37,8 +37,6 @@ def asCode (s : String) : String :=
   let pad (s : String) : String :=
     (lw - s.length).fold (init := s) fun _ _ => (" " ++ ·)
   (lines.mapIdx fun i l => (s!"{toString (i + 1) |> pad}|{l}⏎\n")) |> String.join |>.trimAsciiEnd |>.copy
-
-open Lean.Doc
 
 mutual
   partial def previewInline (v : InlineView) : m Std.Format := do
@@ -66,14 +64,14 @@ mutual
       let txt ← newlinesToSpace l.content
       let contents ← txt.toList.mapM (preview ∘ TSyntax.raw)
       match l.target with
-      | .url _ _ url _ =>
+      | .url (url := url) .. =>
         pure <| .group <| .nest 2 (s!"<a href=\"{url.getVersoLinkUrl}\">" ++ .line ++ .fill (.join contents)) ++ .line ++ "</a>"
-      | .ref _ _ name _ =>
+      | .ref (name := name) .. =>
         pure <| .fill <| s!"<a href=\"(value of «{name.getVersoRefName}»)\">" ++ .join contents ++ "</a>"
     | .image i =>
       let src := match i.target with
-        | .url _ _ url _ => url.getVersoLinkUrl
-        | .ref _ _ name _ => s!"value of «{name.getVersoRefName}»"
+        | .url (url := url) .. => url.getVersoLinkUrl
+        | .ref (name := name) .. => s!"value of «{name.getVersoRefName}»"
       pure <| .group <| .nest 2 <| "<img" ++ .line ++ s!"src=\"{src}\"" ++ .line ++ s!"alt=\"{i.getAlt}\"/>"
     | .code c => pure s!"<code>{c.getVersoCode.quote}</code>"
     | .footnote f => pure s!"<footnote name=\"{f.getName}\"/>"
@@ -290,6 +288,7 @@ r#"
 
 section
 open Lean
+open Lean.Doc (CodeBlockView InlineView ParaView)
 open ArgParse
 open Doc.Elab
 
@@ -306,26 +305,26 @@ private def withNl (s : String) : String := if s.endsWith "\n" then s else s.pus
 
 open Verso Doc Elab in
 open Lean Elab in
+open Lean.Doc (CodeBlockView InlineView ParaView) in
 open Verso.Parser in
-open Lean.Doc.Syntax in
 @[directive]
 def markupPreview : DirectiveExpanderOf MarkupPreviewConfig
   | {title}, contents => do
     let #[blk1, blk2] := contents.filter nonempty
       | throwError "Expected precisely two code blocks, got {contents.filter nonempty}"
-    let some cb1 := Lean.Doc.CodeBlockView.of blk1
+    let some cb1 := CodeBlockView.of blk1
       | throwErrorAt blk1 "Expected anonymous code block"
-    let some cb2 := Lean.Doc.CodeBlockView.of blk2
+    let some cb2 := CodeBlockView.of blk2
       | throwErrorAt blk2 "Expected anonymous code block"
     let (contents, expected) := (cb1.content, cb2.content)
 
-    let stx ← blocks {} |>.parseString contents.getVersoCodeBlock.trimAsciiEnd.copy
+    let stx ← blocksFn {} |>.parseString contents.getVersoCodeBlock.trimAsciiEnd.copy
     let p ← preview stx
     let p := p.pretty (width := 35)
 
     withOptions (verso.code.warnLineLength.set · 35) do
-      warnLongLines none contents.raw
-      warnLongLines none expected.raw
+      warnLongLines contents
+      warnLongLines expected
 
     unless eq expected.getVersoCodeBlock p do
       let hint ← MessageData.hint m!"Replace with actual output" #[withNl p] (ref? := expected)
@@ -344,12 +343,12 @@ where
 
   -- A paragraph of only whitespace separates the two code blocks that the directive expects.
   nonemptyI (inl : TSyntax ``Lean.Doc.Parser.inline) : Bool :=
-    match Lean.Doc.InlineView.of inl with
+    match InlineView.of inl with
     | some (.text t) => !t.getVersoText.isEmpty
     | some (.linebreak _) => false
     | _ => true
   nonempty (blk : TSyntax ``Lean.Doc.Parser.block) : Bool :=
-    match Lean.Doc.ParaView.of blk with
+    match ParaView.of blk with
     | some p => p.content.any nonemptyI
     | none => true
 
@@ -359,7 +358,7 @@ open Verso.Parser in
 def markupPreviewPre : CodeBlockExpanderOf MarkupPreviewConfig
   | {title}, contents => do
 
-    let stx ← blocks {} |>.parseString contents.getVersoCodeBlock
+    let stx ← blocksFn {} |>.parseString contents.getVersoCodeBlock
     let p ← preview stx
     let p := p.pretty (width := 35)
 

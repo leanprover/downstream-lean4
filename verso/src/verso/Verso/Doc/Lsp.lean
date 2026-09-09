@@ -24,7 +24,8 @@ namespace Verso.Lsp
 open Verso.Doc.Elab (DocListInfo DocRefInfo TOC)
 open Verso.Doc (PointOfInterest)
 open Verso.Hover
-open Lean.Doc.Syntax
+open Lean.Doc
+open Lean.Doc.Parser
 
 open Lean
 
@@ -195,35 +196,40 @@ where
   -- Tested in Emacs and the problem isn't server side.
   syntactic (text : FileMap) (pos : String.Pos.Raw) (stx : Syntax) : Option (Array Syntax) := do
     if includes stx pos |>.getD true then
-      match stx with
-        | `(block|:::%$opener $_name $_args* {$_contents*}%$closer )
-        | `(block|```%$opener | $_contents ```%$closer)
-        | `(block|```%$opener $_name $_args* | $_contents ```%$closer) =>
-          if (includes opener pos).getD false || (includes closer pos).getD false then
-            return #[opener, closer]
-        | _ =>
-          match stx with
-          | `(inline| \math%$opener1 code(%$opener2 $_ )%$closer1)
-          | `(inline| \displaymath%$opener1 code(%$opener2 $_ )%$closer1) =>
-            if (includes opener1 pos).getD false || (includes closer1 pos).getD false || (includes opener2 pos).getD false then
-              return #[opener1, closer1, opener2]
-          | `(inline| link[%$opener1 $_* ]%$closer1 (%$opener2 $_ )%$closer2)
-          | `(inline| link[%$opener1 $_* ]%$closer1 [%$opener2 $_ ]%$closer2) =>
-            if (includes opener1 pos).getD false || (includes closer1 pos).getD false || (includes opener2 pos).getD false || (includes closer2 pos).getD false then
-              return #[opener1, closer1, opener2, closer2]
-          |  `(inline| code(%$opener $_ )%$closer) =>
-            if (includes opener pos).getD false || (includes closer pos).getD false then
-              return #[opener, closer]
-          | `(inline| role{%$opener1 $name $_* }%$closer1 [%$opener2 $subjects ]%$closer2) =>
-            if (includes opener1 pos).getD false || (includes closer1 pos).getD false ||
-               (includes opener2 pos).getD false || (includes closer2 pos).getD false ||
-               (includes name pos).getD false then
-              return #[opener1, closer1, opener2, closer2, subjects.raw]
-          | _ => pure ()
+      if let some (toHighlight, alsoTriggers) := delimiters stx then
+        if (toHighlight ++ alsoTriggers).any (fun s => (includes s pos).getD false) then
+          return toHighlight
       if let .node _ _ contents := stx then
         for s in contents do
           if let some r := syntactic text pos s then return r
     failure
+
+  /--
+  An element's delimiters, which are highlighted together, paired with the syntax that highlights
+  them without being highlighted itself.
+  -/
+  delimiters (stx : Syntax) : Option (Array Syntax × Array Syntax) :=
+    match BlockView.of ⟨stx⟩ with
+    | some (.directive v) => some (#[v.opener, v.closer], #[])
+    | some (.codeblock v) => some (#[v.openFence, v.closeFence], #[])
+    | some (.metadata v) => some (#[v.opener, v.closer], #[])
+    | _ =>
+      match InlineView.of ⟨stx⟩ with
+      | some (.math v) => some (#[v.marker, v.code.opener, v.code.closer], #[])
+      | some (.code v) => some (#[v.opener, v.closer], #[])
+      | some (.emph v) => some (#[v.opener, v.closer], #[])
+      | some (.bold v) => some (#[v.opener, v.closer], #[])
+      | some (.footnote v) => some (#[v.opener, v.closer], #[])
+      | some (.link v) => some (#[v.opener, v.closer] ++ targetDelimiters v.target, #[])
+      | some (.image v) => some (#[v.opener, v.closer] ++ targetDelimiters v.target, #[])
+      | some (.role v) =>
+        let brackets := v.brackets.map (fun (o, c) => #[o, c]) |>.getD #[]
+        some (#[v.braceOpen, v.braceClose] ++ brackets, #[v.name])
+      | _ => none
+
+  targetDelimiters : LinkTargetView → Array Syntax
+    | .url (opener := opener) (closer := closer) ..
+    | .ref (opener := opener) (closer := closer) .. => #[opener, closer]
 
   includes (stx : Syntax) (pos : String.Pos.Raw) : Option Bool :=
     stx.getRange?.map (fun r => pos ≥ r.start && pos < r.stop)
@@ -427,31 +433,32 @@ deriving instance Repr, BEq for SemanticTokenType
 
 meta partial def versoTokens (text : FileMap) (stx : Syntax) : Array SemanticTokenEntry :=
     Id.run do
-  if let some v := Lean.Doc.InlineView.of ⟨stx⟩ then inlineTokens text v
-  else if let some v := Lean.Doc.BlockView.of ⟨stx⟩ then blockTokens text v
-  else if let some v := Lean.Doc.DescItemView.of ⟨stx⟩ then
+  if let some v := InlineView.of ⟨stx⟩ then inlineTokens text v
+  else if let some v := BlockView.of ⟨stx⟩ then blockTokens text v
+  else if let some v := DescItemView.of ⟨stx⟩ then
     mkTok text .keyword v.marker ++
     versoTokens text (mkNullNode (v.term.map (·.raw))) ++
     versoTokens text (mkNullNode (v.desc.map (·.raw)))
-  else if let some v := Lean.Doc.UnorderedListItemView.of ⟨stx⟩ then
+  else if let some v := UnorderedListItemView.of ⟨stx⟩ then
     mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.contents.map (·.raw)))
-  else if let some v := Lean.Doc.OrderedListItemView.of ⟨stx⟩ then
+  else if let some v := OrderedListItemView.of ⟨stx⟩ then
     mkTok text .keyword v.marker ++ versoTokens text (mkNullNode (v.contents.map (·.raw)))
-  else if let some v := Lean.Doc.ArgView.of ⟨stx⟩ then
+  else if let some v := ArgView.of ⟨stx⟩ then
     match v with
-    | .anon _ val => versoTokens text val
-    | .named _ _ x eq val =>
+    | .anon (val := val) .. => versoTokens text val
+    | .named (name := x) (assign := eq) (val := val) .. =>
       mkTok text .parameter x ++ mkTok text .keyword eq ++ versoTokens text val
-    | .flag _ sign x _ => mkTok text .keyword sign ++ mkTok text .parameter x
+    | .flag (sign := sign) (name := x) .. =>
+      mkTok text .keyword sign ++ mkTok text .parameter x
   -- An argument value yields no token, so that Lean's own tokens show through.
-  else if (Lean.Doc.ArgValView.of ⟨stx⟩).isSome then #[]
+  else if (ArgValView.of ⟨stx⟩).isSome then #[]
   else Id.run do
     let mut out := #[]
     for arg in stx.getArgs do
       out := out ++ versoTokens text arg
     return out
 where
-  inlineTokens (text : FileMap) : Lean.Doc.InlineView → Array SemanticTokenEntry
+  inlineTokens (text : FileMap) : InlineView → Array SemanticTokenEntry
     | .text v => mkTok text .string v.stx
     | .linebreak _ => #[]
     | .emph v =>
@@ -493,11 +500,12 @@ where
       mkTok text .enumMember v.code.content ++
       mkTok text .keyword v.code.closer
 
-  targetTokens (text : FileMap) : Lean.Doc.LinkTargetView → Array SemanticTokenEntry
-    | .url _ o url c | .ref _ o url c =>
-      mkTok text .keyword o ++ mkTok text .parameter url ++ mkTok text .keyword c
+  targetTokens (text : FileMap) : LinkTargetView → Array SemanticTokenEntry
+    | .url (opener := o) (url := target) (closer := c) ..
+    | .ref (opener := o) (name := target) (closer := c) .. =>
+      mkTok text .keyword o ++ mkTok text .parameter target ++ mkTok text .keyword c
 
-  blockTokens (text : FileMap) : Lean.Doc.BlockView → Array SemanticTokenEntry
+  blockTokens (text : FileMap) : BlockView → Array SemanticTokenEntry
     | .para v => versoTokens text (mkNullNode (v.content.map (·.raw)))
     | .ul v => versoTokens text (mkNullNode (v.items.map (·.stx.raw)))
     | .ol v => versoTokens text (mkNullNode (v.items.map (·.stx.raw)))
@@ -735,7 +743,8 @@ meta partial def directiveResizings
     (parents : Array (Syntax × Syntax))
     (subject : Syntax) :
     StateM (Array (Bool × Syntax × Syntax × TextEditBatch)) Unit := do
-  if let `(block|:::%$opener $_name $_args* { $contents* }%$closer ) := subject then
+  if let some v := DirectiveView.of ⟨subject⟩ then
+    let (opener, closer, contents) := (v.opener.raw, v.closer.raw, v.content.map (·.raw))
     let parents := parents.push (opener, closer)
     if onLine opener || onLine closer then
       if let some edit := parents.flatMapM getIncreases then
@@ -783,8 +792,8 @@ where
     pure (outer ++ inner)
 
   getDecreasesIn (stx : Syntax) : Option TextEditBatch :=
-    if let `(block|:::%$opener $_name $_args* {$contents*}%$closer) := stx then
-      getDecreases (opener, closer) contents
+    if let some v := DirectiveView.of ⟨stx⟩ then
+      getDecreases (v.opener.raw, v.closer.raw) (v.content.map (·.raw))
     else if let .node _ _ children := stx then children.flatMapM getDecreasesIn
     else pure #[]
 
@@ -872,8 +881,6 @@ where
       | `Lean.Doc.Parser.Block.codeblock | `Lean.Doc.Parser.Block.directive
       | `Lean.Doc.Parser.Block.metadata_block | `Lean.Doc.Parser.Block.blockquote
       | `Lean.Doc.Parser.Block.ol | `Lean.Doc.Parser.Block.ul | `Lean.Doc.Parser.Block.dl => true
-      | `Lean.Doc.Syntax.codeblock | `Lean.Doc.Syntax.directive | `Lean.Doc.Syntax.metadata_block | `Lean.Doc.Syntax.blockquote
-      | `Lean.Doc.Syntax.ol | `Lean.Doc.Syntax.ul | `Lean.Doc.Syntax.dl => true
       | `Verso.Syntax.codeblock | `Verso.Syntax.directive | `Verso.Syntax.metadata_block | `Verso.Syntax.blockquote
       | `Verso.Syntax.ol | `Verso.Syntax.ul | `Verso.Syntax.dl => true
       | _ => false

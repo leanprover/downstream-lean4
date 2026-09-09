@@ -17,6 +17,7 @@ open Verso ArgParse Doc Elab
 open Verso.SyntaxUtils (parseStrLitAsCategory)
 
 open Illuminate
+open Lean.Doc
 
 namespace Verso.ArgParse.ValDesc
 
@@ -145,7 +146,7 @@ section variables for the Manual genre). It defaults to the identity.
 Genre-specific code-block expanders call this to do the shared evaluation work and then emit
 their own `GenreDiagram.diagramBlock` term.
 -/
-public def elabAndStoreDiagram [Verso.VersoLiteral k] (str : TSyntax k)
+public def elabAndStoreDiagram [VersoLiteral k] (str : TSyntax k)
     (scope : {α : Type} → TermElabM α → TermElabM α := fun act => act) :
     DocElabM (String × Float) := do
   let stx ← parseStrLitAsCategory `term str

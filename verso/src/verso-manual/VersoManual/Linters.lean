@@ -15,7 +15,8 @@ public section
 set_option linter.missingDocs true
 
 open Lean Linter Elab Command
-open Lean.Doc.Syntax
+open Lean.Doc (HeaderView InlineView MetadataView)
+open Lean.Doc.Parser
 
 /--
 Lints for tagless headers.
@@ -48,7 +49,7 @@ meta partial def headerTagLinter : Linter where
     let text ← getFileMap
 
     discard <| stx.replaceM fun block => do
-      if let some hdr := Lean.Doc.HeaderView.of ⟨block⟩ then
+      if let some hdr := HeaderView.of ⟨block⟩ then
         let inls := hdr.content
         let some ⟨start, stop⟩ := block.getRange?
           | return none
@@ -68,7 +69,7 @@ meta partial def headerTagLinter : Linter where
         }
         let toks := Parser.getTokenTable (← getEnv)
         let s := { cache := { tokenCache := {}, parserCache := {} }, pos := nextLine.i }
-        let s := Verso.Parser.metadataBlock.run ictx pmctx toks s
+        let s := metadataBlockFn.run ictx pmctx toks s
         let tagNote :=
           MessageData.note <|
             "The tag is used as a permanent name for the section or chapter. Writers "++
@@ -90,7 +91,7 @@ meta partial def headerTagLinter : Linter where
             if s.stxStack.size = 1 then
               pure (s.stxStack.get! 0)
             else return none
-        if let some metaView := Lean.Doc.MetadataView.of ⟨nextStx⟩ then
+        if let some metaView := MetadataView.of ⟨nextStx⟩ then
           let fieldOrAbbrev := metaView.fields
           let metadataStx : Term :=
             ⟨(← `(Lean.Parser.Term.structInst| { $[$fieldOrAbbrev],* })).raw⟩
@@ -134,7 +135,7 @@ where
   suggestId' (name : TSyntaxArray ``Lean.Doc.Parser.inline) : String := Id.run do
     let mut strTitle := ""
     for inl in name do
-      match Lean.Doc.InlineView.of inl with
+      match InlineView.of inl with
       | some (.text s) => strTitle := strTitle ++ s.getVersoText.toLower
       | some (.code c) => strTitle := strTitle ++ c.getVersoCode
       | some (.emph e) => strTitle := strTitle ++ suggestId' e.content

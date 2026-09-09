@@ -85,7 +85,6 @@ instance : LoadLiterate Manual where
   docstringPart lvl title contents := .other (Block.literateDocstringPart lvl) (#[.para title] ++ contents)
 
 
-open Lean.Doc.Syntax
 open Verso.Doc Elab Concrete
 open Lean.Elab Command Term
 open PartElabM

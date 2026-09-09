@@ -14,13 +14,14 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc.Syntax
+open Lean.Doc (BlockView)
+open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
 set_option backward.privateInPublic false
 
 /-- Records the delimiters of a block that has both, so that each hover mentions the other. -/
-def decorateClosing : Lean.Doc.BlockView → DocElabM Unit
+def decorateClosing : BlockView → DocElabM Unit
   | .directive v => closes v.opener v.closer
   | .codeblock v => closes v.openFence v.closeFence
   | .metadata v => closes v.opener v.closer
@@ -44,7 +45,7 @@ public partial def elabBlock (block : TSyntax ``Lean.Doc.Parser.block) :
         withRef stxNew <|
           elabBlock ⟨stxNew⟩
     | none =>
-      let some view := Lean.Doc.BlockView.of ⟨stx⟩
+      let some view := BlockView.of ⟨stx⟩
         | throwUnexpected stx
       decorateClosing view
       let exp ← blockExpandersFor kind

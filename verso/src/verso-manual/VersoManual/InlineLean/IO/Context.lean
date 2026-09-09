@@ -13,15 +13,16 @@ public section
 namespace Verso.Genre.Manual.InlineLean.IOExample
 
 open Lean
+open Lean.Doc
 
 structure IOExampleContext where
   leanCodeName : Ident
-  code : Option Doc.VersoCodeBlock := none
-  inputFiles : Array (System.FilePath × Doc.VersoCodeBlock) := #[]
-  outputFiles : Array (System.FilePath × Doc.VersoCodeBlock) := #[]
-  stdin : Option Doc.VersoCodeBlock := none
-  stdout : Option Doc.VersoCodeBlock := none
-  stderr : Option Doc.VersoCodeBlock := none
+  code : Option VersoCodeBlock := none
+  inputFiles : Array (System.FilePath × VersoCodeBlock) := #[]
+  outputFiles : Array (System.FilePath × VersoCodeBlock) := #[]
+  stdin : Option VersoCodeBlock := none
+  stdout : Option VersoCodeBlock := none
+  stderr : Option VersoCodeBlock := none
 deriving Repr
 
 initialize ioExampleCtx : EnvExtension (Option IOExampleContext) ←
