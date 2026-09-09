@@ -11,12 +11,13 @@ namespace Verso.Web
 open Verso.Genre.Blog
 open Verso Doc Elab
 open Lean Elab
-open Lean.Doc.Syntax
+open Lean.Doc (CodeBlockView CodeView TextView)
 open Verso.ArgParse
 open Verso.Output (Html)
 
-private def codeblockContents : Lean.Syntax → Option String
-  | `(block|``` | $contents ```) => some contents.getString
+private def codeblockContents (stx : TSyntax ``Lean.Doc.Parser.block) : Option String :=
+  match CodeBlockView.of stx with
+  | some { name? := none, content, .. } => some content.getVersoCodeBlock
   | _ => none
 
 @[directive_expander diff]
@@ -43,16 +44,18 @@ def diffs : DirectiveExpander
     pure #[← ``(Block.other (BlockExt.htmlDiv "diff-view") #[$blockStx,*])]
   | _, _ => throwUnsupportedSyntax
 where
-  doBlock : Syntax → DocElabM (String × Array (TSyntax `term))
-    | `(block|```|$contents```) => do
-      let lines ← contents.getString.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
-      pure ("plain", lines)
-    | `(block|```$nameStx|$contents```) => do
-      let cls := nameStx.getId.toString
-      if cls ∉ ["ins", "del"] then throwErrorAt nameStx "Expected 'ins' or 'del'"
-      let lines ← contents.getString.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
-      pure (cls, lines)
-    | blk => dbg_trace blk; throwErrorAt blk "Expected code block (unnamed, or with 'ins' or 'del')"
+  doBlock (blk : TSyntax ``Lean.Doc.Parser.block) : DocElabM (String × Array (TSyntax `term)) := do
+    let some { name?, content, .. } := CodeBlockView.of blk
+      | throwErrorAt blk "Expected code block (unnamed, or with 'ins' or 'del')"
+    let cls ←
+      match name? with
+      | none => pure "plain"
+      | some nameStx =>
+        let cls := nameStx.getId.toString
+        if cls ∉ ["ins", "del"] then throwErrorAt nameStx "Expected 'ins' or 'del'"
+        pure cls
+    let lines ← content.getVersoCodeBlock.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
+    pure (cls, lines)
 
 
 -- Stolen from Lean.Parser.Module
@@ -242,10 +245,11 @@ open Verso.Output Html
 def kbd : RoleExpander
   | args, items => do
     ArgParse.done.run args
-    let strs ← items.filterMapM fun
-      | `(inline|code( $s:str )) => pure (some s.getString)
-      | `(inline|$s:str) => pure none
-      | other => logErrorAt other m!"Expected a code element, got {other}" *> pure none
+    let strs ← items.filterMapM fun inl =>
+      match CodeView.of inl, TextView.of inl with
+      | some { content := s, .. }, _ => pure (some s.getVersoCode)
+      | none, some _ => pure none
+      | none, none => logErrorAt inl m!"Expected a code element, got {inl}" *> pure none
     if h : strs.size = 0 then throwError "Expected one or more inline code literals"
     else
       let basic := String.intercalate "+" strs.toList
@@ -262,9 +266,9 @@ def color : RoleExpander
     ArgParse.done.run args
     let #[str] := items
       | throwError "Expected exactly one inline code element"
-    let `(inline|code( $s:str )) := str
+    let some { content := s, .. } := CodeView.of str
       | throwErrorAt str "Expected an inline code element"
-    let s := s.getString
+    let s := s.getVersoCode
     let html : Html := {{<code class="color-preview"><span class="swatch" style=s!"background-color: {s};"></span>{{s}}</code>}}
     return #[← ``(Inline.other (InlineExt.blob $(quote html)) #[Inline.code $(quote s)])]
 
