@@ -200,7 +200,8 @@ private meta def quoteHighlightViaSerialization (hls : Highlighted) : DocElabM T
 De-indents and returns (syntax of) a Block representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanBlock (shouldShow : Bool) (hls : Highlighted) (str: StrLit) : DocElabM Term := do
+private meta def toHighlightedLeanBlock [Verso.VersoLiteral k] (shouldShow : Bool)
+    (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Block.concat #[])
 
@@ -209,21 +210,22 @@ private meta def toHighlightedLeanBlock (shouldShow : Bool) (hls : Highlighted) 
   | .none => hls
   | .some col => hls.deIndent col
 
-  let range := Syntax.getRange? str
+  let range := str.raw.getRange?
   let range := range.map (← getFileMap).utf8RangeToLspRange
   ``(Block.other
       (Block.lean $(← quoteHighlightViaSerialization hls) (some $(quote (← getFileName))) $(quote range))
-      #[Block.code $(quote str.getString)])
+      #[Block.code $(quote (Verso.decode str))])
 
 /--
 Returns (syntax of) an Inline representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanInline (shouldShow : Bool) (hls : Highlighted) (str : StrLit) : DocElabM Term := do
+private meta def toHighlightedLeanInline [Verso.VersoLiteral k] (shouldShow : Bool)
+    (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Inline.concat #[])
 
-  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote str.getString)])
+  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote (Verso.decode str))])
 
 
 /--
@@ -246,13 +248,14 @@ private meta partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTre
     .node info (children.map disableUnusedVarLinterInInfoTree)
   | .hole id => .hole id
 
-meta def elabCommands (config : LeanBlockConfig) (str : StrLit)
-    (toHighlightedLeanContent : (shouldShow : Bool) → (hls : Highlighted) → (str: StrLit) → DocElabM Term)
+meta def elabCommands [Verso.VersoLiteral k] (config : LeanBlockConfig) (str : TSyntax k)
+    (toHighlightedLeanContent :
+      (shouldShow : Bool) → (hls : Highlighted) → (str : TSyntax k) → DocElabM Term)
     (minCommands : Option Nat := none)
     (maxCommands : Option Nat := none) :
     DocElabM Term :=
   withoutAsync <| do
-    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 str.getString))
+    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 (Verso.decode str)))
       (kind := Lsp.SymbolKind.file)
       (detail? := some ("Lean code" ++ config.outlineMeta))
 
@@ -350,7 +353,7 @@ meta def elabCommands (config : LeanBlockConfig) (str : StrLit)
       reportMessages config.error str cmdState.messages
 
       if config.show then
-        warnLongLines col? str
+        warnLongLines col? str.raw
 where
   runCommand (act : Command.CommandElabM Unit) (stx : Syntax)
       (cctx : Command.Context) (cmdState : Command.State) :
@@ -466,7 +469,7 @@ meta def leanInline : RoleExpanderOf LeanInlineConfig
   | config, inlines => withoutAsync do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $term:str )) := arg
+    let some ⟨_, _, term, _⟩ := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let leveller :=
@@ -556,7 +559,7 @@ meta def inst : RoleExpanderOf LeanBlockConfig
   | config, inlines => withoutAsync <| do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $term:str )) := arg
+    let some ⟨_, _, term, _⟩ := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let stx ← parseStrLitAsCategory `term term
@@ -714,8 +717,8 @@ meta def leanOutput : CodeBlockExpanderOf LeanOutputConfig
 
     let expected :=
       if config.normalizeMetas then
-        normalizeMetavars str.getString
-      else str.getString
+        normalizeMetavars str.getVersoCodeBlock
+      else str.getVersoCodeBlock
 
     let mut texts : Array (Highlighted.Span.Kind × String) := #[]
 
@@ -748,7 +751,7 @@ meta def leanOutput : CodeBlockExpanderOf LeanOutputConfig
             if s != msg.severity.toSeverity then
               throwErrorAt str s!"Expected severity {sevStr s}, but got {sevStr msg.severity.toSeverity}"
           if config.show then
-            let content ← `(Block.other {Block.leanOutput with data := ToJson.toJson ($(quote msg), $(quote config.summarize), ($(quote config.expandTraces) : List Name))} #[Block.code $(quote str.getString)])
+            let content ← `(Block.other {Block.leanOutput with data := ToJson.toJson ($(quote msg), $(quote config.summarize), ($(quote config.expandTraces) : List Name))} #[Block.code $(quote str.getVersoCodeBlock)])
             return content
           else return (← ``(Block.concat #[]))
     else
@@ -773,12 +776,12 @@ meta def leanOutput : CodeBlockExpanderOf LeanOutputConfig
 
         Log.logSilentInfo m!"Diff is {d} lines:\n{d'}"
         if config.show then
-          let content ← `(Block.other {Block.leanOutput with data := ToJson.toJson ($(quote msg), $(quote config.summarize), ($(quote config.expandTraces) : List Name))} #[Block.code $(quote str.getString)])
+          let content ← `(Block.other {Block.leanOutput with data := ToJson.toJson ($(quote msg), $(quote config.summarize), ($(quote config.expandTraces) : List Name))} #[Block.code $(quote str.getVersoCodeBlock)])
           return content
         else return (← ``(Block.concat #[]))
 
     let suggs : Array (Nat × Meta.Hint.Suggestion) := texts.map fun (sev, msg) =>
-      ((diffSize config.whitespace msg str.getString).1, {
+      ((diffSize config.whitespace msg str.getVersoCodeBlock).1, {
         suggestion := withNl msg,
         preInfo? := some s!"{sevStr sev.toSeverity}: "
       })
@@ -787,7 +790,7 @@ meta def leanOutput : CodeBlockExpanderOf LeanOutputConfig
     let hintMsg := if suggs.size > 1 then m!"Replace with one of the actual messages:" else m!"Replace with the actual message:"
     let hint ← hintAt str hintMsg suggs
 
-    throwErrorAt str (m!"Didn't match{if config.allowDiff > 0 then s!" even with allowDiff := {config.allowDiff}" else ""} - got: {indentD (toMessageData <| texts.map (Std.Format.text ·.2))}\nbut expected:{indentD (toMessageData str.getString)}" ++ hint)
+    throwErrorAt str (m!"Didn't match{if config.allowDiff > 0 then s!" even with allowDiff := {config.allowDiff}" else ""} - got: {indentD (toMessageData <| texts.map (Std.Format.text ·.2))}\nbut expected:{indentD (toMessageData str.getVersoCodeBlock)}" ++ hint)
 where
   sevStr : MessageSeverity → String
     | .error => "error"
@@ -858,9 +861,9 @@ meta def constTok [Monad m] [MonadEnv m] [MonadLiftT MetaM m] [MonadLiftT IO m]
 @[role]
 meta def name : RoleExpanderOf NameConfig
   | cfg, #[arg] => do
-    let `(inline|code( $name:str )) := arg
+    let some ⟨_, _, name, _⟩ := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the example name"
-    let exampleName := name.getString.toName
+    let exampleName := name.getVersoCode.toName
     let identStx := mkIdentFrom arg (cfg.full.getD exampleName) (canonical := true)
 
     try
@@ -869,12 +872,12 @@ meta def name : RoleExpanderOf NameConfig
           withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.name, stx := identStx})) do
             realizeGlobalConstNoOverloadWithInfo identStx
 
-      let hl : Highlighted ← constTok resolvedName name.getString
+      let hl : Highlighted ← constTok resolvedName name.getVersoCode
 
-      `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString)])
+      `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getVersoCode)])
     catch e =>
       logErrorAt identStx e.toMessageData
-      ``(Inline.code $(quote name.getString))
+      ``(Inline.code $(quote name.getVersoCode))
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Unexpected contents"
@@ -886,11 +889,11 @@ meta def name : RoleExpanderOf NameConfig
 @[role]
 meta def module : RoleExpanderOf Unit
   | (), #[arg] => do
-    let `(inline|code( $name:str )) := arg
+    let some ⟨_, _, name, _⟩ := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the module's name"
-    let exampleName := name.getString.toName
+    let exampleName := name.getVersoCode.toName
     let identStx := mkIdentFrom arg exampleName (canonical := true)
-    ``(Inline.code $(quote name.getString))
+    ``(Inline.code $(quote name.getVersoCode))
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Expected code literal with the module's name"

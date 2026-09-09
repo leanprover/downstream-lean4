@@ -39,6 +39,6 @@ meta def imports : CodeBlockExpanderOf ImportsParams
     let headerStx ← parseStrLitWith p str
     let hl ← highlight headerStx #[] {}
     if «show» then
-      ``(Block.other (Block.lean $(quote hl) {}) #[Block.code $(quote str.getString)])
+      ``(Block.other (Block.lean $(quote hl) {}) #[Block.code $(quote str.getVersoCodeBlock)])
     else
       ``(Block.empty)

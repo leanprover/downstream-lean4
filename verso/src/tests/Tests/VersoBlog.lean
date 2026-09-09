@@ -76,7 +76,8 @@ def runBlogTests : IO Nat := do
 end
 
 -- Regression test for hidden blog Lean blocks.
-#doc (Post) "Hidden Lean Block Flags" =>
+#docs (Post) hiddenLeanBlockFlags "Hidden Lean Block Flags" :=
+:::::::
 ```leanInit post
 ```
 
@@ -95,27 +96,38 @@ example : base = 40 := rfl
 ```lean post +error
 #check scratch
 ```
+:::::::
+
+#guard hiddenLeanBlockFlags.toPart.content.size > 0
 
 -- Regression test for inline Lean role naming in Blog:
 -- canonical `{lean}` works without warnings.
 #docs (Post) inlineLeanRoleNames "Inline Lean Role Names" :=
+:::::::
 ```leanInit post
 ```
 
 Canonical role: {lean post}`Nat.succ 1`.
+:::::::
 
 /--
 warning: `{leanInline}` is deprecated; use `{lean}` instead.
 -/
+#guard_msgs in
 #docs (Post) inlineLeanRoleNamesDeprecated "Inline Lean Role Names (deprecated alias)" :=
+:::::::
 ```leanInit post2
 ```
 
-Legacy role: {lean post2}`Nat.succ 1`.
+Legacy role: {leanInline post2}`Nat.succ 1`.
+:::::::
 
 #guard inlineLeanRoleNames.toPart.content.size > 0
 #guard inlineLeanRoleNamesDeprecated.toPart.content.size > 0
 
+-- Regression test for a role that reads the environment of its Lean block.
+#docs (Post) roleSeesEnvironment "Role Sees Environment" :=
+:::::::
 ```leanInit env
 ```
 
@@ -124,3 +136,6 @@ def x := 1
 ```
 
 Role is aware of the environment: {lean env}`x`
+:::::::
+
+#guard roleSeesEnvironment.toPart.content.size > 0

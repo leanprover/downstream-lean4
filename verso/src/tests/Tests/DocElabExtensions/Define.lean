@@ -32,7 +32,7 @@ meta def inheritedRole : RoleExpanderOf Unit
 
 @[code_block]
 meta def inheritedCode : CodeBlockExpanderOf Unit
-  | (), str => ``(Doc.Block.code $(quote str.getString))
+  | (), str => ``(Doc.Block.code $(quote str.getVersoCodeBlock))
 
 @[directive]
 meta def inheritedDirective : DirectiveExpanderOf Unit

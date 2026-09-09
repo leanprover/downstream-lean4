@@ -25,13 +25,13 @@ def getWarnLineLength [Monad m] [MonadOptions m] : m (Option Nat) := do
   let val := (← getOptions).get verso.code.warnLineLength.name verso.code.warnLineLength.defValue
   if val = 0 then return none else return some val
 
-def warnLongLines [Monad m] [MonadFileMap m] [MonadLog m] [AddMessageContext m] [MonadOptions m] (indent? : Option Nat) (str : StrLit) : m Unit := do
+def warnLongLines [Monad m] [MonadFileMap m] [MonadLog m] [AddMessageContext m] [MonadOptions m] (indent? : Option Nat) (str : Syntax) : m Unit := do
   let some maxCodeColumns ← getWarnLineLength
     | pure ()
   let fileMap ← getFileMap
   let maxCol := maxCodeColumns + indent?.getD 0
-  if let some startPos := str.raw.getPos? then
-    if let some stopPos := str.raw.getTailPos? then
+  if let some startPos := str.getPos? then
+    if let some stopPos := str.getTailPos? then
       let ⟨startLine, _⟩ := fileMap.toPosition startPos
       let ⟨stopLine, _⟩ := fileMap.toPosition stopPos
       for l in [startLine:stopLine] do

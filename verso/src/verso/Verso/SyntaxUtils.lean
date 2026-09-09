@@ -6,6 +6,7 @@ Author: David Thrane Christiansen
 module
 public import Lean.Parser.Types
 public import Std.Data.TreeMap
+public import Verso.Literal
 public meta import Verso.Instances
 import Verso.Instances
 import Verso.Method
@@ -154,8 +155,8 @@ public def strLitInputContext [Monad m] [MonadFileMap m] [MonadError m] (str : S
 Given a string literal, constructs a Lean string that can be parsed by the Lean parser, yielding
 correct source positions for items in the string literal.
 -/
-public def parserInputString [Monad m] [MonadFileMap m]
-    (str : TSyntax `str) :
+public def parserInputString [Monad m] [MonadFileMap m] [Verso.VersoLiteral k]
+    (str : TSyntax k) :
     m String := do
   let text ← getFileMap
   let preString := (0 : String.Pos.Raw).extract text.source (str.raw.getPos?.getD 0)
@@ -172,7 +173,7 @@ public def parserInputString [Monad m] [MonadFileMap m]
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
     start.extract text.source stop
-  code := code ++ strOriginal?.getD str.getString
+  code := code ++ strOriginal?.getD (Verso.decode str)
   return code
 
 
@@ -335,14 +336,15 @@ actual string contents. When the literal's source text differs from its contents
 sequences, the decoded contents are parsed and the resulting positions are mapped back to the
 source.
 -/
-public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] (p : ParserFn) (input : StrLit) : m Syntax := do
+public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Verso.VersoLiteral k] (p : ParserFn) (input : TSyntax k) : m Syntax := do
   let text ← getFileMap
+  let inputText := Verso.decode input
   if let some startPos := input.raw.getPos? then
     let endPos := input.raw.getTailPos?.getD startPos
     let stopPos := if endPos > text.source.rawEndPos then text.source.rawEndPos else endPos
-    if startPos.extract text.source stopPos != input.getString then
+    if startPos.extract text.source stopPos != inputText then
       let (decoded, posMap) := decodeContentWithMap text.source startPos stopPos
-      if decoded == input.getString then
+      if decoded == inputText then
         return ← parseDecoded p decoded (mapDecodedPos posMap) text
   -- The contents appear verbatim in the source: parse it directly for exact source positions.
   let (ictx, startPos) ← strLitInputContext input.raw (← getFileName)
@@ -382,7 +384,7 @@ Parses an original string literal as part of a syntax category.
 The provided string literal is used only for source positions; the `FileMap` is used to acquire the
 actual string contents.
 -/
-public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] (catName : Name) (input : StrLit) : m Syntax :=
+public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Verso.VersoLiteral k] (catName : Name) (input : TSyntax k) : m Syntax :=
   parseStrLitWith (andthenFn whitespace (categoryParserFnImpl catName)) input
 
 /--

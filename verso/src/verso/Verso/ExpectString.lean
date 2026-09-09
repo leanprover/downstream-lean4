@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
+public import Verso.Literal
 public import Lean.Log
 import Lean.Elab.Command
 import Lean.Elab.InfoTree
@@ -45,10 +46,10 @@ are good candidates for {name}`preEq`.
 
 Errors are logged, not thrown; the returned {name}`Bool` indicates whether an error was logged.
 -/
-def expectStringOrDiff (expected : StrLit) (actual : String)
+def expectStringOrDiff [Verso.VersoLiteral k] (expected : TSyntax k) (actual : String)
     (preEq : String → String := id)
     (useLine : String → Bool := fun _ => true) : m (Option MessageData) := do
-  let expectedLines := expected.getString.splitOn "\n" |>.filter useLine |>.toArray
+  let expectedLines := (Verso.decode expected).splitOn "\n" |>.filter useLine |>.toArray
   let actualLines := actual.splitOn "\n" |>.filter useLine |>.toArray
 
   unless expectedLines.map preEq == actualLines.map preEq do
@@ -71,10 +72,10 @@ are good candidates for {name}`preEq`.
 
 Errors are logged, not thrown; the returned {name}`Bool` indicates whether an error was logged.
 -/
-def expectString (what : String) (expected : StrLit) (actual : String)
+def expectString [Verso.VersoLiteral k] (what : String) (expected : TSyntax k) (actual : String)
     (preEq : String → String := id)
     (useLine : String → Bool := fun _ => true) : m Bool := do
-  let expectedLines := expected.getString.splitOn "\n" |>.filter useLine |>.toArray
+  let expectedLines := (Verso.decode expected).splitOn "\n" |>.filter useLine |>.toArray
   let actualLines := actual.splitOn "\n" |>.filter useLine |>.toArray
 
   unless expectedLines.map preEq == actualLines.map preEq do
