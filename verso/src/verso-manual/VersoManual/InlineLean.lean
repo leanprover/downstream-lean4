@@ -200,7 +200,7 @@ private meta def quoteHighlightViaSerialization (hls : Highlighted) : DocElabM T
 De-indents and returns (syntax of) a Block representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanBlock [VersoLiteral k] (shouldShow : Bool)
+private meta def toHighlightedLeanBlock [Literal k] (shouldShow : Bool)
     (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Block.concat #[])
@@ -214,18 +214,18 @@ private meta def toHighlightedLeanBlock [VersoLiteral k] (shouldShow : Bool)
   let range := range.map (← getFileMap).utf8RangeToLspRange
   ``(Block.other
       (Block.lean $(← quoteHighlightViaSerialization hls) (some $(quote (← getFileName))) $(quote range))
-      #[Block.code $(quote (decode str))])
+      #[Block.code $(quote (Literal.decode str))])
 
 /--
 Returns (syntax of) an Inline representation containing highlighted Lean code.
 The argument `hls` must be a highlighting of the parsed string `str`.
 -/
-private meta def toHighlightedLeanInline [VersoLiteral k] (shouldShow : Bool)
+private meta def toHighlightedLeanInline [Literal k] (shouldShow : Bool)
     (hls : Highlighted) (str : TSyntax k) : DocElabM Term := do
   if !shouldShow then
     return ← ``(Inline.concat #[])
 
-  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote (decode str))])
+  ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(← quoteHighlightViaSerialization hls)) #[Inline.code $(quote (Literal.decode str))])
 
 
 /--
@@ -248,14 +248,14 @@ private meta partial def disableUnusedVarLinterInInfoTree : InfoTree → InfoTre
     .node info (children.map disableUnusedVarLinterInInfoTree)
   | .hole id => .hole id
 
-meta def elabCommands [VersoLiteral k] (config : LeanBlockConfig) (str : TSyntax k)
+meta def elabCommands [Literal k] (config : LeanBlockConfig) (str : TSyntax k)
     (toHighlightedLeanContent :
       (shouldShow : Bool) → (hls : Highlighted) → (str : TSyntax k) → DocElabM Term)
     (minCommands : Option Nat := none)
     (maxCommands : Option Nat := none) :
     DocElabM Term :=
   withoutAsync <| do
-    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 (decode str)))
+    PointOfInterest.save (← getRef) ((config.name.map (·.toString)).getD (abbrevFirstLine 20 (Literal.decode str)))
       (kind := Lsp.SymbolKind.file)
       (detail? := some ("Lean code" ++ config.outlineMeta))
 
