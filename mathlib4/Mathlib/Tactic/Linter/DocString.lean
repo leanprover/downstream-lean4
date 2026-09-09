@@ -92,7 +92,7 @@ def checkVersoSyntax (docComment : String) (fileName : Option String := none) :
     openDecls := (← getOpenDecls)
   }
   let s := mkParserState docComment
-  let s := Doc.Parser.document.run ictx pmctx (getTokenTable env) s
+  let s := (Doc.Parser.documentFn {}).run ictx pmctx (getTokenTable env) s
   return s.allErrors
 
 /--
