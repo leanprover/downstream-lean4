@@ -280,8 +280,9 @@ theorem le_cons [∀ i, Preorder (α i)] {x : α 0} {q : ∀ i, α i} {p : ∀ i
   forall_fin_succ.trans <| and_congr Iff.rfl <| forall_congr' fun j ↦ by simp [tail]
 
 theorem cons_le [∀ i, Preorder (α i)] {x : α 0} {q : ∀ i, α i} {p : ∀ i : Fin n, α i.succ} :
-    cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q :=
-  @le_cons _ (fun i ↦ (α i)ᵒᵈ) _ x q p
+    cons x p ≤ q ↔ x ≤ q 0 ∧ p ≤ tail q := by
+  unsealing_newtype OrderDual =>
+    exact @le_cons _ (fun i ↦ (α i)ᵒᵈ) _ x q p
 
 theorem cons_le_cons [∀ i, Preorder (α i)] {x₀ y₀ : α 0} {x y : ∀ i : Fin n, α i.succ} :
     cons x₀ x ≤ cons y₀ y ↔ x₀ ≤ y₀ ∧ x ≤ y :=

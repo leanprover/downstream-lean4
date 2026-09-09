@@ -307,8 +307,9 @@ lemma induction_on_max (f : ι →₀ M) (zero : motive 0)
 The lemma `induction_on_min₂` swaps the argument order in the sum. -/
 lemma induction_on_min (f : ι →₀ M) (zero : motive 0)
     (single_add : ∀ a b (f : ι →₀ M), (∀ c ∈ f.support, a < c) → b ≠ 0 →
-      motive f → motive (single a b + f)) : motive f :=
-  induction_on_max (ι := ιᵒᵈ) f zero single_add
+      motive f → motive (single a b + f)) : motive f := by
+  unsealing_newtype OrderDual =>
+    exact induction_on_max (ι := ιᵒᵈ) f zero single_add
 
 /-- A finitely supported function can be built by adding up `single a b` for increasing `a`.
 
@@ -327,8 +328,9 @@ lemma induction_on_max₂ (f : ι →₀ M) (zero : motive 0)
 The lemma `induction_on_min` swaps the argument order in the sum. -/
 lemma induction_on_min₂ (f : ι →₀ M) (zero : motive 0)
     (add_single : ∀ a b (f : ι →₀ M), (∀ c ∈ f.support, a < c) → b ≠ 0 →
-      motive f → motive (f + single a b)) : motive f :=
-  induction_on_max₂ (ι := ιᵒᵈ) f zero add_single
+      motive f → motive (f + single a b)) : motive f := by
+  unsealing_newtype OrderDual =>
+    exact induction_on_max₂ (ι := ιᵒᵈ) f zero add_single
 
 end LinearOrder
 

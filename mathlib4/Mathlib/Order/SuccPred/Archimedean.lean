@@ -43,12 +43,14 @@ section Preorder
 variable [Preorder α]
 
 -- `to_dual` cannot yet reorder arguments of arguments
-instance [SuccOrder α] [IsSuccArchimedean α] : IsPredArchimedean αᵒᵈ :=
-  ⟨fun {a b} h => by convert! exists_succ_iterate_of_le h.ofDual⟩
+instance [SuccOrder α] [IsSuccArchimedean α] : IsPredArchimedean αᵒᵈ := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun {a b} h => by convert! exists_succ_iterate_of_le h.ofDual⟩
 
 @[to_dual existing]
-instance [PredOrder α] [IsPredArchimedean α] : IsSuccArchimedean αᵒᵈ :=
-  ⟨fun {a b} h => by convert! exists_pred_iterate_of_le h.ofDual⟩
+instance [PredOrder α] [IsPredArchimedean α] : IsSuccArchimedean αᵒᵈ := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun {a b} h => by convert! exists_pred_iterate_of_le h.ofDual⟩
 
 section SuccOrder
 
@@ -137,9 +139,13 @@ This isn't an instance due to a loop with `LinearOrder`.
 @[to_dual existing]
 abbrev IsPredArchimedean.linearOrder [PredOrder α] [IsPredArchimedean α]
      [DecidableEq α] [DecidableLE α] [DecidableLT α]
-     [IsDirectedOrder α] : LinearOrder α :=
-  letI : LinearOrder αᵒᵈ := IsSuccArchimedean.linearOrder
-  inferInstanceAs (LinearOrder αᵒᵈᵒᵈ)
+     [IsDirectedOrder α] : LinearOrder α where
+  le_total a b :=
+    have ⟨c, ha, hb⟩ := directed_of (· ≤ ·) a b
+    le_total_of_directed hb ha
+  toDecidableEq := inferInstance
+  toDecidableLE := inferInstance
+  toDecidableLT := inferInstance
 
 end PartialOrder
 
@@ -177,8 +183,9 @@ lemma StrictMono.not_bddAbove_range_of_isSuccArchimedean [NoMaxOrder α] [SuccOr
 
 @[to_dual]
 lemma StrictAnti.not_bddAbove_range_of_isSuccArchimedean [NoMinOrder α] [SuccOrder β]
-    [IsSuccArchimedean β] (hf : StrictAnti f) : ¬ BddAbove (Set.range f) :=
-  hf.dual_right.not_bddBelow_range_of_isPredArchimedean
+    [IsSuccArchimedean β] (hf : StrictAnti f) : ¬ BddAbove (Set.range f) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_right.not_bddBelow_range_of_isPredArchimedean
 
 end bdd_range
 
@@ -204,9 +211,10 @@ instance (priority := 100) WellFoundedLT.toIsPredArchimedean [h : WellFoundedLT 
 
 @[to_dual existing]
 instance (priority := 100) WellFoundedGT.toIsSuccArchimedean [h : WellFoundedGT α]
-    [SuccOrder α] : IsSuccArchimedean α :=
-  let h : IsPredArchimedean αᵒᵈ := by infer_instance
-  ⟨h.1⟩
+    [SuccOrder α] : IsSuccArchimedean α := by
+  unsealing_newtype OrderDual =>
+    let h : IsPredArchimedean αᵒᵈ := by infer_instance
+    exact ⟨h.1⟩
 
 end IsWellFounded
 
@@ -325,9 +333,10 @@ instance Set.OrdConnected.isPredArchimedean [PredOrder α] [IsPredArchimedean α
         · exact this
 
 instance Set.OrdConnected.isSuccArchimedean [SuccOrder α] [IsSuccArchimedean α]
-    (s : Set α) [s.OrdConnected] : IsSuccArchimedean s :=
-  letI : IsPredArchimedean sᵒᵈ := inferInstanceAs (IsPredArchimedean (OrderDual.ofDual ⁻¹' s))
-  inferInstanceAs (IsSuccArchimedean sᵒᵈᵒᵈ)
+    (s : Set α) [s.OrdConnected] : IsSuccArchimedean s := by
+  unsealing_newtype OrderDual =>
+    let : IsPredArchimedean sᵒᵈ := inferInstanceAs (IsPredArchimedean (OrderDual.ofDual ⁻¹' s))
+    exact inferInstanceAs (IsSuccArchimedean sᵒᵈᵒᵈ)
 
 end OrdConnected
 

@@ -42,8 +42,9 @@ theorem IsLUB.frequently_nhds_mem {a : α} {s : Set α} (ha : IsLUB s a) (hs : s
   (ha.frequently_mem hs).filter_mono inf_le_left
 
 theorem IsGLB.frequently_mem {a : α} {s : Set α} (ha : IsGLB s a) (hs : s.Nonempty) :
-    ∃ᶠ x in 𝓝[≥] a, x ∈ s :=
-  IsLUB.frequently_mem (α := αᵒᵈ) ha hs
+    ∃ᶠ x in 𝓝[≥] a, x ∈ s := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.frequently_mem (α := αᵒᵈ) ha hs
 
 theorem IsGLB.frequently_nhds_mem {a : α} {s : Set α} (ha : IsGLB s a) (hs : s.Nonempty) :
     ∃ᶠ x in 𝓝 a, x ∈ s :=
@@ -60,8 +61,9 @@ theorem IsLUB.nhdsWithin_neBot {a : α} {s : Set α} (ha : IsLUB s a) (hs : s.No
   mem_closure_iff_nhdsWithin_neBot.1 (ha.mem_closure hs)
 
 theorem IsGLB.nhdsWithin_neBot {a : α} {s : Set α} (ha : IsGLB s a) (hs : s.Nonempty) :
-    NeBot (𝓝[s] a) :=
-  IsLUB.nhdsWithin_neBot (α := αᵒᵈ) ha hs
+    NeBot (𝓝[s] a) := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.nhdsWithin_neBot (α := αᵒᵈ) ha hs
 
 theorem isLUB_of_mem_nhds {s : Set α} {a : α} {f : Filter α} (hsa : a ∈ upperBounds s) (hsf : s ∈ f)
     [NeBot (f ⊓ 𝓝 a)] : IsLUB s a :=
@@ -80,12 +82,14 @@ theorem isLUB_of_mem_closure {s : Set α} {a : α} (hsa : a ∈ upperBounds s) (
 set_option backward.isDefEq.respectTransparency false in
 theorem isGLB_of_mem_nhds {s : Set α} {a : α} {f : Filter α} (hsa : a ∈ lowerBounds s) (hsf : s ∈ f)
     [NeBot (f ⊓ 𝓝 a)] :
-    IsGLB s a :=
-  isLUB_of_mem_nhds (α := αᵒᵈ) hsa hsf
+    IsGLB s a := by
+  unsealing_newtype OrderDual =>
+    exact isLUB_of_mem_nhds (α := αᵒᵈ) hsa hsf
 
 theorem isGLB_of_mem_closure {s : Set α} {a : α} (hsa : a ∈ lowerBounds s) (hsf : a ∈ closure s) :
-    IsGLB s a :=
-  isLUB_of_mem_closure (α := αᵒᵈ) hsa hsf
+    IsGLB s a := by
+  unsealing_newtype OrderDual =>
+    exact isLUB_of_mem_closure (α := αᵒᵈ) hsa hsf
 
 theorem IsLUB.mem_upperBounds_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ]
     {f : α → γ} {s : Set α} {a : α} {b : γ} (hf : MonotoneOn f s) (ha : IsLUB s a)
@@ -107,8 +111,9 @@ theorem IsLUB.isLUB_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedT
 
 theorem IsGLB.mem_lowerBounds_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ]
     {f : α → γ} {s : Set α} {a : α} {b : γ} (hf : MonotoneOn f s) (ha : IsGLB s a)
-    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ lowerBounds (f '' s) :=
-  IsLUB.mem_upperBounds_of_tendsto (α := αᵒᵈ) (γ := γᵒᵈ) hf.dual ha hb
+    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ lowerBounds (f '' s) := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.mem_upperBounds_of_tendsto (α := αᵒᵈ) (γ := γᵒᵈ) hf.dual ha hb
 
 -- For a version of this theorem in which the convergence considered on the domain `α` is as
 -- `x : α` tends to negative infinity, rather than tending to a point `x` in `α`, see
@@ -116,28 +121,33 @@ theorem IsGLB.mem_lowerBounds_of_tendsto [Preorder γ] [TopologicalSpace γ] [Or
 @[to_dual existing]
 theorem IsGLB.isGLB_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ] {f : α → γ}
     {s : Set α} {a : α} {b : γ} (hf : MonotoneOn f s) :
-    IsGLB s a → s.Nonempty → Tendsto f (𝓝[s] a) (𝓝 b) → IsGLB (f '' s) b :=
-  IsLUB.isLUB_of_tendsto (α := αᵒᵈ) (γ := γᵒᵈ) hf.dual
+    IsGLB s a → s.Nonempty → Tendsto f (𝓝[s] a) (𝓝 b) → IsGLB (f '' s) b := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.isLUB_of_tendsto (α := αᵒᵈ) (γ := γᵒᵈ) hf.dual
 
 theorem IsLUB.mem_lowerBounds_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ]
     {f : α → γ} {s : Set α} {a : α} {b : γ} (hf : AntitoneOn f s) (ha : IsLUB s a)
-    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ lowerBounds (f '' s) :=
-  IsLUB.mem_upperBounds_of_tendsto (γ := γᵒᵈ) hf ha hb
+    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ lowerBounds (f '' s) := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.mem_upperBounds_of_tendsto (γ := γᵒᵈ) hf ha hb
 
 theorem IsLUB.isGLB_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ] {f : α → γ}
     {s : Set α} {a : α} {b : γ} (hf : AntitoneOn f s) (ha : IsLUB s a) (hs : s.Nonempty)
-    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : IsGLB (f '' s) b :=
-  IsLUB.isLUB_of_tendsto (γ := γᵒᵈ) hf ha hs hb
+    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : IsGLB (f '' s) b := by
+  unsealing_newtype OrderDual =>
+    exact IsLUB.isLUB_of_tendsto (γ := γᵒᵈ) hf ha hs hb
 
 theorem IsGLB.mem_upperBounds_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ]
     {f : α → γ} {s : Set α} {a : α} {b : γ} (hf : AntitoneOn f s) (ha : IsGLB s a)
-    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ upperBounds (f '' s) :=
-  IsGLB.mem_lowerBounds_of_tendsto (γ := γᵒᵈ) hf ha hb
+    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : b ∈ upperBounds (f '' s) := by
+  unsealing_newtype OrderDual =>
+    exact IsGLB.mem_lowerBounds_of_tendsto (γ := γᵒᵈ) hf ha hb
 
 theorem IsGLB.isLUB_of_tendsto [Preorder γ] [TopologicalSpace γ] [OrderClosedTopology γ] {f : α → γ}
     {s : Set α} {a : α} {b : γ} (hf : AntitoneOn f s) (ha : IsGLB s a) (hs : s.Nonempty)
-    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : IsLUB (f '' s) b :=
-  IsGLB.isGLB_of_tendsto (γ := γᵒᵈ) hf ha hs hb
+    (hb : Tendsto f (𝓝[s] a) (𝓝 b)) : IsLUB (f '' s) b := by
+  unsealing_newtype OrderDual =>
+    exact IsGLB.isGLB_of_tendsto (γ := γᵒᵈ) hf ha hs hb
 
 theorem IsLUB.mem_of_isClosed {a : α} {s : Set α} (ha : IsLUB s a) (hs : s.Nonempty)
     (sc : IsClosed s) : a ∈ s :=
@@ -160,7 +170,8 @@ theorem isLUB_iff_of_subset_of_subset_closure {α : Type*} [TopologicalSpace α]
 theorem isGLB_iff_of_subset_of_subset_closure {α : Type*} [TopologicalSpace α] [Preorder α]
     [ClosedIciTopology α] {s t : Set α} (hst : s ⊆ t) (hts : t ⊆ closure s) {x : α} :
     IsGLB s x ↔ IsGLB t x :=
-  isLUB_iff_of_subset_of_subset_closure (α := αᵒᵈ) hst hts
+  isGLB_congr <| (lowerBounds_closure (s := s) ▸ lowerBounds_mono_set hts).antisymm <|
+    lowerBounds_mono_set hst
 
 theorem Dense.isLUB_inter_iff {α : Type*} [TopologicalSpace α] [Preorder α] [ClosedIicTopology α]
     {s t : Set α} (hs : Dense s) (ht : IsOpen t) {x : α} :
@@ -170,7 +181,7 @@ theorem Dense.isLUB_inter_iff {α : Type*} [TopologicalSpace α] [Preorder α] [
 theorem Dense.isGLB_inter_iff {α : Type*} [TopologicalSpace α] [Preorder α] [ClosedIciTopology α]
     {s t : Set α} (hs : Dense s) (ht : IsOpen t) {x : α} :
     IsGLB (t ∩ s) x ↔ IsGLB t x :=
-  hs.isLUB_inter_iff (α := αᵒᵈ) ht
+  isGLB_iff_of_subset_of_subset_closure (by simp) <| hs.open_subset_closure_inter ht
 
 /-- The upper bounds of the image of a continuous function on a dense set are equal to the upper
 bounds of the range of the universe. -/
@@ -189,8 +200,9 @@ bounds of the range of the universe. -/
 theorem Dense.lowerBounds_image {α : Type*} [TopologicalSpace α] [Preorder α]
     [ClosedIciTopology α] {f : γ → α} [TopologicalSpace γ] {S : Set γ} (hS : Dense S)
     (hf : Continuous f) :
-    lowerBounds (f '' S) = lowerBounds (range f) :=
-  hS.upperBounds_image (α := αᵒᵈ) hf
+    lowerBounds (f '' S) = lowerBounds (range f) := by
+  unsealing_newtype OrderDual =>
+    exact hS.upperBounds_image (α := αᵒᵈ) hf
 
 /-- The supremum of a bounded above, continuous function on a dense set is equal to the supremum on
 the universe. -/
@@ -210,8 +222,9 @@ the universe. -/
 theorem Dense.ciInf {α : Type*} [TopologicalSpace α]
     [ConditionallyCompleteLattice α] [ClosedIciTopology α] {f : γ → α} [TopologicalSpace γ]
     {S : Set γ} (hS : Dense S) (hf : Continuous f) (h : BddBelow (range f)) :
-    ⨅ s : S, f s = ⨅ i, f i :=
-  hS.ciSup (α := αᵒᵈ) hf h
+    ⨅ s : S, f s = ⨅ i, f i := by
+  unsealing_newtype OrderDual =>
+    exact hS.ciSup (α := αᵒᵈ) hf h
 
 /-- This is an analogue of `Dense.continuous_sup` for functions taking values in a conditionally
 complete linear order. The assumption of `BddAbove (range f)` is not needed in this theorem. -/
@@ -231,8 +244,9 @@ complete linear order. The assumption of `BddBelow (range f)` is not needed in t
 theorem Dense.ciInf' {α : Type*} [TopologicalSpace α]
     [ConditionallyCompleteLinearOrder α] [ClosedIciTopology α] {f : γ → α} [TopologicalSpace γ]
     {S : Set γ} (hS : Dense S) (hf : Continuous f) :
-    ⨅ s : S, f s = ⨅ i, f i :=
-  hS.ciSup' (α := αᵒᵈ) hf
+    ⨅ s : S, f s = ⨅ i, f i := by
+  unsealing_newtype OrderDual =>
+    exact hS.ciSup' (α := αᵒᵈ) hf
 
 section ConditionallyCompleteLinearOrder
 
@@ -267,8 +281,9 @@ lemma upperClosure_eq_Ici_csInf {s : Set α} (h₁ : s.Nonempty) (h₂ : BddBelo
     (⟨_, (isGLB_csInf h₁ h₂).mem_of_isClosed h₁ hs, ·⟩)⟩
 
 lemma lowerClosure_eq_Iic_csSup {s : Set α} (h₁ : s.Nonempty) (h₂ : BddAbove s) (hs : IsClosed s) :
-    lowerClosure s = Iic (sSup s) :=
-  upperClosure_eq_Ici_csInf (α := αᵒᵈ) h₁ h₂ hs
+    lowerClosure s = Iic (sSup s) := by
+  unsealing_newtype OrderDual =>
+    exact upperClosure_eq_Ici_csInf (α := αᵒᵈ) h₁ h₂ hs
 
 protected lemma IsClosed.upperClosure {s : Set α} (hs : IsClosed s) :
     IsClosed (upperClosure s : Set α) := by
@@ -279,8 +294,9 @@ protected lemma IsClosed.upperClosure {s : Set α} (hs : IsClosed s) :
   · exact upperClosure_eq_bot h₂ ▸ isClosed_univ
 
 protected lemma IsClosed.lowerClosure {s : Set α} (hs : IsClosed s) :
-    IsClosed (lowerClosure s).1 :=
-  IsClosed.upperClosure (α := αᵒᵈ) hs
+    IsClosed (lowerClosure s).1 := by
+  unsealing_newtype OrderDual =>
+    exact IsClosed.upperClosure (α := αᵒᵈ) hs
 
 end ConditionallyCompleteLinearOrder
 
@@ -374,30 +390,43 @@ theorem DenseRange.exists_seq_strictMono_tendsto {β : Type*} [LinearOrder β] [
   obtain rfl : f ∘ v = u := funext hv
   exact ⟨v, fun a b hlt ↦ hmono.reflect_lt <| hu hlt, hux, hlim⟩
 
-set_option backward.isDefEq.respectTransparency false in
 theorem IsGLB.exists_seq_strictAnti_tendsto_of_notMem {t : Set α} {x : α}
     [IsCountablyGenerated (𝓝 x)] (htx : IsGLB t x) (notMem : x ∉ t) (ht : t.Nonempty) :
-    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t :=
-  IsLUB.exists_seq_strictMono_tendsto_of_notMem (α := αᵒᵈ) htx notMem ht
+    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t := by
+  obtain ⟨v, hvx, hvt⟩ := exists_seq_forall_of_frequently (htx.frequently_mem ht)
+  replace hvx := hvx.mono_right nhdsWithin_le_nhds
+  have hvx' : ∀ {n}, x < v n :=
+    (htx.1 (hvt _)).lt_of_ne (Ne.symm (ne_of_mem_of_not_mem (hvt _) notMem))
+  have : ∀ k, ∀ᶠ l in atTop, v l < v k := fun k => hvx.eventually (gt_mem_nhds hvx')
+  choose N hN hvN using fun k => ((eventually_gt_atTop k).and (this k)).exists
+  refine ⟨fun k => v (N^[k] 0), strictAnti_nat_of_succ_lt fun _ => ?_, fun _ => hvx',
+    hvx.comp (strictMono_nat_of_lt_succ fun _ => ?_).tendsto_atTop, fun _ => hvt _⟩
+  · rw [iterate_succ_apply']; exact hvN _
+  · rw [iterate_succ_apply']; exact hN _
 
-set_option backward.isDefEq.respectTransparency false in
 theorem IsGLB.exists_seq_antitone_tendsto {t : Set α} {x : α} [IsCountablyGenerated (𝓝 x)]
     (htx : IsGLB t x) (ht : t.Nonempty) :
-    ∃ u : ℕ → α, Antitone u ∧ (∀ n, x ≤ u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t :=
-  IsLUB.exists_seq_monotone_tendsto (α := αᵒᵈ) htx ht
+    ∃ u : ℕ → α, Antitone u ∧ (∀ n, x ≤ u n) ∧ Tendsto u atTop (𝓝 x) ∧ ∀ n, u n ∈ t := by
+  by_cases h : x ∈ t
+  · exact ⟨fun _ => x, antitone_const, fun n => le_rfl, tendsto_const_nhds, fun _ => h⟩
+  · rcases htx.exists_seq_strictAnti_tendsto_of_notMem h ht with ⟨u, hu⟩
+    exact ⟨u, hu.1.antitone, fun n => (hu.2.1 n).le, hu.2.2⟩
 
 theorem exists_seq_strictAnti_tendsto' [DenselyOrdered α] [FirstCountableTopology α] {x y : α}
     (hy : x < y) : ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, u n ∈ Ioo x y) ∧ Tendsto u atTop (𝓝 x) := by
-  simpa using! exists_seq_strictMono_tendsto' (α := αᵒᵈ) (OrderDual.toDual_lt_toDual.2 hy)
+  unsealing_newtype OrderDual =>
+    simpa using! exists_seq_strictMono_tendsto' (α := αᵒᵈ) (OrderDual.toDual_lt_toDual.2 hy)
 
 theorem exists_seq_strictAnti_tendsto [DenselyOrdered α] [NoMaxOrder α] [FirstCountableTopology α]
-    (x : α) : ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝 x) :=
-  exists_seq_strictMono_tendsto (α := αᵒᵈ) x
+    (x : α) : ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝 x) := by
+  unsealing_newtype OrderDual =>
+    exact exists_seq_strictMono_tendsto (α := αᵒᵈ) x
 
 theorem exists_seq_strictAnti_tendsto_nhdsWithin [DenselyOrdered α] [NoMaxOrder α]
     [FirstCountableTopology α] (x : α) :
-    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝[>] x) :=
-  exists_seq_strictMono_tendsto_nhdsWithin (α := αᵒᵈ) _
+    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, x < u n) ∧ Tendsto u atTop (𝓝[>] x) := by
+  unsealing_newtype OrderDual =>
+    exact exists_seq_strictMono_tendsto_nhdsWithin (α := αᵒᵈ) _
 
 theorem exists_seq_strictAnti_strictMono_tendsto [DenselyOrdered α] [FirstCountableTopology α]
     {x y : α} (h : x < y) :
@@ -411,31 +440,40 @@ theorem exists_seq_strictAnti_strictMono_tendsto [DenselyOrdered α] [FirstCount
 
 theorem exists_seq_tendsto_sInf {α : Type*} [ConditionallyCompleteLinearOrder α]
     [TopologicalSpace α] [OrderTopology α] [FirstCountableTopology α] {S : Set α} (hS : S.Nonempty)
-    (hS' : BddBelow S) : ∃ u : ℕ → α, Antitone u ∧ Tendsto u atTop (𝓝 (sInf S)) ∧ ∀ n, u n ∈ S :=
-  exists_seq_tendsto_sSup (α := αᵒᵈ) hS hS'
+    (hS' : BddBelow S) : ∃ u : ℕ → α, Antitone u ∧ Tendsto u atTop (𝓝 (sInf S)) ∧ ∀ n, u n ∈ S := by
+  unsealing_newtype OrderDual =>
+    exact exists_seq_tendsto_sSup (α := αᵒᵈ) hS hS'
 
+set_option backward.isDefEq.respectTransparency false in
 theorem Dense.exists_seq_strictAnti_tendsto_of_lt [DenselyOrdered α] [FirstCountableTopology α]
     {s : Set α} (hs : Dense s) {x y : α} (hy : x < y) :
     ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, u n ∈ (Ioo x y ∩ s)) ∧ Tendsto u atTop (𝓝 x) := by
-  simpa using! hs.exists_seq_strictMono_tendsto_of_lt (α := αᵒᵈ) (OrderDual.toDual_lt_toDual.2 hy)
+  unsealing_newtype OrderDual =>
+    simpa using! hs.exists_seq_strictMono_tendsto_of_lt (α := αᵒᵈ) (OrderDual.toDual_lt_toDual.2 hy)
 
+set_option backward.isDefEq.respectTransparency false in
 theorem Dense.exists_seq_strictAnti_tendsto [DenselyOrdered α] [NoMaxOrder α]
     [FirstCountableTopology α] {s : Set α} (hs : Dense s) (x : α) :
-    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, u n ∈ (Ioi x ∩ s)) ∧ Tendsto u atTop (𝓝 x) :=
-  hs.exists_seq_strictMono_tendsto (α := αᵒᵈ) x
+    ∃ u : ℕ → α, StrictAnti u ∧ (∀ n, u n ∈ (Ioi x ∩ s)) ∧ Tendsto u atTop (𝓝 x) := by
+  unsealing_newtype OrderDual =>
+    exact hs.exists_seq_strictMono_tendsto (α := αᵒᵈ) x
 
+set_option backward.isDefEq.respectTransparency false in
 theorem DenseRange.exists_seq_strictAnti_tendsto_of_lt {β : Type*} [LinearOrder β]
     [DenselyOrdered α] [FirstCountableTopology α] {f : β → α} {x y : α} (hf : DenseRange f)
     (hmono : Monotone f) (hlt : x < y) :
     ∃ u : ℕ → β, StrictAnti u ∧ (∀ n, f (u n) ∈ Ioo x y) ∧ Tendsto (f ∘ u) atTop (𝓝 x) := by
-  simpa using! hf.exists_seq_strictMono_tendsto_of_lt (α := αᵒᵈ) (β := βᵒᵈ) hmono.dual
-    (OrderDual.toDual_lt_toDual.2 hlt)
+  unsealing_newtype OrderDual =>
+    simpa using! hf.exists_seq_strictMono_tendsto_of_lt (α := αᵒᵈ) (β := βᵒᵈ) hmono.dual
+      (OrderDual.toDual_lt_toDual.2 hlt)
 
+set_option backward.isDefEq.respectTransparency false in
 theorem DenseRange.exists_seq_strictAnti_tendsto {β : Type*} [LinearOrder β] [DenselyOrdered α]
     [NoMaxOrder α] [FirstCountableTopology α] {f : β → α} (hf : DenseRange f) (hmono : Monotone f)
     (x : α) :
-    ∃ u : ℕ → β, StrictAnti u ∧ (∀ n, f (u n) ∈ Ioi x) ∧ Tendsto (f ∘ u) atTop (𝓝 x) :=
-  hf.exists_seq_strictMono_tendsto (α := αᵒᵈ) (β := βᵒᵈ) hmono.dual x
+    ∃ u : ℕ → β, StrictAnti u ∧ (∀ n, f (u n) ∈ Ioi x) ∧ Tendsto (f ∘ u) atTop (𝓝 x) := by
+  unsealing_newtype OrderDual =>
+    exact hf.exists_seq_strictMono_tendsto (α := αᵒᵈ) (β := βᵒᵈ) hmono.dual x
 
 theorem eventually_le_const_iff_forall_gt_eventually_lt_const [FirstCountableTopology α]
     {l : Filter γ} [CountableInterFilter l] {f : γ → α} {a : α} :
@@ -458,7 +496,8 @@ theorem eventually_le_const_iff_forall_gt_eventually_lt_const [FirstCountableTop
 
 theorem eventually_const_le_iff_forall_lt_eventually_const_lt [FirstCountableTopology α]
     {l : Filter γ} [CountableInterFilter l] {f : γ → α} {a : α} :
-    (∀ᶠ x in l, a ≤ f x) ↔ ∀ b, b < a → ∀ᶠ x in l, b < f x :=
-  eventually_le_const_iff_forall_gt_eventually_lt_const (α := αᵒᵈ)
+    (∀ᶠ x in l, a ≤ f x) ↔ ∀ b, b < a → ∀ᶠ x in l, b < f x := by
+  unsealing_newtype OrderDual =>
+    exact eventually_le_const_iff_forall_gt_eventually_lt_const (α := αᵒᵈ)
 
 end OrderTopology

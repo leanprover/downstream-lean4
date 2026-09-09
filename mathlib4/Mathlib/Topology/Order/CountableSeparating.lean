@@ -48,16 +48,18 @@ instance range_Iio : HasCountableSeparatingOn X (· ∈ range Iio) s := by
       rcases hsd.inter_open_nonempty _ isOpen_Ioo hne with ⟨z, ⟨hxz, hzy⟩, hzs⟩
       simpa [hxz, hzy.not_gt] using h (Iio z) (mem_image_of_mem _ (.inl hzs))
 
-instance range_Ioi : HasCountableSeparatingOn X (· ∈ range Ioi) s :=
-  .range_Iio (X := Xᵒᵈ)
+instance range_Ioi : HasCountableSeparatingOn X (· ∈ range Ioi) s := by
+  unsealing_newtype OrderDual =>
+    exact .range_Iio (X := Xᵒᵈ)
 
 instance range_Iic : HasCountableSeparatingOn X (· ∈ range Iic) s :=
   let ⟨t, htc, ht_sub, ht⟩ := (range_Ioi (X := X) (s := s)).1
   ⟨compl '' t, htc.image _, by simpa [← compl_inj_iff (x := Ioi _)] using ht_sub,
     by simpa [not_iff_not]⟩
 
-instance range_Ici : HasCountableSeparatingOn X (· ∈ range Ici) s :=
-  range_Iic (X := Xᵒᵈ)
+instance range_Ici : HasCountableSeparatingOn X (· ∈ range Ici) s := by
+  unsealing_newtype OrderDual =>
+    exact range_Iic (X := Xᵒᵈ)
 
 end HasCountableSeparatingOn
 
@@ -71,10 +73,12 @@ lemma of_forall_eventually_lt_iff (h : ∀ x, ∀ᶠ a in l, f a < x ↔ g a < x
 lemma of_forall_eventually_le_iff (h : ∀ x, ∀ᶠ a in l, f a ≤ x ↔ g a ≤ x) : f =ᶠ[l] g :=
   of_forall_separating_preimage (· ∈ range Iic) <| forall_mem_range.2 <| fun x ↦ .set_eq (h x)
 
-lemma of_forall_eventually_gt_iff (h : ∀ x, ∀ᶠ a in l, x < f a ↔ x < g a) : f =ᶠ[l] g :=
-  of_forall_eventually_lt_iff (X := Xᵒᵈ) h
+lemma of_forall_eventually_gt_iff (h : ∀ x, ∀ᶠ a in l, x < f a ↔ x < g a) : f =ᶠ[l] g := by
+  unsealing_newtype OrderDual =>
+    exact of_forall_eventually_lt_iff (X := Xᵒᵈ) h
 
-lemma of_forall_eventually_ge_iff (h : ∀ x, ∀ᶠ a in l, x ≤ f a ↔ x ≤ g a) : f =ᶠ[l] g :=
-  of_forall_eventually_le_iff (X := Xᵒᵈ) h
+lemma of_forall_eventually_ge_iff (h : ∀ x, ∀ᶠ a in l, x ≤ f a ↔ x ≤ g a) : f =ᶠ[l] g := by
+  unsealing_newtype OrderDual =>
+    exact of_forall_eventually_le_iff (X := Xᵒᵈ) h
 
 end Filter.EventuallyEq

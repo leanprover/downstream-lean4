@@ -180,10 +180,11 @@ theorem wellFoundedOn_iff_no_descending_seq :
 
 theorem WellFoundedOn.union (hs : s.WellFoundedOn r) (ht : t.WellFoundedOn r) :
     (s ∪ t).WellFoundedOn r := by
-  rw [wellFoundedOn_iff_no_descending_seq] at *
-  rintro f hf
-  rcases Nat.exists_subseq_of_forall_mem_union f hf with ⟨g, hg | hg⟩
-  exacts [hs (g.dual.ltEmbedding.trans f) hg, ht (g.dual.ltEmbedding.trans f) hg]
+  unsealing_newtype OrderDual =>
+    rw [wellFoundedOn_iff_no_descending_seq] at *
+    rintro f hf
+    rcases Nat.exists_subseq_of_forall_mem_union f hf with ⟨g, hg | hg⟩
+    exacts [hs (g.dual.ltEmbedding.trans f) hg, ht (g.dual.ltEmbedding.trans f) hg]
 
 @[simp]
 theorem wellFoundedOn_union : (s ∪ t).WellFoundedOn r ↔ s.WellFoundedOn r ∧ t.WellFoundedOn r :=
@@ -735,8 +736,9 @@ theorem BddBelow.wellFoundedOn_lt : BddBelow s → s.WellFoundedOn (· < ·) := 
     ⟨ha <| hf _,
       antitone_iff_forall_lt.2 (fun a b hab => (f.map_rel_iff.2 hab).le) <| Nat.zero_le _⟩
 
-theorem BddAbove.wellFoundedOn_gt : BddAbove s → s.WellFoundedOn (· > ·) :=
-  fun h => h.dual.wellFoundedOn_lt
+theorem BddAbove.wellFoundedOn_gt : BddAbove s → s.WellFoundedOn (· > ·) := by
+  unsealing_newtype OrderDual =>
+    exact fun h => h.dual.wellFoundedOn_lt
 
 theorem BddBelow.isWF : BddBelow s → IsWF s :=
   BddBelow.wellFoundedOn_lt

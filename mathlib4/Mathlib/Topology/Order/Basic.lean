@@ -91,10 +91,27 @@ instance (priority := 100) [OrderTopology α] [Countable α] :
   · exact OrderTopology.topology_eq_generate_intervals
 
 instance [t : OrderTopology α] : OrderTopology αᵒᵈ := by
+  have hind : (OrderDual.instTopologicalSpace : TopologicalSpace αᵒᵈ) =
+      TopologicalSpace.induced OrderDual.ofDual ts := by
+    refine TopologicalSpace.ext_iff.2 fun s ↦
+      ⟨fun hs ↦ ⟨OrderDual.toDual ⁻¹' s, hs, rfl⟩, ?_⟩
+    rintro ⟨u, hu, rfl⟩
+    exact hu
   constructor
-  rcases t.topology_eq_generate_intervals with rfl
-  simp_rw [Preorder.topology, or_comm]
-  rfl
+  rw [hind, t.topology_eq_generate_intervals]
+  simp only [Preorder.topology]
+  rw [induced_generateFrom_eq]
+  congr 1
+  ext s
+  constructor
+  · rintro ⟨u, ⟨a, rfl | rfl⟩, rfl⟩
+    · exact ⟨OrderDual.toDual a, Or.inr Set.Iio_toDual.symm⟩
+    · exact ⟨OrderDual.toDual a, Or.inl Set.Ioi_toDual.symm⟩
+  · rintro ⟨a, rfl | rfl⟩
+    · exact ⟨Iio (OrderDual.ofDual a), ⟨OrderDual.ofDual a, Or.inr rfl⟩,
+        Set.Ioi_toDual.symm⟩
+    · exact ⟨Ioi (OrderDual.ofDual a), ⟨OrderDual.ofDual a, Or.inl rfl⟩,
+        Set.Iio_toDual.symm⟩
 
 @[to_dual none]
 protected theorem OrderTopology.continuous_iff [OrderTopology α] [TopologicalSpace β] {f : β → α} :
@@ -693,8 +710,9 @@ which the image under `f` of `(-∞, x)` is separated above from `f x` is counta
 here a version relative to a set `t`. -/]
 theorem countable_image_gt_image_Ioi_within
     [LinearOrder β] [SecondCountableTopology α] (t : Set β) (f : β → α) :
-    Set.Countable {x ∈ t | ∃ z, z < f x ∧ ∀ y ∈ t, x < y → f y ≤ z} :=
-  countable_image_lt_image_Ioi_within (α := αᵒᵈ) t f
+    Set.Countable {x ∈ t | ∃ z, z < f x ∧ ∀ y ∈ t, x < y → f y ≤ z} := by
+  unsealing_newtype OrderDual =>
+    exact countable_image_lt_image_Ioi_within (α := αᵒᵈ) t f
 
 /-- For a function taking values in a second countable space, the set of points `x` for
 which the image under `f` of `(x, ∞)` is separated below from `f x` is countable. -/
@@ -702,8 +720,9 @@ which the image under `f` of `(x, ∞)` is separated below from `f x` is countab
 /-- For a function taking values in a second countable space, the set of points `x` for
 which the image under `f` of `(-∞, x)` is separated above from `f x` is countable. -/]
 theorem countable_image_gt_image_Ioi [LinearOrder β] (f : β → α)
-    [SecondCountableTopology α] : Set.Countable {x | ∃ z, z < f x ∧ ∀ y, x < y → f y ≤ z} :=
-  countable_image_lt_image_Ioi (α := αᵒᵈ) f
+    [SecondCountableTopology α] : Set.Countable {x | ∃ z, z < f x ∧ ∀ y, x < y → f y ≤ z} := by
+  unsealing_newtype OrderDual =>
+    exact countable_image_lt_image_Ioi (α := αᵒᵈ) f
 
 @[to_dual]
 instance instIsCountablyGenerated_atTop [SeparableSpace α] :
@@ -814,7 +833,9 @@ lemma LeftOrdContinuous.continuousWithinAt_Iic (hf : LeftOrdContinuous f) :
 the function is between conditionally complete linear orders with order topologies. -/
 @[to_dual existing]
 lemma RightOrdContinuous.continuousWithinAt_Ici (hf : RightOrdContinuous f) :
-    ContinuousWithinAt f (Ici x) x := hf.dual.continuousWithinAt_Iic
+    ContinuousWithinAt f (Ici x) x := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.continuousWithinAt_Iic
 
 /-- A function that is order-theoretically both left- and right-continuous is continuous, assuming
 the function is between conditionally complete linear orders with order topologies. -/

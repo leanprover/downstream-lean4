@@ -57,10 +57,12 @@ instance Lex.wellFoundedLT {α N} [LT α] [@Std.Trichotomous α (· < ·)] [hα 
     [hN : WellFoundedLT N] : WellFoundedLT (Lex (α →₀ N)) :=
   ⟨Lex.wellFounded' (fun _ => not_lt_zero) hN.wf hα.wf⟩
 
-instance Colex.wellFoundedLT {α N} [LT α] [@Std.Trichotomous α (· < ·)] [WellFoundedLT α]
+instance Colex.wellFoundedLT {α N} [LT α] [@Std.Trichotomous α (· < ·)] [hα : WellFoundedLT α]
     [AddMonoid N] [PartialOrder N] [IsBotZeroClass N]
-    [WellFoundedLT N] : WellFoundedLT (Colex (α →₀ N)) :=
-  Lex.wellFoundedLT (α := αᵒᵈ)
+    [hN : WellFoundedLT N] : WellFoundedLT (Colex (α →₀ N)) :=
+  haveI : @Std.Trichotomous α (· > ·) :=
+    ⟨fun a b h₁ h₂ ↦ Std.Trichotomous.trichotomous (r := (· < ·)) a b h₂ h₁⟩
+  ⟨Lex.wellFounded' (r := (· > ·)) (fun _ => not_lt_zero) hN.wf hα.wf⟩
 
 variable (r)
 
@@ -73,8 +75,8 @@ theorem Lex.wellFoundedLT_of_finite [LinearOrder α] [Finite α] [LT N]
   ⟨Finsupp.Lex.wellFounded_of_finite (· < ·) hwf.1⟩
 
 theorem Colex.wellFoundedLT_of_finite [LinearOrder α] [Finite α] [LT N]
-    [WellFoundedLT N] : WellFoundedLT (Colex (α →₀ N)) :=
-  Lex.wellFoundedLT_of_finite (α := αᵒᵈ)
+    [hwf : WellFoundedLT N] : WellFoundedLT (Colex (α →₀ N)) :=
+  ⟨Finsupp.Lex.wellFounded_of_finite (· > ·) hwf.1⟩
 
 protected theorem wellFoundedLT [Preorder N] [WellFoundedLT N] (hbot : ∀ n : N, ¬n < 0) :
     WellFoundedLT (α →₀ N) :=

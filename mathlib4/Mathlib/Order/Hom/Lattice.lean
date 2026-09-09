@@ -525,8 +525,11 @@ variable [Max α] [Max β] [Max γ]
 @[to_dual (attr := simps) /--
 Reinterpret an infimum homomorphism as a supremum homomorphism between the dual lattices. -/]
 protected def dual : SupHom α β ≃ InfHom αᵒᵈ βᵒᵈ where
-  toFun f := ⟨f, f.map_sup'⟩
-  invFun f := ⟨f, f.map_inf'⟩
+  toFun f := ⟨fun a ↦ OrderDual.mk (f a.ofDual'),
+    fun a b ↦ congrArg OrderDual.mk (f.map_sup' a.ofDual' b.ofDual')⟩
+  invFun f := ⟨fun a ↦ OrderDual.ofDual' (f (OrderDual.mk a)),
+    fun a b ↦ congrArg OrderDual.ofDual'
+      (f.map_inf' (OrderDual.mk a) (OrderDual.mk b))⟩
 
 @[to_dual (attr := simp)]
 theorem dual_id : SupHom.dual (SupHom.id α) = InfHom.id _ :=
@@ -556,8 +559,10 @@ variable [Lattice α] [Lattice β] [Lattice γ]
 /-- Reinterpret a lattice homomorphism as a lattice homomorphism between the dual lattices. -/
 @[simps!]
 protected def dual : LatticeHom α β ≃ LatticeHom αᵒᵈ βᵒᵈ where
-  toFun f := ⟨InfHom.dual f.toInfHom, f.map_sup'⟩
-  invFun f := ⟨SupHom.dual.symm f.toInfHom, f.map_sup'⟩
+  toFun f := ⟨InfHom.dual f.toInfHom,
+    fun a b ↦ congrArg OrderDual.mk (f.map_sup' a.ofDual' b.ofDual')⟩
+  invFun f := ⟨SupHom.dual.symm f.toInfHom, fun a b ↦ congrArg OrderDual.ofDual'
+    (f.map_sup' (OrderDual.mk a) (OrderDual.mk b))⟩
 
 @[simp] theorem dual_id : LatticeHom.dual (LatticeHom.id α) = LatticeHom.id _ := rfl
 

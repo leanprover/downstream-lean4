@@ -31,11 +31,21 @@ namespace OrderDual
 
 instance [ConditionallyCompletePartialOrderSup α] :
     ConditionallyCompletePartialOrderInf αᵒᵈ where
-  isGLB_csInf_of_directed _ h_dir h_non h_bdd := h_dir.isLUB_csSup (α := α) h_non h_bdd
+  isGLB_csInf_of_directed s h_dir h_non h_bdd :=
+    (DirectedOn.isLUB_csSup (α := α) (s := ⇑toDual ⁻¹' s)
+      (fun x hx y hy ↦
+        let ⟨z, hz, hxz, hyz⟩ := h_dir (toDual x) hx (toDual y) hy
+        ⟨ofDual z, hz, hxz, hyz⟩)
+      (h_non.elim fun x hx ↦ ⟨ofDual x, hx⟩) (bddAbove_preimage_toDual.2 h_bdd)).dual
 
 instance [ConditionallyCompletePartialOrderInf α] :
     ConditionallyCompletePartialOrderSup αᵒᵈ where
-  isLUB_csSup_of_directed _ h_dir h_non h_bdd := h_dir.isGLB_csInf (α := α) h_non h_bdd
+  isLUB_csSup_of_directed s h_dir h_non h_bdd :=
+    (DirectedOn.isGLB_csInf (α := α) (s := ⇑toDual ⁻¹' s)
+      (fun x hx y hy ↦
+        let ⟨z, hz, hxz, hyz⟩ := h_dir (toDual x) hx (toDual y) hy
+        ⟨ofDual z, hz, hxz, hyz⟩)
+      (h_non.elim fun x hx ↦ ⟨ofDual x, hx⟩) (bddBelow_preimage_toDual.2 h_bdd)).dual
 
 instance [ConditionallyCompletePartialOrder α] :
     ConditionallyCompletePartialOrder αᵒᵈ where

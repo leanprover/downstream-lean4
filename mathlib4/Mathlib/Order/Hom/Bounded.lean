@@ -477,8 +477,9 @@ variable [LE α] [OrderTop α] [LE β] [OrderTop β] [LE γ] [OrderTop γ]
 Reinterpret a bot homomorphism as a top homomorphism between the dual lattices. -/]
 protected def dual :
     TopHom α β ≃ BotHom αᵒᵈ βᵒᵈ where
-  toFun f := ⟨f, f.map_top'⟩
-  invFun f := ⟨f, f.map_bot'⟩
+  toFun f := ⟨fun a ↦ OrderDual.mk (f a.ofDual'), congrArg OrderDual.mk f.map_top'⟩
+  invFun f := ⟨fun a ↦ OrderDual.ofDual' (f (OrderDual.mk a)), congrArg OrderDual.ofDual'
+    f.map_bot'⟩
 
 @[to_dual (attr := simp)]
 theorem dual_id : TopHom.dual (TopHom.id α) = BotHom.id _ :=
@@ -511,8 +512,10 @@ protected def dual :
     BoundedOrderHom α β ≃
       BoundedOrderHom αᵒᵈ
         βᵒᵈ where
-  toFun f := ⟨f.toOrderHom.dual, f.map_bot', f.map_top'⟩
-  invFun f := ⟨OrderHom.dual.symm f.toOrderHom, f.map_bot', f.map_top'⟩
+  toFun f := ⟨f.toOrderHom.dual, congrArg OrderDual.mk f.map_bot',
+    congrArg OrderDual.mk f.map_top'⟩
+  invFun f := ⟨OrderHom.dual.symm f.toOrderHom, congrArg OrderDual.ofDual' f.map_bot',
+    congrArg OrderDual.ofDual' f.map_top'⟩
 
 @[simp]
 theorem dual_id : (BoundedOrderHom.id α).dual = BoundedOrderHom.id _ :=

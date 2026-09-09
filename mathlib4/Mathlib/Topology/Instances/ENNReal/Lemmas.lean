@@ -454,12 +454,14 @@ theorem le_of_forall_lt_one_mul_le {x y : ℝ≥0∞} (h : ∀ a < 1, a * x ≤ 
   exact le_of_tendsto this (eventually_nhdsWithin_iff.2 <| Eventually.of_forall h)
 
 theorem inv_limsup {ι : Sort _} {x : ι → ℝ≥0∞} {l : Filter ι} :
-    (limsup x l)⁻¹ = liminf (fun i => (x i)⁻¹) l :=
-  OrderIso.invENNReal.limsup_apply
+    (limsup x l)⁻¹ = liminf (fun i => (x i)⁻¹) l := by
+  unsealing_newtype OrderDual =>
+    exact OrderIso.invENNReal.limsup_apply
 
 theorem inv_liminf {ι : Sort _} {x : ι → ℝ≥0∞} {l : Filter ι} :
-    (liminf x l)⁻¹ = limsup (fun i => (x i)⁻¹) l :=
-  OrderIso.invENNReal.liminf_apply
+    (liminf x l)⁻¹ = limsup (fun i => (x i)⁻¹) l := by
+  unsealing_newtype OrderDual =>
+    exact OrderIso.invENNReal.liminf_apply
 
 @[fun_prop]
 protected theorem continuous_zpow : ∀ n : ℤ, Continuous (· ^ n : ℝ≥0∞ → ℝ≥0∞)

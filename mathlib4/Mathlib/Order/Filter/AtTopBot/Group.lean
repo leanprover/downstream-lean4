@@ -32,8 +32,9 @@ theorem tendsto_atTop_mul_left_of_le' (C : G) (hf : ∀ᶠ x in l, C ≤ f x) (h
 
 @[to_additive]
 theorem tendsto_atBot_mul_left_of_ge' (C : G) (hf : ∀ᶠ x in l, f x ≤ C) (hg : Tendsto g l atBot) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  tendsto_atTop_mul_left_of_le' (G := Gᵒᵈ) _ C hf hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_left_of_le' (G := Gᵒᵈ) _ C hf hg
 
 @[to_additive]
 theorem tendsto_atTop_mul_left_of_le (C : G) (hf : ∀ x, C ≤ f x) (hg : Tendsto g l atTop) :
@@ -42,8 +43,9 @@ theorem tendsto_atTop_mul_left_of_le (C : G) (hf : ∀ x, C ≤ f x) (hg : Tends
 
 @[to_additive]
 theorem tendsto_atBot_mul_left_of_ge (C : G) (hf : ∀ x, f x ≤ C) (hg : Tendsto g l atBot) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  tendsto_atTop_mul_left_of_le (G := Gᵒᵈ) _ C hf hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_left_of_le (G := Gᵒᵈ) _ C hf hg
 
 @[to_additive]
 theorem tendsto_atTop_mul_right_of_le' (C : G) (hf : Tendsto f l atTop) (hg : ∀ᶠ x in l, C ≤ g x) :
@@ -52,8 +54,9 @@ theorem tendsto_atTop_mul_right_of_le' (C : G) (hf : Tendsto f l atTop) (hg : �
 
 @[to_additive]
 theorem tendsto_atBot_mul_right_of_ge' (C : G) (hf : Tendsto f l atBot) (hg : ∀ᶠ x in l, g x ≤ C) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  tendsto_atTop_mul_right_of_le' (G := Gᵒᵈ) _ C hf hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_right_of_le' (G := Gᵒᵈ) _ C hf hg
 
 @[to_additive]
 theorem tendsto_atTop_mul_right_of_le (C : G) (hf : Tendsto f l atTop) (hg : ∀ x, C ≤ g x) :
@@ -62,8 +65,9 @@ theorem tendsto_atTop_mul_right_of_le (C : G) (hf : Tendsto f l atTop) (hg : ∀
 
 @[to_additive]
 theorem tendsto_atBot_mul_right_of_ge (C : G) (hf : Tendsto f l atBot) (hg : ∀ x, g x ≤ C) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  tendsto_atTop_mul_right_of_le (G := Gᵒᵈ) _ C hf hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_right_of_le (G := Gᵒᵈ) _ C hf hg
 
 @[to_additive]
 theorem tendsto_atTop_mul_const_left (C : G) (hf : Tendsto f l atTop) :
@@ -72,8 +76,9 @@ theorem tendsto_atTop_mul_const_left (C : G) (hf : Tendsto f l atTop) :
 
 @[to_additive]
 theorem tendsto_atBot_mul_const_left (C : G) (hf : Tendsto f l atBot) :
-    Tendsto (fun x => C * f x) l atBot :=
-  tendsto_atTop_mul_const_left (G := Gᵒᵈ) _ C hf
+    Tendsto (fun x => C * f x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_const_left (G := Gᵒᵈ) _ C hf
 
 @[to_additive]
 theorem tendsto_atTop_mul_const_right (C : G) (hf : Tendsto f l atTop) :
@@ -82,42 +87,51 @@ theorem tendsto_atTop_mul_const_right (C : G) (hf : Tendsto f l atTop) :
 
 @[to_additive]
 theorem tendsto_atBot_mul_const_right (C : G) (hf : Tendsto f l atBot) :
-    Tendsto (fun x => f x * C) l atBot :=
-  tendsto_atTop_mul_const_right (G := Gᵒᵈ) _ C hf
+    Tendsto (fun x => f x * C) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_mul_const_right (G := Gᵒᵈ) _ C hf
 
 @[to_additive]
-theorem map_inv_atBot : map (Inv.inv : G → G) atBot = atTop :=
-  (OrderIso.inv G).map_atBot
+theorem tendsto_inv_atTop_atBot : Tendsto (Inv.inv : G → G) atTop atBot := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).tendsto_atTop
 
 @[to_additive]
-theorem map_inv_atTop : map (Inv.inv : G → G) atTop = atBot :=
-  (OrderIso.inv G).map_atTop
+theorem tendsto_inv_atBot_atTop : Tendsto (Inv.inv : G → G) atBot atTop := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_inv_atTop_atBot (G := Gᵒᵈ)
 
 @[to_additive]
-theorem comap_inv_atBot : comap (Inv.inv : G → G) atBot = atTop :=
-  (OrderIso.inv G).comap_atTop
+theorem map_inv_atBot : map (Inv.inv : G → G) atBot = atTop := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).map_atBot
 
 @[to_additive]
-theorem comap_inv_atTop : comap (Inv.inv : G → G) atTop = atBot :=
-  (OrderIso.inv G).comap_atBot
+theorem map_inv_atTop : map (Inv.inv : G → G) atTop = atBot := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).map_atTop
 
 @[to_additive]
-theorem tendsto_inv_atTop_atBot : Tendsto (Inv.inv : G → G) atTop atBot :=
-  (OrderIso.inv G).tendsto_atTop
+theorem comap_inv_atBot : comap (Inv.inv : G → G) atBot = atTop := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).comap_atTop
 
 @[to_additive]
-theorem tendsto_inv_atBot_atTop : Tendsto (Inv.inv : G → G) atBot atTop :=
-  tendsto_inv_atTop_atBot (G := Gᵒᵈ)
+theorem comap_inv_atTop : comap (Inv.inv : G → G) atTop = atBot := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).comap_atBot
 
 variable {l}
 
 @[to_additive (attr := simp)]
-theorem tendsto_inv_atTop_iff : Tendsto (fun x => (f x)⁻¹) l atTop ↔ Tendsto f l atBot :=
-  (OrderIso.inv G).tendsto_atBot_iff
+theorem tendsto_inv_atTop_iff : Tendsto (fun x => (f x)⁻¹) l atTop ↔ Tendsto f l atBot := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).tendsto_atBot_iff
 
 @[to_additive (attr := simp)]
-theorem tendsto_inv_atBot_iff : Tendsto (fun x => (f x)⁻¹) l atBot ↔ Tendsto f l atTop :=
-  (OrderIso.inv G).tendsto_atTop_iff
+theorem tendsto_inv_atBot_iff : Tendsto (fun x => (f x)⁻¹) l atBot ↔ Tendsto f l atTop := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).tendsto_atTop_iff
 
 @[to_additive (attr := simp)]
 theorem tendsto_comp_inv_atTop_iff {f : G → α} :

@@ -69,6 +69,20 @@ open Set Function Filter
 variable {α β γ : Type*} [TopologicalSpace α] [TopologicalSpace γ] {f : α → β} {s t : Set α}
   {x : α} {y z : β}
 
+section DualBridge
+
+open OrderDual
+
+variable {α β : Type*} [TopologicalSpace α] [Preorder β] {f : α → β} {s : Set α} {x : α}
+
+/-- `toDual` as a homeomorphism, to transport closedness of (hypo/epi)graphs. -/
+private def toDualHomeomorph {X : Type*} [TopologicalSpace X] : X ≃ₜ Xᵒᵈ where
+  toEquiv := toDual
+  continuous_toFun := continuous_toDual
+  continuous_invFun := continuous_ofDual
+
+end DualBridge
+
 /-! ### lower bounds -/
 
 section
@@ -222,8 +236,9 @@ theorem upperSemicontinuousOn_of_forall_isMinOn_and_mem
     {m : α → ι}
     (m_mem : ∀ x ∈ s, m x ∈ I)
     (m_min : ∀ x ∈ s, IsMinOn (fun i ↦ f i x) I (m x)) :
-    UpperSemicontinuousOn (fun x ↦ f (m x) x) s :=
-  lowerSemicontinuousOn_of_forall_isMaxOn_and_mem (β := βᵒᵈ) hfy m_mem m_min
+    UpperSemicontinuousOn (fun x ↦ f (m x) x) s := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousOn_of_forall_isMaxOn_and_mem (β := βᵒᵈ) hfy m_mem m_min
 
 end
 
@@ -396,13 +411,15 @@ theorem Continuous.comp_lowerSemicontinuous {g : γ → δ} {f : α → γ} (hg 
 
 theorem ContinuousAt.comp_lowerSemicontinuousWithinAt_antitone {g : γ → δ} {f : α → γ}
     (hg : ContinuousAt g (f x)) (hf : LowerSemicontinuousWithinAt f s x) (gmon : Antitone g) :
-    UpperSemicontinuousWithinAt (g ∘ f) s x :=
-  ContinuousAt.comp_lowerSemicontinuousWithinAt (δ := δᵒᵈ) hg hf gmon
+    UpperSemicontinuousWithinAt (g ∘ f) s x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_lowerSemicontinuousWithinAt (δ := δᵒᵈ) (f := f) (g := g) hg hf gmon
 
 theorem ContinuousAt.comp_lowerSemicontinuousAt_antitone {g : γ → δ} {f : α → γ}
     (hg : ContinuousAt g (f x)) (hf : LowerSemicontinuousAt f x) (gmon : Antitone g) :
-    UpperSemicontinuousAt (g ∘ f) x :=
-  ContinuousAt.comp_lowerSemicontinuousAt (δ := δᵒᵈ) hg hf gmon
+    UpperSemicontinuousAt (g ∘ f) x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_lowerSemicontinuousAt (δ := δᵒᵈ) (f := f) (g := g) hg hf gmon
 
 theorem Continuous.comp_lowerSemicontinuousOn_antitone {g : γ → δ} {f : α → γ} (hg : Continuous g)
     (hf : LowerSemicontinuousOn f s) (gmon : Antitone g) : UpperSemicontinuousOn (g ∘ f) s :=
@@ -739,13 +756,15 @@ variable {α : Type*} [TopologicalSpace α] {β : Type*} [LinearOrder β] {f : �
 /-- An upper semicontinuous function attains its upper bound on a nonempty compact set. -/
 theorem UpperSemicontinuousOn.exists_isMaxOn {s : Set α} (ne_s : s.Nonempty)
     (hs : IsCompact s) (hf : UpperSemicontinuousOn f s) :
-    ∃ a ∈ s, IsMaxOn f s a :=
-  LowerSemicontinuousOn.exists_isMinOn (β := βᵒᵈ) ne_s hs hf
+    ∃ a ∈ s, IsMaxOn f s a := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.exists_isMinOn (β := βᵒᵈ) ne_s hs hf
 
 /-- An upper semicontinuous function is bounded above on a compact set. -/
 theorem UpperSemicontinuousOn.bddAbove_of_isCompact [Nonempty β] {s : Set α}
-    (hs : IsCompact s) (hf : UpperSemicontinuousOn f s) : BddAbove (f '' s) :=
-  LowerSemicontinuousOn.bddBelow_of_isCompact (β := βᵒᵈ) hs hf
+    (hs : IsCompact s) (hf : UpperSemicontinuousOn f s) : BddAbove (f '' s) := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.bddBelow_of_isCompact (β := βᵒᵈ) hs hf
 
 end
 
@@ -757,8 +776,9 @@ section
 variable [Zero β] [Preorder β]
 
 theorem IsOpen.upperSemicontinuous_indicator (hs : IsOpen s) (hy : y ≤ 0) :
-    UpperSemicontinuous (indicator s fun _x => y) :=
-  IsOpen.lowerSemicontinuous_indicator (β := βᵒᵈ) hs hy
+    UpperSemicontinuous (indicator s fun _x => y) := by
+  unsealing_newtype OrderDual =>
+    exact IsOpen.lowerSemicontinuous_indicator (β := βᵒᵈ) hs hy
 
 theorem IsOpen.upperSemicontinuousOn_indicator (hs : IsOpen s) (hy : y ≤ 0) :
     UpperSemicontinuousOn (indicator s fun _x => y) t :=
@@ -773,8 +793,9 @@ theorem IsOpen.upperSemicontinuousWithinAt_indicator (hs : IsOpen s) (hy : y ≤
   (hs.upperSemicontinuous_indicator hy).upperSemicontinuousWithinAt t x
 
 theorem IsClosed.upperSemicontinuous_indicator (hs : IsClosed s) (hy : 0 ≤ y) :
-    UpperSemicontinuous (indicator s fun _x => y) :=
-  IsClosed.lowerSemicontinuous_indicator (β := βᵒᵈ) hs hy
+    UpperSemicontinuous (indicator s fun _x => y) := by
+  unsealing_newtype OrderDual =>
+    exact IsClosed.lowerSemicontinuous_indicator (β := βᵒᵈ) hs hy
 
 theorem IsClosed.upperSemicontinuousOn_indicator (hs : IsClosed s) (hy : 0 ≤ y) :
     UpperSemicontinuousOn (indicator s fun _x => y) t :=
@@ -842,26 +863,30 @@ section
 variable {γ : Type*} [CompleteLinearOrder γ]
 
 theorem upperSemicontinuousWithinAt_iff_limsup_le {f : α → γ} :
-    UpperSemicontinuousWithinAt f s x ↔ limsup f (𝓝[s] x) ≤ f x :=
-  lowerSemicontinuousWithinAt_iff_le_liminf (γ := γᵒᵈ)
+    UpperSemicontinuousWithinAt f s x ↔ limsup f (𝓝[s] x) ≤ f x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousWithinAt_iff_le_liminf (γ := γᵒᵈ)
 
 alias ⟨UpperSemicontinuousWithinAt.limsup_le, _⟩ := upperSemicontinuousWithinAt_iff_limsup_le
 
 theorem upperSemicontinuousAt_iff_limsup_le {f : α → γ} :
-    UpperSemicontinuousAt f x ↔ limsup f (𝓝 x) ≤ f x :=
-  lowerSemicontinuousAt_iff_le_liminf (γ := γᵒᵈ)
+    UpperSemicontinuousAt f x ↔ limsup f (𝓝 x) ≤ f x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousAt_iff_le_liminf (γ := γᵒᵈ)
 
 alias ⟨UpperSemicontinuousAt.limsup_le, _⟩ := upperSemicontinuousAt_iff_limsup_le
 
 theorem upperSemicontinuous_iff_limsup_le {f : α → γ} :
-    UpperSemicontinuous f ↔ ∀ x, limsup f (𝓝 x) ≤ f x :=
-  lowerSemicontinuous_iff_le_liminf (γ := γᵒᵈ)
+    UpperSemicontinuous f ↔ ∀ x, limsup f (𝓝 x) ≤ f x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuous_iff_le_liminf (γ := γᵒᵈ)
 
 alias ⟨UpperSemicontinuous.limsup_le, _⟩ := upperSemicontinuous_iff_limsup_le
 
 theorem upperSemicontinuousOn_iff_limsup_le {f : α → γ} :
-    UpperSemicontinuousOn f s ↔ ∀ x ∈ s, limsup f (𝓝[s] x) ≤ f x :=
-  lowerSemicontinuousOn_iff_le_liminf (γ := γᵒᵈ)
+    UpperSemicontinuousOn f s ↔ ∀ x ∈ s, limsup f (𝓝[s] x) ≤ f x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousOn_iff_le_liminf (γ := γᵒᵈ)
 
 alias ⟨UpperSemicontinuousOn.limsup_le, _⟩ := upperSemicontinuousOn_iff_limsup_le
 
@@ -874,8 +899,9 @@ variable {γ : Type*} [LinearOrder γ]
 /-- The overlevel sets of an upper semicontinuous function on a compact set are compact. -/
 theorem UpperSemicontinuousOn.isCompact_inter_preimage_Ici {f : α → γ}
     (hfs : UpperSemicontinuousOn f s) (ks : IsCompact s) (c : γ) :
-    IsCompact (s ∩ f ⁻¹' Ici c) :=
-  LowerSemicontinuousOn.isCompact_inter_preimage_Iic (γ := γᵒᵈ) hfs ks c
+    IsCompact (s ∩ f ⁻¹' Ici c) := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.isCompact_inter_preimage_Iic (γ := γᵒᵈ) hfs ks c
 
 open scoped Set.Notation in
 /-- An intersection of overlevel sets of an upper semicontinuous function on a compact set is
@@ -883,8 +909,9 @@ disjoint from the compact set if and only if a finite sub-intersection already i
 theorem UpperSemicontinuousOn.disjoint_biInter_preimage_Ici_iff_exists_finset
     {ι : Type*} {f : ι → α → γ}
     (ks : IsCompact s) {I : Set ι} {c : γ} (hfi : ∀ i ∈ I, UpperSemicontinuousOn (f i) s) :
-    Disjoint s (⋂ i ∈ I, (f i) ⁻¹' Ici c) ↔ ∃ u : Finset I, ∀ x ∈ s, ∃ i ∈ u, f i x < c :=
-  LowerSemicontinuousOn.disjoint_biInter_preimage_Iic_iff_exists_finset ks hfi (γ := γᵒᵈ)
+    Disjoint s (⋂ i ∈ I, (f i) ⁻¹' Ici c) ↔ ∃ u : Finset I, ∀ x ∈ s, ∃ i ∈ u, f i x < c := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.disjoint_biInter_preimage_Iic_iff_exists_finset ks hfi (γ := γᵒᵈ)
 
 @[deprecated (since := "2026-08-17")]
 alias UpperSemicontinuousOn.inter_biInter_preimage_Ici_eq_empty_iff_exists_finset :=
@@ -893,12 +920,14 @@ alias UpperSemicontinuousOn.inter_biInter_preimage_Ici_eq_empty_iff_exists_finse
 variable [TopologicalSpace γ] [ClosedIicTopology γ]
 
 theorem upperSemicontinuousOn_iff_isClosed_hypograph {f : α → γ} (hs : IsClosed s) :
-    UpperSemicontinuousOn f s ↔ IsClosed {p : α × γ | p.1 ∈ s ∧ p.2 ≤ f p.1} :=
-  lowerSemicontinuousOn_iff_isClosed_epigraph hs (γ := γᵒᵈ)
+    UpperSemicontinuousOn f s ↔ IsClosed {p : α × γ | p.1 ∈ s ∧ p.2 ≤ f p.1} := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousOn_iff_isClosed_epigraph hs (γ := γᵒᵈ)
 
 theorem upperSemicontinuous_iff_IsClosed_hypograph {f : α → γ} :
-    UpperSemicontinuous f ↔ IsClosed {p : α × γ | p.2 ≤ f p.1} :=
-  lowerSemicontinuous_iff_isClosed_epigraph (γ := γᵒᵈ)
+    UpperSemicontinuous f ↔ IsClosed {p : α × γ | p.2 ≤ f p.1} := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuous_iff_isClosed_epigraph (γ := γᵒᵈ)
 
 alias ⟨UpperSemicontinuous.IsClosed_hypograph, _⟩ := upperSemicontinuous_iff_IsClosed_hypograph
 
@@ -914,12 +943,14 @@ variable {γ : Type*} [TopologicalSpace γ]
 variable {f : α → β} {s : Set α} {a : α}
 
 theorem upperSemicontinuousOn_iff_preimage_Iio [Preorder β] :
-    UpperSemicontinuousOn f s ↔ ∀ b, ∃ u : Set α, IsOpen u ∧ s ∩ f ⁻¹' Set.Iio b = s ∩ u :=
-  lowerSemicontinuousOn_iff_preimage_Ioi (β := βᵒᵈ)
+    UpperSemicontinuousOn f s ↔ ∀ b, ∃ u : Set α, IsOpen u ∧ s ∩ f ⁻¹' Set.Iio b = s ∩ u := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousOn_iff_preimage_Ioi (β := βᵒᵈ)
 
 theorem upperSemicontinuousOn_iff_preimage_Ici [LinearOrder β] :
-    UpperSemicontinuousOn f s ↔ ∀ b, ∃ v : Set α, IsClosed v ∧ s ∩ f ⁻¹' Set.Ici b = s ∩ v :=
-  lowerSemicontinuousOn_iff_preimage_Iic (γ := βᵒᵈ)
+    UpperSemicontinuousOn f s ↔ ∀ b, ∃ v : Set α, IsClosed v ∧ s ∩ f ⁻¹' Set.Ici b = s ∩ v := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousOn_iff_preimage_Iic (γ := βᵒᵈ)
 
 variable [PartialOrder β] [CommGroup β] [IsOrderedMonoid β]
 
@@ -997,12 +1028,14 @@ variable {δ : Type*} [LinearOrder δ] [TopologicalSpace δ] [OrderTopology δ]
 
 theorem ContinuousAt.comp_upperSemicontinuousWithinAt {g : γ → δ} {f : α → γ}
     (hg : ContinuousAt g (f x)) (hf : UpperSemicontinuousWithinAt f s x) (gmon : Monotone g) :
-    UpperSemicontinuousWithinAt (g ∘ f) s x :=
-  ContinuousAt.comp_lowerSemicontinuousWithinAt (γ := γᵒᵈ) (δ := δᵒᵈ) hg hf gmon.dual
+    UpperSemicontinuousWithinAt (g ∘ f) s x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_lowerSemicontinuousWithinAt (γ := γᵒᵈ) (δ := δᵒᵈ) hg hf gmon.dual
 
 theorem ContinuousAt.comp_upperSemicontinuousAt {g : γ → δ} {f : α → γ} (hg : ContinuousAt g (f x))
-    (hf : UpperSemicontinuousAt f x) (gmon : Monotone g) : UpperSemicontinuousAt (g ∘ f) x :=
-  ContinuousAt.comp_lowerSemicontinuousAt (γ := γᵒᵈ) (δ := δᵒᵈ) hg hf gmon.dual
+    (hf : UpperSemicontinuousAt f x) (gmon : Monotone g) : UpperSemicontinuousAt (g ∘ f) x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_lowerSemicontinuousAt (γ := γᵒᵈ) (δ := δᵒᵈ) hg hf gmon.dual
 
 theorem Continuous.comp_upperSemicontinuousOn {g : γ → δ} {f : α → γ} (hg : Continuous g)
     (hf : UpperSemicontinuousOn f s) (gmon : Monotone g) : UpperSemicontinuousOn (g ∘ f) s :=
@@ -1014,13 +1047,15 @@ theorem Continuous.comp_upperSemicontinuous {g : γ → δ} {f : α → γ} (hg 
 
 theorem ContinuousAt.comp_upperSemicontinuousWithinAt_antitone {g : γ → δ} {f : α → γ}
     (hg : ContinuousAt g (f x)) (hf : UpperSemicontinuousWithinAt f s x) (gmon : Antitone g) :
-    LowerSemicontinuousWithinAt (g ∘ f) s x :=
-  ContinuousAt.comp_upperSemicontinuousWithinAt (δ := δᵒᵈ) hg hf gmon
+    LowerSemicontinuousWithinAt (g ∘ f) s x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_upperSemicontinuousWithinAt (δ := δᵒᵈ) (f := f) (g := g) hg hf gmon
 
 theorem ContinuousAt.comp_upperSemicontinuousAt_antitone {g : γ → δ} {f : α → γ}
     (hg : ContinuousAt g (f x)) (hf : UpperSemicontinuousAt f x) (gmon : Antitone g) :
-    LowerSemicontinuousAt (g ∘ f) x :=
-  ContinuousAt.comp_upperSemicontinuousAt (δ := δᵒᵈ) hg hf gmon
+    LowerSemicontinuousAt (g ∘ f) x := by
+  unsealing_newtype OrderDual =>
+    exact ContinuousAt.comp_upperSemicontinuousAt (δ := δᵒᵈ) (f := f) (g := g) hg hf gmon
 
 theorem Continuous.comp_upperSemicontinuousOn_antitone {g : γ → δ} {f : α → γ} (hg : Continuous g)
     (hf : UpperSemicontinuousOn f s) (gmon : Antitone g) : LowerSemicontinuousOn (g ∘ f) s :=
@@ -1048,8 +1083,9 @@ the lemma uses `[ContinuousAdd]`. -/
 theorem UpperSemicontinuousWithinAt.add' {f g : α → γ} (hf : UpperSemicontinuousWithinAt f s x)
     (hg : UpperSemicontinuousWithinAt g s x)
     (hcont : ContinuousAt (fun p : γ × γ => p.1 + p.2) (f x, g x)) :
-    UpperSemicontinuousWithinAt (fun z => f z + g z) s x :=
-  LowerSemicontinuousWithinAt.add' (γ := γᵒᵈ) hf hg hcont
+    UpperSemicontinuousWithinAt (fun z => f z + g z) s x := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousWithinAt.add' (γ := γᵒᵈ) hf hg hcont
 
 /-- The sum of two upper semicontinuous functions is upper semicontinuous. Formulated with an
 explicit continuity assumption on addition, for application to `EReal`. The unprimed version of
@@ -1112,8 +1148,9 @@ theorem UpperSemicontinuous.add {f g : α → γ} (hf : UpperSemicontinuous f)
 
 theorem upperSemicontinuousWithinAt_sum {f : ι → α → γ} {a : Finset ι}
     (ha : ∀ i ∈ a, UpperSemicontinuousWithinAt (f i) s x) :
-    UpperSemicontinuousWithinAt (fun z => ∑ i ∈ a, f i z) s x :=
-  lowerSemicontinuousWithinAt_sum (γ := γᵒᵈ) ha
+    UpperSemicontinuousWithinAt (fun z => ∑ i ∈ a, f i z) s x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousWithinAt_sum (γ := γᵒᵈ) ha
 
 theorem upperSemicontinuousAt_sum {f : ι → α → γ} {a : Finset ι}
     (ha : ∀ i ∈ a, UpperSemicontinuousAt (f i) x) :
@@ -1141,41 +1178,49 @@ variable {α : Type*} {β : Type*} [TopologicalSpace α] [LinearOrder β]
 
 theorem UpperSemicontinuousWithinAt.inf
     (hf : UpperSemicontinuousWithinAt f s a) (hg : UpperSemicontinuousWithinAt g s a) :
-    UpperSemicontinuousWithinAt (fun x ↦ f x ⊓ g x) s a :=
-  LowerSemicontinuousWithinAt.sup (β := βᵒᵈ) hf hg
+    UpperSemicontinuousWithinAt (fun x ↦ f x ⊓ g x) s a := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousWithinAt.sup (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuousAt.inf
     (hf : UpperSemicontinuousAt f a) (hg : UpperSemicontinuousAt g a) :
-    UpperSemicontinuousAt (fun x ↦ f x ⊓ g x) a :=
-  LowerSemicontinuousAt.sup (β := βᵒᵈ) hf hg
+    UpperSemicontinuousAt (fun x ↦ f x ⊓ g x) a := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousAt.sup (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuousOn.inf
     (hf : UpperSemicontinuousOn f s) (hg : UpperSemicontinuousOn g s) :
-    UpperSemicontinuousOn (fun x ↦ f x ⊓ g x) s :=
-  LowerSemicontinuousOn.sup (β := βᵒᵈ) hf hg
+    UpperSemicontinuousOn (fun x ↦ f x ⊓ g x) s := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.sup (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuous.inf (hf : UpperSemicontinuous f) (hg : UpperSemicontinuous g) :
-    UpperSemicontinuous (fun x ↦ f x ⊓ g x) :=
-  LowerSemicontinuous.sup (β := βᵒᵈ) hf hg
+    UpperSemicontinuous (fun x ↦ f x ⊓ g x) := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuous.sup (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuousWithinAt.sup
     (hf : UpperSemicontinuousWithinAt f s a) (hg : UpperSemicontinuousWithinAt g s a) :
-    UpperSemicontinuousWithinAt (fun x ↦ f x ⊔ g x) s a :=
-  LowerSemicontinuousWithinAt.inf (β := βᵒᵈ) hf hg
+    UpperSemicontinuousWithinAt (fun x ↦ f x ⊔ g x) s a := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousWithinAt.inf (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuousAt.sup
     (hf : UpperSemicontinuousAt f a) (hg : UpperSemicontinuousAt g a) :
-    UpperSemicontinuousAt (fun x ↦ f x ⊔ g x) a :=
-  LowerSemicontinuousAt.inf (β := βᵒᵈ) hf hg
+    UpperSemicontinuousAt (fun x ↦ f x ⊔ g x) a := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousAt.inf (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuousOn.sup
     (hf : UpperSemicontinuousOn f s) (hg : UpperSemicontinuousOn g s) :
-    UpperSemicontinuousOn (fun x ↦ f x ⊔ g x) s :=
-  LowerSemicontinuousOn.inf (β := βᵒᵈ) hf hg
+    UpperSemicontinuousOn (fun x ↦ f x ⊔ g x) s := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuousOn.inf (β := βᵒᵈ) hf hg
 
 theorem UpperSemicontinuous.sup (hf : UpperSemicontinuous f) (hg : UpperSemicontinuous g) :
-    UpperSemicontinuous fun x ↦ f x ⊔ g x :=
-  LowerSemicontinuous.inf (β := βᵒᵈ) hf hg
+    UpperSemicontinuous fun x ↦ f x ⊔ g x := by
+  unsealing_newtype OrderDual =>
+    exact LowerSemicontinuous.inf (β := βᵒᵈ) hf hg
 
 
 end
@@ -1187,13 +1232,15 @@ variable {ι : Sort*} {δ δ' : Type*} [CompleteLinearOrder δ] [ConditionallyCo
 theorem upperSemicontinuousWithinAt_ciInf {f : ι → α → δ'}
     (bdd : ∀ᶠ y in 𝓝[s] x, BddBelow (range fun i => f i y))
     (h : ∀ i, UpperSemicontinuousWithinAt (f i) s x) :
-    UpperSemicontinuousWithinAt (fun x' => ⨅ i, f i x') s x :=
-  lowerSemicontinuousWithinAt_ciSup (δ' := δ'ᵒᵈ) bdd h
+    UpperSemicontinuousWithinAt (fun x' => ⨅ i, f i x') s x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousWithinAt_ciSup (δ' := δ'ᵒᵈ) bdd h
 
 theorem upperSemicontinuousWithinAt_iInf {f : ι → α → δ}
     (h : ∀ i, UpperSemicontinuousWithinAt (f i) s x) :
-    UpperSemicontinuousWithinAt (fun x' => ⨅ i, f i x') s x :=
-  lowerSemicontinuousWithinAt_iSup (δ := δᵒᵈ) h
+    UpperSemicontinuousWithinAt (fun x' => ⨅ i, f i x') s x := by
+  unsealing_newtype OrderDual =>
+    exact lowerSemicontinuousWithinAt_iSup (δ := δᵒᵈ) h
 
 theorem upperSemicontinuousWithinAt_biInf {p : ι → Prop} {f : ∀ i, p i → α → δ}
     (h : ∀ i hi, UpperSemicontinuousWithinAt (f i hi) s x) :
@@ -1202,12 +1249,14 @@ theorem upperSemicontinuousWithinAt_biInf {p : ι → Prop} {f : ∀ i, p i → 
 
 theorem upperSemicontinuousAt_ciInf {f : ι → α → δ'}
     (bdd : ∀ᶠ y in 𝓝 x, BddBelow (range fun i => f i y)) (h : ∀ i, UpperSemicontinuousAt (f i) x) :
-    UpperSemicontinuousAt (fun x' => ⨅ i, f i x') x :=
-  @lowerSemicontinuousAt_ciSup α _ x ι δ'ᵒᵈ _ f bdd h
+    UpperSemicontinuousAt (fun x' => ⨅ i, f i x') x := by
+  unsealing_newtype OrderDual =>
+    exact @lowerSemicontinuousAt_ciSup α _ x ι δ'ᵒᵈ _ f bdd h
 
 theorem upperSemicontinuousAt_iInf {f : ι → α → δ} (h : ∀ i, UpperSemicontinuousAt (f i) x) :
-    UpperSemicontinuousAt (fun x' => ⨅ i, f i x') x :=
-  @lowerSemicontinuousAt_iSup α _ x ι δᵒᵈ _ f h
+    UpperSemicontinuousAt (fun x' => ⨅ i, f i x') x := by
+  unsealing_newtype OrderDual =>
+    exact @lowerSemicontinuousAt_iSup α _ x ι δᵒᵈ _ f h
 
 theorem upperSemicontinuousAt_biInf {p : ι → Prop} {f : ∀ i, p i → α → δ}
     (h : ∀ i hi, UpperSemicontinuousAt (f i hi) x) :

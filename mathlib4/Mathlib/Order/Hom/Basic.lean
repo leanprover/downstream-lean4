@@ -504,7 +504,7 @@ theorem orderHom_eq_id [Subsingleton α] (g : α →o α) : g = OrderHom.id :=
 protected def dual : (α →o β) ≃ (αᵒᵈ →o βᵒᵈ) where
   toFun f := ⟨(OrderDual.toDual : β → βᵒᵈ) ∘ (f : α → β) ∘
     (OrderDual.ofDual : αᵒᵈ → α), f.mono.dual⟩
-  invFun f := ⟨OrderDual.ofDual ∘ f ∘ OrderDual.toDual, f.mono.dual⟩
+  invFun f := ⟨OrderDual.ofDual ∘ f ∘ OrderDual.toDual, fun _ _ h ↦ f.mono h⟩
 
 @[simp]
 theorem dual_id : (OrderHom.id : α →o α).dual = OrderHom.id :=
@@ -527,7 +527,7 @@ theorem symm_dual_comp (g : βᵒᵈ →o γᵒᵈ) (f : αᵒᵈ →o βᵒᵈ)
 /-- `OrderHom.dual` as an order isomorphism. -/
 def dualIso (α β : Type*) [Preorder α] [Preorder β] : (α →o β) ≃o (αᵒᵈ →o βᵒᵈ)ᵒᵈ where
   toEquiv := OrderHom.dual.trans OrderDual.toDual
-  map_rel_iff' := Iff.rfl
+  map_rel_iff' := ⟨fun h x ↦ h (OrderDual.toDual x), fun h x ↦ h (OrderDual.ofDual x)⟩
 
 /-- Lift an order homomorphism `f : α →o β` to an order homomorphism `ULift α →o ULift β` in a
 higher universe. -/
@@ -655,7 +655,8 @@ protected theorem isWellOrder [IsWellOrder β (· < ·)] (f : α ↪o β) : IsWe
 
 /-- An order embedding is also an order embedding between dual orders. -/
 protected def dual : αᵒᵈ ↪o βᵒᵈ :=
-  ⟨f.toEmbedding, f.map_rel_iff⟩
+  ⟨⟨fun a ↦ OrderDual.toDual (f (OrderDual.ofDual a)), fun _ _ h ↦
+    congrArg OrderDual.mk (f.injective (congrArg OrderDual.ofDual' h))⟩, f.map_rel_iff⟩
 
 /-- A preorder which embeds into a well-founded preorder is itself well-founded. -/
 @[to_dual /-- A preorder which embeds into a preorder in which `(· > ·)` is well-founded
@@ -736,8 +737,9 @@ lemma Disjoint.of_orderEmbedding [OrderBot α] [OrderBot β] {a₁ a₂ : α} :
 /-- If the images by an order embedding of two elements are codisjoint,
 then they are themselves codisjoint. -/
 lemma Codisjoint.of_orderEmbedding [OrderTop α] [OrderTop β] {a₁ a₂ : α} :
-    Codisjoint (f a₁) (f a₂) → Codisjoint a₁ a₂ :=
-  Disjoint.of_orderEmbedding (α := αᵒᵈ) (β := βᵒᵈ) f.dual
+    Codisjoint (f a₁) (f a₂) → Codisjoint a₁ a₂ := by
+  unsealing_newtype OrderDual =>
+    exact Disjoint.of_orderEmbedding (α := αᵒᵈ) (β := βᵒᵈ) f.dual
 
 /-- If the images by an order embedding of two elements are complements,
 then they are themselves complements. -/
@@ -1013,8 +1015,9 @@ theorem prodComm_symm : (prodComm : α × β ≃o β × α).symm = prodComm :=
 variable (α)
 
 /-- The order isomorphism between a type and its double dual. -/
-def dualDual : α ≃o αᵒᵈᵒᵈ :=
-  refl α
+def dualDual : α ≃o αᵒᵈᵒᵈ where
+  toEquiv := OrderDual.toDual.trans OrderDual.toDual
+  map_rel_iff' := Iff.rfl
 
 @[simp]
 theorem coe_dualDual : ⇑(dualDual α) = toDual ∘ toDual :=
@@ -1212,7 +1215,7 @@ end StrictMono
 
 /-- An order isomorphism is also an order isomorphism between dual orders. -/
 protected def OrderIso.dual [LE α] [LE β] (f : α ≃o β) : αᵒᵈ ≃o βᵒᵈ :=
-  ⟨f.toEquiv, f.le_iff_le⟩
+  ⟨OrderDual.ofDual.trans (f.toEquiv.trans OrderDual.toDual), f.le_iff_le⟩
 
 section
 variable [LE α] [LE β] (f : α ≃o β)

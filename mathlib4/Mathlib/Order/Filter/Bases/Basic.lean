@@ -574,9 +574,10 @@ theorem HasBasis.eq_iInf (h : l.HasBasis (fun _ => True) s) : l = ⨅ i, 𝓟 (s
   simpa only [iInf_true] using h.eq_biInf
 
 theorem hasBasis_iInf_principal {s : ι → Set α} (h : Directed (· ≥ ·) s) [Nonempty ι] :
-    (⨅ i, 𝓟 (s i)).HasBasis (fun _ => True) s :=
-  ⟨fun t => by
-    simpa only [true_and] using! mem_iInf_of_directed (h.mono_comp _ monotone_principal.dual) t⟩
+    (⨅ i, 𝓟 (s i)).HasBasis (fun _ => True) s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun t => by
+        simpa only [true_and] using! mem_iInf_of_directed (h.mono_comp _ monotone_principal.dual) t⟩
 
 theorem hasBasis_biInf_principal {s : β → Set α} {S : Set β} (h : DirectedOn (s ⁻¹'o (· ≥ ·)) S)
     (ne : S.Nonempty) : (⨅ i ∈ S, 𝓟 (s i)).HasBasis (fun i => i ∈ S) s :=
@@ -730,8 +731,9 @@ theorem HasBasis.prod_same_index_mono {ι : Type*} [LinearOrder ι] {p : ι → 
 theorem HasBasis.prod_same_index_anti {ι : Type*} [LinearOrder ι] {p : ι → Prop} {sa : ι → Set α}
     {sb : ι → Set β} (hla : la.HasBasis p sa) (hlb : lb.HasBasis p sb)
     (hsa : AntitoneOn sa { i | p i }) (hsb : AntitoneOn sb { i | p i }) :
-    (la ×ˢ lb).HasBasis p fun i => sa i ×ˢ sb i :=
-  @HasBasis.prod_same_index_mono _ _ _ _ ιᵒᵈ _ _ _ _ hla hlb hsa.dual_left hsb.dual_left
+    (la ×ˢ lb).HasBasis p fun i => sa i ×ˢ sb i := by
+  unsealing_newtype OrderDual =>
+    exact @HasBasis.prod_same_index_mono _ _ _ _ ιᵒᵈ _ _ _ _ hla hlb hsa.dual_left hsb.dual_left
 
 theorem HasBasis.prod_self (hl : la.HasBasis pa sa) :
     (la ×ˢ la).HasBasis pa fun i => sa i ×ˢ sa i :=

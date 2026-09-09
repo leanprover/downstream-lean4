@@ -58,8 +58,9 @@ variable {α}
 
 @[to_dual]
 protected theorem dual :
-    LeftOrdContinuous f → RightOrdContinuous (toDual ∘ f ∘ ofDual) :=
-  id
+    LeftOrdContinuous f → RightOrdContinuous (toDual ∘ f ∘ ofDual) := by
+  unsealing_newtype OrderDual =>
+    exact id
 
 @[deprecated (since := "2026-04-08")] alias rightOrdContinuous_dual := LeftOrdContinuous.dual
 

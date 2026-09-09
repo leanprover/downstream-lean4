@@ -91,18 +91,19 @@ set_option backward.defeqAttrib.useBackward true in
 lemma isArtinianObject_iff_isEventuallyConstant :
     IsArtinianObject X ↔ ∀ (F : ℕ ⥤ (MonoOver X)ᵒᵖ),
       IsFiltered.IsEventuallyConstant F := by
-  rw [isArtinianObject_iff_antitone_chain_condition]
-  refine ⟨fun h G ↦ ?_, fun h F ↦ ?_⟩
-  · obtain ⟨n, hn⟩ := h ⟨_, (G ⋙ (Subobject.equivMonoOver X).inverse.op ⋙
-      (orderDualEquivalence _).inverse).monotone⟩
-    refine ⟨n, fun m hm ↦ ?_⟩
-    rw [← isIso_unop_iff, MonoOver.isIso_iff_subobjectMk_eq]
-    exact (hn m (leOfHom hm)).symm
-  · obtain ⟨n, hn⟩ := h (F.monotone.functor ⋙ (orderDualEquivalence _).functor ⋙
-      Subobject.representative.op)
-    refine ⟨n, fun m hm ↦ Eq.symm ?_⟩
-    simpa [isIso_op_iff, isIso_iff_of_reflects_iso, PartialOrder.isIso_iff_eq]
-      using hn (homOfLE hm)
+  unsealing_newtype OrderDual =>
+    rw [isArtinianObject_iff_antitone_chain_condition]
+    refine ⟨fun h G ↦ ?_, fun h F ↦ ?_⟩
+    · obtain ⟨n, hn⟩ := h ⟨_, (G ⋙ (Subobject.equivMonoOver X).inverse.op ⋙
+        (orderDualEquivalence _).inverse).monotone⟩
+      refine ⟨n, fun m hm ↦ ?_⟩
+      rw [← isIso_unop_iff, MonoOver.isIso_iff_subobjectMk_eq]
+      exact (hn m (leOfHom hm)).symm
+    · obtain ⟨n, hn⟩ := h (F.monotone.functor ⋙ (orderDualEquivalence _).functor ⋙
+        Subobject.representative.op)
+      refine ⟨n, fun m hm ↦ Eq.symm ?_⟩
+      simpa [isIso_op_iff, isIso_iff_of_reflects_iso, PartialOrder.isIso_iff_eq]
+        using hn (homOfLE hm)
 
 variable {X} in
 lemma isEventuallyConstant_of_isArtinianObject [IsArtinianObject X]
@@ -124,12 +125,13 @@ instance [HasZeroObject C] : (isArtinianObject (C := C)).ContainsZero where
 
 lemma isArtinianObject_of_mono (i : X ⟶ Y) [Mono i] [IsArtinianObject Y] :
     IsArtinianObject X := by
-  rw [isArtinianObject_iff_antitone_chain_condition]
-  intro f
-  obtain ⟨n, hn⟩ := antitone_chain_condition_of_isArtinianObject
-    ⟨fun n ↦ (Subobject.map i).obj (f n),
-      fun _ _ h ↦ (Subobject.map i).monotone (f.2 h)⟩
-  exact ⟨n, fun m hm ↦ Subobject.map_obj_injective i (hn m hm)⟩
+  unsealing_newtype OrderDual =>
+    rw [isArtinianObject_iff_antitone_chain_condition]
+    intro f
+    obtain ⟨n, hn⟩ := antitone_chain_condition_of_isArtinianObject
+      ⟨fun n ↦ (Subobject.map i).obj (f n),
+        fun _ _ h ↦ (Subobject.map i).monotone (f.2 h)⟩
+    exact ⟨n, fun m hm ↦ Subobject.map_obj_injective i (hn m hm)⟩
 
 instance : (isArtinianObject (C := C)).IsClosedUnderSubobjects where
   prop_of_mono f _ hY := by

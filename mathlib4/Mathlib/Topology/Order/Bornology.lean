@@ -105,8 +105,8 @@ lemma Nonempty.of_isOrderBornology : Nonempty α := Bornology.isBounded_empty.bd
 instance IsOrderBornology.neBot_cobounded_of_noBotOrder [NoBotOrder α] : (cobounded α).NeBot := by
   simp [Filter.neBot_iff, cobounded_eq_bot_iff, ← isBounded_univ, isBounded_iff_bddBelow_bddAbove]
 
-instance IsOrderBornology.neBot_cobounded_of_noTopOrder [NoTopOrder α] : (cobounded α).NeBot :=
-  neBot_cobounded_of_noBotOrder (α := αᵒᵈ)
+instance IsOrderBornology.neBot_cobounded_of_noTopOrder [NoTopOrder α] : (cobounded α).NeBot := by
+  simp [Filter.neBot_iff, cobounded_eq_bot_iff, ← isBounded_univ, isBounded_iff_bddBelow_bddAbove]
 
 lemma IsOrderBornology.atTop_le_cobounded [NoMaxOrder α] : .atTop ≤ Bornology.cobounded α := by
   intro s hs
@@ -119,8 +119,9 @@ lemma IsOrderBornology.atTop_le_cobounded [NoMaxOrder α] : .atTop ≤ Bornology
 
 -- TODO (khw): Generate this in the future with `to_dual`
 -- See https://github.com/leanprover-community/mathlib4/pull/37738
-lemma IsOrderBornology.atBot_le_cobounded [NoMinOrder α] : .atBot ≤ Bornology.cobounded α :=
-  atTop_le_cobounded (α := αᵒᵈ)
+lemma IsOrderBornology.atBot_le_cobounded [NoMinOrder α] : .atBot ≤ Bornology.cobounded α := by
+  unsealing_newtype OrderDual =>
+    exact atTop_le_cobounded (α := αᵒᵈ)
 
 end Preorder
 
@@ -157,7 +158,9 @@ lemma IsOrderBornology.cobounded_eq_atTop [NoMaxOrder α] [OrderBot α] :
 -- See https://github.com/leanprover-community/mathlib4/pull/37738
 @[to_dual existing]
 lemma IsOrderBornology.cobounded_eq_atBot [NoMinOrder α] [OrderTop α] :
-    Bornology.cobounded α = .atBot := cobounded_eq_atTop (α := αᵒᵈ)
+    Bornology.cobounded α = .atBot := by
+  unsealing_newtype OrderDual =>
+    exact cobounded_eq_atTop (α := αᵒᵈ)
 
 end LinearOrder
 

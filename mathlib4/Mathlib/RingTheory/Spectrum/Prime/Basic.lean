@@ -183,29 +183,35 @@ variable (R)
 
 /-- `zeroLocus` and `vanishingIdeal` form a Galois connection. -/
 theorem gc :
-    @GaloisConnection (Ideal R) (Set (PrimeSpectrum R))ᵒᵈ _ _ (fun I => zeroLocus I) fun t =>
-      vanishingIdeal t :=
-  fun I t => subset_zeroLocus_iff_le_vanishingIdeal t I
+    @GaloisConnection (Ideal R) (Set (PrimeSpectrum R))ᵒᵈ _ _
+      (fun I => OrderDual.toDual (zeroLocus I)) fun t =>
+      vanishingIdeal (OrderDual.ofDual t) := by
+  unsealing_newtype OrderDual =>
+    exact fun I t => subset_zeroLocus_iff_le_vanishingIdeal t I
 
 set_option backward.isDefEq.respectTransparency false in
 /-- `zeroLocus` and `vanishingIdeal` form a Galois connection. -/
 theorem gc_set :
-    @GaloisConnection (Set R) (Set (PrimeSpectrum R))ᵒᵈ _ _ (fun s => zeroLocus s) fun t =>
-      vanishingIdeal t := by
+    @GaloisConnection (Set R) (Set (PrimeSpectrum R))ᵒᵈ _ _
+      (fun s => OrderDual.toDual (zeroLocus s)) fun t =>
+      vanishingIdeal (OrderDual.ofDual t) := by
   have ideal_gc : GaloisConnection Ideal.span _ := (Submodule.gi R R).gc
   simpa [zeroLocus_span, Function.comp_def] using ideal_gc.compose (gc R)
 
 theorem subset_zeroLocus_iff_subset_vanishingIdeal (t : Set (PrimeSpectrum R)) (s : Set R) :
-    t ⊆ zeroLocus s ↔ s ⊆ vanishingIdeal t :=
-  (gc_set R) s t
+    t ⊆ zeroLocus s ↔ s ⊆ vanishingIdeal t := by
+  unsealing_newtype OrderDual =>
+    exact (gc_set R) s t
 
 end Gc
 
-theorem subset_vanishingIdeal_zeroLocus (s : Set R) : s ⊆ vanishingIdeal (zeroLocus s) :=
-  (gc_set R).le_u_l s
+theorem subset_vanishingIdeal_zeroLocus (s : Set R) : s ⊆ vanishingIdeal (zeroLocus s) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_set R).le_u_l s
 
-theorem le_vanishingIdeal_zeroLocus (I : Ideal R) : I ≤ vanishingIdeal (zeroLocus I) :=
-  (gc R).le_u_l I
+theorem le_vanishingIdeal_zeroLocus (I : Ideal R) : I ≤ vanishingIdeal (zeroLocus I) := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).le_u_l I
 
 @[simp]
 theorem vanishingIdeal_zeroLocus_eq_radical (I : Ideal R) :
@@ -221,12 +227,14 @@ theorem nilradical_eq_iInf : nilradical R = iInf asIdeal := by
   rw [vanishingIdeal, iInf_univ, nilradical_eq_iInf]
 
 @[simp]
-theorem zeroLocus_radical (I : Ideal R) : zeroLocus (I.radical : Set R) = zeroLocus I :=
-  vanishingIdeal_zeroLocus_eq_radical I ▸ (gc R).l_u_l_eq_l I
+theorem zeroLocus_radical (I : Ideal R) : zeroLocus (I.radical : Set R) = zeroLocus I := by
+  unsealing_newtype OrderDual =>
+    exact vanishingIdeal_zeroLocus_eq_radical I ▸ (gc R).l_u_l_eq_l I
 
 theorem subset_zeroLocus_vanishingIdeal (t : Set (PrimeSpectrum R)) :
-    t ⊆ zeroLocus (vanishingIdeal t) :=
-  (gc R).l_u_le t
+    t ⊆ zeroLocus (vanishingIdeal t) := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).l_u_le t
 
 theorem zeroLocus_anti_mono {s t : Set R} (h : s ⊆ t) : zeroLocus t ⊆ zeroLocus s :=
   (gc_set R).monotone_l h
@@ -236,8 +244,9 @@ theorem zeroLocus_anti_mono_ideal {s t : Ideal R} (h : s ≤ t) :
   (gc R).monotone_l h
 
 theorem vanishingIdeal_anti_mono {s t : Set (PrimeSpectrum R)} (h : s ⊆ t) :
-    vanishingIdeal t ≤ vanishingIdeal s :=
-  (gc R).monotone_u h
+    vanishingIdeal t ≤ vanishingIdeal s := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).monotone_u h
 
 theorem zeroLocus_subset_zeroLocus_iff (I J : Ideal R) :
     zeroLocus (I : Set R) ⊆ zeroLocus (J : Set R) ↔ J ≤ I.radical := by
@@ -248,8 +257,9 @@ theorem zeroLocus_subset_zeroLocus_singleton_iff (f g : R) :
   rw [← zeroLocus_span {f}, ← zeroLocus_span {g}, zeroLocus_subset_zeroLocus_iff, Ideal.span_le,
     Set.singleton_subset_iff, SetLike.mem_coe]
 
-theorem zeroLocus_bot : zeroLocus ((⊥ : Ideal R) : Set R) = Set.univ :=
-  (gc R).l_bot
+theorem zeroLocus_bot : zeroLocus ((⊥ : Ideal R) : Set R) = Set.univ := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).l_bot
 
 @[simp]
 lemma zeroLocus_nilradical : zeroLocus (nilradical R : Set R) = Set.univ := by
@@ -260,8 +270,9 @@ theorem zeroLocus_singleton_zero : zeroLocus ({0} : Set R) = Set.univ :=
   zeroLocus_bot
 
 @[simp]
-theorem zeroLocus_empty : zeroLocus (∅ : Set R) = Set.univ :=
-  (gc_set R).l_bot
+theorem zeroLocus_empty : zeroLocus (∅ : Set R) = Set.univ := by
+  unsealing_newtype OrderDual =>
+    exact (gc_set R).l_bot
 
 @[simp]
 theorem vanishingIdeal_empty : vanishingIdeal (∅ : Set (PrimeSpectrum R)) = ⊤ := by
@@ -304,34 +315,41 @@ theorem zeroLocus_eq_univ_iff (s : Set R) :
   rw [← Set.univ_subset_iff, subset_zeroLocus_iff_subset_vanishingIdeal, vanishingIdeal_univ]
 
 theorem zeroLocus_sup (I J : Ideal R) :
-    zeroLocus ((I ⊔ J : Ideal R) : Set R) = zeroLocus I ∩ zeroLocus J :=
-  (gc R).l_sup
+    zeroLocus ((I ⊔ J : Ideal R) : Set R) = zeroLocus I ∩ zeroLocus J := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).l_sup
 
-theorem zeroLocus_union (s s' : Set R) : zeroLocus (s ∪ s') = zeroLocus s ∩ zeroLocus s' :=
-  (gc_set R).l_sup
+theorem zeroLocus_union (s s' : Set R) : zeroLocus (s ∪ s') = zeroLocus s ∩ zeroLocus s' := by
+  unsealing_newtype OrderDual =>
+    exact (gc_set R).l_sup
 
 theorem vanishingIdeal_union (t t' : Set (PrimeSpectrum R)) :
-    vanishingIdeal (t ∪ t') = vanishingIdeal t ⊓ vanishingIdeal t' :=
-  (gc R).u_inf
+    vanishingIdeal (t ∪ t') = vanishingIdeal t ⊓ vanishingIdeal t' := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).u_inf
 
 theorem zeroLocus_iSup {ι : Sort*} (I : ι → Ideal R) :
-    zeroLocus ((⨆ i, I i : Ideal R) : Set R) = ⋂ i, zeroLocus (I i) :=
-  (gc R).l_iSup
+    zeroLocus ((⨆ i, I i : Ideal R) : Set R) = ⋂ i, zeroLocus (I i) := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).l_iSup
 
 theorem zeroLocus_iUnion {ι : Sort*} (s : ι → Set R) :
-    zeroLocus (⋃ i, s i) = ⋂ i, zeroLocus (s i) :=
-  (gc_set R).l_iSup
+    zeroLocus (⋃ i, s i) = ⋂ i, zeroLocus (s i) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_set R).l_iSup
 
 theorem zeroLocus_iUnion₂ {ι : Sort*} {κ : (i : ι) → Sort*} (s : ∀ i, κ i → Set R) :
     zeroLocus (⋃ (i) (j), s i j) = ⋂ (i) (j), zeroLocus (s i j) :=
-  (gc_set R).l_iSup₂
+ by
+  simp only [zeroLocus_iUnion]
 
 theorem zeroLocus_bUnion (s : Set (Set R)) :
     zeroLocus (⋃ s' ∈ s, s' : Set R) = ⋂ s' ∈ s, zeroLocus s' := by simp only [zeroLocus_iUnion]
 
 theorem vanishingIdeal_iUnion {ι : Sort*} (t : ι → Set (PrimeSpectrum R)) :
-    vanishingIdeal (⋃ i, t i) = ⨅ i, vanishingIdeal (t i) :=
-  (gc R).u_iInf
+    vanishingIdeal (⋃ i, t i) = ⨅ i, vanishingIdeal (t i) := by
+  unsealing_newtype OrderDual =>
+    exact (gc R).u_iInf
 
 theorem zeroLocus_inf (I J : Ideal R) :
     zeroLocus ((I ⊓ J : Ideal R) : Set R) = zeroLocus I ∪ zeroLocus J :=

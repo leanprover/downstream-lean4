@@ -148,4 +148,9 @@ end ProperSpace
 
 instance [PseudoMetricSpace X] [ProperSpace X] : ProperSpace (Additive X) := ‹ProperSpace X›
 instance [PseudoMetricSpace X] [ProperSpace X] : ProperSpace (Multiplicative X) := ‹ProperSpace X›
-instance [PseudoMetricSpace X] [ProperSpace X] : ProperSpace Xᵒᵈ := ‹ProperSpace X›
+instance [PseudoMetricSpace X] [ProperSpace X] : ProperSpace Xᵒᵈ :=
+  ⟨fun x r ↦ by
+    have h : Metric.closedBall x r = OrderDual.toDual '' Metric.closedBall (OrderDual.ofDual x) r :=
+      by rw [Equiv.image_eq_preimage_symm, OrderDual.toDual_symm_eq]; rfl
+    rw [h]
+    exact (isCompact_closedBall _ _).image continuous_toDual⟩

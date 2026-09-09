@@ -139,7 +139,8 @@ end
 /-!
 ### Order dual
 
-The topology on this type synonym is inherited without change.
+The topology on `Xᵒᵈ` is coinduced by `toDual`.
+A set is open exactly when its preimage under `toDual` is open in `X`.
 -/
 
 
@@ -149,29 +150,64 @@ variable [TopologicalSpace X]
 
 open OrderDual
 
-instance OrderDual.instTopologicalSpace : TopologicalSpace Xᵒᵈ := ‹_›
-instance OrderDual.instDiscreteTopology [DiscreteTopology X] : DiscreteTopology Xᵒᵈ := ‹_›
+instance OrderDual.instTopologicalSpace : TopologicalSpace Xᵒᵈ := .coinduced toDual ‹_›
 
-theorem continuous_toDual : Continuous (toDual : X → Xᵒᵈ) := continuous_id
+@[simp] theorem OrderDual.isOpen_preimage_toDual {s : Set Xᵒᵈ} :
+    IsOpen (toDual ⁻¹' s) ↔ IsOpen s := Iff.rfl
 
-theorem continuous_ofDual : Continuous (ofDual : Xᵒᵈ → X) := continuous_id
+@[simp] theorem OrderDual.isClosed_preimage_toDual {s : Set Xᵒᵈ} :
+    IsClosed (toDual ⁻¹' s) ↔ IsClosed s :=
+  ⟨fun h ↦ ⟨h.isOpen_compl⟩, fun h ↦ ⟨h.isOpen_compl⟩⟩
 
-theorem isOpenMap_toDual : IsOpenMap (toDual : X → Xᵒᵈ) := IsOpenMap.id
+instance OrderDual.instDiscreteTopology [DiscreteTopology X] : DiscreteTopology Xᵒᵈ :=
+  discreteTopology_iff_forall_isOpen.2 fun s ↦ isOpen_discrete (⇑toDual ⁻¹' s)
 
-theorem isOpenMap_ofDual : IsOpenMap (ofDual : Xᵒᵈ → X) := IsOpenMap.id
+theorem continuous_toDual : Continuous (toDual : X → Xᵒᵈ) := continuous_coinduced_rng
 
-theorem isClosedMap_toDual : IsClosedMap (toDual : X → Xᵒᵈ) := IsClosedMap.id
+theorem continuous_ofDual : Continuous (ofDual : Xᵒᵈ → X) := by
+  unsealing_newtype OrderDual =>
+    exact continuous_id
 
-theorem isClosedMap_ofDual : IsClosedMap (ofDual : Xᵒᵈ → X) := IsClosedMap.id
+theorem isOpenMap_toDual : IsOpenMap (toDual : X → Xᵒᵈ) := by
+  unsealing_newtype OrderDual =>
+    exact IsOpenMap.id
 
-theorem nhds_toDual (x : X) : 𝓝 (toDual x) = map toDual (𝓝 x) := rfl
+theorem isOpenMap_ofDual : IsOpenMap (ofDual : Xᵒᵈ → X) := by
+  unsealing_newtype OrderDual =>
+    exact IsOpenMap.id
 
-theorem nhds_ofDual (x : X) : 𝓝 (ofDual x) = map ofDual (𝓝 x) := rfl
+theorem isClosedMap_toDual : IsClosedMap (toDual : X → Xᵒᵈ) := by
+  unsealing_newtype OrderDual =>
+    exact IsClosedMap.id
+
+theorem isClosedMap_ofDual : IsClosedMap (ofDual : Xᵒᵈ → X) := by
+  unsealing_newtype OrderDual =>
+    exact IsClosedMap.id
+
+theorem nhds_toDual (x : X) : 𝓝 (toDual x) = map toDual (𝓝 x) := by
+  unsealing_newtype OrderDual => rfl
+
+theorem nhds_ofDual (x : Xᵒᵈ) : 𝓝 (ofDual x) = map ofDual (𝓝 x) := by
+  have h := nhds_toDual (OrderDual.ofDual x)
+  rw [OrderDual.toDual_ofDual] at h
+  rw [h, Filter.map_map]
+  simp only [Function.comp_def, OrderDual.ofDual_toDual, Filter.map_id']
 
 variable [Preorder X] {x : X}
 
-instance OrderDual.instNeBotNhdsWithinIoi [(𝓝[<] x).NeBot] : (𝓝[>] toDual x).NeBot := ‹_›
-instance OrderDual.instNeBotNhdsWithinIio [(𝓝[>] x).NeBot] : (𝓝[<] toDual x).NeBot := ‹_›
+instance OrderDual.instNeBotNhdsWithinIoi [h : (𝓝[<] x).NeBot] : (𝓝[>] toDual x).NeBot := by
+  have : 𝓝[>] toDual x = map toDual (𝓝[<] x) := by
+    rw [nhdsWithin, nhdsWithin, nhds_toDual, Filter.map_inf toDual.injective,
+      Filter.map_principal, Equiv.image_eq_preimage_symm, OrderDual.toDual_symm_eq, Set.Ioi_toDual]
+  rw [this]
+  exact h.map _
+
+instance OrderDual.instNeBotNhdsWithinIio [h : (𝓝[>] x).NeBot] : (𝓝[<] toDual x).NeBot := by
+  have : 𝓝[<] toDual x = map toDual (𝓝[>] x) := by
+    rw [nhdsWithin, nhdsWithin, nhds_toDual, Filter.map_inf toDual.injective,
+      Filter.map_principal, Equiv.image_eq_preimage_symm, OrderDual.toDual_symm_eq, Set.Iio_toDual]
+  rw [this]
+  exact h.map _
 
 end
 

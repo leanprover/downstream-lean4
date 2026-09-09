@@ -376,8 +376,9 @@ lemma starConvex_compl_Iic (h : x < y) : StarConvex 𝕜 y (Iic x)ᶜ := by
       gcongr
 
 /-- If `x < y`, then `(Set.Ici y)ᶜ` is star convex at `x`. -/
-lemma starConvex_compl_Ici (h : x < y) : StarConvex 𝕜 x (Ici y)ᶜ :=
-  starConvex_compl_Iic (E := Eᵒᵈ) h
+lemma starConvex_compl_Ici (h : x < y) : StarConvex 𝕜 x (Ici y)ᶜ := by
+  unsealing_newtype OrderDual =>
+    exact starConvex_compl_Iic (E := Eᵒᵈ) h
 
 end OrderedAddCommGroup
 

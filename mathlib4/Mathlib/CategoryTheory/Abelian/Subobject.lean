@@ -36,10 +36,12 @@ since mathlib does not have a notion of quotient objects at the time of writing.
 def subobjectIsoSubobjectOp [Abelian C] (X : C) : Subobject X ≃o (Subobject (op X))ᵒᵈ := by
   refine OrderIso.ofHomInv (cokernelOrderHom X) (kernelOrderHom X) ?_ ?_
   · change (cokernelOrderHom X).comp (kernelOrderHom X) = _
-    refine OrderHom.ext _ _ (funext (Subobject.ind _ ?_))
+    refine OrderHom.ext _ _
+      (funext (OrderDual.toDual.surjective.forall.2 (Subobject.ind _ ?_)))
     intro A f hf
     dsimp only [OrderHom.comp_coe, Function.comp_apply, kernelOrderHom_coe, Subobject.lift_mk,
-      cokernelOrderHom_coe, OrderHom.id_coe, id]
+      cokernelOrderHom_coe, OrderHom.id_coe, id, OrderDual.ofDual_toDual]
+    refine OrderDual.toDual_inj.mpr ?_
     refine Subobject.mk_eq_mk_of_comm _ _
         ⟨?_, ?_, Quiver.Hom.unop_inj ?_, Quiver.Hom.unop_inj ?_⟩ ?_
     · exact (Abelian.epiDesc f.unop _ (cokernel.condition (kernel.ι f.unop))).op
@@ -54,7 +56,8 @@ def subobjectIsoSubobjectOp [Abelian C] (X : C) : Subobject X ≃o (Subobject (o
     refine OrderHom.ext _ _ (funext (Subobject.ind _ ?_))
     intro A f hf
     dsimp only [OrderHom.comp_coe, Function.comp_apply, cokernelOrderHom_coe, Subobject.lift_mk,
-      kernelOrderHom_coe, OrderHom.id_coe, id, unop_op, Quiver.Hom.unop_op]
+      kernelOrderHom_coe, OrderHom.id_coe, id, unop_op, Quiver.Hom.unop_op,
+      OrderDual.ofDual_toDual]
     refine Subobject.mk_eq_mk_of_comm _ _ ⟨?_, ?_, ?_, ?_⟩ ?_
     · exact Abelian.monoLift f _ (kernel.condition (cokernel.π f))
     · exact kernel.lift _ _ (cokernel.condition f)
@@ -67,6 +70,7 @@ def subobjectIsoSubobjectOp [Abelian C] (X : C) : Subobject X ≃o (Subobject (o
 instance wellPowered_opposite [Abelian C] [LocallySmall.{w} C] [WellPowered.{w} C] :
     WellPowered.{w} Cᵒᵖ where
   subobject_small X :=
-    (small_congr (subobjectIsoSubobjectOp (unop X)).toEquiv).1 inferInstance
+    (small_congr ((subobjectIsoSubobjectOp (unop X)).toEquiv.trans OrderDual.ofDual)).1
+      inferInstance
 
 end CategoryTheory.Abelian

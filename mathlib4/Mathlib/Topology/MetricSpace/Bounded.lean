@@ -662,7 +662,8 @@ This is a convenient combination of `Continuous.exists_forall_ge'` and
 theorem exists_forall_ge_of_isBounded {f : β → α} (hf : Continuous f) (x₀ : β)
     (h : Bornology.IsBounded {x : β | f x₀ ≤ f x}) :
     ∃ x, ∀ y, f y ≤ f x :=
-  hf.exists_forall_le_of_isBounded (α := αᵒᵈ) x₀ h
+  Continuous.exists_forall_le_of_isBounded (α := αᵒᵈ)
+    (continuous_toDual.comp hf) x₀ h
 
 end Continuous
 

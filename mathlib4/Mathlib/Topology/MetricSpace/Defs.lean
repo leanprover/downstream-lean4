@@ -252,7 +252,7 @@ section
 
 variable [Dist X]
 
-instance : Dist Xᵒᵈ := ‹Dist X›
+instance : Dist Xᵒᵈ := ⟨fun a b ↦ dist (ofDual a) (ofDual b)⟩
 
 @[simp] theorem dist_toDual (a b : X) : dist (toDual a) (toDual b) = dist a b := rfl
 
@@ -260,4 +260,6 @@ instance : Dist Xᵒᵈ := ‹Dist X›
 
 end
 
-instance [MetricSpace X] : MetricSpace Xᵒᵈ := ‹MetricSpace X›
+instance [MetricSpace X] : MetricSpace Xᵒᵈ where
+  toPseudoMetricSpace := inferInstance
+  eq_of_dist_eq_zero h := congrArg toDual (eq_of_dist_eq_zero h)

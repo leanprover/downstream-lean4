@@ -124,15 +124,6 @@ range of `Set.ordConnectedProj s`. -/
 noncomputable def ordConnectedSection (s : Set α) : Set α :=
   range <| ordConnectedProj s
 
-theorem dual_ordConnectedSection (s : Set α) :
-    ordConnectedSection (ofDual ⁻¹' s) = ofDual ⁻¹' ordConnectedSection s := by
-  simp only [ordConnectedSection]
-  simp +unfoldPartialApp only [ordConnectedProj]
-  ext x
-  simp only [mem_range, Subtype.exists, mem_preimage, OrderDual.exists, dual_ordConnectedComponent,
-    ofDual_toDual]
-  tauto
-
 theorem ordConnectedSection_subset : ordConnectedSection s ⊆ s :=
   range_subset_iff.2 fun _ => ordConnectedComponent_subset <| Nonempty.some_mem _
 

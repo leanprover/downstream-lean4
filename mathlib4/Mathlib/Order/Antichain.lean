@@ -166,15 +166,20 @@ theorem preimage_iso_iff [LE α] [LE β] {t : Set β} {φ : α ≃o β} :
     IsAntichain (· ≤ ·) (φ ⁻¹' t) ↔ IsAntichain (· ≤ ·) t :=
   ⟨fun h => (φ.image_preimage t).subst (h.image_iso φ), fun h => h.preimage_iso _⟩
 
-theorem to_dual [LE α] (hs : IsAntichain (· ≤ ·) s) : @IsAntichain αᵒᵈ (· ≤ ·) s :=
-  fun _ ha _ hb hab => hs hb ha hab.symm
+theorem to_dual [LE α] (hs : IsAntichain (· ≤ ·) s) :
+    @IsAntichain αᵒᵈ (· ≤ ·) (⇑OrderDual.ofDual ⁻¹' s) := by
+  unsealing_newtype OrderDual =>
+    exact fun _ ha _ hb hab => hs hb ha hab.symm
 
-theorem to_dual_iff [LE α] : IsAntichain (· ≤ ·) s ↔ @IsAntichain αᵒᵈ (· ≤ ·) s :=
-  ⟨to_dual, to_dual⟩
+theorem to_dual_iff [LE α] :
+    IsAntichain (· ≤ ·) s ↔ @IsAntichain αᵒᵈ (· ≤ ·) (⇑OrderDual.ofDual ⁻¹' s) := by
+  unsealing_newtype OrderDual =>
+    exact ⟨to_dual, to_dual⟩
 
 theorem image_compl [BooleanAlgebra α] (hs : IsAntichain (· ≤ ·) s) :
-    IsAntichain (· ≤ ·) (compl '' s) :=
-  (hs.image_embedding (OrderIso.compl α).toOrderEmbedding).flip
+    IsAntichain (· ≤ ·) (compl '' s) := by
+  unsealing_newtype OrderDual =>
+    exact (hs.image_embedding (OrderIso.compl α).toOrderEmbedding).flip
 
 theorem preimage_compl [BooleanAlgebra α] (hs : IsAntichain (· ≤ ·) s) :
     IsAntichain (· ≤ ·) (compl ⁻¹' s) := fun _ ha _ ha' hne hle =>
@@ -260,8 +265,9 @@ theorem IsAntichain.top_mem_iff [OrderTop α] (hs : IsAntichain (· ≤ ·) s) :
 theorem IsAntichain.minimal_mem_iff (hs : IsAntichain (· ≤ ·) s) : Minimal (· ∈ s) a ↔ a ∈ s :=
   ⟨fun h ↦ h.prop, fun h ↦ ⟨h, fun _ hys hyx ↦ (hs.eq hys h hyx).symm.le⟩⟩
 
-theorem IsAntichain.maximal_mem_iff (hs : IsAntichain (· ≤ ·) s) : Maximal (· ∈ s) a ↔ a ∈ s :=
-  hs.to_dual.minimal_mem_iff
+theorem IsAntichain.maximal_mem_iff (hs : IsAntichain (· ≤ ·) s) : Maximal (· ∈ s) a ↔ a ∈ s := by
+  unsealing_newtype OrderDual =>
+    exact hs.to_dual.minimal_mem_iff
 
 /-- If `t` is an antichain shadowing and including the set of maximal elements of `s`,
 then `t` *is* the set of maximal elements of `s`. -/
@@ -279,8 +285,9 @@ alias IsAntichain.eq_setOf_maximal := IsAntichain.eq_setOfPred_maximal
 then `t` *is* the set of minimal elements of `s`. -/
 theorem IsAntichain.eq_setOfPred_minimal (ht : IsAntichain (· ≤ ·) t)
     (h : ∀ x, Minimal (· ∈ s) x → x ∈ t) (hs : ∀ a ∈ t, ∃ b, a ≤ b ∧ Minimal (· ∈ s) b) :
-    {x | Minimal (· ∈ s) x} = t :=
-  ht.to_dual.eq_setOfPred_maximal h hs
+    {x | Minimal (· ∈ s) x} = t := by
+  unsealing_newtype OrderDual =>
+    exact ht.to_dual.eq_setOfPred_maximal h hs
 
 @[deprecated (since := "2026-07-09")]
 alias IsAntichain.eq_setOf_minimal := IsAntichain.eq_setOfPred_minimal
@@ -309,8 +316,9 @@ theorem setOfPred_maximal_antichain (P : α → Prop) : IsAntichain (· ≤ ·) 
 @[deprecated (since := "2026-07-09")]
 alias setOf_maximal_antichain := setOfPred_maximal_antichain
 
-theorem setOfPred_minimal_antichain (P : α → Prop) : IsAntichain (· ≤ ·) {x | Minimal P x} :=
-  (setOfPred_maximal_antichain (α := αᵒᵈ) P).swap
+theorem setOfPred_minimal_antichain (P : α → Prop) : IsAntichain (· ≤ ·) {x | Minimal P x} := by
+  unsealing_newtype OrderDual =>
+    exact (setOfPred_maximal_antichain (α := αᵒᵈ) P).swap
 
 @[deprecated (since := "2026-07-09")] alias setOf_minimal_antichain := setOfPred_minimal_antichain
 

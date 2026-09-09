@@ -143,8 +143,9 @@ theorem centerMass_le_sup {s : Finset ι} {f : ι → α} {w : ι → R} (hw₀ 
 
 theorem inf_le_centerMass {s : Finset ι} {f : ι → α} {w : ι → R} (hw₀ : ∀ i ∈ s, 0 ≤ w i)
     (hw₁ : 0 < ∑ i ∈ s, w i) :
-    s.inf' (nonempty_of_ne_empty <| by rintro rfl; simp at hw₁) f ≤ s.centerMass w f :=
-  centerMass_le_sup (α := αᵒᵈ) hw₀ hw₁
+    s.inf' (nonempty_of_ne_empty <| by rintro rfl; simp at hw₁) f ≤ s.centerMass w f := by
+  unsealing_newtype OrderDual =>
+    exact centerMass_le_sup (α := αᵒᵈ) hw₀ hw₁
 
 end Finset
 

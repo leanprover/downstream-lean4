@@ -70,8 +70,9 @@ variable [LE α]
 lemma minimalFor_id : MinimalFor P id x ↔ Minimal P x := .rfl
 
 @[to_dual (attr := simp)]
-theorem minimal_toDual : Minimal (fun x ↦ P (ofDual x)) (toDual x) ↔ Maximal P x :=
-  Iff.rfl
+theorem minimal_toDual : Minimal (fun x ↦ P (ofDual x)) (toDual x) ↔ Maximal P x := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual]
 alias ⟨Minimal.of_dual, Minimal.dual⟩ := minimal_toDual
@@ -448,14 +449,16 @@ theorem minimal_mem_image_monotone_iff (ha : a ∈ s)
 
 @[to_dual (reorder := hf (x y, 3 4))]
 theorem minimal_mem_image_antitone (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → (f x ≤ f y ↔ y ≤ x))
-    (hx : Minimal (· ∈ s) x) : Maximal (· ∈ f '' s) (f x) :=
-  minimal_mem_image_monotone (β := βᵒᵈ) (fun _ _ h h' ↦ hf h' h) hx
+    (hx : Minimal (· ∈ s) x) : Maximal (· ∈ f '' s) (f x) := by
+  unsealing_newtype OrderDual =>
+    exact minimal_mem_image_monotone (β := βᵒᵈ) (fun _ _ h h' ↦ hf h' h) hx
 
 @[to_dual (reorder := hf (x y, 3 4))]
 theorem minimal_mem_image_antitone_iff (ha : a ∈ s)
     (hf : ∀ ⦃x y⦄, x ∈ s → y ∈ s → (f x ≤ f y ↔ y ≤ x)) :
-    Minimal (· ∈ f '' s) (f a) ↔ Maximal (· ∈ s) a :=
-  maximal_mem_image_monotone_iff (β := βᵒᵈ) ha (fun _ _ h h' ↦ hf h' h)
+    Minimal (· ∈ f '' s) (f a) ↔ Maximal (· ∈ s) a := by
+  unsealing_newtype OrderDual =>
+    exact maximal_mem_image_monotone_iff (β := βᵒᵈ) ha (fun _ _ h h' ↦ hf h' h)
 
 @[to_dual (reorder := hf (x y, 3 4))]
 theorem image_monotone_setOfPred_minimal (hf : ∀ ⦃x y⦄, P x → P y → (f x ≤ f y ↔ x ≤ y)) :
@@ -474,8 +477,9 @@ alias image_monotone_setOf_maximal := image_monotone_setOfPred_maximal
 
 @[to_dual (reorder := hf (x y, 3 4))]
 theorem image_antitone_setOfPred_minimal (hf : ∀ ⦃x y⦄, P x → P y → (f x ≤ f y ↔ y ≤ x)) :
-    f '' {x | Minimal P x} = {x | Maximal (∃ x₀, P x₀ ∧ f x₀ = ·) x} :=
-  image_monotone_setOfPred_minimal (β := βᵒᵈ) (fun _ _ hx hy ↦ hf hy hx)
+    f '' {x | Minimal P x} = {x | Maximal (∃ x₀, P x₀ ∧ f x₀ = ·) x} := by
+  unsealing_newtype OrderDual =>
+    exact image_monotone_setOfPred_minimal (β := βᵒᵈ) (fun _ _ hx hy ↦ hf hy hx)
 
 @[deprecated (since := "2026-07-09")]
 alias image_antitone_setOf_minimal := image_antitone_setOfPred_minimal
@@ -599,13 +603,36 @@ def mapSetOfPredMaximal (f : s ≃o t) : {x | Maximal (· ∈ s) x} ≃o {x | Ma
 @[deprecated (since := "2026-07-28")] alias mapSetOfMaximal := mapSetOfPredMaximal
 
 /-- If two sets are antitonically order isomorphic, their minimals/maximals are too. -/
-@[to_dual /-- If two sets are antitonically order isomorphic, their maximals/minimals are too. -/]
 def setOfPredMinimalIsoSetOfPredMaximal (f : s ≃o tᵒᵈ) :
-    {x | Minimal (· ∈ s) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} where
-      toFun x := ⟨(f ⟨x.1, x.2.1⟩).1, ((show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal x).2⟩
-      invFun x := ⟨(f.symm ⟨x.1, x.2.1⟩).1,
-        ((show ofDual ⁻¹' t ≃o s from f.symm).mapSetOfPredMinimal x).2⟩
-      __ := (show s ≃o ofDual ⁻¹' t from f).mapSetOfPredMinimal
+    {x | Minimal (· ∈ s) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} :=
+  (f.trans (show (↑t)ᵒᵈ ≃o ↑(⇑ofDual ⁻¹' t) from
+      { toFun := fun x ↦ ⟨toDual (ofDual x).1, (ofDual x).2⟩
+        invFun := fun x ↦ toDual ⟨ofDual x.1, x.2⟩
+        left_inv := fun _ ↦ rfl
+        right_inv := fun _ ↦ rfl
+        map_rel_iff' := Iff.rfl })).mapSetOfPredMinimal.trans
+    (show {x : βᵒᵈ | Minimal (· ∈ ⇑ofDual ⁻¹' t) x} ≃o {x | Maximal (· ∈ t) (ofDual x)} from
+      { toFun := fun x ↦ ⟨x.1, minimal_toDual.1 x.2⟩
+        invFun := fun x ↦ ⟨x.1, minimal_toDual.2 x.2⟩
+        left_inv := fun _ ↦ rfl
+        right_inv := fun _ ↦ rfl
+        map_rel_iff' := Iff.rfl })
+
+/-- If two sets are antitonically order isomorphic, their maximals/minimals are too. -/
+def setOfPredMaximalIsoSetOfPredMinimal (f : s ≃o tᵒᵈ) :
+    {x | Maximal (· ∈ s) x} ≃o {x | Minimal (· ∈ t) (ofDual x)} :=
+  (f.trans (show (↑t)ᵒᵈ ≃o ↑(⇑ofDual ⁻¹' t) from
+      { toFun := fun x ↦ ⟨toDual (ofDual x).1, (ofDual x).2⟩
+        invFun := fun x ↦ toDual ⟨ofDual x.1, x.2⟩
+        left_inv := fun _ ↦ rfl
+        right_inv := fun _ ↦ rfl
+        map_rel_iff' := Iff.rfl })).mapSetOfPredMaximal.trans
+    (show {x : βᵒᵈ | Maximal (· ∈ ⇑ofDual ⁻¹' t) x} ≃o {x | Minimal (· ∈ t) (ofDual x)} from
+      { toFun := fun x ↦ ⟨x.1, ⟨x.2.1, fun y hy hxy ↦ x.2.2 (y := toDual y) hy hxy⟩⟩
+        invFun := fun x ↦ ⟨x.1, ⟨x.2.1, fun _ hy hxy ↦ x.2.2 hy hxy⟩⟩
+        left_inv := fun _ ↦ rfl
+        right_inv := fun _ ↦ rfl
+        map_rel_iff' := Iff.rfl })
 
 @[deprecated (since := "2026-07-09")]
 alias setOfMinimalIsoSetOfMaximal := setOfPredMinimalIsoSetOfPredMaximal

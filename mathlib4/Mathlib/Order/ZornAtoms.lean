@@ -40,5 +40,6 @@ theorem IsAtomic.of_isChain_bounded {α : Type*} [PartialOrder α] [OrderBot α]
     (h :
       ∀ c : Set α,
         IsChain (· ≤ ·) c → c.Nonempty → ⊥ ∉ c → ∃ x ≠ ⊥, x ∈ lowerBounds c) :
-    IsAtomic α :=
-  isCoatomic_dual_iff_isAtomic.mp <| IsCoatomic.of_isChain_bounded fun c hc => h c hc.symm
+    IsAtomic α := by
+  unsealing_newtype OrderDual =>
+    exact isCoatomic_dual_iff_isAtomic.mp <| IsCoatomic.of_isChain_bounded fun c hc => h c hc.symm

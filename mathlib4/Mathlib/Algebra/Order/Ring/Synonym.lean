@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Order.Group.Synonym
 public import Mathlib.Algebra.Ring.Defs
+public import Mathlib.Algebra.Ring.InjSurj
 
 /-!
 # Ring structure on the order type synonyms
@@ -23,58 +24,83 @@ variable {R : Type*}
 
 namespace OrderDual
 
-instance [Distrib R] : Distrib Rᵒᵈ := inferInstanceAs <| Distrib R
+instance [Distrib R] : Distrib Rᵒᵈ :=
+  ofDual.injective.distrib _ (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 instance [Mul R] [Add R] [LeftDistribClass R] : LeftDistribClass Rᵒᵈ :=
-  inferInstanceAs <| LeftDistribClass R
+  ofDual.injective.leftDistribClass _ (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 instance [Mul R] [Add R] [RightDistribClass R] : RightDistribClass Rᵒᵈ :=
-  inferInstanceAs <| RightDistribClass R
+  ofDual.injective.rightDistribClass _ (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 instance [NonUnitalNonAssocSemiring R] : NonUnitalNonAssocSemiring Rᵒᵈ :=
-  inferInstanceAs <| NonUnitalNonAssocSemiring R
+  ofDual.injective.nonUnitalNonAssocSemiring _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [NatCast R] : NatCast Rᵒᵈ := inferInstanceAs <| NatCast R
+instance [NatCast R] : NatCast Rᵒᵈ := ⟨fun n ↦ OrderDual.mk n⟩
 
-instance [IntCast R] : IntCast Rᵒᵈ := inferInstanceAs <| IntCast R
+instance [IntCast R] : IntCast Rᵒᵈ := ⟨fun n ↦ OrderDual.mk n⟩
 
-instance [AddMonoidWithOne R] : AddMonoidWithOne Rᵒᵈ := inferInstanceAs <| AddMonoidWithOne R
+instance [AddMonoidWithOne R] : AddMonoidWithOne Rᵒᵈ :=
+  ofDual.injective.addMonoidWithOne _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ ↦ rfl
 
 instance [AddCommMonoidWithOne R] : AddCommMonoidWithOne Rᵒᵈ :=
-  inferInstanceAs <| AddCommMonoidWithOne R
+  ofDual.injective.addCommMonoidWithOne _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ ↦ rfl
 
-instance [AddGroupWithOne R] : AddGroupWithOne Rᵒᵈ := inferInstanceAs <| AddGroupWithOne R
+instance [AddGroupWithOne R] : AddGroupWithOne Rᵒᵈ :=
+  ofDual.injective.addGroupWithOne _ rfl rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) fun _ ↦ rfl
 
 instance [AddCommGroupWithOne R] : AddCommGroupWithOne Rᵒᵈ :=
-  inferInstanceAs <| AddCommGroupWithOne R
+  ofDual.injective.addCommGroupWithOne _ rfl rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) fun _ ↦ rfl
 
-instance [NonUnitalSemiring R] : NonUnitalSemiring Rᵒᵈ := inferInstanceAs <| NonUnitalSemiring R
+instance [NonUnitalSemiring R] : NonUnitalSemiring Rᵒᵈ :=
+  ofDual.injective.nonUnitalSemiring _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [NonAssocSemiring R] : NonAssocSemiring Rᵒᵈ := inferInstanceAs <| NonAssocSemiring R
+instance [NonAssocSemiring R] : NonAssocSemiring Rᵒᵈ :=
+  ofDual.injective.nonAssocSemiring _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    fun _ ↦ rfl
 
-instance [Semiring R] : Semiring Rᵒᵈ := inferInstanceAs <| Semiring R
+instance [Semiring R] : Semiring Rᵒᵈ :=
+  ofDual.injective.semiring _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ ↦ rfl
 
 instance [NonUnitalCommSemiring R] : NonUnitalCommSemiring Rᵒᵈ :=
-  inferInstanceAs <| NonUnitalCommSemiring R
+  ofDual.injective.nonUnitalCommSemiring _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [CommSemiring R] : CommSemiring Rᵒᵈ := inferInstanceAs <| CommSemiring R
+instance [CommSemiring R] : CommSemiring Rᵒᵈ :=
+  ofDual.injective.commSemiring _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ ↦ rfl
 
-instance [Mul R] [HasDistribNeg R] : HasDistribNeg Rᵒᵈ := inferInstanceAs <| HasDistribNeg R
+instance [Mul R] [HasDistribNeg R] : HasDistribNeg Rᵒᵈ :=
+  ofDual.injective.hasDistribNeg _ (fun _ ↦ rfl) fun _ _ ↦ rfl
 
 instance [NonUnitalNonAssocRing R] : NonUnitalNonAssocRing Rᵒᵈ :=
-  inferInstanceAs <| NonUnitalNonAssocRing R
+  ofDual.injective.nonUnitalNonAssocRing _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [NonUnitalRing R] : NonUnitalRing Rᵒᵈ := inferInstanceAs <| NonUnitalRing R
+instance [NonUnitalRing R] : NonUnitalRing Rᵒᵈ :=
+  ofDual.injective.nonUnitalRing _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [NonAssocRing R] : NonAssocRing Rᵒᵈ := inferInstanceAs <| NonAssocRing R
+instance [NonAssocRing R] : NonAssocRing Rᵒᵈ :=
+  ofDual.injective.nonAssocRing _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) fun _ ↦ rfl
 
-instance [Ring R] : Ring Rᵒᵈ := inferInstanceAs <| Ring R
+instance [Ring R] : Ring Rᵒᵈ :=
+  ofDual.injective.ring _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) fun _ ↦ rfl
 
-instance [NonUnitalCommRing R] : NonUnitalCommRing Rᵒᵈ := inferInstanceAs <| NonUnitalCommRing R
+instance [NonUnitalCommRing R] : NonUnitalCommRing Rᵒᵈ :=
+  ofDual.injective.nonUnitalCommRing _ rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [CommRing R] : CommRing Rᵒᵈ := inferInstanceAs <| CommRing R
+instance [CommRing R] : CommRing Rᵒᵈ :=
+  ofDual.injective.commRing _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) fun _ ↦ rfl
 
-instance [Ring R] [IsDomain R] : IsDomain Rᵒᵈ := inferInstanceAs <| IsDomain R
+instance [Ring R] [IsDomain R] : IsDomain Rᵒᵈ where
+  __ := ofDual.injective.isCancelMulZero _ rfl fun _ _ ↦ rfl
 
 end OrderDual
 

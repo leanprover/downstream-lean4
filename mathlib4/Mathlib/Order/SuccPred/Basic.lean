@@ -73,7 +73,7 @@ class PredOrder (α : Type*) [Preorder α] where
 instance [Preorder α] [SuccOrder α] : PredOrder αᵒᵈ where
   pred := toDual ∘ SuccOrder.succ ∘ ofDual
   pred_le := by simp [SuccOrder.le_succ]
-  min_of_le_pred h := by apply SuccOrder.max_of_succ_le h
+  min_of_le_pred h := (SuccOrder.max_of_succ_le h).toDual
   le_pred_of_lt {a b} h := SuccOrder.succ_le_of_lt h
 
 section Preorder
@@ -633,13 +633,15 @@ variable [Preorder α] [PredOrder α] {a : α}
 
 @[to_dual existing]
 theorem isMin_iterate_pred_of_eq_of_lt {n m : ℕ} (h_eq : pred^[n] a = pred^[m] a)
-    (h_lt : n < m) : IsMin (pred^[n] a) :=
-  @isMax_iterate_succ_of_eq_of_lt αᵒᵈ _ _ _ _ _ h_eq h_lt
+    (h_lt : n < m) : IsMin (pred^[n] a) := by
+  unsealing_newtype OrderDual =>
+    exact @isMax_iterate_succ_of_eq_of_lt αᵒᵈ _ _ _ _ _ h_eq h_lt
 
 @[to_dual existing]
 theorem isMin_iterate_pred_of_eq_of_ne {n m : ℕ} (h_eq : pred^[n] a = pred^[m] a)
-    (h_ne : n ≠ m) : IsMin (pred^[n] a) :=
-  @isMax_iterate_succ_of_eq_of_ne αᵒᵈ _ _ _ _ _ h_eq h_ne
+    (h_ne : n ≠ m) : IsMin (pred^[n] a) := by
+  unsealing_newtype OrderDual =>
+    exact @isMax_iterate_succ_of_eq_of_ne αᵒᵈ _ _ _ _ _ h_eq h_ne
 
 end Preorder
 
@@ -889,24 +891,42 @@ lemma pred_notMem_iff_isMin [PredOrder α] [NoMinOrder α] {a : s} :
     rw [coe_pred_of_mem nh] at h
     simp at h
 
-noncomputable instance Set.OrdConnected.succOrder [SuccOrder α] :
-    SuccOrder s :=
-  letI : PredOrder sᵒᵈ := inferInstanceAs (PredOrder (OrderDual.ofDual ⁻¹' s))
-  inferInstanceAs (SuccOrder sᵒᵈᵒᵈ)
 
-set_option backward.isDefEq.respectTransparency false in
+open scoped Classical in
+noncomputable instance Set.OrdConnected.succOrder [SuccOrder α] : SuccOrder s where
+  succ x := if h : Order.succ x.1 ∈ s then ⟨Order.succ x.1, h⟩ else x
+  le_succ := fun ⟨x, hx⟩ ↦ by dsimp; split <;> simp_all [Order.le_succ]
+  max_of_succ_le := @fun ⟨x, hx⟩ h ↦ by
+    dsimp at h
+    split_ifs at h with h'
+    · simp only [Subtype.mk_le_mk, Order.succ_le_iff_isMax] at h
+      rintro ⟨y, _⟩ hy
+      simp [h hy]
+    · rintro ⟨y, hy⟩ h
+      rcases h.lt_or_eq with h | h
+      · simp only [Subtype.mk_lt_mk] at h
+        have := h.succ_le
+        absurd h'
+        apply out' hx hy
+        simp [this, Order.le_succ]
+      · simp [h]
+  succ_le_of_lt := @fun ⟨b, hb⟩ ⟨c, hc⟩ h ↦ by
+    rw [Subtype.mk_lt_mk] at h
+    dsimp only
+    split
+    · exact h.succ_le
+    · exact h.le
+
 @[simp, norm_cast]
 lemma coe_succ_of_mem [SuccOrder α] {a : s} (h : succ ↑a ∈ s) :
     (succ a).1 = succ ↑a := by classical
   change Subtype.val (dite ..) = _
-  split_ifs <;> trivial
+  simp [h]
 
-set_option backward.isDefEq.respectTransparency false in
-lemma isMax_of_succ_notMem [SuccOrder α] {a : s} (h : succ ↑a ∉ s) : IsMax a := by
-  classical
+lemma isMax_of_succ_notMem [SuccOrder α] {a : s} (h : succ ↑a ∉ s) : IsMax a := by classical
   rw [← succ_eq_iff_isMax]
   change dite .. = _
-  split_ifs <;> trivial
+  simp [h]
 
 lemma succ_notMem_iff_isMax [SuccOrder α] [NoMaxOrder α] {a : s} :
     succ ↑a ∉ s ↔ IsMax a where

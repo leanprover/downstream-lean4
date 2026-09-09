@@ -99,7 +99,7 @@ The definition of `coheight` is via the `height` in the dual order, in order to 
 theorems between `height` and `coheight`. See `coheight_eq` for the definition with a
 series ordered by `<` and beginning with `a`.
 -/
-noncomputable def coheight {α : Type*} [Preorder α] (a : α) : ℕ∞ := height (α := αᵒᵈ) a
+noncomputable def coheight {α : Type*} [Preorder α] (a : α) : ℕ∞ := height (OrderDual.toDual a)
 
 end definitions
 
@@ -114,8 +114,10 @@ variable {α β : Type*}
 variable [Preorder α] [Preorder β]
 
 @[simp] lemma height_toDual (x : α) : height (OrderDual.toDual x) = coheight x := rfl
-@[simp] lemma height_ofDual (x : αᵒᵈ) : height (OrderDual.ofDual x) = coheight x := rfl
-@[simp] lemma coheight_toDual (x : α) : coheight (OrderDual.toDual x) = height x := rfl
+@[simp] lemma height_ofDual (x : αᵒᵈ) : height (OrderDual.ofDual x) = coheight x := by
+  unsealing_newtype OrderDual => rfl
+@[simp] lemma coheight_toDual (x : α) : coheight (OrderDual.toDual x) = height x := by
+  unsealing_newtype OrderDual => rfl
 @[simp] lemma coheight_ofDual (x : αᵒᵈ) : coheight (OrderDual.ofDual x) = height x := rfl
 
 /--
@@ -127,9 +129,11 @@ dual order, in order to easily transfer theorems between `height` and `coheight`
 -/
 lemma coheight_eq (a : α) :
     coheight a = ⨆ (p : LTSeries α) (_ : a ≤ p.head), (p.length : ℕ∞) := by
-  apply Equiv.iSup_congr ⟨RelSeries.reverse, RelSeries.reverse, fun _ ↦ RelSeries.reverse_reverse _,
-    fun _ ↦ RelSeries.reverse_reverse _⟩
-  congr! 1
+  unsealing_newtype OrderDual =>
+    apply Equiv.iSup_congr
+      ⟨RelSeries.reverse, RelSeries.reverse, fun _ ↦ RelSeries.reverse_reverse _,
+        fun _ ↦ RelSeries.reverse_reverse _⟩
+    congr! 1
 
 lemma height_le_iff {a : α} {n : ℕ∞} :
     height a ≤ n ↔ ∀ ⦃p : LTSeries α⦄, p.last ≤ a → p.length ≤ n := by
@@ -177,11 +181,13 @@ that begin at `a`.
 -/
 lemma coheight_eq_iSup_head_eq (a : α) :
     coheight a = ⨆ (p : LTSeries α) (_ : p.head = a), ↑(p.length) := by
-  change height (α := αᵒᵈ) a = ⨆ (p : LTSeries α) (_ : p.head = a), ↑(p.length)
-  rw [height_eq_iSup_last_eq]
-  apply Equiv.iSup_congr ⟨RelSeries.reverse, RelSeries.reverse, fun _ ↦ RelSeries.reverse_reverse _,
-    fun _ ↦ RelSeries.reverse_reverse _⟩
-  simp
+  unsealing_newtype OrderDual =>
+    change height (α := αᵒᵈ) a = ⨆ (p : LTSeries α) (_ : p.head = a), ↑(p.length)
+    rw [height_eq_iSup_last_eq]
+    apply Equiv.iSup_congr
+      ⟨RelSeries.reverse, RelSeries.reverse, fun _ ↦ RelSeries.reverse_reverse _,
+        fun _ ↦ RelSeries.reverse_reverse _⟩
+    simp
 
 /--
 Variant of `coheight_le_iff` ranging only over those series that begin exactly on `a`.
@@ -215,8 +221,9 @@ lemma length_le_height {p : LTSeries α} {x : α} (hlast : p.last ≤ x) :
 
 set_option backward.isDefEq.respectTransparency false in
 lemma length_le_coheight {x : α} {p : LTSeries α} (hhead : x ≤ p.head) :
-    p.length ≤ coheight x :=
-  length_le_height (α := αᵒᵈ) (p := p.reverse) (by simpa)
+    p.length ≤ coheight x := by
+  unsealing_newtype OrderDual =>
+    exact length_le_height (α := αᵒᵈ) (p := p.reverse) (by simpa)
 
 /--
 The height of the last element in a series is larger or equal to the length of the series.
@@ -240,7 +247,8 @@ lemma index_le_height (p : LTSeries α) (i : Fin (p.length + 1)) : i ≤ height 
 The coheight of an element in a series is larger or equal to its reverse index in the series.
 -/
 lemma rev_index_le_coheight (p : LTSeries α) (i : Fin (p.length + 1)) : i.rev ≤ coheight (p i) := by
-  simpa using! index_le_height (α := αᵒᵈ) p.reverse i.rev
+  unsealing_newtype OrderDual =>
+    simpa using! index_le_height (α := αᵒᵈ) p.reverse i.rev
 
 /--
 In a maximally long series, i.e one as long as the height of the last element, the height of each
@@ -262,15 +270,18 @@ each element is its reverse index in the series.
 -/
 lemma coheight_eq_index_of_length_eq_head_coheight {p : LTSeries α} (h : p.length = coheight p.head)
     (i : Fin (p.length + 1)) : coheight (p i) = i.rev := by
-  simpa using! height_eq_index_of_length_eq_height_last (α := αᵒᵈ) (p := p.reverse) (by simpa) i.rev
+  unsealing_newtype OrderDual =>
+    simpa using!
+      height_eq_index_of_length_eq_height_last (α := αᵒᵈ) (p := p.reverse) (by simpa) i.rev
 
 @[gcongr]
 lemma height_mono : Monotone (α := α) height :=
   fun _ _ hab ↦ biSup_mono (fun _ hla => hla.trans hab)
 
 @[gcongr]
-lemma coheight_anti : Antitone (α := α) coheight :=
-  (height_mono (α := αᵒᵈ)).dual_left
+lemma coheight_anti : Antitone (α := α) coheight := by
+  unsealing_newtype OrderDual =>
+    exact (height_mono (α := αᵒᵈ)).dual_left
 
 private lemma height_add_const (a : α) (n : ℕ∞) :
     height a + n = ⨆ (p : LTSeries α) (_ : p.last = a), p.length + n := by
@@ -325,8 +336,9 @@ lemma height_le_height_apply_of_strictMono (f : α → β) (hf : StrictMono f) (
 
 lemma coheight_le_coheight_apply_of_strictMono (f : α → β) (hf : StrictMono f) (x : α) :
     coheight x ≤ coheight (f x) := by
-  apply height_le_height_apply_of_strictMono (α := αᵒᵈ)
-  exact fun _ _ h ↦ hf h
+  unsealing_newtype OrderDual =>
+    apply height_le_height_apply_of_strictMono (α := αᵒᵈ)
+    exact fun _ _ h ↦ hf h
 
 lemma coheight_eq_of_strictMono (f : α → β) (hf : StrictMono f)
     (h : ∀ a : α, ∀ b : β, f a < b → ∃ (a' : α), a < a' ∧ f a' = b) (a : α) :
@@ -344,10 +356,11 @@ lemma coheight_eq_of_strictMono (f : α → β) (hf : StrictMono f)
 lemma height_eq_of_strictMono (f : α → β) (hf : StrictMono f)
     (h : ∀ a : α, ∀ b : β, b < f a → ∃ (a' : α), a' < a ∧ f a' = b) (a : α) :
     height a = height (f a) := by
-  have : coheight (OrderDual.toDual a) = coheight (OrderDual.toDual (f a)) :=
-    coheight_eq_of_strictMono (α := αᵒᵈ) (β := βᵒᵈ) (f := OrderDual.toDual ∘ f ∘ OrderDual.toDual)
-    (strictMono_dual_iff.mp hf) (fun a b hab ↦ h a b hab) _
-  simpa [Order.coheight_toDual] using this
+  unsealing_newtype OrderDual =>
+    have : coheight (OrderDual.toDual a) = coheight (OrderDual.toDual (f a)) :=
+      coheight_eq_of_strictMono (α := αᵒᵈ) (β := βᵒᵈ) (f := OrderDual.toDual ∘ f ∘ OrderDual.toDual)
+      (strictMono_dual_iff.mp hf) (fun a b hab ↦ h a b hab) _
+    simpa [Order.coheight_toDual] using this
 
 @[simp]
 lemma height_orderIso (f : α ≃o β) (x : α) : height (f x) = height x := by
@@ -355,8 +368,9 @@ lemma height_orderIso (f : α ≃o β) (x : α) : height (f x) = height x := by
   · simpa using height_le_height_apply_of_strictMono _ f.symm.strictMono (f x)
   · exact height_le_height_apply_of_strictMono _ f.strictMono x
 
-lemma coheight_orderIso (f : α ≃o β) (x : α) : coheight (f x) = coheight x :=
-  height_orderIso (α := αᵒᵈ) f.dual x
+lemma coheight_orderIso (f : α ≃o β) (x : α) : coheight (f x) = coheight x := by
+  unsealing_newtype OrderDual =>
+    exact height_orderIso (α := αᵒᵈ) f.dual x
 
 private lemma exists_eq_iSup_of_iSup_eq_coe {α : Type*} [Nonempty α] {f : α → ℕ∞} {n : ℕ}
     (h : (⨆ x, f x) = n) : ∃ x, f x = n := by
@@ -390,8 +404,9 @@ lemma exists_series_of_le_height (a : α) {n : ℕ} (h : n ≤ height a) :
 
 lemma exists_series_of_le_coheight (a : α) {n : ℕ} (h : n ≤ coheight a) :
     ∃ p : LTSeries α, p.head = a ∧ p.length = n := by
-  obtain ⟨p, hp, hl⟩ := exists_series_of_le_height (α := αᵒᵈ) a h
-  exact ⟨p.reverse, by simpa, by simpa⟩
+  unsealing_newtype OrderDual =>
+    obtain ⟨p, hp, hl⟩ := exists_series_of_le_height (α := αᵒᵈ) a h
+    exact ⟨p.reverse, by simpa, by simpa⟩
 
 /-- For an element of finite height there exists a series ending in that element of that height. -/
 lemma exists_series_of_height_eq_coe (a : α) {n : ℕ} (h : height a = n) :
@@ -422,8 +437,9 @@ lemma height_eq_iSup_lt_height (x : α) : height x = ⨆ y < x, height y + 1 := 
 /--
 Another characterization of coheight, based on the supremum of the coheights of elements above.
 -/
-lemma coheight_eq_iSup_gt_coheight (x : α) : coheight x = ⨆ y > x, coheight y + 1 :=
-  height_eq_iSup_lt_height (α := αᵒᵈ) x
+lemma coheight_eq_iSup_gt_coheight (x : α) : coheight x = ⨆ y > x, coheight y + 1 := by
+  unsealing_newtype OrderDual =>
+    exact height_eq_iSup_lt_height (α := αᵒᵈ) x
 
 lemma height_le_coe_iff {x : α} {n : ℕ} : height x ≤ n ↔ ∀ y < x, height y < n := by
   conv_lhs => rw [height_eq_iSup_lt_height, iSup₂_le_iff]
@@ -432,8 +448,9 @@ lemma height_le_coe_iff {x : α} {n : ℕ} : height x ≤ n ↔ ∀ y < x, heigh
   · simp
   · norm_cast
 
-lemma coheight_le_coe_iff {x : α} {n : ℕ} : coheight x ≤ n ↔ ∀ y > x, coheight y < n :=
-  height_le_coe_iff (α := αᵒᵈ)
+lemma coheight_le_coe_iff {x : α} {n : ℕ} : coheight x ≤ n ↔ ∀ y > x, coheight y < n := by
+  unsealing_newtype OrderDual =>
+    exact height_le_coe_iff (α := αᵒᵈ)
 
 /--
 The height of an element is infinite iff there exist series of arbitrary length ending in that
@@ -458,8 +475,9 @@ element.
 -/
 lemma coheight_eq_top_iff {x : α} :
     coheight x = ⊤ ↔ ∀ n, ∃ p : LTSeries α, p.head = x ∧ p.length = n := by
-  convert! height_eq_top_iff (α := αᵒᵈ) (x := x) using 2 with n
-  constructor <;> (intro ⟨p, hp, hl⟩; use p.reverse; constructor <;> simpa)
+  unsealing_newtype OrderDual =>
+    convert! height_eq_top_iff (α := αᵒᵈ) (x := x) using 2 with n
+    constructor <;> (intro ⟨p, hp, hl⟩; use p.reverse; constructor <;> simpa)
 
 /-- The elements of height zero are the minimal elements. -/
 @[simp] lemma height_eq_zero {x : α} : height x = 0 ↔ IsMin x := by
@@ -468,8 +486,9 @@ lemma coheight_eq_top_iff {x : α} :
 protected alias ⟨_, IsMin.height_eq_zero⟩ := height_eq_zero
 
 /-- The elements of coheight zero are the maximal elements. -/
-@[simp] lemma coheight_eq_zero {x : α} : coheight x = 0 ↔ IsMax x :=
-  height_eq_zero (α := αᵒᵈ)
+@[simp] lemma coheight_eq_zero {x : α} : coheight x = 0 ↔ IsMax x := by
+  unsealing_newtype OrderDual =>
+    exact height_eq_zero (α := αᵒᵈ)
 
 protected alias ⟨_, IsMax.coheight_eq_zero⟩ := coheight_eq_zero
 
@@ -511,8 +530,9 @@ lemma coe_lt_height_iff {x : α} {n : ℕ} (hfin : height x < ⊤) :
     hy ▸ height_strictMono hyx (lt_of_le_of_lt (height_mono hyx.le) hfin)
 
 lemma coe_lt_coheight_iff {x : α} {n : ℕ} (hfin : coheight x < ⊤) :
-    n < coheight x ↔ ∃ y > x, coheight y = n :=
-  coe_lt_height_iff (α := αᵒᵈ) hfin
+    n < coheight x ↔ ∃ y > x, coheight y = n := by
+  unsealing_newtype OrderDual =>
+    exact coe_lt_height_iff (α := αᵒᵈ) hfin
 
 lemma height_eq_coe_add_one_iff {x : α} {n : ℕ} :
     height x = n + 1 ↔ height x < ⊤ ∧ (∃ y < x, height y = n) ∧ (∀ y < x, height y ≤ n) := by
@@ -528,8 +548,9 @@ lemma height_eq_coe_add_one_iff {x : α} {n : ℕ} :
 
 lemma coheight_eq_coe_add_one_iff {x : α} {n : ℕ} :
     coheight x = n + 1 ↔
-      coheight x < ⊤ ∧ (∃ y > x, coheight y = n) ∧ (∀ y > x, coheight y ≤ n) :=
-  height_eq_coe_add_one_iff (α := αᵒᵈ)
+      coheight x < ⊤ ∧ (∃ y > x, coheight y = n) ∧ (∀ y > x, coheight y ≤ n) := by
+  unsealing_newtype OrderDual =>
+    exact height_eq_coe_add_one_iff (α := αᵒᵈ)
 
 lemma height_eq_coe_iff {x : α} {n : ℕ} :
     height x = n ↔
@@ -549,8 +570,9 @@ lemma height_eq_coe_iff {x : α} {n : ℕ} :
 
 lemma coheight_eq_coe_iff {x : α} {n : ℕ} :
     coheight x = n ↔
-      coheight x < ⊤ ∧ (n = 0 ∨ ∃ y > x, coheight y = n - 1) ∧ (∀ y > x, coheight y < n) :=
-  height_eq_coe_iff (α := αᵒᵈ)
+      coheight x < ⊤ ∧ (n = 0 ∨ ∃ y > x, coheight y = n - 1) ∧ (∀ y > x, coheight y < n) := by
+  unsealing_newtype OrderDual =>
+    exact height_eq_coe_iff (α := αᵒᵈ)
 
 /-- The elements of finite height `n` are the minimal elements among those of height `≥ n`. -/
 lemma height_eq_coe_iff_minimal_le_height {a : α} {n : ℕ} :
@@ -569,8 +591,9 @@ lemma height_eq_coe_iff_minimal_le_height {a : α} {n : ℕ} :
 
 /-- The elements of finite coheight `n` are the maximal elements among those of coheight `≥ n`. -/
 lemma coheight_eq_coe_iff_maximal_le_coheight {a : α} {n : ℕ} :
-    coheight a = n ↔ Maximal (fun y => n ≤ coheight y) a :=
-  height_eq_coe_iff_minimal_le_height (α := αᵒᵈ)
+    coheight a = n ↔ Maximal (fun y => n ≤ coheight y) a := by
+  unsealing_newtype OrderDual =>
+    exact height_eq_coe_iff_minimal_le_height (α := αᵒᵈ)
 
 lemma one_lt_height_iff {x : α} : 1 < Order.height x ↔ ∃ y z, z < y ∧ y < x := by
   rw [← ENat.add_one_le_iff ENat.one_ne_top, one_add_one_eq_two]
@@ -762,9 +785,10 @@ lemma krullDim_eq_of_orderIso (f : α ≃o β) : krullDim α = krullDim β :=
   le_antisymm (krullDim_le_of_strictMono _ f.strictMono) <|
     krullDim_le_of_strictMono _ f.symm.strictMono
 
-@[simp] lemma krullDim_orderDual : krullDim αᵒᵈ = krullDim α :=
-  le_antisymm (iSup_le fun i ↦ le_sSup ⟨i.reverse, rfl⟩) <|
-    iSup_le fun i ↦ le_sSup ⟨i.reverse, rfl⟩
+@[simp] lemma krullDim_orderDual : krullDim αᵒᵈ = krullDim α := by
+  unsealing_newtype OrderDual =>
+    exact le_antisymm (iSup_le fun i ↦ le_sSup ⟨i.reverse, rfl⟩) <|
+      iSup_le fun i ↦ le_sSup ⟨i.reverse, rfl⟩
 
 lemma height_le_krullDim (a : α) : height a ≤ krullDim α := by
   have : Nonempty α := ⟨a⟩
@@ -773,7 +797,8 @@ lemma height_le_krullDim (a : α) : height a ≤ krullDim α := by
   exact height_le fun p _ ↦ le_iSup_of_le p le_rfl
 
 lemma coheight_le_krullDim (a : α) : coheight a ≤ krullDim α := by
-  simpa using! height_le_krullDim (α := αᵒᵈ) a
+  unsealing_newtype OrderDual =>
+    simpa using! height_le_krullDim (α := αᵒᵈ) a
 
 @[simp]
 lemma _root_.LTSeries.height_last_longestOf [FiniteDimensionalOrder α] :
@@ -813,7 +838,8 @@ version, with the coercion under the supremum.
 -/
 lemma krullDim_eq_iSup_coheight_of_nonempty [Nonempty α] :
     krullDim α = ↑(⨆ (a : α), coheight a) := by
-  simpa using! krullDim_eq_iSup_height_of_nonempty (α := αᵒᵈ)
+  unsealing_newtype OrderDual =>
+    simpa using! krullDim_eq_iSup_height_of_nonempty (α := αᵒᵈ)
 
 /--
 The Krull dimension is the supremum of the elements' height plus coheight.
@@ -891,8 +917,9 @@ lemma height_eq_krullDim_Iic (x : α) : (height x : ℕ∞) = krullDim (Set.Iic 
 
 lemma coheight_eq_krullDim_Ici {α : Type*} [Preorder α] (x : α) :
     (coheight x : ℕ∞) = krullDim (Set.Ici x) := by
-  rw [coheight, ← krullDim_orderDual, Order.krullDim_eq_of_orderIso (OrderIso.refl _)]
-  exact height_eq_krullDim_Iic _
+  unsealing_newtype OrderDual =>
+    rw [coheight, ← krullDim_orderDual, Order.krullDim_eq_of_orderIso (OrderIso.refl _)]
+    exact height_eq_krullDim_Iic _
 
 end krullDim
 
@@ -975,9 +1002,10 @@ variable {α : Type*} [Preorder α]
       apply hstrictmono
       lia
 
-@[simp] lemma height_of_noMinOrder [NoMinOrder α] (a : α) : height a = ⊤ :=
-  -- Implementation note: Here it's a bit easier to define the coheight variant first
-  coheight_of_noMaxOrder (α := αᵒᵈ) a
+@[simp] lemma height_of_noMinOrder [NoMinOrder α] (a : α) : height a = ⊤ := by
+  -- Here it is easier to prove the coheight variant first.
+  unsealing_newtype OrderDual =>
+    exact coheight_of_noMaxOrder (α := αᵒᵈ) a
 
 @[simp] lemma krullDim_of_noMaxOrder [Nonempty α] [NoMaxOrder α] : krullDim α = ⊤ := by
   simp [krullDim_eq_iSup_coheight, coheight_of_noMaxOrder]
@@ -1142,9 +1170,10 @@ lemma height_le_of_krullDim_preimage_le (x : α) :
 include h in
 lemma coheight_le_of_krullDim_preimage_le (x : α) :
     Order.coheight x ≤ (m + 1) * Order.coheight (f x) + m := by
-  rw [Order.coheight, Order.coheight]
-  apply height_le_of_krullDim_preimage_le (f := f.dual)
-  exact fun x ↦ le_of_eq_of_le (krullDim_orderDual (α := f ⁻¹' {x})) (h x)
+  unsealing_newtype OrderDual =>
+    rw [Order.coheight, Order.coheight]
+    apply height_le_of_krullDim_preimage_le (f := f.dual)
+    exact fun x ↦ le_of_eq_of_le (krullDim_orderDual (α := f ⁻¹' {x})) (h x)
 
 include f h in
 lemma krullDim_le_of_krullDim_preimage_le :

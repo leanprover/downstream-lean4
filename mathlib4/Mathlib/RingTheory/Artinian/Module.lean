@@ -143,8 +143,9 @@ theorem IsArtinian.set_has_minimal [IsArtinian R M] (a : Set <| Submodule R M) (
 
 /-- A module is Artinian iff every decreasing chain of submodules stabilizes. -/
 theorem monotone_stabilizes_iff_artinian :
-    (∀ f : ℕ →o (Submodule R M)ᵒᵈ, ∃ n, ∀ m, n ≤ m → f n = f m) ↔ IsArtinian R M :=
-  wellFoundedGT_iff_monotone_chain_condition.symm
+    (∀ f : ℕ →o (Submodule R M)ᵒᵈ, ∃ n, ∀ m, n ≤ m → f n = f m) ↔ IsArtinian R M := by
+  unsealing_newtype OrderDual =>
+    exact wellFoundedGT_iff_monotone_chain_condition.symm
 
 namespace IsArtinian
 
@@ -180,16 +181,17 @@ is eventually ⊤. -/
 theorem disjoint_partial_infs_eventually_top (f : ℕ → Submodule R M)
     (h : ∀ n, Disjoint (partialSups (OrderDual.toDual ∘ f) n) (OrderDual.toDual (f (n + 1)))) :
     ∃ n : ℕ, ∀ m, n ≤ m → f m = ⊤ := by
-  -- A little off-by-one cleanup first:
-  rsuffices ⟨n, w⟩ : ∃ n : ℕ, ∀ m, n ≤ m → OrderDual.toDual f (m + 1) = ⊤
-  · use n + 1
-    rintro (_ | m) p
-    · cases p
-    · apply w
-      exact Nat.succ_le_succ_iff.mp p
-  obtain ⟨n, w⟩ := monotone_stabilizes (partialSups (OrderDual.toDual ∘ f))
-  refine ⟨n, fun m p ↦ (h m).eq_bot_of_ge <| sup_eq_left.mp ?_⟩
-  simpa only [partialSups_add_one] using! (w (m + 1) <| le_add_right p).symm.trans <| w m p
+  unsealing_newtype OrderDual =>
+    -- A little off-by-one cleanup first:
+    rsuffices ⟨n, w⟩ : ∃ n : ℕ, ∀ m, n ≤ m → OrderDual.toDual f (m + 1) = ⊤
+    · use n + 1
+      rintro (_ | m) p
+      · cases p
+      · apply w
+        exact Nat.succ_le_succ_iff.mp p
+    obtain ⟨n, w⟩ := monotone_stabilizes (partialSups (OrderDual.toDual ∘ f))
+    refine ⟨n, fun m p ↦ (h m).eq_bot_of_ge <| sup_eq_left.mp ?_⟩
+    simpa only [partialSups_add_one] using! (w (m + 1) <| le_add_right p).symm.trans <| w m p
 
 end IsArtinian
 
@@ -206,12 +208,13 @@ variable [IsArtinian R M]
 
 lemma eventually_iInf_range_pow_eq (f : Module.End R M) :
     ∀ᶠ n in atTop, ⨅ m, LinearMap.range (f ^ m) = LinearMap.range (f ^ n) := by
-  obtain ⟨n, hn : ∀ m, n ≤ m → LinearMap.range (f ^ n) = LinearMap.range (f ^ m)⟩ :=
-    IsArtinian.monotone_stabilizes f.iterateRange
-  refine eventually_atTop.mpr ⟨n, fun l hl ↦ le_antisymm (iInf_le _ _) (le_iInf fun m ↦ ?_)⟩
-  rcases le_or_gt l m with h | h
-  · rw [← hn _ (hl.trans h), hn _ hl]
-  · exact f.iterateRange.monotone h.le
+  unsealing_newtype OrderDual =>
+    obtain ⟨n, hn : ∀ m, n ≤ m → LinearMap.range (f ^ n) = LinearMap.range (f ^ m)⟩ :=
+      IsArtinian.monotone_stabilizes f.iterateRange
+    refine eventually_atTop.mpr ⟨n, fun l hl ↦ le_antisymm (iInf_le _ _) (le_iInf fun m ↦ ?_)⟩
+    rcases le_or_gt l m with h | h
+    · rw [← hn _ (hl.trans h), hn _ hl]
+    · exact f.iterateRange.monotone h.le
 
 end LinearMap
 
@@ -300,17 +303,19 @@ variable [IsArtinian R M]
 and range. -/
 theorem eventually_codisjoint_ker_pow_range_pow (f : Module.End R M) :
     ∀ᶠ n in atTop, Codisjoint (LinearMap.ker (f ^ n)) (LinearMap.range (f ^ n)) := by
-  obtain ⟨n, hn : ∀ m, n ≤ m → LinearMap.range (f ^ n) = LinearMap.range (f ^ m)⟩ :=
-    IsArtinian.monotone_stabilizes f.iterateRange
-  refine eventually_atTop.mpr ⟨n, fun m hm ↦ codisjoint_iff.mpr ?_⟩
-  simp_rw [← hn _ hm, Submodule.eq_top_iff', Submodule.mem_sup]
-  intro x
-  rsuffices ⟨y, hy⟩ : ∃ y, (f ^ m) ((f ^ n) y) = (f ^ m) x
-  · exact ⟨x - (f ^ n) y, by simp [hy], (f ^ n) y, by simp⟩
-  -- Note: https://github.com/leanprover-community/mathlib4/pull/8386 had to change `mem_range` into `mem_range (f := _)`
-  simp_rw [f.pow_apply n, f.pow_apply m, ← iterate_add_apply, ← f.pow_apply (m + n),
-    ← f.pow_apply m, ← mem_range (f := _), ← hn _ (n.le_add_left m), hn _ hm]
-  exact LinearMap.mem_range_self (f ^ m) x
+  unsealing_newtype OrderDual =>
+    obtain ⟨n, hn : ∀ m, n ≤ m → LinearMap.range (f ^ n) = LinearMap.range (f ^ m)⟩ :=
+      IsArtinian.monotone_stabilizes f.iterateRange
+    refine eventually_atTop.mpr ⟨n, fun m hm ↦ codisjoint_iff.mpr ?_⟩
+    simp_rw [← hn _ hm, Submodule.eq_top_iff', Submodule.mem_sup]
+    intro x
+    rsuffices ⟨y, hy⟩ : ∃ y, (f ^ m) ((f ^ n) y) = (f ^ m) x
+    · exact ⟨x - (f ^ n) y, by simp [hy], (f ^ n) y, by simp⟩
+    -- Note: https://github.com/leanprover-community/mathlib4/pull/8386
+    -- had to change `mem_range` into `mem_range (f := _)`
+    simp_rw [f.pow_apply n, f.pow_apply m, ← iterate_add_apply, ← f.pow_apply (m + n),
+      ← f.pow_apply m, ← mem_range (f := _), ← hn _ (n.le_add_left m), hn _ hm]
+    exact LinearMap.mem_range_self (f ^ m) x
 
 /-- This is the Fitting decomposition of the module `M` with respect to the endomorphism `f`.
 
@@ -344,12 +349,13 @@ namespace IsArtinian
 theorem range_smul_pow_stabilizes (r : R) :
     ∃ n : ℕ, ∀ m, n ≤ m →
       LinearMap.range (r ^ n • LinearMap.id : M →ₗ[R] M) =
-      LinearMap.range (r ^ m • LinearMap.id : M →ₗ[R] M) :=
-  monotone_stabilizes
-    ⟨fun n => LinearMap.range (r ^ n • LinearMap.id : M →ₗ[R] M), fun n m h x ⟨y, hy⟩ =>
-      ⟨r ^ (m - n) • y, by
-        dsimp at hy ⊢
-        rw [← smul_assoc, smul_eq_mul, ← pow_add, ← hy, add_tsub_cancel_of_le h]⟩⟩
+      LinearMap.range (r ^ m • LinearMap.id : M →ₗ[R] M) := by
+  unsealing_newtype OrderDual =>
+    exact monotone_stabilizes
+        ⟨fun n => LinearMap.range (r ^ n • LinearMap.id : M →ₗ[R] M), fun n m h x ⟨y, hy⟩ =>
+          ⟨r ^ (m - n) • y, by
+            dsimp at hy ⊢
+            rw [← smul_assoc, smul_eq_mul, ← pow_add, ← hy, add_tsub_cancel_of_le h]⟩⟩
 
 variable {M}
 
@@ -656,9 +662,11 @@ instance : IsSemiprimaryRing R where
     IsArtinianRing.isSemisimpleRing_iff_jacobson.mpr (Ring.jacobson_quotient_jacobson R)
   isNilpotent := by
     let Jac := Ring.jacobson R
-    have ⟨n, hn⟩ := IsArtinian.monotone_stabilizes ⟨(Jac ^ ·), @Ideal.pow_le_pow_right _ _ _⟩
+    have ⟨n, hn⟩ := IsArtinian.monotone_stabilizes
+      ⟨fun n ↦ OrderDual.toDual (Jac ^ n), fun _ _ h ↦ Ideal.pow_le_pow_right h⟩
     have hn : Jac * Jac ^ n = Jac ^ n := by
-      rw [← Ideal.IsTwoSided.pow_succ]; exact (hn _ n.le_succ).symm
+      rw [← Ideal.IsTwoSided.pow_succ]
+      exact (congrArg OrderDual.ofDual (hn _ n.le_succ)).symm
     use n; by_contra ne
     have ⟨N, ⟨eq, ne⟩, min⟩ := wellFounded_lt.has_min {N | Jac * N = N ∧ N ≠ ⊥} ⟨_, hn, ne⟩
     have : Jac ^ n * N = N := n.rec (by rw [Jac.pow_zero, N.one_mul])

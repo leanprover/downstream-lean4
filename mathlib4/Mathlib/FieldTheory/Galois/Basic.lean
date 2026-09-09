@@ -352,7 +352,7 @@ def intermediateFieldEquivSubgroup [FiniteDimensional F E] [IsGalois F E] :
   toFun := OrderDual.toDual ∘ IntermediateField.fixingSubgroup
   invFun := IntermediateField.fixedField ∘ OrderDual.ofDual
   left_inv K := fixedField_fixingSubgroup K
-  right_inv H := IntermediateField.fixingSubgroup_fixedField H
+  right_inv H := congrArg OrderDual.toDual (IntermediateField.fixingSubgroup_fixedField H.ofDual)
   map_rel_iff' {K L} := by
     rw [← fixedField_fixingSubgroup L, IntermediateField.le_iff_le, fixedField_fixingSubgroup L]
     rfl
@@ -381,10 +381,11 @@ def galoisInsertionIntermediateFieldSubgroup [FiniteDimensional F E] :
     GaloisInsertion (OrderDual.toDual ∘
       (IntermediateField.fixingSubgroup : IntermediateField F E → Subgroup Gal(E/F)))
       ((IntermediateField.fixedField : Subgroup Gal(E/F) → IntermediateField F E) ∘
-        OrderDual.toDual) where
-  choice K _ := IntermediateField.fixingSubgroup K
-  gc K H := (IntermediateField.le_iff_le H K).symm
-  le_l_u H := le_of_eq (IntermediateField.fixingSubgroup_fixedField H).symm
+        OrderDual.ofDual) where
+  choice K _ := OrderDual.toDual (IntermediateField.fixingSubgroup K)
+  gc K H := (IntermediateField.le_iff_le H.ofDual K).symm
+  le_l_u H :=
+    le_of_eq (congrArg OrderDual.toDual (IntermediateField.fixingSubgroup_fixedField H.ofDual)).symm
   choice_eq _ _ := rfl
 
 /-- The Galois correspondence as a `GaloisCoinsertion`. -/
@@ -392,7 +393,7 @@ def galoisCoinsertionIntermediateFieldSubgroup [FiniteDimensional F E] [IsGalois
     GaloisCoinsertion (OrderDual.toDual ∘
       (IntermediateField.fixingSubgroup : IntermediateField F E → Subgroup Gal(E/F)))
       ((IntermediateField.fixedField : Subgroup Gal(E/F) → IntermediateField F E) ∘
-        OrderDual.toDual) :=
+        OrderDual.ofDual) :=
   OrderIso.toGaloisCoinsertion intermediateFieldEquivSubgroup
 
 end IsGalois

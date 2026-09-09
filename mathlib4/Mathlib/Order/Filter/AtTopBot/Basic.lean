@@ -38,7 +38,9 @@ theorem atTop_basis [Nonempty α] : (@atTop α _).HasBasis (fun _ => True) Ici :
 
 @[to_dual existing]
 lemma atBot_basis {α : Type*} [Preorder α] [IsCodirectedOrder α] [Nonempty α] :
-    (@atBot α _).HasBasis (fun _ => True) Iic := atTop_basis (α := αᵒᵈ)
+    (@atBot α _).HasBasis (fun _ => True) Iic := by
+  unsealing_newtype OrderDual =>
+    exact atTop_basis (α := αᵒᵈ)
 
 @[to_dual]
 lemma atTop_basis_Ioi [Nonempty α] [NoMaxOrder α] : (@atTop α _).HasBasis (fun _ => True) Ioi :=
@@ -94,8 +96,9 @@ lemma exists_eventually_atTop {r : α → β → Prop} :
 
 @[to_dual existing]
 lemma exists_eventually_atBot {α : Type*} [Preorder α] [IsCodirectedOrder α] [Nonempty α]
-    {r : α → β → Prop} : (∃ b, ∀ᶠ a in atBot, r a b) ↔ ∀ᶠ a₀ in atBot, ∃ b, ∀ a ≤ a₀, r a b :=
-  exists_eventually_atTop (α := αᵒᵈ)
+    {r : α → β → Prop} : (∃ b, ∀ᶠ a in atBot, r a b) ↔ ∀ᶠ a₀ in atBot, ∃ b, ∀ a ≤ a₀, r a b := by
+  unsealing_newtype OrderDual =>
+    exact exists_eventually_atTop (α := αᵒᵈ)
 
 @[to_dual]
 theorem map_atTop_eq {f : α → β} : atTop.map f = ⨅ a, 𝓟 (f '' { a' | a ≤ a' }) :=
@@ -186,8 +189,10 @@ theorem tendsto_atTop_atTop : Tendsto f atTop atTop ↔ ∀ b : β, ∃ i : α, 
   tendsto_iInf.trans <| forall_congr' fun _ => tendsto_atTop_principal
 
 @[to_dual]
-theorem tendsto_atTop_atBot : Tendsto f atTop atBot ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → f a ≤ b :=
-  tendsto_atTop_atTop (β := βᵒᵈ)
+theorem tendsto_atTop_atBot : Tendsto f atTop atBot ↔ ∀ b : β, ∃ i : α, ∀ a :
+    α, i ≤ a → f a ≤ b := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_atTop (β := βᵒᵈ)
 
 @[to_dual]
 theorem tendsto_atTop_atTop_iff_of_monotone (hf : Monotone f) :
@@ -200,8 +205,9 @@ alias _root_.Monotone.tendsto_atTop_atTop_iff := tendsto_atTop_atTop_iff_of_mono
 
 @[to_dual]
 theorem tendsto_atTop_atBot_iff_of_antitone (hf : Antitone f) :
-    Tendsto f atTop atBot ↔ ∀ b : β, ∃ a, f a ≤ b :=
-  tendsto_atTop_atTop_iff_of_monotone (β := βᵒᵈ) hf
+    Tendsto f atTop atBot ↔ ∀ b : β, ∃ a, f a ≤ b := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_atTop_atTop_iff_of_monotone (β := βᵒᵈ) hf
 
 end IsDirected
 

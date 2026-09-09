@@ -403,6 +403,9 @@ theorem trop_mul_def [Add R] (x y : MinTropical R) : x * y = trop (untrop x + un
 def equivMaxTropical [LinearOrder R] [Add R] : MinTropical R ≃+* MaxTropical Rᵒᵈ where
   toFun a := .trop (OrderDual.toDual a.untrop)
   invFun a := .trop (OrderDual.ofDual a.untrop)
+  left_inv _ := rfl
+  right_inv a := by
+    simpa only [untrop_trop, OrderDual.toDual_ofDual] using MaxTropical.trop_untrop a
   map_add' a b := by simp
   map_mul' a b := by simp
 

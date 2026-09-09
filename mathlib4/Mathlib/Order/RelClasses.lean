@@ -252,11 +252,12 @@ lemma wellFounded_lt [LT α] [WellFoundedLT α] : @WellFounded α (· < ·) := I
 -- See note [lower instance priority]
 @[to_dual]
 instance (priority := 100) (α : Type*) [LT α] [h : WellFoundedLT α] : WellFoundedGT αᵒᵈ :=
-  h
+  ⟨InvImage.wf OrderDual.ofDual' h.wf⟩
 
 @[to_dual]
-theorem wellFoundedGT_dual_iff (α : Type*) [LT α] : WellFoundedGT αᵒᵈ ↔ WellFoundedLT α :=
-  ⟨fun h => ⟨h.wf⟩, fun h => ⟨h.wf⟩⟩
+theorem wellFoundedGT_dual_iff (α : Type*) [LT α] : WellFoundedGT αᵒᵈ ↔ WellFoundedLT α := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h => ⟨h.wf⟩, fun h => ⟨h.wf⟩⟩
 
 /-- A well order is a well-founded linear order. -/
 @[wikidata Q659746]
@@ -624,7 +625,7 @@ theorem isTrans_lt [Preorder α] : IsTrans α LT.lt :=
 
 @[to_dual total_ge]
 instance OrderDual.total_le [LE α] [h : @Std.Total α (· ≤ ·)] : @Std.Total αᵒᵈ (· ≤ ·) :=
-  inferInstanceAs <| @Std.Total α <| swap (· ≤ ·)
+  ⟨fun a b ↦ h.total b.ofDual' a.ofDual'⟩
 
 instance : WellFoundedLT ℕ :=
   ⟨Nat.lt_wfRel.wf⟩

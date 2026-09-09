@@ -73,20 +73,23 @@ theorem fixingSubmonoid_antitone : Antitone fun s : Set α => fixingSubmonoid M 
   (fixingSubmonoid_fixedPoints_gc M α).monotone_l
 
 @[to_additive fixedPoints_antitone_addSubmonoid]
-theorem fixedPoints_antitone : Antitone fun P : Submonoid M => fixedPoints P α :=
-  (fixingSubmonoid_fixedPoints_gc M α).monotone_u.dual_left
+theorem fixedPoints_antitone : Antitone fun P : Submonoid M => fixedPoints P α := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubmonoid_fixedPoints_gc M α).monotone_u.dual_left
 
 /-- Fixing submonoid of union is intersection -/
 @[to_additive]
 theorem fixingSubmonoid_union {s t : Set α} :
-    fixingSubmonoid M (s ∪ t) = fixingSubmonoid M s ⊓ fixingSubmonoid M t :=
-  (fixingSubmonoid_fixedPoints_gc M α).l_sup
+    fixingSubmonoid M (s ∪ t) = fixingSubmonoid M s ⊓ fixingSubmonoid M t := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubmonoid_fixedPoints_gc M α).l_sup
 
 /-- Fixing submonoid of iUnion is intersection -/
 @[to_additive]
 theorem fixingSubmonoid_iUnion {ι : Sort*} {s : ι → Set α} :
-    fixingSubmonoid M (⋃ i, s i) = ⨅ i, fixingSubmonoid M (s i) :=
-  (fixingSubmonoid_fixedPoints_gc M α).l_iSup
+    fixingSubmonoid M (⋃ i, s i) = ⨅ i, fixingSubmonoid M (s i) := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubmonoid_fixedPoints_gc M α).l_iSup
 
 /-- Fixed points of sup of submonoids is intersection -/
 @[to_additive]
@@ -97,8 +100,9 @@ theorem fixedPoints_submonoid_sup {P Q : Submonoid M} :
 /-- Fixed points of iSup of submonoids is intersection -/
 @[to_additive]
 theorem fixedPoints_submonoid_iSup {ι : Sort*} {P : ι → Submonoid M} :
-    fixedPoints (↥(iSup P)) α = ⋂ i, fixedPoints (P i) α :=
-  (fixingSubmonoid_fixedPoints_gc M α).u_iInf
+    fixedPoints (↥(iSup P)) α = ⋂ i, fixedPoints (P i) α := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubmonoid_fixedPoints_gc M α).u_iInf
 
 end Monoid
 
@@ -137,28 +141,32 @@ theorem fixingSubgroup_fixedPoints_gc :
   fun _s _P => ⟨fun h s hs p => h p.2 ⟨s, hs⟩, fun h p hp s => h s.2 ⟨p, hp⟩⟩
 
 @[to_additive (attr := simp)]
-lemma fixingSubgroup_empty : fixingSubgroup M (∅ : Set α) = ⊤ :=
-  GaloisConnection.l_bot (fixingSubgroup_fixedPoints_gc M α)
+lemma fixingSubgroup_empty : fixingSubgroup M (∅ : Set α) = ⊤ := by
+  unsealing_newtype OrderDual =>
+    exact GaloisConnection.l_bot (fixingSubgroup_fixedPoints_gc M α)
 
 @[to_additive]
 theorem fixingSubgroup_antitone : Antitone (fixingSubgroup M : Set α → Subgroup M) :=
   (fixingSubgroup_fixedPoints_gc M α).monotone_l
 
 @[to_additive]
-theorem fixedPoints_subgroup_antitone : Antitone fun P : Subgroup M => fixedPoints P α :=
-  (fixingSubgroup_fixedPoints_gc M α).monotone_u.dual_left
+theorem fixedPoints_subgroup_antitone : Antitone fun P : Subgroup M => fixedPoints P α := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubgroup_fixedPoints_gc M α).monotone_u.dual_left
 
 /-- Fixing subgroup of union is intersection -/
 @[to_additive]
 theorem fixingSubgroup_union {s t : Set α} :
-    fixingSubgroup M (s ∪ t) = fixingSubgroup M s ⊓ fixingSubgroup M t :=
-  (fixingSubgroup_fixedPoints_gc M α).l_sup
+    fixingSubgroup M (s ∪ t) = fixingSubgroup M s ⊓ fixingSubgroup M t := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubgroup_fixedPoints_gc M α).l_sup
 
 /-- Fixing subgroup of iUnion is intersection -/
 @[to_additive]
 theorem fixingSubgroup_iUnion {ι : Sort*} {s : ι → Set α} :
-    fixingSubgroup M (⋃ i, s i) = ⨅ i, fixingSubgroup M (s i) :=
-  (fixingSubgroup_fixedPoints_gc M α).l_iSup
+    fixingSubgroup M (⋃ i, s i) = ⨅ i, fixingSubgroup M (s i) := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubgroup_fixedPoints_gc M α).l_iSup
 
 /-- Fixed points of sup of subgroups is intersection -/
 @[to_additive]
@@ -169,8 +177,9 @@ theorem fixedPoints_subgroup_sup {P Q : Subgroup M} :
 /-- Fixed points of iSup of subgroups is intersection -/
 @[to_additive]
 theorem fixedPoints_subgroup_iSup {ι : Sort*} {P : ι → Subgroup M} :
-    fixedPoints (↥(iSup P)) α = ⋂ i, fixedPoints (P i) α :=
-  (fixingSubgroup_fixedPoints_gc M α).u_iInf
+    fixedPoints (↥(iSup P)) α = ⋂ i, fixedPoints (P i) α := by
+  unsealing_newtype OrderDual =>
+    exact (fixingSubgroup_fixedPoints_gc M α).u_iInf
 
 /-- The orbit of the fixing subgroup of `sᶜ` (i.e. the moving subgroup of `s`) is a subset of `s` -/
 @[to_additive]

@@ -321,8 +321,9 @@ theorem Monotone.le_map_iSup [CompleteLattice β] {f : α → β} (hf : Monotone
 
 @[to_dual map_iSup_le]
 theorem Antitone.le_map_iInf [CompleteLattice β] {f : α → β} (hf : Antitone f) :
-    ⨆ i, f (s i) ≤ f (iInf s) :=
-  hf.dual_left.le_map_iSup
+    ⨆ i, f (s i) ≤ f (iInf s) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_left.le_map_iSup
 
 @[to_dual map_iInf₂_le]
 theorem Monotone.le_map_iSup₂ [CompleteLattice β] {f : α → β} (hf : Monotone f) (s : ∀ i, κ i → α) :
@@ -331,8 +332,9 @@ theorem Monotone.le_map_iSup₂ [CompleteLattice β] {f : α → β} (hf : Monot
 
 @[to_dual map_iSup₂_le]
 theorem Antitone.le_map_iInf₂ [CompleteLattice β] {f : α → β} (hf : Antitone f) (s : ∀ i, κ i → α) :
-    ⨆ (i) (j), f (s i j) ≤ f (⨅ (i) (j), s i j) :=
-  hf.dual_left.le_map_iSup₂ _
+    ⨆ (i) (j), f (s i j) ≤ f (⨅ (i) (j), s i j) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_left.le_map_iSup₂ _
 
 @[to_dual map_sInf_le]
 theorem Monotone.le_map_sSup [CompleteLattice β] {s : Set α} {f : α → β} (hf : Monotone f) :
@@ -340,8 +342,9 @@ theorem Monotone.le_map_sSup [CompleteLattice β] {s : Set α} {f : α → β} (
 
 @[to_dual map_sSup_le]
 theorem Antitone.le_map_sInf [CompleteLattice β] {s : Set α} {f : α → β} (hf : Antitone f) :
-    ⨆ a ∈ s, f a ≤ f (sInf s) :=
-  hf.dual_left.le_map_sSup
+    ⨆ a ∈ s, f a ≤ f (sInf s) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_left.le_map_sSup
 
 @[to_dual]
 theorem OrderIso.map_iSup [CompleteLattice β] (f : α ≃o β) (x : ι → α) :

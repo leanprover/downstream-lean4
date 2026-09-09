@@ -223,15 +223,16 @@ def nucleusIsoSublocale : (Nucleus X)ᵒᵈ ≃o Sublocale X where
   right_inv S := by ext x; simpa using ⟨by simp +contextual [eq_comm], fun hx ↦ ⟨x, by simp [hx]⟩⟩
   map_rel_iff' := by simp
 
-lemma nucleusIsoSublocale.eq_toSublocale : Nucleus.toSublocale = @nucleusIsoSublocale X _ := rfl
-lemma nucleusIsoSublocale.symm_eq_toNucleus :
-  Sublocale.toNucleus = (@nucleusIsoSublocale X _).symm := rfl
+lemma nucleusIsoSublocale.eq_toSublocale (n : Nucleus X) :
+    nucleusIsoSublocale (OrderDual.toDual n) = n.toSublocale := rfl
+
+lemma nucleusIsoSublocale.symm_eq_toNucleus (S : Sublocale X) :
+    OrderDual.ofDual (nucleusIsoSublocale.symm S) = S.toNucleus := rfl
 
 instance Sublocale.instCompleteLattice : CompleteLattice (Sublocale X) :=
   nucleusIsoSublocale.toGaloisInsertion.liftCompleteLattice
 
-set_option backward.isDefEq.respectTransparency false in
 instance Sublocale.instCoframe : Order.Coframe (Sublocale X) := .ofMinimalAxioms {
-  iInf_sup_le_sup_sInf a s := by simp [← toNucleus_le_toNucleus,
-    nucleusIsoSublocale.symm_eq_toNucleus, nucleusIsoSublocale.symm.map_sup,
-    nucleusIsoSublocale.symm.map_sInf, sup_iInf_eq, nucleusIsoSublocale.symm.map_iInf] }
+  iInf_sup_le_sup_sInf a s := by
+    rw [← nucleusIsoSublocale.symm.le_iff_le]
+    simp only [map_iInf, map_sup, map_sInf, sup_sInf_eq, iInf_image, le_refl] }

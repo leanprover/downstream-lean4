@@ -68,18 +68,21 @@ theorem mem_orthogonalBilin_iff_le_ker_flip {y : M₂} :
 variable (B) in
 lemma orthogonalBilin_gc :
     @GaloisConnection (Submodule R₁ M₁) (Submodule R₂ M₂)ᵒᵈ _ _
-      (orthogonalBilin B) (orthogonalBilin B.flip) :=
+      (fun S ↦ OrderDual.toDual (orthogonalBilin B S))
+      (fun T ↦ orthogonalBilin B.flip (OrderDual.ofDual T)) :=
   fun _ _ ↦ ⟨fun h _ hx _ hy ↦ h hy _ hx, fun h _ hy _ hx ↦ h hx _ hy⟩
 
 theorem le_orthogonalBilin_flip_iff_le_orthogonalBilin {T : Submodule R₂ M₂} :
-    S ≤ orthogonalBilin B.flip T ↔ T ≤ orthogonalBilin B S :=
-  ((orthogonalBilin_gc B) S T).symm
+    S ≤ orthogonalBilin B.flip T ↔ T ≤ orthogonalBilin B S := by
+  unsealing_newtype OrderDual =>
+    exact ((orthogonalBilin_gc B) S T).symm
 
 alias ⟨le_orthogonalBilin_of_le_orthogonBilin_flip, le_orthogonalBilin_flip_of_le_orthogonBilin⟩ :=
   le_orthogonalBilin_flip_iff_le_orthogonalBilin
 
-@[simp] theorem orthogonalBilin_bot : orthogonalBilin B ⊥ = ⊤ :=
-  (orthogonalBilin_gc B).l_bot
+@[simp] theorem orthogonalBilin_bot : orthogonalBilin B ⊥ = ⊤ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).l_bot
 
 @[simp] theorem orthogonalBilin_ker : orthogonalBilin B (ker B) = ⊤ := by
   ext; simp +contextual
@@ -108,16 +111,19 @@ theorem orthogonalBilin_span_singleton (x : M₁) : orthogonalBilin B (R₁ ∙ 
 alias _root_.LinearMap.orthogonal_span_singleton_eq_to_lin_ker := orthogonalBilin_span_singleton
 
 theorem orthogonalBilin_sSup (s : Set (Submodule R₁ M₁)) :
-    orthogonalBilin B (sSup s) = ⨅ S ∈ s, orthogonalBilin B S :=
-  (orthogonalBilin_gc B).l_sSup
+    orthogonalBilin B (sSup s) = ⨅ S ∈ s, orthogonalBilin B S := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).l_sSup
 
 theorem orthogonalBilin_iSup {ι : Sort*} (f : ι → Submodule R₁ M₁) :
-    orthogonalBilin B (⨆ i, f i) = ⨅ i, orthogonalBilin B (f i) :=
-  (orthogonalBilin_gc B).l_iSup
+    orthogonalBilin B (⨆ i, f i) = ⨅ i, orthogonalBilin B (f i) := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).l_iSup
 
 theorem orthogonalBilin_sup (S T) :
-    orthogonalBilin B (S ⊔ T) = orthogonalBilin B S ⊓ orthogonalBilin B T :=
-  (orthogonalBilin_gc B).l_sup
+    orthogonalBilin B (S ⊔ T) = orthogonalBilin B S ⊓ orthogonalBilin B T := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).l_sup
 
 variable (B) in
 @[simp] theorem orthogonalBilin_sup_ker (S) :
@@ -133,13 +139,15 @@ theorem le_orthogonalBilin_orthogonalBilin {I₂ : R₁ →+* R} {B : M₁ →�
   fun n hn _m hm ↦ b _ _ (hm n hn)
 
 @[simp] theorem orthogonalBilin_orthogonalBilin_flip_orthogonalBilin (S) :
-    orthogonalBilin B (orthogonalBilin B.flip (orthogonalBilin B S)) = orthogonalBilin B S :=
-  (orthogonalBilin_gc B).l_u_l_eq_l S
+    orthogonalBilin B (orthogonalBilin B.flip (orthogonalBilin B S)) = orthogonalBilin B S := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).l_u_l_eq_l S
 
 @[simp] theorem orthogonalBilin_flip_orthogonalBilin_orthogonalBilin_flip (S : Submodule R₂ M₂) :
     orthogonalBilin B.flip (orthogonalBilin B (orthogonalBilin B.flip S)) =
-      orthogonalBilin B.flip S :=
-  (orthogonalBilin_gc B).u_l_u_eq_u S
+      orthogonalBilin B.flip S := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonalBilin_gc B).u_l_u_eq_u S
 
 theorem orthogonalBilin_sup_orthogonalBilin_le_orthogonalBilin_inf (S T) :
     orthogonalBilin B S ⊔ orthogonalBilin B T ≤ orthogonalBilin B (S ⊓ T) :=

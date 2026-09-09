@@ -29,10 +29,12 @@ instance (priority := low) {α : Type*}
     conv at hsct => equals b < a => simp
     exact lt_asymm hcst hsct
 
+open Topology.IsLowerSet in
 instance (priority := low) {α : Type*}
     [TopologicalSpace α] [LinearOrder α] [Topology.IsLowerSet α] :
-    CompletelyNormalSpace α :=
-  inferInstanceAs (CompletelyNormalSpace αᵒᵈ)
+    CompletelyNormalSpace α := by
+  unsealing_newtype OrderDual =>
+    exact inferInstanceAs (CompletelyNormalSpace αᵒᵈ)
 
 instance : CompletelyNormalSpace Prop :=
   let := Prop.linearOrder

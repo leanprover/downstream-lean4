@@ -30,6 +30,22 @@ namespace Set
 
 variable {α : Type*} {r : α → α → Prop} {s t : Set α}
 
+/-! ### Passing to the order dual
+
+`Bounded`/`Unbounded` for the reversed relation on `α` is the same statement as the original
+relation on `αᵒᵈ`, but the quantifiers range over different types, so the translation needs
+these bridges. -/
+
+theorem bounded_dual_iff :
+    Bounded (fun a b : αᵒᵈ ↦ r (OrderDual.ofDual a) (OrderDual.ofDual b))
+      (⇑OrderDual.ofDual ⁻¹' s) ↔ Bounded r s :=
+  OrderDual.exists.trans (exists_congr fun _ ↦ OrderDual.forall)
+
+theorem unbounded_dual_iff :
+    Unbounded (fun a b : αᵒᵈ ↦ r (OrderDual.ofDual a) (OrderDual.ofDual b))
+      (⇑OrderDual.ofDual ⁻¹' s) ↔ Unbounded r s :=
+  OrderDual.forall.trans (forall_congr' fun _ ↦ OrderDual.exists)
+
 /-! ### Subsets of bounded and unbounded sets -/
 
 
@@ -108,12 +124,14 @@ theorem unbounded_gt_of_unbounded_ge [Preorder α] (h : Unbounded (· ≥ ·) s)
   ⟨b, hb, fun hba' => hba (le_of_lt hba')⟩
 
 theorem bounded_ge_iff_bounded_gt [Preorder α] [NoMinOrder α] :
-    Bounded (· ≥ ·) s ↔ Bounded (· > ·) s :=
-  @bounded_le_iff_bounded_lt αᵒᵈ _ _ _
+    Bounded (· ≥ ·) s ↔ Bounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_le_iff_bounded_lt αᵒᵈ _ _ _
 
 theorem unbounded_gt_iff_unbounded_ge [Preorder α] [NoMinOrder α] :
-    Unbounded (· > ·) s ↔ Unbounded (· ≥ ·) s :=
-  @unbounded_lt_iff_unbounded_le αᵒᵈ _ _ _
+    Unbounded (· > ·) s ↔ Unbounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_lt_iff_unbounded_le αᵒᵈ _ _ _
 
 /-! ### The universal set -/
 
@@ -317,54 +335,66 @@ theorem unbounded_lt_inter_lt [LinearOrder α] [NoMaxOrder α] (a : α) :
 
 
 theorem bounded_ge_inter_not_ge [SemilatticeInf α] (a : α) :
-    Bounded (· ≥ ·) (s ∩ { b | ¬a ≤ b }) ↔ Bounded (· ≥ ·) s :=
-  @bounded_le_inter_not_le αᵒᵈ s _ a
+    Bounded (· ≥ ·) (s ∩ { b | ¬a ≤ b }) ↔ Bounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_le_inter_not_le αᵒᵈ s _ a
 
 theorem unbounded_ge_inter_not_ge [SemilatticeInf α] (a : α) :
-    Unbounded (· ≥ ·) (s ∩ { b | ¬a ≤ b }) ↔ Unbounded (· ≥ ·) s :=
-  @unbounded_le_inter_not_le αᵒᵈ s _ a
+    Unbounded (· ≥ ·) (s ∩ { b | ¬a ≤ b }) ↔ Unbounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_le_inter_not_le αᵒᵈ s _ a
 
 theorem bounded_ge_inter_gt [LinearOrder α] (a : α) :
-    Bounded (· ≥ ·) (s ∩ { b | b < a }) ↔ Bounded (· ≥ ·) s :=
-  @bounded_le_inter_lt αᵒᵈ s _ a
+    Bounded (· ≥ ·) (s ∩ { b | b < a }) ↔ Bounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_le_inter_lt αᵒᵈ s _ a
 
 theorem unbounded_ge_inter_gt [LinearOrder α] (a : α) :
-    Unbounded (· ≥ ·) (s ∩ { b | b < a }) ↔ Unbounded (· ≥ ·) s :=
-  @unbounded_le_inter_lt αᵒᵈ s _ a
+    Unbounded (· ≥ ·) (s ∩ { b | b < a }) ↔ Unbounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_le_inter_lt αᵒᵈ s _ a
 
 theorem bounded_ge_inter_ge [LinearOrder α] (a : α) :
-    Bounded (· ≥ ·) (s ∩ { b | b ≤ a }) ↔ Bounded (· ≥ ·) s :=
-  @bounded_le_inter_le αᵒᵈ s _ a
+    Bounded (· ≥ ·) (s ∩ { b | b ≤ a }) ↔ Bounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_le_inter_le αᵒᵈ s _ a
 
 theorem unbounded_ge_iff_unbounded_inter_ge [LinearOrder α] (a : α) :
-    Unbounded (· ≥ ·) (s ∩ { b | b ≤ a }) ↔ Unbounded (· ≥ ·) s :=
-  @unbounded_le_inter_le αᵒᵈ s _ a
+    Unbounded (· ≥ ·) (s ∩ { b | b ≤ a }) ↔ Unbounded (· ≥ ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_le_inter_le αᵒᵈ s _ a
 
 /-! #### Greater than -/
 
 
 theorem bounded_gt_inter_not_gt [SemilatticeInf α] (a : α) :
-    Bounded (· > ·) (s ∩ { b | ¬a < b }) ↔ Bounded (· > ·) s :=
-  @bounded_lt_inter_not_lt αᵒᵈ s _ a
+    Bounded (· > ·) (s ∩ { b | ¬a < b }) ↔ Bounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_lt_inter_not_lt αᵒᵈ s _ a
 
 theorem unbounded_gt_inter_not_gt [SemilatticeInf α] (a : α) :
-    Unbounded (· > ·) (s ∩ { b | ¬a < b }) ↔ Unbounded (· > ·) s :=
-  @unbounded_lt_inter_not_lt αᵒᵈ s _ a
+    Unbounded (· > ·) (s ∩ { b | ¬a < b }) ↔ Unbounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_lt_inter_not_lt αᵒᵈ s _ a
 
 theorem bounded_gt_inter_ge [LinearOrder α] (a : α) :
-    Bounded (· > ·) (s ∩ { b | b ≤ a }) ↔ Bounded (· > ·) s :=
-  @bounded_lt_inter_le αᵒᵈ s _ a
+    Bounded (· > ·) (s ∩ { b | b ≤ a }) ↔ Bounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_lt_inter_le αᵒᵈ s _ a
 
 theorem unbounded_inter_ge [LinearOrder α] (a : α) :
-    Unbounded (· > ·) (s ∩ { b | b ≤ a }) ↔ Unbounded (· > ·) s :=
-  @unbounded_lt_inter_le αᵒᵈ s _ a
+    Unbounded (· > ·) (s ∩ { b | b ≤ a }) ↔ Unbounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_lt_inter_le αᵒᵈ s _ a
 
 theorem bounded_gt_inter_gt [LinearOrder α] [NoMinOrder α] (a : α) :
-    Bounded (· > ·) (s ∩ { b | b < a }) ↔ Bounded (· > ·) s :=
-  @bounded_lt_inter_lt αᵒᵈ s _ _ a
+    Bounded (· > ·) (s ∩ { b | b < a }) ↔ Bounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @bounded_lt_inter_lt αᵒᵈ s _ _ a
 
 theorem unbounded_gt_inter_gt [LinearOrder α] [NoMinOrder α] (a : α) :
-    Unbounded (· > ·) (s ∩ { b | b < a }) ↔ Unbounded (· > ·) s :=
-  @unbounded_lt_inter_lt αᵒᵈ s _ _ a
+    Unbounded (· > ·) (s ∩ { b | b < a }) ↔ Unbounded (· > ·) s := by
+  unsealing_newtype OrderDual =>
+    exact @unbounded_lt_inter_lt αᵒᵈ s _ _ a
 
 end Set

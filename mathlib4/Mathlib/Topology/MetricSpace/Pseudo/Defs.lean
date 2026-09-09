@@ -1271,7 +1271,21 @@ end
 
 open OrderDual
 
-instance : PseudoMetricSpace αᵒᵈ := ‹_›
+instance : PseudoMetricSpace αᵒᵈ where
+  dist x y := dist (ofDual x) (ofDual y)
+  dist_self _ := dist_self _
+  dist_comm _ _ := dist_comm _ _
+  dist_triangle _ _ _ := dist_triangle _ _ _
+  edist x y := edist (ofDual x) (ofDual y)
+  edist_dist _ _ := edist_dist _ _
+  toUniformSpace := inferInstance
+  uniformity_dist := (Metric.uniformity_basis_dist.comap _).eq_biInf
+  toBornology := inferInstance
+  cobounded_sets := Set.ext fun s ↦ by
+    change (OrderDual.toDual ⁻¹' s) ∈ Bornology.cobounded α ↔ _
+    rw [← Filter.mem_sets, PseudoMetricSpace.cobounded_sets (α := α)]
+    exact ⟨fun ⟨C, hC⟩ ↦ ⟨C, fun x hx y hy ↦ hC (OrderDual.ofDual x) hx (OrderDual.ofDual y) hy⟩,
+      fun ⟨C, hC⟩ ↦ ⟨C, fun x hx y hy ↦ hC (OrderDual.toDual x) hx (OrderDual.toDual y) hy⟩⟩
 
 section
 

@@ -53,8 +53,9 @@ of elements `a` of type `α` such that `a ~[R] b` for every element `b` of `I`. 
 def rightDual (I : Set β) : Set α := {a : α | ∀ ⦃b⦄, b ∈ I → a ~[R] b}
 
 /-- The pair of functions `toDual ∘ leftDual` and `rightDual ∘ ofDual` forms a Galois connection. -/
-theorem gc_leftDual_rightDual : GaloisConnection (toDual ∘ R.leftDual) (R.rightDual ∘ ofDual) :=
-  fun _ _ ↦ ⟨fun h _ ha _ hb ↦ h (by simpa) ha, fun h _ hb _ ha ↦ h (by simpa) hb⟩
+theorem gc_leftDual_rightDual : GaloisConnection (toDual ∘ R.leftDual) (R.rightDual ∘ ofDual) := by
+  unsealing_newtype OrderDual =>
+    exact fun _ _ ↦ ⟨fun h _ ha _ hb ↦ h (by simpa) ha, fun h _ hb _ ha ↦ h (by simpa) hb⟩
 
 /-! ### Induced equivalences between fixed points -/
 
@@ -69,15 +70,17 @@ open GaloisConnection
 
 /-- `leftDual` maps every element `J` to `rightFixedPoints`. -/
 theorem leftDual_mem_rightFixedPoint (J : Set α) : R.leftDual J ∈ R.rightFixedPoints := by
-  apply le_antisymm
-  · apply R.gc_leftDual_rightDual.monotone_l; exact R.gc_leftDual_rightDual.le_u_l J
-  · exact R.gc_leftDual_rightDual.l_u_le (R.leftDual J)
+  unsealing_newtype OrderDual =>
+    apply le_antisymm
+    · apply R.gc_leftDual_rightDual.monotone_l; exact R.gc_leftDual_rightDual.le_u_l J
+    · exact R.gc_leftDual_rightDual.l_u_le (R.leftDual J)
 
 /-- `rightDual` maps every element `I` to `leftFixedPoints`. -/
 theorem rightDual_mem_leftFixedPoint (I : Set β) : R.rightDual I ∈ R.leftFixedPoints := by
-  apply le_antisymm
-  · apply R.gc_leftDual_rightDual.monotone_u; exact R.gc_leftDual_rightDual.l_u_le I
-  · exact R.gc_leftDual_rightDual.le_u_l (R.rightDual I)
+  unsealing_newtype OrderDual =>
+    apply le_antisymm
+    · apply R.gc_leftDual_rightDual.monotone_u; exact R.gc_leftDual_rightDual.l_u_le I
+    · exact R.gc_leftDual_rightDual.le_u_l (R.rightDual I)
 
 /-- The maps `leftDual` and `rightDual` induce inverse bijections between the sets of fixed points.
 -/
@@ -89,16 +92,18 @@ def equivFixedPoints : R.leftFixedPoints ≃ R.rightFixedPoints where
 
 theorem rightDual_leftDual_le_of_le {J J' : Set α} (h : J' ∈ R.leftFixedPoints) (h₁ : J ≤ J') :
     R.rightDual (R.leftDual J) ≤ J' := by
-  rw [← h]
-  apply R.gc_leftDual_rightDual.monotone_u
-  apply R.gc_leftDual_rightDual.monotone_l
-  exact h₁
+  unsealing_newtype OrderDual =>
+    rw [← h]
+    apply R.gc_leftDual_rightDual.monotone_u
+    apply R.gc_leftDual_rightDual.monotone_l
+    exact h₁
 
 theorem leftDual_rightDual_le_of_le {I I' : Set β} (h : I' ∈ R.rightFixedPoints) (h₁ : I ≤ I') :
     R.leftDual (R.rightDual I) ≤ I' := by
-  rw [← h]
-  apply R.gc_leftDual_rightDual.monotone_l
-  apply R.gc_leftDual_rightDual.monotone_u
-  exact h₁
+  unsealing_newtype OrderDual =>
+    rw [← h]
+    apply R.gc_leftDual_rightDual.monotone_l
+    apply R.gc_leftDual_rightDual.monotone_u
+    exact h₁
 
 end SetRel

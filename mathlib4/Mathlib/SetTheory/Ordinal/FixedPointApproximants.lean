@@ -257,93 +257,111 @@ def gfpApprox (a : Ordinal.{u}) : α :=
 termination_by a
 
 -- By unsealing these recursive definitions we can relate them
--- by definitional equality
 unseal gfpApprox lfpApprox
 
 theorem gfpApprox_zero : gfpApprox f x 0 = x := by
-  exact lfpApprox_zero f.dual
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_zero f.dual
 
-theorem gfpApprox_anti_right : Antitone (gfpApprox f x) :=
-  lfpApprox_mono_right f.dual
+theorem gfpApprox_anti_right : Antitone (gfpApprox f x) := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_mono_right f.dual
 
 @[deprecated (since := "2026-03-30")] alias gfpApprox_antitone := gfpApprox_anti_right
 
-theorem gfpApprox_le {a : Ordinal} : gfpApprox f x a ≤ x :=
-  le_lfpApprox f.dual
+theorem gfpApprox_le {a : Ordinal} : gfpApprox f x a ≤ x := by
+  unsealing_newtype OrderDual =>
+    exact le_lfpApprox f.dual
 
 theorem gfpApprox_add_one (hx : f x ≤ x) (a : Ordinal) :
-    gfpApprox f x (a + 1) = f (gfpApprox f x a) :=
-  lfpApprox_add_one f.dual hx a
+    gfpApprox f x (a + 1) = f (gfpApprox f x a) := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_add_one f.dual hx a
 
 theorem gfpApprox_le_apply_gfpApprox_of_lt {a b : Ordinal} (h : a < b) :
-    gfpApprox f x b ≤ f (gfpApprox f x a) :=
-  apply_lfpApprox_le_lfpApprox_of_lt f.dual h
+    gfpApprox f x b ≤ f (gfpApprox f x a) := by
+  unsealing_newtype OrderDual =>
+    exact apply_lfpApprox_le_lfpApprox_of_lt f.dual h
 
 theorem gfpApprox_of_isSuccLimit {a : Ordinal} (ha : Order.IsSuccLimit a) :
-    gfpApprox f x a = ⨅ b : Set.Iio a, gfpApprox f x b :=
-  lfpApprox_of_isSuccLimit f.dual ha
+    gfpApprox f x a = ⨅ b : Set.Iio a, gfpApprox f x b := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_of_isSuccLimit f.dual ha
 
 theorem gfpApprox_mono_left : Monotone (gfpApprox : (α →o α) → _) := by
-  intro f g h
-  have : g.dual ≤ f.dual := h
-  exact lfpApprox_mono_left this
+  unsealing_newtype OrderDual =>
+    intro f g h
+    have : g.dual ≤ f.dual := h
+    exact lfpApprox_mono_left this
 
-theorem gfpApprox_mono_mid : Monotone (gfpApprox f) :=
-  fun _ _ h => lfpApprox_mono_mid f.dual h
+theorem gfpApprox_mono_mid : Monotone (gfpApprox f) := by
+  unsealing_newtype OrderDual =>
+    exact fun _ _ h => lfpApprox_mono_mid f.dual h
 
 /-- The approximations of the greatest fixed point stabilize at a fixed point of `f` -/
 theorem gfpApprox_eq_of_mem_fixedPoints {a b : Ordinal} (h_ab : a ≤ b)
-    (h : gfpApprox f x a ∈ fixedPoints f) : gfpApprox f x b = gfpApprox f x a :=
-  lfpApprox_eq_of_mem_fixedPoints f.dual h_ab h
+    (h : gfpApprox f x a ∈ fixedPoints f) : gfpApprox f x b = gfpApprox f x a := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_eq_of_mem_fixedPoints f.dual h_ab h
 
 theorem gfpApprox_eq_all_of_fixedPoint (hx : f x ≤ x) :
-    (∀ o, gfpApprox f x o = x) ↔ f x = x :=
-  lfpApprox_eq_all_of_fixedPoint f.dual hx
+    (∀ o, gfpApprox f x o = x) ↔ f x = x := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_eq_all_of_fixedPoint f.dual hx
 
 lemma gfpApprox_mem_fixedPoints_of_eq (hx : f x ≤ x) (hab : a < b) (hac : a ≤ c)
-    (hf : gfpApprox f x a = gfpApprox f x b) : gfpApprox f x c ∈ fixedPoints f :=
-  lfpApprox_mem_fixedPoints_of_eq f.dual hx hab hac hf
+    (hf : gfpApprox f x a = gfpApprox f x b) : gfpApprox f x c ∈ fixedPoints f := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_mem_fixedPoints_of_eq f.dual hx hab hac hf
 
 theorem gfpApprox_eq_of_fixedPoint_or_zero (hx : f x ≤ x) (o : Ordinal) :
-    gfpApprox f x o = x ↔ f x = x ∨ o = 0 :=
-  lfpApprox_eq_of_fixedPoint_or_zero f.dual hx o
+    gfpApprox f x o = x ↔ f x = x ∨ o = 0 := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_eq_of_fixedPoint_or_zero f.dual hx o
 
 /-- There are distinct indices smaller than the successor of the domain's cardinality
 yielding the same value -/
 theorem exists_gfpApprox_eq_gfpApprox : ∃ a < ord <| succ #α, ∃ b < ord <| succ #α,
-    a ≠ b ∧ gfpApprox f x a = gfpApprox f x b :=
-  exists_lfpApprox_eq_lfpApprox f.dual x
+    a ≠ b ∧ gfpApprox f x a = gfpApprox f x b := by
+  unsealing_newtype OrderDual =>
+    exact exists_lfpApprox_eq_lfpApprox f.dual x
 
 /-- The approximation at the index of the successor of the domain's cardinality is a fixed point -/
 lemma gfpApprox_ord_mem_fixedPoint (hx : f x ≤ x) :
-    gfpApprox f x (ord <| succ #α) ∈ fixedPoints f :=
-  lfpApprox_ord_mem_fixedPoint f.dual hx
+    gfpApprox f x (ord <| succ #α) ∈ fixedPoints f := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_ord_mem_fixedPoint f.dual hx
 
 /-- Every value of the approximation is greater or equal than every fixed point of `f`
 less or equal than the initial value -/
 lemma le_gfpApprox_of_mem_fixedPoints {a : α}
-    (ha : a ∈ fixedPoints f) (hax : a ≤ x) (i : Ordinal) : a ≤ gfpApprox f x i :=
-  lfpApprox_le_of_mem_fixedPoints f.dual ha hax i
+    (ha : a ∈ fixedPoints f) (hax : a ≤ x) (i : Ordinal) : a ≤ gfpApprox f x i := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_le_of_mem_fixedPoints f.dual ha hax i
 
 /-- The approximation sequence converges at the successor of the domain's cardinality
 to the greatest fixed point if starting from `⊥` -/
-theorem gfpApprox_ord_eq_gfp : gfpApprox f ⊤ (ord <| succ #α) = f.gfp :=
-  lfpApprox_ord_eq_lfp f.dual
+theorem gfpApprox_ord_eq_gfp : gfpApprox f ⊤ (ord <| succ #α) = f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact lfpApprox_ord_eq_lfp f.dual
 
 /-- Some approximation of the least fixed point starting from `⊤` is the greatest fixed point. -/
-theorem gfp_mem_range_gfpApprox : f.gfp ∈ Set.range (gfpApprox f ⊤) :=
-  lfp_mem_range_lfpApprox f.dual
+theorem gfp_mem_range_gfpApprox : f.gfp ∈ Set.range (gfpApprox f ⊤) := by
+  unsealing_newtype OrderDual =>
+    exact lfp_mem_range_lfpApprox f.dual
 
 /-- If `gfpApprox f x a` is a fixed point, then the infimum of the whole
 ordinal-indexed sequence equals the value at `a`. -/
 lemma iInf_gfpApprox_eq_of_mem_fixedPoints (hf : gfpApprox f x a ∈ fixedPoints f) :
-    ⨅ i : Ordinal, gfpApprox f x i = gfpApprox f x a :=
-  iSup_lfpApprox_eq_of_mem_fixedPoints f.dual hf
+    ⨅ i : Ordinal, gfpApprox f x i = gfpApprox f x a := by
+  unsealing_newtype OrderDual =>
+    exact iSup_lfpApprox_eq_of_mem_fixedPoints f.dual hf
 
 /-- The ordinal-indexed infimum of `gfpApprox` equals `prevFixed`: the greatest fixed point
 less than or equal to `x`. -/
 theorem prevFixed_eq_iInf_gfpApprox (hx : f x ≤ x) :
-    (f.prevFixed x hx).val = ⨅ a : Ordinal, gfpApprox f x a :=
-  nextFixed_eq_iSup_lfpApprox f.dual hx
+    (f.prevFixed x hx).val = ⨅ a : Ordinal, gfpApprox f x a := by
+  unsealing_newtype OrderDual =>
+    exact nextFixed_eq_iSup_lfpApprox f.dual hx
 
 end OrdinalApprox

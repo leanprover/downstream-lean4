@@ -34,3 +34,15 @@ instance isOrderedCancelMonoid [∀ i, CommMonoid (α i)] [∀ i, PartialOrder (
       Or.inr ⟨i, fun j hj => (mul_left_cancel <| hi.1 j hj), lt_of_mul_lt_mul_left' hi.2⟩
 
 end Pi.Lex
+
+namespace Pi.Colex
+variable {ι : Type*} {α : ι → Type*} [LinearOrder ι]
+
+@[to_additive]
+instance isOrderedCancelMonoid [∀ i, CommMonoid (α i)] [∀ i, PartialOrder (α i)]
+    [∀ i, IsOrderedCancelMonoid (α i)] :
+    IsOrderedCancelMonoid (Colex (∀ i, α i)) := by
+  unsealing_newtype OrderDual =>
+    exact @Pi.Lex.isOrderedCancelMonoid ιᵒᵈ α _ ‹_› ‹_› ‹_›
+
+end Pi.Colex

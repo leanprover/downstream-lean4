@@ -172,8 +172,9 @@ theorem StrictConcaveOn.comp_strictConvexOn (hg : StrictConcaveOn 𝕜 (f '' s) 
   hg.dual.comp hf hg' hf'
 
 theorem StrictConcaveOn.comp (hg : StrictConcaveOn 𝕜 (f '' s) g) (hf : StrictConcaveOn 𝕜 s f)
-    (hg' : StrictMonoOn g (f '' s)) (hf' : s.InjOn f) : StrictConcaveOn 𝕜 s (g ∘ f) :=
-  hg.comp_strictConvexOn (β := βᵒᵈ) hf hg'.dual hf'
+    (hg' : StrictMonoOn g (f '' s)) (hf' : s.InjOn f) : StrictConcaveOn 𝕜 s (g ∘ f) := by
+  unsealing_newtype OrderDual =>
+    exact hg.comp_strictConvexOn (β := βᵒᵈ) hf hg'.dual hf'
 
 theorem StrictConvexOn.comp_strictConcaveOn (hg : StrictConvexOn 𝕜 (f '' s) g)
     (hf : StrictConcaveOn 𝕜 s f) (hg' : StrictAntiOn g (f '' s)) (hf' : s.InjOn f) :
@@ -192,8 +193,9 @@ theorem ConcaveOn.comp_strictConvexOn (hg : ConcaveOn 𝕜 (f '' s) g) (hf : Str
   hg.dual.comp_strictConvexOn hf hg'
 
 theorem ConcaveOn.comp_strictConcaveOn (hg : ConcaveOn 𝕜 (f '' s) g) (hf : StrictConcaveOn 𝕜 s f)
-    (hg' : StrictMonoOn g (f '' s)) : StrictConcaveOn 𝕜 s (g ∘ f) :=
-  hg.comp_strictConvexOn (β := βᵒᵈ) hf hg'.dual
+    (hg' : StrictMonoOn g (f '' s)) : StrictConcaveOn 𝕜 s (g ∘ f) := by
+  unsealing_newtype OrderDual =>
+    exact hg.comp_strictConvexOn (β := βᵒᵈ) hf hg'.dual
 
 theorem ConvexOn.comp_strictConcaveOn (hg : ConvexOn 𝕜 (f '' s) g) (hf : StrictConcaveOn 𝕜 s f)
     (hg' : StrictAntiOn g (f '' s)) : StrictConvexOn 𝕜 s (g ∘ f) :=
@@ -212,8 +214,9 @@ theorem StrictConcaveOn.comp_convexOn (hg : StrictConcaveOn 𝕜 (f '' s) g) (hf
   hg.dual.comp_convexOn hf hg' hf'
 
 theorem StrictConvexOn.comp_concaveOn (hg : StrictConvexOn 𝕜 (f '' s) g) (hf : ConcaveOn 𝕜 s f)
-    (hg' : AntitoneOn g (f '' s)) (hf' : s.InjOn f) : StrictConvexOn 𝕜 s (g ∘ f) :=
-  hg.comp_convexOn (β := βᵒᵈ) hf hg'.dual hf'
+    (hg' : AntitoneOn g (f '' s)) (hf' : s.InjOn f) : StrictConvexOn 𝕜 s (g ∘ f) := by
+  unsealing_newtype OrderDual =>
+    exact hg.comp_convexOn (β := βᵒᵈ) hf hg'.dual hf'
 
 theorem StrictConcaveOn.comp_concaveOn (hg : StrictConcaveOn 𝕜 (f '' s) g) (hf : ConcaveOn 𝕜 s f)
     (hg' : MonotoneOn g (f '' s)) (hf' : s.InjOn f) : StrictConcaveOn 𝕜 s (g ∘ f) :=
@@ -262,8 +265,9 @@ theorem convexOn_of_convex_epigraph (h : Convex 𝕜 { p : E × β | p.1 ∈ s �
     fun x hx y hy a b ha hb hab => (@h (x, f x) ⟨hx, le_rfl⟩ (y, f y) ⟨hy, le_rfl⟩ a b ha hb hab).2⟩
 
 theorem concaveOn_of_convex_hypograph (h : Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1 }) :
-    ConcaveOn 𝕜 s f :=
-  convexOn_of_convex_epigraph (β := βᵒᵈ) h
+    ConcaveOn 𝕜 s f := by
+  unsealing_newtype OrderDual =>
+    exact convexOn_of_convex_epigraph (β := βᵒᵈ) h
 
 end Module
 
@@ -283,8 +287,9 @@ theorem ConvexOn.convex_le (hf : ConvexOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x 
       _ = r := Convex.combo_self hab r
       ⟩
 
-theorem ConcaveOn.convex_ge (hf : ConcaveOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x ∈ s | r ≤ f x }) :=
-  hf.dual.convex_le r
+theorem ConcaveOn.convex_ge (hf : ConcaveOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x ∈ s | r ≤ f x }) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.convex_le r
 
 theorem ConvexOn.convex_epigraph (hf : ConvexOn 𝕜 s f) :
     Convex 𝕜 { p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2 } := by
@@ -295,16 +300,18 @@ theorem ConvexOn.convex_epigraph (hf : ConvexOn 𝕜 s f) :
     _ ≤ a • r + b • t := by gcongr
 
 theorem ConcaveOn.convex_hypograph (hf : ConcaveOn 𝕜 s f) :
-    Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1 } :=
-  hf.dual.convex_epigraph
+    Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1 } := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.convex_epigraph
 
 theorem convexOn_iff_convex_epigraph :
     ConvexOn 𝕜 s f ↔ Convex 𝕜 { p : E × β | p.1 ∈ s ∧ f p.1 ≤ p.2 } :=
   ⟨ConvexOn.convex_epigraph, convexOn_of_convex_epigraph⟩
 
 theorem concaveOn_iff_convex_hypograph :
-    ConcaveOn 𝕜 s f ↔ Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1 } :=
-  convexOn_iff_convex_epigraph (β := βᵒᵈ)
+    ConcaveOn 𝕜 s f ↔ Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 ≤ f p.1 } := by
+  unsealing_newtype OrderDual =>
+    exact convexOn_iff_convex_epigraph (β := βᵒᵈ)
 
 end PosSMulMono
 
@@ -419,8 +426,9 @@ theorem StrictConvexOn.convex_lt (hf : StrictConvexOn 𝕜 s f) (r : β) :
         ⟩
 
 theorem StrictConcaveOn.convex_gt (hf : StrictConcaveOn 𝕜 s f) (r : β) :
-    Convex 𝕜 ({ x ∈ s | r < f x }) :=
-  hf.dual.convex_lt r
+    Convex 𝕜 ({ x ∈ s | r < f x }) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.convex_lt r
 
 end PosSMulMono
 
@@ -570,8 +578,9 @@ theorem ConvexOn.convex_lt (hf : ConvexOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x 
             (smul_le_smul_of_nonneg_left hy.2.le hb.le))
         _ = r := Convex.combo_self hab _⟩
 
-theorem ConcaveOn.convex_gt (hf : ConcaveOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x ∈ s | r < f x }) :=
-  hf.dual.convex_lt r
+theorem ConcaveOn.convex_gt (hf : ConcaveOn 𝕜 s f) (r : β) : Convex 𝕜 ({ x ∈ s | r < f x }) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.convex_lt r
 
 theorem ConvexOn.openSegment_subset_strict_epigraph (hf : ConvexOn 𝕜 s f) (p q : E × β)
     (hp : p.1 ∈ s ∧ f p.1 < p.2) (hq : q.1 ∈ s ∧ f q.1 ≤ q.2) :
@@ -585,8 +594,9 @@ theorem ConvexOn.openSegment_subset_strict_epigraph (hf : ConvexOn 𝕜 s f) (p 
 
 theorem ConcaveOn.openSegment_subset_strict_hypograph (hf : ConcaveOn 𝕜 s f) (p q : E × β)
     (hp : p.1 ∈ s ∧ p.2 < f p.1) (hq : q.1 ∈ s ∧ q.2 ≤ f q.1) :
-    openSegment 𝕜 p q ⊆ { p : E × β | p.1 ∈ s ∧ p.2 < f p.1 } :=
-  hf.dual.openSegment_subset_strict_epigraph p q hp hq
+    openSegment 𝕜 p q ⊆ { p : E × β | p.1 ∈ s ∧ p.2 < f p.1 } := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.openSegment_subset_strict_epigraph p q hp hq
 
 theorem ConvexOn.convex_strict_epigraph [ZeroLEOneClass 𝕜] (hf : ConvexOn 𝕜 s f) :
     Convex 𝕜 { p : E × β | p.1 ∈ s ∧ f p.1 < p.2 } :=
@@ -594,8 +604,9 @@ theorem ConvexOn.convex_strict_epigraph [ZeroLEOneClass 𝕜] (hf : ConvexOn �
     hf.openSegment_subset_strict_epigraph p q hp ⟨hq.1, hq.2.le⟩
 
 theorem ConcaveOn.convex_strict_hypograph [ZeroLEOneClass 𝕜] (hf : ConcaveOn 𝕜 s f) :
-    Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 < f p.1 } :=
-  hf.dual.convex_strict_epigraph
+    Convex 𝕜 { p : E × β | p.1 ∈ s ∧ p.2 < f p.1 } := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.convex_strict_epigraph
 
 end Module
 

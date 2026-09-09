@@ -301,10 +301,14 @@ section BooleanAlgebra
 variable [BooleanAlgebra α] [DecidableLE α]
 
 @[simp] lemma compl_truncatedSup (s : Finset α) (a : α) :
-    (truncatedSup s a)ᶜ = truncatedInf sᶜˢ aᶜ := map_truncatedSup (OrderIso.compl α) _ _
+    (truncatedSup s a)ᶜ = truncatedInf sᶜˢ aᶜ := by
+  unsealing_newtype OrderDual =>
+    exact map_truncatedSup (OrderIso.compl α) _ _
 
 @[simp] lemma compl_truncatedInf (s : Finset α) (a : α) :
-    (truncatedInf s a)ᶜ = truncatedSup sᶜˢ aᶜ := map_truncatedInf (OrderIso.compl α) _ _
+    (truncatedInf s a)ᶜ = truncatedSup sᶜˢ aᶜ := by
+  unsealing_newtype OrderDual =>
+    exact map_truncatedInf (OrderIso.compl α) _ _
 
 end BooleanAlgebra
 

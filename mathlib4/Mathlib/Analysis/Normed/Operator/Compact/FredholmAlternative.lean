@@ -130,7 +130,7 @@ private theorem exists_seq {S : End 𝕜 X} (hS_not_surj : ¬ (S : X → X).Surj
       (∀ n, 1 ≤ ‖f n‖) ∧ (∀ n, ‖f n‖ ≤ R) ∧ (∀ n, f n ∈ (S ^ n).range) ∧
       (∀ n, ∀ y ∈ (S ^ (n + 1)).range, 1 ≤ ‖f n - y‖) := by
   -- Construct the sequence of submodules `V n := (S ^ n).range`, and show that they are closed.
-  let V (n : ℕ) : Submodule 𝕜 X := S.iterateRange n
+  let V (n : ℕ) : Submodule 𝕜 X := OrderDual.ofDual (S.iterateRange n)
   have hV_succ (n : ℕ) : V (n + 1) = (V n).map (S : End 𝕜 X) := LinearMap.iterateRange_succ
   have hV_closed (n : ℕ) : IsClosed (V n : Set X) := by
     induction n with

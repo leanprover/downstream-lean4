@@ -30,7 +30,8 @@ section IsNoetherianRing
 variable (R : Type u) [CommSemiring R] [IsNoetherianRing R]
 
 instance : NoetherianSpace (PrimeSpectrum R) :=
-  ((noetherianSpace_TFAE <| PrimeSpectrum R).out 1 2).mpr (closedsEmbedding R).dual.wellFoundedLT
+  ((noetherianSpace_TFAE <| PrimeSpectrum R).out 1 2).mpr
+    ((wellFoundedGT_dual_iff _).1 (closedsEmbedding R).wellFoundedGT)
 
 lemma finite_setOfPred_isMin :
     {x : PrimeSpectrum R | IsMin x}.Finite := by

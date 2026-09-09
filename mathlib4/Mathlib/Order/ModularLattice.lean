@@ -170,11 +170,7 @@ theorem IsModularLattice.inf_sup_inf_assoc {x y z : α} : x ⊓ z ⊔ y ⊓ z = 
   (sup_inf_assoc_of_le y inf_le_right).symm
 
 instance : IsModularLattice αᵒᵈ :=
-  ⟨fun y z xz =>
-    le_of_eq
-      (by
-        rw [inf_comm, sup_comm, eq_comm, inf_comm, sup_comm]
-        exact @sup_inf_assoc_of_le α _ _ _ y _ xz)⟩
+  ⟨fun y _ xz => inf_sup_le_assoc_of_le (OrderDual.ofDual y) xz⟩
 
 variable {x y z : α}
 
@@ -216,9 +212,10 @@ theorem wellFounded_gt_exact_sequence {β γ : Type*} [Preorder β] [Preorder γ
     [WellFoundedGT β] [WellFoundedGT γ] (K : α)
     (f₁ : β → α) (f₂ : α → β) (g₁ : γ → α) (g₂ : α → γ) (gci : GaloisCoinsertion f₁ f₂)
     (gi : GaloisInsertion g₂ g₁) (hf : ∀ a, f₁ (f₂ a) = a ⊓ K) (hg : ∀ a, g₁ (g₂ a) = a ⊔ K) :
-    WellFoundedGT α :=
-  wellFounded_lt_exact_sequence (α := αᵒᵈ) (β := γᵒᵈ) (γ := βᵒᵈ)
-    K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
+    WellFoundedGT α := by
+  unsealing_newtype OrderDual =>
+    exact wellFounded_lt_exact_sequence (α := αᵒᵈ) (β := γᵒᵈ) (γ := βᵒᵈ)
+        K g₁ g₂ f₁ f₂ gi.dual gci.dual hg hf
 
 set_option backward.isDefEq.respectTransparency false in
 /-- The diamond isomorphism between the closed intervals `[a ⊓ b, a]` and `[b, a ⊔ b]` -/

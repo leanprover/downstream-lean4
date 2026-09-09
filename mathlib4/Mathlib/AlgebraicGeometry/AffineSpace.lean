@@ -483,10 +483,14 @@ lemma spec_le_iff (R : CommRingCat) (p q : Spec R) : p ≤ q ↔ q.asIdeal ≤ p
 
 /--
 One should bear this equality in mind when breaking the `Spec R/ PrimeSpectrum R` abstraction
-boundary, since these instances are not definitionally equal.
+boundary, since these instances are not definitionally equal.  Note that `(PrimeSpectrum R)ᵒᵈ` is
+a different type from `Spec R`, so the two preorders are compared by transporting the dual one
+along `OrderDual.toDual`.
 -/
 example (R : CommRingCat) :
-    inferInstance (α := Preorder (Spec R)) = inferInstance (α := Preorder (PrimeSpectrum R)ᵒᵈ) := by
+    inferInstance (α := Preorder (Spec R)) =
+      Preorder.lift fun p : Spec R ↦ OrderDual.toDual (show PrimeSpectrum R from p) := by
+  refine Preorder.ext fun p q ↦ ?_
   aesop (add simp spec_le_iff)
 
 end instances

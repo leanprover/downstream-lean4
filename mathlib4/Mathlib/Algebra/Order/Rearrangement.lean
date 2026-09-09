@@ -114,8 +114,9 @@ theorem MonovaryOn.sum_smul_comp_perm_le_sum_smul (hfg : MonovaryOn f g s)
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is minimized when
 `f` and `g` antivary together on `s`. Stated by permuting the entries of `g`. -/
 theorem AntivaryOn.sum_smul_le_sum_smul_comp_perm (hfg : AntivaryOn f g s)
-    (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i ∈ s, f i • g i ≤ ∑ i ∈ s, f i • g (σ i) :=
-  hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
+    (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i ∈ s, f i • g i ≤ ∑ i ∈ s, f i • g (σ i) := by
+  unsealing_newtype OrderDual =>
+    exact hfg.dual_right.sum_smul_comp_perm_le_sum_smul hσ
 
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is maximized when
 `f` and `g` monovary together on `s`. Stated by permuting the entries of `f`. -/
@@ -129,8 +130,9 @@ theorem MonovaryOn.sum_comp_perm_smul_le_sum_smul (hfg : MonovaryOn f g s)
 /-- **Rearrangement Inequality**: Pointwise scalar multiplication of `f` and `g` is minimized when
 `f` and `g` antivary together on `s`. Stated by permuting the entries of `f`. -/
 theorem AntivaryOn.sum_smul_le_sum_comp_perm_smul (hfg : AntivaryOn f g s)
-    (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i ∈ s, f i • g i ≤ ∑ i ∈ s, f (σ i) • g i :=
-  hfg.dual_right.sum_comp_perm_smul_le_sum_smul hσ
+    (hσ : {x | σ x ≠ x} ⊆ s) : ∑ i ∈ s, f i • g i ≤ ∑ i ∈ s, f (σ i) • g i := by
+  unsealing_newtype OrderDual =>
+    exact hfg.dual_right.sum_comp_perm_smul_le_sum_smul hσ
 
 variable [Fintype ι]
 
@@ -197,8 +199,9 @@ theorem MonovaryOn.sum_smul_comp_perm_eq_sum_smul_iff (hfg : MonovaryOn f g s)
 antivary together on `s`. Stated by permuting the entries of `g`. -/
 theorem AntivaryOn.sum_smul_comp_perm_eq_sum_smul_iff (hfg : AntivaryOn f g s)
     (hσ : {x | σ x ≠ x} ⊆ s) :
-    ∑ i ∈ s, f i • g (σ i) = ∑ i ∈ s, f i • g i ↔ AntivaryOn f (g ∘ σ) s :=
-  (hfg.dual_right.sum_smul_comp_perm_eq_sum_smul_iff hσ).trans monovaryOn_toDual_right
+    ∑ i ∈ s, f i • g (σ i) = ∑ i ∈ s, f i • g i ↔ AntivaryOn f (g ∘ σ) s := by
+  unsealing_newtype OrderDual =>
+    exact (hfg.dual_right.sum_smul_comp_perm_eq_sum_smul_iff hσ).trans monovaryOn_toDual_right
 
 /-- **Equality case of the Rearrangement Inequality**: Pointwise scalar multiplication of `f` and
 `g`, which monovary together on `s`, is unchanged by a permutation if and only if `f ∘ σ` and `g`
@@ -225,8 +228,9 @@ theorem MonovaryOn.sum_comp_perm_smul_eq_sum_smul_iff (hfg : MonovaryOn f g s)
 antivary together on `s`. Stated by permuting the entries of `f`. -/
 theorem AntivaryOn.sum_comp_perm_smul_eq_sum_smul_iff (hfg : AntivaryOn f g s)
     (hσ : {x | σ x ≠ x} ⊆ s) :
-    ∑ i ∈ s, f (σ i) • g i = ∑ i ∈ s, f i • g i ↔ AntivaryOn (f ∘ σ) g s :=
-  (hfg.dual_right.sum_comp_perm_smul_eq_sum_smul_iff hσ).trans monovaryOn_toDual_right
+    ∑ i ∈ s, f (σ i) • g i = ∑ i ∈ s, f i • g i ↔ AntivaryOn (f ∘ σ) g s := by
+  unsealing_newtype OrderDual =>
+    exact (hfg.dual_right.sum_comp_perm_smul_eq_sum_smul_iff hσ).trans monovaryOn_toDual_right
 
 variable [Fintype ι]
 

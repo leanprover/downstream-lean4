@@ -89,13 +89,20 @@ class OrderClosedTopology (α : Type*) [TopologicalSpace α] [Preorder α] : Pro
   /-- The set `{ (x, y) | x ≤ y }` is a closed set. -/
   protected isClosed_le' : IsClosed { p : α × α | p.1 ≤ p.2 }
 
-instance [TopologicalSpace α] [h : FirstCountableTopology α] : FirstCountableTopology αᵒᵈ := h
-instance [TopologicalSpace α] [h : SecondCountableTopology α] : SecondCountableTopology αᵒᵈ := h
-instance [TopologicalSpace α] [h : SeparableSpace α] : SeparableSpace αᵒᵈ := h
+instance [TopologicalSpace α] [FirstCountableTopology α] : FirstCountableTopology αᵒᵈ :=
+  (Topology.IsOpenEmbedding.of_continuous_injective_isOpenMap continuous_ofDual
+    OrderDual.ofDual.injective isOpenMap_ofDual).isInducing.firstCountableTopology
+
+instance [TopologicalSpace α] [SecondCountableTopology α] : SecondCountableTopology αᵒᵈ :=
+  (Topology.IsOpenEmbedding.of_continuous_injective_isOpenMap continuous_ofDual
+    OrderDual.ofDual.injective isOpenMap_ofDual).isInducing.secondCountableTopology
+
+instance [TopologicalSpace α] [SeparableSpace α] : SeparableSpace αᵒᵈ :=
+  OrderDual.toDual.surjective.denseRange.separableSpace continuous_toDual
 
 theorem Dense.orderDual [TopologicalSpace α] {s : Set α} (hs : Dense s) :
     Dense (OrderDual.ofDual ⁻¹' s) :=
-  hs
+  hs.preimage isOpenMap_ofDual
 
 section General
 variable [TopologicalSpace α] [Preorder α] {s : Set α}
@@ -118,7 +125,7 @@ theorem isClosed_Iic : IsClosed (Iic a) :=
 
 @[to_dual]
 instance : ClosedIciTopology αᵒᵈ where
-  isClosed_Ici _ := isClosed_Iic (α := α)
+  isClosed_Ici _ := (isClosed_Iic (α := α)).preimage continuous_ofDual
 
 @[to_dual (attr := simp, closedness =)]
 theorem closure_Iic (a : α) : closure (Iic a) = Iic a :=
@@ -407,15 +414,17 @@ section ClosedIciTopology
 theorem iInf_eq_of_forall_le_of_tendsto {ι : Type*} {F : Filter ι} [F.NeBot]
     [ConditionallyCompleteLattice α] [TopologicalSpace α] [ClosedIciTopology α]
     {a : α} {f : ι → α} (hle : ∀ i, a ≤ f i) (hlim : Tendsto f F (𝓝 a)) :
-    ⨅ i, f i = a :=
-  iSup_eq_of_forall_le_of_tendsto (α := αᵒᵈ) hle hlim
+    ⨅ i, f i = a := by
+  unsealing_newtype OrderDual =>
+    exact iSup_eq_of_forall_le_of_tendsto (α := αᵒᵈ) hle hlim
 
 @[to_dual existing]
 theorem iUnion_Ici_eq_Ioi_of_lt_of_tendsto {ι : Type*} {F : Filter ι} [F.NeBot]
     [ConditionallyCompleteLinearOrder α] [TopologicalSpace α] [ClosedIciTopology α]
     {a : α} {f : ι → α} (hlt : ∀ i, a < f i) (hlim : Tendsto f F (𝓝 a)) :
-    ⋃ i : ι, Ici (f i) = Ioi a :=
-  iUnion_Iic_eq_Iio_of_lt_of_tendsto (α := αᵒᵈ) hlt hlim
+    ⋃ i : ι, Ici (f i) = Ioi a := by
+  unsealing_newtype OrderDual =>
+    exact iUnion_Iic_eq_Iio_of_lt_of_tendsto (α := αᵒᵈ) hlt hlim
 
 section OrderClosedTopology
 
@@ -453,7 +462,7 @@ instance : ClosedIicTopology α where
   isClosed_Iic _ := isClosed_le continuous_id continuous_const
 
 instance : OrderClosedTopology αᵒᵈ :=
-  ⟨isClosed_le_prod' (α := α)⟩
+  ⟨(isClosed_le_prod' (α := α)).preimage (continuous_ofDual.prodMap continuous_ofDual)⟩
 
 @[to_dual self, closedness .]
 theorem isClosed_Icc {a b : α} : IsClosed (Icc a b) :=
@@ -537,13 +546,15 @@ lemma monotone_of_frequently_monotone_of_tendsto (hF : ∃ᶠ i in l, Monotone (
 /-- The limit of a collection of functions that is frequently antitone on a set is antitone on
 that set. -/
 lemma antitoneOn_of_frequently_antitoneOn_of_tendsto (hF : ∃ᶠ i in l, AntitoneOn (F i) s)
-    (hlim : ∀ x ∈ s, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) : AntitoneOn f s :=
-  monotoneOn_of_frequently_monotoneOn_of_tendsto (α := αᵒᵈ) hF hlim
+    (hlim : ∀ x ∈ s, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) : AntitoneOn f s := by
+  unsealing_newtype OrderDual =>
+    exact monotoneOn_of_frequently_monotoneOn_of_tendsto (α := αᵒᵈ) hF hlim
 
 /-- The limit of a collection of functions that is frequently antitone is antitone. -/
 lemma antitone_of_frequently_antitone_of_tendsto (hF : ∃ᶠ i in l, Antitone (F i))
-    (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) : Antitone f :=
-  monotone_of_frequently_monotone_of_tendsto (α := αᵒᵈ) hF hlim
+    (hlim : ∀ x, Tendsto (fun i ↦ F i x) l (𝓝 (f x))) : Antitone f := by
+  unsealing_newtype OrderDual =>
+    exact monotone_of_frequently_monotone_of_tendsto (α := αᵒᵈ) hF hlim
 
 /-- The set of monotone functions on a set is closed. -/
 theorem isClosed_monotoneOn : IsClosed {f : β → α | MonotoneOn f s} := by
@@ -557,12 +568,14 @@ theorem isClosed_monotone : IsClosed {f : β → α | Monotone f} := by
   exact isClosed_monotoneOn
 
 /-- The set of antitone functions on a set is closed. -/
-theorem isClosed_antitoneOn : IsClosed {f : β → α | AntitoneOn f s} :=
-  isClosed_monotoneOn (α := αᵒᵈ)
+theorem isClosed_antitoneOn : IsClosed {f : β → α | AntitoneOn f s} := by
+  unsealing_newtype OrderDual =>
+    exact isClosed_monotoneOn (α := αᵒᵈ)
 
 /-- The set of antitone functions is closed. -/
-theorem isClosed_antitone : IsClosed {f : β → α | Antitone f} :=
-  isClosed_monotone (α := αᵒᵈ)
+theorem isClosed_antitone : IsClosed {f : β → α | Antitone f} := by
+  unsealing_newtype OrderDual =>
+    exact isClosed_monotone (α := αᵒᵈ)
 
 end Tendsto
 

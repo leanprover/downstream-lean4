@@ -101,28 +101,34 @@ theorem le_gfp {a : α} (h : a ≤ f a) : a ≤ f.gfp :=
 theorem gfp_le {a : α} (h : ∀ b, b ≤ f b → b ≤ a) : f.gfp ≤ a :=
   sSup_le h
 
-theorem isFixedPt_gfp : IsFixedPt f f.gfp :=
-  f.dual.isFixedPt_lfp
+theorem gfp_le_map {a : α} (ha : f.gfp ≤ a) : f.gfp ≤ f a := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.map_le_lfp ha
 
 @[simp]
-theorem map_gfp : f f.gfp = f.gfp :=
-  f.dual.map_lfp
+theorem map_gfp : f f.gfp = f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.map_lfp
 
-theorem map_le_gfp {a : α} (ha : a ≤ f.gfp) : f a ≤ f.gfp :=
-  f.dual.lfp_le_map ha
+theorem isFixedPt_gfp : IsFixedPt f f.gfp :=
+  f.map_gfp
 
-theorem gfp_le_map {a : α} (ha : f.gfp ≤ a) : f.gfp ≤ f a :=
-  f.dual.map_le_lfp ha
+theorem map_le_gfp {a : α} (ha : a ≤ f.gfp) : f a ≤ f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.lfp_le_map ha
 
-theorem isGreatest_gfp_le : IsGreatest { a | a ≤ f a } f.gfp :=
-  f.dual.isLeast_lfp_le
+theorem isGreatest_gfp_le : IsGreatest { a | a ≤ f a } f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.isLeast_lfp_le
 
-theorem isGreatest_gfp : IsGreatest (fixedPoints f) f.gfp :=
-  f.dual.isLeast_lfp
+theorem isGreatest_gfp : IsGreatest (fixedPoints f) f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.isLeast_lfp
 
 theorem gfp_induction {p : α → Prop} (step : ∀ a, p a → f.gfp ≤ a → p (f a))
-    (hInf : ∀ s, (∀ a ∈ s, p a) → p (sInf s)) : p f.gfp :=
-  f.dual.lfp_induction step hInf
+    (hInf : ∀ s, (∀ a ∈ s, p a) → p (sInf s)) : p f.gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.lfp_induction step hInf
 
 theorem lfp_le_gfp : f.lfp ≤ f.gfp :=
   f.lfp_le_fixed f.isFixedPt_gfp
@@ -138,8 +144,9 @@ theorem map_lfp_comp : f (g.comp f).lfp = (f.comp g).lfp :=
   le_antisymm ((f.comp g).map_lfp ▸ f.mono (lfp_le_fixed _ <| congr_arg g (f.comp g).map_lfp)) <|
     lfp_le _ (congr_arg f (g.comp f).map_lfp).le
 
-theorem map_gfp_comp : f (g.comp f).gfp = (f.comp g).gfp :=
-  f.dual.map_lfp_comp g.dual
+theorem map_gfp_comp : f (g.comp f).gfp = (f.comp g).gfp := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.map_lfp_comp g.dual
 
 -- Diagonal rule
 theorem lfp_lfp (h : α →o α →o α) : (lfp.comp h).lfp = h.onDiag.lfp := by
@@ -152,8 +159,9 @@ theorem lfp_lfp (h : α →o α →o α) : (lfp.comp h).lfp = h.onDiag.lfp := by
     _ = (h a).lfp := (h a).map_lfp
     _ = a := ha
 
-theorem gfp_gfp (h : α →o α →o α) : (gfp.comp h).gfp = h.onDiag.gfp :=
-  @lfp_lfp αᵒᵈ _ <| (OrderHom.dualIso αᵒᵈ αᵒᵈ).symm.toOrderEmbedding.toOrderHom.comp h.dual
+theorem gfp_gfp (h : α →o α →o α) : (gfp.comp h).gfp = h.onDiag.gfp := by
+  unsealing_newtype OrderDual =>
+    exact @lfp_lfp αᵒᵈ _ <| (OrderHom.dualIso αᵒᵈ αᵒᵈ).symm.toOrderEmbedding.toOrderHom.comp h.dual
 
 end Eqn
 
@@ -163,6 +171,9 @@ variable [CompleteLattice α] (f : α →o α)
 
 theorem gfp_const_inf_le (x : α) : (const α x ⊓ f).gfp ≤ x :=
   (gfp_le _) fun _ hb => hb.trans inf_le_left
+
+theorem le_lfp_const_sup (x : α) : x ≤ (const α x ⊔ f).lfp :=
+  (le_lfp _) fun _ hb => le_sup_left.trans hb
 
 /-- Previous fixed point of a monotone map. If `f` is a monotone self-map of a complete lattice and
 `x` is a point such that `f x ≤ x`, then `f.prevFixed x hx` is the greatest fixed point of `f`
@@ -179,13 +190,18 @@ def prevFixed (x : α) (hx : f x ≤ x) : fixedPoints f :=
 `x` is a point such that `x ≤ f x`, then `f.nextFixed x hx` is the least fixed point of `f`
 that is greater than or equal to `x`. -/
 def nextFixed (x : α) (hx : x ≤ f x) : fixedPoints f :=
-  { f.dual.prevFixed x hx with val := (const α x ⊔ f).lfp }
+  ⟨(const α x ⊔ f).lfp,
+    calc
+      f (const α x ⊔ f).lfp = x ⊔ f (const α x ⊔ f).lfp :=
+        Eq.symm <| sup_of_le_right <| hx.trans (f.mono <| f.le_lfp_const_sup x)
+      _ = (const α x ⊔ f).lfp := (const α x ⊔ f).map_lfp
+      ⟩
 
 theorem prevFixed_le {x : α} (hx : f x ≤ x) : ↑(f.prevFixed x hx) ≤ x :=
   f.gfp_const_inf_le x
 
 theorem le_nextFixed {x : α} (hx : x ≤ f x) : x ≤ f.nextFixed x hx :=
-  f.dual.prevFixed_le hx
+  f.le_lfp_const_sup x
 
 theorem nextFixed_le {x : α} (hx : x ≤ f x) {y : fixedPoints f} (h : x ≤ y) :
     f.nextFixed x hx ≤ y :=
@@ -198,8 +214,9 @@ theorem nextFixed_le_iff {x : α} (hx : x ≤ f x) {y : fixedPoints f} :
 
 @[simp]
 theorem le_prevFixed_iff {x : α} (hx : f x ≤ x) {y : fixedPoints f} :
-    y ≤ f.prevFixed x hx ↔ ↑y ≤ x :=
-  f.dual.nextFixed_le_iff hx
+    y ≤ f.prevFixed x hx ↔ ↑y ≤ x := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.nextFixed_le_iff hx
 
 theorem le_prevFixed {x : α} (hx : f x ≤ x) {y : fixedPoints f} (h : ↑y ≤ x) :
     y ≤ f.prevFixed x hx :=
@@ -211,8 +228,9 @@ theorem le_map_sup_fixedPoints (x y : fixedPoints f) : (x ⊔ y : α) ≤ f (x �
     _ ≤ f (x ⊔ y) := f.mono.le_map_sup x y
 
 -- Porting note: `x ⊓ y` without the `.val`s fails to synthesize `Inf` instance
-theorem map_inf_fixedPoints_le (x y : fixedPoints f) : f (x ⊓ y) ≤ x.val ⊓ y.val :=
-  f.dual.le_map_sup_fixedPoints x y
+theorem map_inf_fixedPoints_le (x y : fixedPoints f) : f (x ⊓ y) ≤ x.val ⊓ y.val := by
+  unsealing_newtype OrderDual =>
+    exact f.dual.le_map_sup_fixedPoints x y
 
 theorem le_map_sSup_subset_fixedPoints (A : Set α) (hA : A ⊆ fixedPoints f) :
     sSup A ≤ f (sSup A) :=
@@ -247,7 +265,9 @@ instance : SemilatticeSup (fixedPoints f) where
 instance : SemilatticeInf (fixedPoints f) where
   __ : PartialOrder (fixedPoints f) := inferInstance
   inf x y := f.prevFixed (x ⊓ y) (f.map_inf_fixedPoints_le x y)
-  __ := OrderDual.instSemilatticeInf (fixedPoints f.dual)
+  inf_le_left _ _ := Subtype.coe_le_coe.1 <| (f.prevFixed_le _).trans inf_le_left
+  inf_le_right _ _ := Subtype.coe_le_coe.1 <| (f.prevFixed_le _).trans inf_le_right
+  le_inf _ _ _ hzx hzy := f.le_prevFixed _ <| le_inf hzx hzy
 
 /-- **Knaster-Tarski Theorem**: The fixed points of `f` form a complete lattice. -/
 instance completeLattice : CompleteLattice (fixedPoints f) where
@@ -280,7 +300,8 @@ theorem lfp_eq_sSup_iterate (h : ωScottContinuous f) :
     exact ωSup_iterate_le_prefixedPoint ⟨f, h.map_ωSup_of_orderHom⟩ ⊥ bot_le h_a bot_le
 
 theorem gfp_eq_sInf_iterate (h : ωScottContinuous f.dual) :
-    f.gfp = ⨅ n, f^[n] ⊤ :=
-  lfp_eq_sSup_iterate f.dual h
+    f.gfp = ⨅ n, f^[n] ⊤ := by
+  unsealing_newtype OrderDual =>
+    exact lfp_eq_sSup_iterate f.dual h
 
 end fixedPoints

@@ -43,8 +43,9 @@ section Inf
 variable [SemilatticeInf α] [OrderTop α]
 
 @[simp, grind =] theorem inf_biUnion [DecidableEq β] (s : Finset γ) (t : γ → Finset β) :
-    (s.biUnion t).inf f = s.inf fun x => (t x).inf f :=
-  @sup_biUnion αᵒᵈ _ _ _ _ _ _ _ _
+    (s.biUnion t).inf f = s.inf fun x => (t x).inf f := by
+  unsealing_newtype OrderDual =>
+    exact @sup_biUnion αᵒᵈ _ _ _ _ _ _ _ _
 
 end Inf
 
@@ -69,8 +70,10 @@ variable {s : Finset β} (H : s.Nonempty) (f : β → α)
 
 theorem inf'_biUnion [DecidableEq β] {s : Finset γ} (Hs : s.Nonempty) {t : γ → Finset β}
     (Ht : ∀ b, (t b).Nonempty) :
-    (s.biUnion t).inf' (Hs.biUnion fun b _ => Ht b) f = s.inf' Hs (fun b => (t b).inf' (Ht b) f) :=
-  sup'_biUnion (α := αᵒᵈ) _ Hs Ht
+    (s.biUnion t).inf' (Hs.biUnion fun b _ => Ht b) f =
+      s.inf' Hs (fun b => (t b).inf' (Ht b) f) := by
+  unsealing_newtype OrderDual =>
+    exact sup'_biUnion (α := αᵒᵈ) _ Hs Ht
 
 end Inf'
 

@@ -26,6 +26,18 @@ open OrderDual (toDual ofDual)
 
 variable {α β : Type*}
 
+/-- Transport of a neighborhood filter within a set along `toDual`. -/
+private theorem nhdsWithin_toDual {X : Type*} [TopologicalSpace X] (x : X) (t : Set X) :
+    𝓝[ofDual ⁻¹' t] (toDual x) = map toDual (𝓝[t] x) := by
+  rw [nhdsWithin, nhdsWithin, nhds_toDual, Filter.map_inf OrderDual.toDual.injective,
+    Filter.map_principal, Equiv.image_eq_preimage_symm, OrderDual.toDual_symm_eq]
+
+@[simp]
+private theorem mem_nhdsWithin_toDual {X : Type*} [TopologicalSpace X] {x : X} {s t : Set X} :
+    ofDual ⁻¹' s ∈ 𝓝[ofDual ⁻¹' t] (toDual x) ↔ s ∈ 𝓝[t] x := by
+  rw [nhdsWithin_toDual, Filter.mem_map]
+  rfl
+
 section LinearOrder
 
 variable [TopologicalSpace α] [LinearOrder α]
@@ -119,8 +131,9 @@ alias countable_setOf_isolated_right := countable_setOfPred_isolated_right
 /-- The set of points which are isolated on the left is countable when the space is
 second-countable. -/
 theorem countable_setOfPred_isolated_left [SecondCountableTopology α] :
-    { x : α | 𝓝[<] x = ⊥ }.Countable :=
-  countable_setOfPred_isolated_right (α := αᵒᵈ)
+    { x : α | 𝓝[<] x = ⊥ }.Countable := by
+  unsealing_newtype OrderDual =>
+    exact countable_setOfPred_isolated_right (α := αᵒᵈ)
 
 @[deprecated (since := "2026-07-09")]
 alias countable_setOf_isolated_left := countable_setOfPred_isolated_left
@@ -171,8 +184,9 @@ alias countable_setOf_isolated_right_within := countable_setOfPred_isolated_righ
 /-- The set of points in a set which are isolated on the left in this set is countable when the
 space is second-countable. -/
 theorem countable_setOfPred_isolated_left_within [SecondCountableTopology α] {s : Set α} :
-    { x ∈ s | 𝓝[s ∩ Iio x] x = ⊥ }.Countable :=
-  countable_setOfPred_isolated_right_within (α := αᵒᵈ)
+    { x ∈ s | 𝓝[s ∩ Iio x] x = ⊥ }.Countable := by
+  unsealing_newtype OrderDual =>
+    exact countable_setOfPred_isolated_right_within (α := αᵒᵈ)
 
 @[deprecated (since := "2026-07-09")]
 alias countable_setOf_isolated_left_within := countable_setOfPred_isolated_left_within
@@ -249,9 +263,10 @@ lemma nhdsLT_basis_Ico [DenselyOrdered α] [NoMinOrder α] (a : α) :
   nhdsLT_basis_Ico_of_exists_lt <| exists_lt a
 
 theorem nhdsLT_eq_bot_iff {a : α} : 𝓝[<] a = ⊥ ↔ IsBot a ∨ ∃ b, b ⋖ a := by
-  convert! (config := { preTransparency := .default })
-    nhdsGT_eq_bot_iff (a := OrderDual.toDual a) using 4
-  exact ofDual_covBy_ofDual_iff
+  unsealing_newtype OrderDual =>
+    convert! (config := { preTransparency := .default })
+      nhdsGT_eq_bot_iff (a := OrderDual.toDual a) using 4
+    exact ofDual_covBy_ofDual_iff
 
 open List in
 /-- The following statements are equivalent:
@@ -348,11 +363,9 @@ theorem mem_nhdsLE_iff_exists_Ioc_subset [NoMinOrder α] {a : α} {s : Set α} :
 /-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
 with `l < a`. -/
 theorem mem_nhdsLE_iff_exists_Icc_subset [NoMinOrder α] [DenselyOrdered α] {a : α}
-    {s : Set α} : s ∈ 𝓝[≤] a ↔ ∃ l, l < a ∧ Icc l a ⊆ s :=
-  calc s ∈ 𝓝[≤] a ↔ ofDual ⁻¹' s ∈ 𝓝[≥] (toDual a) := Iff.rfl
-  _ ↔ ∃ u : α, toDual a < toDual u ∧ Icc (toDual a) (toDual u) ⊆ ofDual ⁻¹' s :=
-    mem_nhdsGE_iff_exists_Icc_subset
-  _ ↔ ∃ l, l < a ∧ Icc l a ⊆ s := by simp
+    {s : Set α} : s ∈ 𝓝[≤] a ↔ ∃ l, l < a ∧ Icc l a ⊆ s := by
+  have h : ofDual ⁻¹' s ∈ 𝓝[≥] (toDual a) ↔ _ := mem_nhdsGE_iff_exists_Icc_subset
+  simpa using! h
 
 /-- The filter of left neighborhoods has a basis of closed intervals. -/
 theorem nhdsLE_basis_Icc [NoMinOrder α] [DenselyOrdered α] {a : α} :
@@ -411,8 +424,9 @@ if `f` tends to `C` and `g` tends to `atBot` then `f * g` tends to `atBot`. -/
 @[to_additive add_atBot /-- In a linearly ordered additive commutative group with the order
 topology, if `f` tends to `C` and `g` tends to `atBot` then `f + g` tends to `atBot`. -/]
 theorem Filter.Tendsto.mul_atBot' {C : α} (hf : Tendsto f l (𝓝 C)) (hg : Tendsto g l atBot) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  Filter.Tendsto.mul_atTop' (α := αᵒᵈ) hf hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact Filter.Tendsto.mul_atTop' (α := αᵒᵈ) hf hg
 
 /-- In a linearly ordered commutative group with the order topology,
 if `f` tends to `atTop` and `g` tends to `C` then `f * g` tends to `atTop`. -/
@@ -497,13 +511,15 @@ variable [TopologicalSpace α] [LinearOrder α] [ClosedIicTopology α] {S : Set 
 
 /-- If `S` is order-connected and contains two points `x < y`, then `S` is a left neighbourhood
 of `y`. -/
-lemma mem_nhdsLE (hS : OrdConnected S) (hx : x ∈ S) (hy : y ∈ S) (hxy : x < y) : S ∈ 𝓝[≤] y :=
-  hS.dual.mem_nhdsGE hy hx hxy
+lemma mem_nhdsLE (hS : OrdConnected S) (hx : x ∈ S) (hy : y ∈ S) (hxy : x < y) : S ∈ 𝓝[≤] y := by
+  unsealing_newtype OrderDual =>
+    exact hS.dual.mem_nhdsGE hy hx hxy
 
 /-- If `S` is order-connected and contains two points `x < y`, then `S` is a punctured left
 neighbourhood of `y`. -/
-lemma mem_nhdsLT (hS : OrdConnected S) (hx : x ∈ S) (hy : y ∈ S) (hxy : x < y) : S ∈ 𝓝[<] y :=
-  hS.dual.mem_nhdsGT hy hx hxy
+lemma mem_nhdsLT (hS : OrdConnected S) (hx : x ∈ S) (hy : y ∈ S) (hxy : x < y) : S ∈ 𝓝[<] y := by
+  unsealing_newtype OrderDual =>
+    exact hS.dual.mem_nhdsGT hy hx hxy
 
 end OrdConnected
 

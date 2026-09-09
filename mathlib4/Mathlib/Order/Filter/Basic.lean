@@ -200,11 +200,13 @@ theorem mkOfClosure_sets {s : Set (Set α)} {hs : (generate s).sets = s} :
 
 /-- Galois insertion from sets of sets into filters. -/
 def giGenerate (α : Type*) :
-    @GaloisInsertion (Set (Set α)) (Filter α)ᵒᵈ _ _ Filter.generate Filter.sets where
+    @GaloisInsertion (Set (Set α)) (Filter α)ᵒᵈ _ _ (OrderDual.toDual ∘ Filter.generate)
+      (Filter.sets ∘ OrderDual.ofDual) where
   gc _ _ := le_generate_iff
   le_l_u _ _ h := GenerateSets.basic h
-  choice s hs := Filter.mkOfClosure s (le_antisymm hs <| le_generate_iff.1 <| le_rfl)
-  choice_eq _ _ := mkOfClosure_sets
+  choice s hs :=
+    OrderDual.toDual (Filter.mkOfClosure s (le_antisymm hs <| le_generate_iff.1 <| le_rfl))
+  choice_eq _ _ := congrArg OrderDual.toDual mkOfClosure_sets
 
 theorem mem_inf_iff {f g : Filter α} {s : Set α} : s ∈ f ⊓ g ↔ ∃ t₁ ∈ f, ∃ t₂ ∈ g, s = t₁ ∩ t₂ :=
   Iff.rfl
@@ -286,28 +288,34 @@ theorem bot_sets_eq : (⊥ : Filter α).sets = univ := rfl
 as the second alternative, to be used as an instance. -/
 theorem eq_or_neBot (f : Filter α) : f = ⊥ ∨ NeBot f := (eq_or_ne f ⊥).imp_right NeBot.mk
 
-theorem sup_sets_eq {f g : Filter α} : (f ⊔ g).sets = f.sets ∩ g.sets :=
-  (giGenerate α).gc.u_inf
+theorem sup_sets_eq {f g : Filter α} : (f ⊔ g).sets = f.sets ∩ g.sets := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.u_inf
 
-theorem sSup_sets_eq {s : Set (Filter α)} : (sSup s).sets = ⋂ f ∈ s, (f : Filter α).sets :=
-  (giGenerate α).gc.u_sInf
+theorem sSup_sets_eq {s : Set (Filter α)} : (sSup s).sets = ⋂ f ∈ s, (f : Filter α).sets := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.u_sInf
 
-theorem iSup_sets_eq {f : ι → Filter α} : (iSup f).sets = ⋂ i, (f i).sets :=
-  (giGenerate α).gc.u_iInf
+theorem iSup_sets_eq {f : ι → Filter α} : (iSup f).sets = ⋂ i, (f i).sets := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.u_iInf
 
-theorem generate_empty : Filter.generate ∅ = (⊤ : Filter α) :=
-  (giGenerate α).gc.l_bot
+theorem generate_empty : Filter.generate ∅ = (⊤ : Filter α) := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.l_bot
 
 theorem generate_univ : Filter.generate univ = (⊥ : Filter α) :=
   bot_unique fun _ _ => GenerateSets.basic (mem_univ _)
 
 theorem generate_union {s t : Set (Set α)} :
-    Filter.generate (s ∪ t) = Filter.generate s ⊓ Filter.generate t :=
-  (giGenerate α).gc.l_sup
+    Filter.generate (s ∪ t) = Filter.generate s ⊓ Filter.generate t := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.l_sup
 
 theorem generate_iUnion {s : ι → Set (Set α)} :
-    Filter.generate (⋃ i, s i) = ⨅ i, Filter.generate (s i) :=
-  (giGenerate α).gc.l_iSup
+    Filter.generate (⋃ i, s i) = ⨅ i, Filter.generate (s i) := by
+  unsealing_newtype OrderDual =>
+    exact (giGenerate α).gc.l_iSup
 
 @[simp]
 theorem mem_sup {f g : Filter α} {s : Set α} : s ∈ f ⊔ g ↔ s ∈ f ∧ s ∈ g :=

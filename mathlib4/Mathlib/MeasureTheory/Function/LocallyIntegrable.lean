@@ -511,8 +511,9 @@ theorem integrable_iff_integrableAtFilter_atBot [LinearOrder X] [OrderTop X] [Co
     exact h.1.filter_mono cocompact_le_atBot
 
 theorem integrable_iff_integrableAtFilter_atTop [LinearOrder X] [OrderBot X] [CompactIccSpace X] :
-    Integrable f μ ↔ IntegrableAtFilter f atTop μ ∧ LocallyIntegrable f μ :=
-  integrable_iff_integrableAtFilter_atBot (X := Xᵒᵈ)
+    Integrable f μ ↔ IntegrableAtFilter f atTop μ ∧ LocallyIntegrable f μ := by
+  unsealing_newtype OrderDual =>
+    exact integrable_iff_integrableAtFilter_atBot (X := Xᵒᵈ)
 
 variable {a : X}
 
@@ -525,8 +526,9 @@ theorem integrableOn_Iic_iff_integrableAtFilter_atBot [LinearOrder X] [CompactIc
   exact h.integrableOn_compact_subset Icc_subset_Iic_self isCompact_Icc
 
 theorem integrableOn_Ici_iff_integrableAtFilter_atTop [LinearOrder X] [CompactIccSpace X] :
-    IntegrableOn f (Ici a) μ ↔ IntegrableAtFilter f atTop μ ∧ LocallyIntegrableOn f (Ici a) μ :=
-  integrableOn_Iic_iff_integrableAtFilter_atBot (X := Xᵒᵈ)
+    IntegrableOn f (Ici a) μ ↔ IntegrableAtFilter f atTop μ ∧ LocallyIntegrableOn f (Ici a) μ := by
+  unsealing_newtype OrderDual =>
+    exact integrableOn_Iic_iff_integrableAtFilter_atBot (X := Xᵒᵈ)
 
 theorem integrableOn_Iio_iff_integrableAtFilter_atBot_nhdsWithin
     [LinearOrder X] [CompactIccSpace X] [NoMinOrder X] [OrderTopology X] :
@@ -544,8 +546,9 @@ theorem integrableOn_Iio_iff_integrableAtFilter_atBot_nhdsWithin
 theorem integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin
     [LinearOrder X] [CompactIccSpace X] [NoMaxOrder X] [OrderTopology X] :
     IntegrableOn f (Ioi a) μ ↔ IntegrableAtFilter f atTop μ ∧
-    IntegrableAtFilter f (𝓝[>] a) μ ∧ LocallyIntegrableOn f (Ioi a) μ :=
-  integrableOn_Iio_iff_integrableAtFilter_atBot_nhdsWithin (X := Xᵒᵈ)
+    IntegrableAtFilter f (𝓝[>] a) μ ∧ LocallyIntegrableOn f (Ioi a) μ := by
+  unsealing_newtype OrderDual =>
+    exact integrableOn_Iio_iff_integrableAtFilter_atBot_nhdsWithin (X := Xᵒᵈ)
 
 end MeasureTheory
 
@@ -661,22 +664,22 @@ theorem MonotoneOn.memLp_isCompact [IsFiniteMeasureOnCompacts μ] (hs : IsCompac
   · exact hmono.memLp_of_measure_ne_top (hs.isLeast_sInf h) (hs.isGreatest_sSup h)
       hs.measure_lt_top.ne hs.measurableSet
 
-set_option backward.isDefEq.respectTransparency.types false in
 theorem AntitoneOn.memLp_top (hanti : AntitoneOn f s) {a b : X}
     (ha : IsLeast s a) (hb : IsGreatest s b) (h's : MeasurableSet s) :
-    MemLp f ∞ (μ.restrict s) :=
-  MonotoneOn.memLp_top (E := Eᵒᵈ) hanti ha hb h's
+    MemLp f ∞ (μ.restrict s) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.memLp_top (E := Eᵒᵈ) hanti ha hb h's
 
-set_option backward.isDefEq.respectTransparency.types false in
 theorem AntitoneOn.memLp_of_measure_ne_top (hanti : AntitoneOn f s) {a b : X}
     (ha : IsLeast s a) (hb : IsGreatest s b) (hs : μ s ≠ ∞) (h's : MeasurableSet s) :
-    MemLp f p (μ.restrict s) :=
-  MonotoneOn.memLp_of_measure_ne_top (E := Eᵒᵈ) hanti ha hb hs h's
+    MemLp f p (μ.restrict s) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.memLp_of_measure_ne_top (E := Eᵒᵈ) hanti ha hb hs h's
 
-set_option backward.isDefEq.respectTransparency.types false in
 theorem AntitoneOn.memLp_isCompact [IsFiniteMeasureOnCompacts μ] (hs : IsCompact s)
-    (hanti : AntitoneOn f s) : MemLp f p (μ.restrict s) :=
-  MonotoneOn.memLp_isCompact (E := Eᵒᵈ) hs hanti
+    (hanti : AntitoneOn f s) : MemLp f p (μ.restrict s) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.memLp_isCompact (E := Eᵒᵈ) hs hanti
 
 theorem MonotoneOn.integrableOn_of_measure_ne_top (hmono : MonotoneOn f s) {a b : X}
     (ha : IsLeast s a) (hb : IsGreatest s b) (hs : μ s ≠ ∞) (h's : MeasurableSet s) :
@@ -708,10 +711,10 @@ theorem Monotone.locallyIntegrable [IsLocallyFiniteMeasure μ] (hmono : Monotone
     (hmono.monotoneOn _).integrableOn_of_measure_ne_top (isLeast_Icc ab) (isGreatest_Icc ab)
       ((measure_mono abU).trans_lt h'U).ne measurableSet_Icc
 
-set_option backward.isDefEq.respectTransparency.types false in
 theorem Antitone.locallyIntegrable [IsLocallyFiniteMeasure μ] (hanti : Antitone f) :
-    LocallyIntegrable f μ :=
-  hanti.dual_right.locallyIntegrable
+    LocallyIntegrable f μ := by
+  unsealing_newtype OrderDual =>
+    exact hanti.dual_right.locallyIntegrable
 
 end Monotone
 

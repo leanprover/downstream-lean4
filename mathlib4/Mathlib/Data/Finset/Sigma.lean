@@ -111,8 +111,9 @@ theorem sup_sigma [SemilatticeSup β] [OrderBot β] :
       le_sup <| mem_sigma.2 ⟨hi, ha⟩⟩
 
 theorem inf_sigma [SemilatticeInf β] [OrderTop β] :
-    (s.sigma t).inf f = s.inf fun i => (t i).inf fun b => f ⟨i, b⟩ :=
-  @sup_sigma _ _ βᵒᵈ _ _ _ _ _
+    (s.sigma t).inf f = s.inf fun i => (t i).inf fun b => f ⟨i, b⟩ := by
+  unsealing_newtype OrderDual =>
+    exact @sup_sigma _ _ βᵒᵈ _ _ _ _ _
 
 theorem _root_.biSup_finsetSigma [CompleteLattice β] (s : Finset ι) (t : ∀ i, Finset (α i))
     (f : Sigma α → β) : ⨆ ij ∈ s.sigma t, f ij = ⨆ (i ∈ s) (j ∈ t i), f ⟨i, j⟩ := by
@@ -123,8 +124,9 @@ theorem _root_.biSup_finsetSigma' [CompleteLattice β] (s : Finset ι) (t : ∀ 
   Eq.symm (biSup_finsetSigma _ _ _)
 
 theorem _root_.biInf_finsetSigma [CompleteLattice β] (s : Finset ι) (t : ∀ i, Finset (α i))
-    (f : Sigma α → β) : ⨅ ij ∈ s.sigma t, f ij = ⨅ (i ∈ s) (j ∈ t i), f ⟨i, j⟩ :=
-  biSup_finsetSigma (β := βᵒᵈ) _ _ _
+    (f : Sigma α → β) : ⨅ ij ∈ s.sigma t, f ij = ⨅ (i ∈ s) (j ∈ t i), f ⟨i, j⟩ := by
+  unsealing_newtype OrderDual =>
+    exact biSup_finsetSigma (β := βᵒᵈ) _ _ _
 
 theorem _root_.biInf_finsetSigma' [CompleteLattice β] (s : Finset ι) (t : ∀ i, Finset (α i))
     (f : ∀ i, α i → β) : ⨅ (i ∈ s) (j ∈ t i), f i j = ⨅ ij ∈ s.sigma t, f ij.fst ij.snd :=

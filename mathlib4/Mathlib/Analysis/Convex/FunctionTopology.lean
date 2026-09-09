@@ -41,10 +41,12 @@ public theorem isClosed_setOfPred_convexOn {s : Set α} :
 @[deprecated (since := "2026-07-09")]
 public alias isClosed_setOf_convexOn := isClosed_setOfPred_convexOn
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The set of concave functions on a set `s` is closed. -/
 public theorem isClosed_setOfPred_concaveOn {s : Set α} :
-    IsClosed {f : α → β | ConcaveOn 𝕜 s f} :=
-  isClosed_setOfPred_convexOn (α := α) (β := βᵒᵈ)
+    IsClosed {f : α → β | ConcaveOn 𝕜 s f} := by
+  unsealing_newtype OrderDual =>
+    exact isClosed_setOfPred_convexOn (α := α) (β := βᵒᵈ)
 
 @[deprecated (since := "2026-07-09")]
 public alias isClosed_setOf_concaveOn := isClosed_setOfPred_concaveOn

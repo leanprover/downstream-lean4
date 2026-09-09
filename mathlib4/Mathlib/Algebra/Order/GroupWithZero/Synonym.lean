@@ -6,6 +6,7 @@ Authors: Johan Commelin
 module
 
 public import Mathlib.Algebra.GroupWithZero.Defs
+public import Mathlib.Algebra.GroupWithZero.InjSurj
 public import Mathlib.Algebra.Order.Group.Synonym
 
 /-!
@@ -24,30 +25,39 @@ variable {α : Type*}
 
 namespace OrderDual
 
-instance [MulZeroClass α] : MulZeroClass αᵒᵈ := inferInstanceAs <| MulZeroClass α
+instance [MulZeroClass α] : MulZeroClass αᵒᵈ :=
+  ofDual.injective.mulZeroClass _ rfl fun _ _ ↦ rfl
 
-instance [MulZeroOneClass α] : MulZeroOneClass αᵒᵈ := inferInstanceAs <| MulZeroOneClass α
+instance [MulZeroOneClass α] : MulZeroOneClass αᵒᵈ :=
+  ofDual.injective.mulZeroOneClass _ rfl rfl fun _ _ ↦ rfl
 
 instance [Mul α] [Zero α] [NoZeroDivisors α] : NoZeroDivisors αᵒᵈ :=
-  inferInstanceAs <| NoZeroDivisors α
+  ofDual.injective.noZeroDivisors _ rfl fun _ _ ↦ rfl
 
-instance [SemigroupWithZero α] : SemigroupWithZero αᵒᵈ := inferInstanceAs <| SemigroupWithZero α
+instance [SemigroupWithZero α] : SemigroupWithZero αᵒᵈ :=
+  ofDual.injective.semigroupWithZero _ rfl fun _ _ ↦ rfl
 
-instance [MonoidWithZero α] : MonoidWithZero αᵒᵈ := inferInstanceAs <| MonoidWithZero α
+instance [MonoidWithZero α] : MonoidWithZero αᵒᵈ :=
+  ofDual.injective.monoidWithZero _ rfl rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 instance [Mul α] [Zero α] [IsLeftCancelMulZero α] : IsLeftCancelMulZero αᵒᵈ :=
-  inferInstanceAs <| IsLeftCancelMulZero α
+  ofDual.injective.isLeftCancelMulZero _ rfl fun _ _ ↦ rfl
 
 instance [Mul α] [Zero α] [IsRightCancelMulZero α] : IsRightCancelMulZero αᵒᵈ :=
-  inferInstanceAs <| IsRightCancelMulZero α
+  ofDual.injective.isRightCancelMulZero _ rfl fun _ _ ↦ rfl
 
 instance [Mul α] [Zero α] [IsCancelMulZero α] : IsCancelMulZero αᵒᵈ where
 
-instance [CommMonoidWithZero α] : CommMonoidWithZero αᵒᵈ := inferInstanceAs <| CommMonoidWithZero α
+instance [CommMonoidWithZero α] : CommMonoidWithZero αᵒᵈ :=
+  ofDual.injective.commMonoidWithZero _ rfl rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [GroupWithZero α] : GroupWithZero αᵒᵈ := inferInstanceAs <| GroupWithZero α
+instance [GroupWithZero α] : GroupWithZero αᵒᵈ :=
+  ofDual.injective.groupWithZero _ rfl rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
-instance [CommGroupWithZero α] : CommGroupWithZero αᵒᵈ := inferInstanceAs <| CommGroupWithZero α
+instance [CommGroupWithZero α] : CommGroupWithZero αᵒᵈ :=
+  ofDual.injective.commGroupWithZero _ rfl rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 end OrderDual
 

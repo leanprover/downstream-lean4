@@ -568,13 +568,22 @@ end InversionTop
 section InversionBot
 variable [Ring 𝕜] [PartialOrder α] [OrderBot α] [LocallyFiniteOrder α] [DecidableEq α]
 
-set_option backward.isDefEq.respectTransparency false in
 /-- A general form of Möbius inversion. Based on lemma 2.1.3 of Incidence Algebras by Spiegel and
 O'Donnell. -/
 lemma moebius_inversion_bot (f g : α → 𝕜) (h : ∀ x, g x = ∑ y ∈ Iic x, f y) (x : α) :
     f x = ∑ y ∈ Iic x, mu 𝕜 y x * g y := by
-  convert! moebius_inversion_top (α := αᵒᵈ) f g h x using 3
-  rw [← mu_toDual]; rfl
+  -- We can't keep the old defeq-abuse proof since the definition of `Ici` changed.
+  -- We need `Ici (α := αᵒᵈ) =?= Iic (α := α)`, but the definition of
+  -- `OrderDual.instLocallyFiniteOrderBot` involves `Finset.map` now.
+  have h' : ∀ y : αᵒᵈ, g (ofDual y) = ∑ z ∈ Ici y, f (ofDual z) := fun y ↦ by
+    rw [h (ofDual y)]
+    exact Finset.sum_equiv OrderDual.toDual
+      (fun _ ↦ by simp only [Finset.mem_Iic, Finset.mem_Ici]; exact Iff.rfl) fun _ _ ↦ rfl
+  have H := moebius_inversion_top (α := αᵒᵈ) (fun y ↦ f (ofDual y)) (fun y ↦ g (ofDual y)) h'
+    (toDual x)
+  refine H.trans (Finset.sum_equiv OrderDual.ofDual
+    (fun _ ↦ by simp only [Finset.mem_Iic, Finset.mem_Ici]; exact Iff.rfl) fun i _ ↦ ?_)
+  rw [show (mu 𝕜 (toDual x) i) = mu 𝕜 (toDual x) (toDual (ofDual i)) from rfl, mu_toDual]
 
 end InversionBot
 

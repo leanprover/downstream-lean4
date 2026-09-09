@@ -281,11 +281,13 @@ instance Bool.fintype : Fintype Bool :=
 instance Ordering.fintype : Fintype Ordering :=
   ⟨⟨{.lt, .eq, .gt}, by simp⟩, fun x => by cases x <;> simp⟩
 
-instance OrderDual.fintype (α : Type*) [Fintype α] : Fintype αᵒᵈ :=
-  ‹Fintype α›
+instance OrderDual.fintype (α : Type*) [Fintype α] : Fintype αᵒᵈ where
+  elems := ⟨(Finset.univ : Finset α).1.map OrderDual.mk,
+    Multiset.Nodup.map OrderDual.toDual.injective (Finset.univ : Finset α).2⟩
+  complete a := Multiset.mem_map.2 ⟨a.ofDual', Finset.mem_univ_val _, rfl⟩
 
 instance OrderDual.finite (α : Type*) [Finite α] : Finite αᵒᵈ :=
-  ‹Finite α›
+  Finite.of_equiv α OrderDual.toDual
 
 instance Lex.fintype (α : Type*) [Fintype α] : Fintype (Lex α) :=
   ‹Fintype α›

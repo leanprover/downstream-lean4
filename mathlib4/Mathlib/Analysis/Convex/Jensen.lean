@@ -60,8 +60,9 @@ theorem ConvexOn.map_centerMass_le (hf : ConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t,
 /-- Concave **Jensen's inequality**, `Finset.centerMass` version. -/
 theorem ConcaveOn.le_map_centerMass (hf : ConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
     (h₁ : 0 < ∑ i ∈ t, w i) (hmem : ∀ i ∈ t, p i ∈ s) :
-    t.centerMass w (f ∘ p) ≤ f (t.centerMass w p) :=
-  ConvexOn.map_centerMass_le (β := βᵒᵈ) hf h₀ h₁ hmem
+    t.centerMass w (f ∘ p) ≤ f (t.centerMass w p) := by
+  unsealing_newtype OrderDual =>
+    exact (hf.dual.map_centerMass_le h₀ h₁ hmem :)
 
 /-- Convex **Jensen's inequality**, `Finset.sum` version. -/
 theorem ConvexOn.map_sum_le (hf : ConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i ∈ t, w i = 1)
@@ -72,8 +73,9 @@ theorem ConvexOn.map_sum_le (hf : ConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ 
 /-- Concave **Jensen's inequality**, `Finset.sum` version. -/
 theorem ConcaveOn.le_map_sum (hf : ConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    (∑ i ∈ t, w i • f (p i)) ≤ f (∑ i ∈ t, w i • p i) :=
-  ConvexOn.map_sum_le (β := βᵒᵈ) hf h₀ h₁ hmem
+    (∑ i ∈ t, w i • f (p i)) ≤ f (∑ i ∈ t, w i • p i) := by
+  unsealing_newtype OrderDual =>
+    exact ConvexOn.map_sum_le (β := βᵒᵈ) hf h₀ h₁ hmem
 
 /-- Convex **Jensen's inequality** where an element plays a distinguished role. -/
 lemma ConvexOn.map_add_sum_le (hf : ConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
@@ -89,8 +91,9 @@ lemma ConvexOn.map_add_sum_le (hf : ConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 �
 /-- Concave **Jensen's inequality** where an element plays a distinguished role. -/
 lemma ConcaveOn.map_add_sum_le (hf : ConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
     (h₁ : v + ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) (hv : 0 ≤ v) (hq : q ∈ s) :
-    v • f q + ∑ i ∈ t, w i • f (p i) ≤ f (v • q + ∑ i ∈ t, w i • p i) :=
-  hf.dual.map_add_sum_le h₀ h₁ hmem hv hq
+    v • f q + ∑ i ∈ t, w i • f (p i) ≤ f (v • q + ∑ i ∈ t, w i • p i) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_add_sum_le h₀ h₁ hmem hv hq
 
 /-! ### Strict Jensen inequality -/
 
@@ -146,7 +149,9 @@ points is non-constant, then Jensen's inequality is strict.
 See also `StrictConcaveOn.map_sum_eq_iff`. -/
 lemma StrictConcaveOn.lt_map_sum (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) (hp : ∃ j ∈ t, ∃ k ∈ t, p j ≠ p k) :
-    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) := hf.dual.map_sum_lt h₀ h₁ hmem hp
+    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_lt h₀ h₁ hmem hp
 
 /-! ### Equality case of Jensen's inequality -/
 
@@ -171,8 +176,9 @@ See also `StrictConcaveOn.map_sum_eq_iff`. -/
 lemma StrictConcaveOn.eq_of_map_sum_eq (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s)
     (h_eq : f (∑ i ∈ t, w i • p i) ≤ ∑ i ∈ t, w i • f (p i)) :
-    ∀ ⦃j⦄, j ∈ t → ∀ ⦃k⦄, k ∈ t → p j = p k :=
-  hf.dual.eq_of_le_map_sum h₀ h₁ hmem h_eq
+    ∀ ⦃j⦄, j ∈ t → ∀ ⦃k⦄, k ∈ t → p j = p k := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.eq_of_le_map_sum h₀ h₁ hmem h_eq
 
 /-- A form of the **equality case of Jensen's equality** for the case of strict convex and positive
 weights. -/
@@ -189,8 +195,9 @@ theorem StrictConvexOn.map_sum_eq_iff_of_pos (hf : StrictConvexOn 𝕜 s f) (h�
 weights. -/
 theorem StrictConcaveOn.map_sum_eq_iff_of_pos (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔ ∀ ⦃j⦄, j ∈ t → ∀ ⦃k⦄, k ∈ t → p j = p k :=
-  hf.dual.map_sum_eq_iff_of_pos h₀ h₁ hmem
+    f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔ ∀ ⦃j⦄, j ∈ t → ∀ ⦃k⦄, k ∈ t → p j = p k := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_eq_iff_of_pos h₀ h₁ hmem
 
 /-- A form of the **equality case of Jensen's equality** for the case of strict convex and
 non-negative weights. -/
@@ -210,8 +217,9 @@ non-negative weights. -/
 theorem StrictConcaveOn.map_sum_eq_iff_of_nonneg (hf : StrictConcaveOn 𝕜 s f)
     (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
     f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔
-      ∀ ⦃j⦄, j ∈ t → w j ≠ 0 → ∀ ⦃k⦄, k ∈ t → w k ≠ 0 → p j = p k :=
-  hf.dual.map_sum_eq_iff_of_nonneg h₀ h₁ hmem
+      ∀ ⦃j⦄, j ∈ t → w j ≠ 0 → ∀ ⦃k⦄, k ∈ t → w k ≠ 0 → p j = p k := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_eq_iff_of_nonneg h₀ h₁ hmem
 
 theorem StrictConvexOn.map_sum_lt_iff_of_pos (hf : StrictConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
@@ -222,8 +230,9 @@ theorem StrictConvexOn.map_sum_lt_iff_of_pos (hf : StrictConvexOn 𝕜 s f) (h�
 
 theorem StrictConcaveOn.lt_map_sum_iff_of_pos (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔ ∃ j ∈ t, ∃ k ∈ t, p j ≠ p k :=
-  hf.dual.map_sum_lt_iff_of_pos h₀ h₁ hmem
+    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔ ∃ j ∈ t, ∃ k ∈ t, p j ≠ p k := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_lt_iff_of_pos h₀ h₁ hmem
 
 theorem StrictConvexOn.map_sum_lt_iff_of_nonneg (hf : StrictConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
@@ -234,8 +243,9 @@ theorem StrictConvexOn.map_sum_lt_iff_of_nonneg (hf : StrictConvexOn 𝕜 s f) (
 theorem StrictConcaveOn.lt_map_sum_iff_of_nonneg (hf : StrictConcaveOn 𝕜 s f)
     (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
     ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔
-      ∃ j ∈ t, ∃ k ∈ t, w j ≠ 0 ∧ w k ≠ 0 ∧ p j ≠ p k :=
-  hf.dual.map_sum_lt_iff_of_nonneg h₀ h₁ hmem
+      ∃ j ∈ t, ∃ k ∈ t, w j ≠ 0 ∧ w k ≠ 0 ∧ p j ≠ p k := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_lt_iff_of_nonneg h₀ h₁ hmem
 
 /-- Canonical form of the **equality case of Jensen's equality**.
 
@@ -264,8 +274,9 @@ For a strictly concave function `f` and positive weights `w`, we have
 (and in fact all equal to their center of mass w.r.t. `w`). -/
 lemma StrictConcaveOn.map_sum_eq_iff (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔ ∀ j ∈ t, p j = ∑ i ∈ t, w i • p i :=
-  hf.dual.map_sum_eq_iff h₀ h₁ hmem
+    f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔ ∀ j ∈ t, p j = ∑ i ∈ t, w i • p i := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_eq_iff h₀ h₁ hmem
 
 /-- Canonical form of the **equality case of Jensen's equality**.
 
@@ -292,7 +303,9 @@ weight are all equal (and in fact all equal to their center of mass w.r.t. `w`).
 lemma StrictConcaveOn.map_sum_eq_iff' (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
     f (∑ i ∈ t, w i • p i) = ∑ i ∈ t, w i • f (p i) ↔
-      ∀ j ∈ t, w j ≠ 0 → p j = ∑ i ∈ t, w i • p i := hf.dual.map_sum_eq_iff' h₀ h₁ hmem
+      ∀ j ∈ t, w j ≠ 0 → p j = ∑ i ∈ t, w i • p i := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_eq_iff' h₀ h₁ hmem
 
 /-- Canonical form of the **strict Jensen's inequality**. -/
 theorem StrictConvexOn.map_sum_lt_iff_of_pos' (hf : StrictConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
@@ -305,8 +318,9 @@ theorem StrictConvexOn.map_sum_lt_iff_of_pos' (hf : StrictConvexOn 𝕜 s f) (h�
 /-- Canonical form of the **strict Jensen's inequality**. -/
 theorem StrictConcaveOn.lt_map_sum_iff_of_pos' (hf : StrictConcaveOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 < w i)
     (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔ ∃ j ∈ t, p j ≠ ∑ i ∈ t, w i • p i :=
-  hf.dual.map_sum_lt_iff_of_pos' h₀ h₁ hmem
+    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔ ∃ j ∈ t, p j ≠ ∑ i ∈ t, w i • p i := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_lt_iff_of_pos' h₀ h₁ hmem
 
 /-- Canonical form of the **strict Jensen's inequality**. -/
 theorem StrictConvexOn.map_sum_lt_iff_of_nonneg' (hf : StrictConvexOn 𝕜 s f) (h₀ : ∀ i ∈ t, 0 ≤ w i)
@@ -323,8 +337,10 @@ theorem StrictConvexOn.map_sum_lt_iff_of_nonneg' (hf : StrictConvexOn 𝕜 s f) 
 /-- Canonical form of the **strict Jensen's inequality**. -/
 theorem StrictConcaveOn.lt_map_sum_iff_of_nonneg' (hf : StrictConcaveOn 𝕜 s f)
     (h₀ : ∀ i ∈ t, 0 ≤ w i) (h₁ : ∑ i ∈ t, w i = 1) (hmem : ∀ i ∈ t, p i ∈ s) :
-    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔ ∃ j ∈ t, w j ≠ 0 ∧ p j ≠ ∑ i ∈ t, w i • p i :=
-  hf.dual.map_sum_lt_iff_of_nonneg' h₀ h₁ hmem
+    ∑ i ∈ t, w i • f (p i) < f (∑ i ∈ t, w i • p i) ↔
+      ∃ j ∈ t, w j ≠ 0 ∧ p j ≠ ∑ i ∈ t, w i • p i := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.map_sum_lt_iff_of_nonneg' h₀ h₁ hmem
 
 end Jensen
 
@@ -347,8 +363,9 @@ theorem ConvexOn.le_sup_of_mem_convexHull {t : Finset E} (hf : ConvexOn 𝕜 s f
 
 theorem ConvexOn.inf_le_of_mem_convexHull {t : Finset E} (hf : ConcaveOn 𝕜 s f) (hts : ↑t ⊆ s)
     (hx : x ∈ convexHull 𝕜 (t : Set E)) :
-    t.inf' (coe_nonempty.1 <| convexHull_nonempty_iff.1 ⟨x, hx⟩) f ≤ f x :=
-  hf.dual.le_sup_of_mem_convexHull hts hx
+    t.inf' (coe_nonempty.1 <| convexHull_nonempty_iff.1 ⟨x, hx⟩) f ≤ f x := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.le_sup_of_mem_convexHull hts hx
 
 /-- If a function `f` is convex on `s`, then the value it takes at some center of mass of points of
 `s` is less than the value it takes on one of those points. -/
@@ -419,6 +436,8 @@ lemma ConvexOn.bddAbove_convexHull {s t : Set E} (hst : s ⊆ t) (hf : ConvexOn 
   exact hxy.trans <| hb <| mem_image_of_mem _ hy
 
 lemma ConcaveOn.bddBelow_convexHull {s t : Set E} (hst : s ⊆ t) (hf : ConcaveOn 𝕜 t f) :
-    BddBelow (f '' s) → BddBelow (f '' convexHull 𝕜 s) := hf.dual.bddAbove_convexHull hst
+    BddBelow (f '' s) → BddBelow (f '' convexHull 𝕜 s) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual.bddAbove_convexHull hst
 
 end MaximumPrinciple

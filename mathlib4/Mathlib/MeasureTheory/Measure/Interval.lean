@@ -60,8 +60,9 @@ theorem tendsto_measure_Iic_atTop [(atTop : Filter α).IsCountablyGenerated]
   exact tendsto_measure_iUnion_atTop monotone_Iic
 
 theorem tendsto_measure_Ici_atBot [(atBot : Filter α).IsCountablyGenerated]
-    (μ : Measure α) : Tendsto (fun x => μ (Ici x)) atBot (𝓝 (μ univ)) :=
-  tendsto_measure_Iic_atTop (α := αᵒᵈ) μ
+    (μ : Measure α) : Tendsto (fun x => μ (Ici x)) atBot (𝓝 (μ univ)) := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_measure_Iic_atTop (α := αᵒᵈ) μ
 
 end Preorder
 
@@ -72,8 +73,9 @@ variable [PartialOrder α] {a b : α}
 theorem Iio_ae_eq_Iic' (ha : μ {a} = 0) : Iio a =ᵐ[μ] Iic a := by
   rw [← Iic_sdiff_right, sdiff_ae_eq_self, measure_mono_null Set.inter_subset_right ha]
 
-theorem Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a :=
-  Iio_ae_eq_Iic' (α := αᵒᵈ) ha
+theorem Ioi_ae_eq_Ici' (ha : μ {a} = 0) : Ioi a =ᵐ[μ] Ici a := by
+  unsealing_newtype OrderDual =>
+    exact Iio_ae_eq_Iic' (α := αᵒᵈ) ha
 
 theorem Ioo_ae_eq_Ioc' (hb : μ {b} = 0) : Ioo a b =ᵐ[μ] Ioc a b :=
   .inter .rfl (Iio_ae_eq_Iic' hb)

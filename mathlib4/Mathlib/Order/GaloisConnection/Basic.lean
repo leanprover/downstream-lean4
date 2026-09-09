@@ -157,22 +157,25 @@ theorem isLUB_image2_of_isLUB_isLUB (h₁ : ∀ b, GaloisConnection (swap l b) (
 theorem isLUB_image2_of_isLUB_isGLB (h₁ : ∀ b, GaloisConnection (swap l b) (u₁ b))
     (h₂ : ∀ a, GaloisConnection (l a ∘ ofDual) (toDual ∘ u₂ a))
     (ha₀ : IsLUB s a₀) (hb₀ : IsGLB t b₀) :
-    IsLUB (image2 l s t) (l a₀ b₀) :=
-  isLUB_image2_of_isLUB_isLUB (β := βᵒᵈ) h₁ h₂ ha₀ hb₀
+    IsLUB (image2 l s t) (l a₀ b₀) := by
+  unsealing_newtype OrderDual =>
+    exact isLUB_image2_of_isLUB_isLUB (β := βᵒᵈ) h₁ h₂ ha₀ hb₀
 
 @[to_dual]
 theorem isLUB_image2_of_isGLB_isLUB (h₁ : ∀ b, GaloisConnection (swap l b ∘ ofDual) (toDual ∘ u₁ b))
     (h₂ : ∀ a, GaloisConnection (l a) (u₂ a))
     (ha₀ : IsGLB s a₀) (hb₀ : IsLUB t b₀) :
-    IsLUB (image2 l s t) (l a₀ b₀) :=
-  isLUB_image2_of_isLUB_isLUB (α := αᵒᵈ) h₁ h₂ ha₀ hb₀
+    IsLUB (image2 l s t) (l a₀ b₀) := by
+  unsealing_newtype OrderDual =>
+    exact isLUB_image2_of_isLUB_isLUB (α := αᵒᵈ) h₁ h₂ ha₀ hb₀
 
 @[to_dual]
 theorem isLUB_image2_of_isGLB_isGLB (h₁ : ∀ b, GaloisConnection (swap l b ∘ ofDual) (toDual ∘ u₁ b))
     (h₂ : ∀ a, GaloisConnection (l a ∘ ofDual) (toDual ∘ u₂ a))
     (ha₀ : IsGLB s a₀) (hb₀ : IsGLB t b₀) :
-    IsLUB (image2 l s t) (l a₀ b₀) :=
-  isLUB_image2_of_isLUB_isLUB (α := αᵒᵈ) (β := βᵒᵈ) h₁ h₂ ha₀ hb₀
+    IsLUB (image2 l s t) (l a₀ b₀) := by
+  unsealing_newtype OrderDual =>
+    exact isLUB_image2_of_isLUB_isLUB (α := αᵒᵈ) (β := βᵒᵈ) h₁ h₂ ha₀ hb₀
 
 end LUB_GLB
 
@@ -189,19 +192,22 @@ theorem sSup_image2_eq_sSup_sSup (h₁ : ∀ b, GaloisConnection (swap l b) (u�
 @[to_dual]
 theorem sSup_image2_eq_sSup_sInf (h₁ : ∀ b, GaloisConnection (swap l b) (u₁ b))
     (h₂ : ∀ a, GaloisConnection (l a ∘ ofDual) (toDual ∘ u₂ a)) :
-    sSup (image2 l s t) = l (sSup s) (sInf t) :=
-  sSup_image2_eq_sSup_sSup (β := βᵒᵈ) h₁ h₂
+    sSup (image2 l s t) = l (sSup s) (sInf t) := by
+  unsealing_newtype OrderDual =>
+    exact sSup_image2_eq_sSup_sSup (β := βᵒᵈ) h₁ h₂
 
 @[to_dual]
 theorem sSup_image2_eq_sInf_sSup (h₁ : ∀ b, GaloisConnection (swap l b ∘ ofDual) (toDual ∘ u₁ b))
-    (h₂ : ∀ a, GaloisConnection (l a) (u₂ a)) : sSup (image2 l s t) = l (sInf s) (sSup t) :=
-  sSup_image2_eq_sSup_sSup (α := αᵒᵈ) h₁ h₂
+    (h₂ : ∀ a, GaloisConnection (l a) (u₂ a)) : sSup (image2 l s t) = l (sInf s) (sSup t) := by
+  unsealing_newtype OrderDual =>
+    exact sSup_image2_eq_sSup_sSup (α := αᵒᵈ) h₁ h₂
 
 @[to_dual]
 theorem sSup_image2_eq_sInf_sInf (h₁ : ∀ b, GaloisConnection (swap l b ∘ ofDual) (toDual ∘ u₁ b))
     (h₂ : ∀ a, GaloisConnection (l a ∘ ofDual) (toDual ∘ u₂ a)) :
-    sSup (image2 l s t) = l (sInf s) (sInf t) :=
-  sSup_image2_eq_sSup_sSup (α := αᵒᵈ) (β := βᵒᵈ) h₁ h₂
+    sSup (image2 l s t) = l (sInf s) (sInf t) := by
+  unsealing_newtype OrderDual =>
+    exact sSup_image2_eq_sSup_sSup (α := αᵒᵈ) (β := βᵒᵈ) h₁ h₂
 
 end CompleteLattice
 
@@ -419,8 +425,9 @@ theorem gc_sSup_Iic [CompleteSemilatticeSup α] :
 
 /-- `toDual ∘ Ici` and `sInf ∘ ofDual` form a Galois connection. -/
 theorem gc_Ici_sInf [CompleteSemilatticeInf α] :
-    GaloisConnection (toDual ∘ Ici : α → (Set α)ᵒᵈ) (sInf ∘ ofDual : (Set α)ᵒᵈ → α) :=
-  fun _ _ ↦ le_sInf_iff.symm
+    GaloisConnection (toDual ∘ Ici : α → (Set α)ᵒᵈ) (sInf ∘ ofDual : (Set α)ᵒᵈ → α) := by
+  unsealing_newtype OrderDual =>
+    exact fun _ _ ↦ le_sInf_iff.symm
 
 /-- `sSup` and `Iic` form a Galois insertion. -/
 def giSSupIic [CompleteSemilatticeSup α] :
@@ -433,7 +440,8 @@ alias gi_sSup_Iic := giSSupIic
 /-- `toDual ∘ Ici` and `sInf ∘ ofDual` form a Galois coinsertion. -/
 def gciIciSInf [CompleteSemilatticeInf α] :
     GaloisCoinsertion (toDual ∘ Ici : α → (Set α)ᵒᵈ) (sInf ∘ ofDual : (Set α)ᵒᵈ → α) :=
-  gc_Ici_sInf.toGaloisCoinsertion fun _ ↦ sInf_le le_rfl
+  gc_Ici_sInf.toGaloisCoinsertion fun a ↦ by
+    simpa only [Function.comp_apply, ofDual_toDual] using sInf_le (s := Ici a) (a := a) le_rfl
 
 @[deprecated (since := "2026-07-18")]
 alias gci_Ici_sInf := gciIciSInf

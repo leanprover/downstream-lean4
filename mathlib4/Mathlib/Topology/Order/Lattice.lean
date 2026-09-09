@@ -47,11 +47,13 @@ class ContinuousSup (L : Type*) [TopologicalSpace L] [Max L] : Prop where
 
 instance OrderDual.continuousSup (L : Type*) [TopologicalSpace L] [Min L]
     [h : ContinuousInf L] : ContinuousSup Lᵒᵈ where
-  continuous_sup := h.continuous_inf
+  continuous_sup := continuous_toDual.comp
+    (h.continuous_inf.comp (continuous_ofDual.prodMap continuous_ofDual))
 
 instance OrderDual.continuousInf (L : Type*) [TopologicalSpace L] [Max L]
     [h : ContinuousSup L] : ContinuousInf Lᵒᵈ where
-  continuous_inf := h.continuous_sup
+  continuous_inf := continuous_toDual.comp
+    (h.continuous_sup.comp (continuous_ofDual.prodMap continuous_ofDual))
 
 /-- Let `L` be a lattice equipped with a topology such that `L` has continuous infimum and supremum.
 Then `L` is said to be a *topological lattice*.
@@ -133,13 +135,15 @@ lemma finset_sup'_nhds_apply [SemilatticeSup L] [ContinuousSup L]
 
 lemma finset_inf'_nhds [SemilatticeInf L] [ContinuousInf L]
     (hne : s.Nonempty) (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) :
-    Tendsto (s.inf' hne f) l (𝓝 (s.inf' hne g)) :=
-  finset_sup'_nhds (L := Lᵒᵈ) hne hs
+    Tendsto (s.inf' hne f) l (𝓝 (s.inf' hne g)) := by
+  unsealing_newtype OrderDual =>
+    exact finset_sup'_nhds (L := Lᵒᵈ) hne hs
 
 lemma finset_inf'_nhds_apply [SemilatticeInf L] [ContinuousInf L]
     (hne : s.Nonempty) (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) :
-    Tendsto (fun a ↦ s.inf' hne (f · a)) l (𝓝 (s.inf' hne g)) :=
-  finset_sup'_nhds_apply (L := Lᵒᵈ) hne hs
+    Tendsto (fun a ↦ s.inf' hne (f · a)) l (𝓝 (s.inf' hne g)) := by
+  unsealing_newtype OrderDual =>
+    exact finset_sup'_nhds_apply (L := Lᵒᵈ) hne hs
 
 lemma finset_sup_nhds [SemilatticeSup L] [OrderBot L] [ContinuousSup L]
     (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) : Tendsto (s.sup f) l (𝓝 (s.sup g)) := by
@@ -154,13 +158,15 @@ lemma finset_sup_nhds_apply [SemilatticeSup L] [OrderBot L] [ContinuousSup L]
   simpa only [← Finset.sup_apply] using finset_sup_nhds hs
 
 lemma finset_inf_nhds [SemilatticeInf L] [OrderTop L] [ContinuousInf L]
-    (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) : Tendsto (s.inf f) l (𝓝 (s.inf g)) :=
-  finset_sup_nhds (L := Lᵒᵈ) hs
+    (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) : Tendsto (s.inf f) l (𝓝 (s.inf g)) := by
+  unsealing_newtype OrderDual =>
+    exact finset_sup_nhds (L := Lᵒᵈ) hs
 
 lemma finset_inf_nhds_apply [SemilatticeInf L] [OrderTop L] [ContinuousInf L]
     (hs : ∀ i ∈ s, Tendsto (f i) l (𝓝 (g i))) :
-    Tendsto (fun a ↦ s.inf (f · a)) l (𝓝 (s.inf g)) :=
-  finset_sup_nhds_apply (L := Lᵒᵈ) hs
+    Tendsto (fun a ↦ s.inf (f · a)) l (𝓝 (s.inf g)) := by
+  unsealing_newtype OrderDual =>
+    exact finset_sup_nhds_apply (L := Lᵒᵈ) hs
 
 end Filter.Tendsto
 

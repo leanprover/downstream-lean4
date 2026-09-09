@@ -42,14 +42,12 @@ variable [Group M] [MulLeftMono M] [MulRightMono M]
   {s t : Set M}
 
 @[to_additive]
-lemma csSup_inv (hs₀ : s.Nonempty) (hs₁ : BddBelow s) : sSup s⁻¹ = (sInf s)⁻¹ := by
-  rw [← image_inv_eq_inv]
-  exact ((OrderIso.inv _).map_csInf' hs₀ hs₁).symm
+lemma csSup_inv (hs₀ : s.Nonempty) (hs₁ : BddBelow s) : sSup s⁻¹ = (sInf s)⁻¹ :=
+  (isLUB_inv'.2 (isGLB_csInf hs₀ hs₁)).csSup_eq hs₀.inv
 
 @[to_additive]
-lemma csInf_inv (hs₀ : s.Nonempty) (hs₁ : BddAbove s) : sInf s⁻¹ = (sSup s)⁻¹ := by
-  rw [← image_inv_eq_inv]
-  exact ((OrderIso.inv _).map_csSup' hs₀ hs₁).symm
+lemma csInf_inv (hs₀ : s.Nonempty) (hs₁ : BddAbove s) : sInf s⁻¹ = (sSup s)⁻¹ :=
+  (isGLB_inv'.2 (isLUB_csSup hs₀ hs₁)).csInf_eq hs₀.inv
 
 @[to_additive]
 lemma csSup_mul (hs₀ : s.Nonempty) (hs₁ : BddAbove s) (ht₀ : t.Nonempty) (ht₁ : BddAbove t) :
@@ -92,14 +90,12 @@ variable [Group M] [MulLeftMono M] [MulRightMono M]
   (s t : Set M)
 
 @[to_additive]
-lemma sSup_inv (s : Set M) : sSup s⁻¹ = (sInf s)⁻¹ := by
-  rw [← image_inv_eq_inv, sSup_image]
-  exact ((OrderIso.inv M).map_sInf _).symm
+lemma sSup_inv (s : Set M) : sSup s⁻¹ = (sInf s)⁻¹ :=
+  (isLUB_inv'.2 (isGLB_sInf s)).sSup_eq
 
 @[to_additive]
-lemma sInf_inv (s : Set M) : sInf s⁻¹ = (sSup s)⁻¹ := by
-  rw [← image_inv_eq_inv, sInf_image]
-  exact ((OrderIso.inv M).map_sSup _).symm
+lemma sInf_inv (s : Set M) : sInf s⁻¹ = (sSup s)⁻¹ :=
+  (isGLB_inv'.2 (isLUB_sSup s)).sInf_eq
 
 @[to_additive]
 lemma sSup_mul : sSup (s * t) = sSup s * sSup t :=

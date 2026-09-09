@@ -276,8 +276,9 @@ theorem Codisjoint.inf_left (ha : Codisjoint a c) (hb : Codisjoint b c) : Codisj
 theorem Codisjoint.inf_right (hb : Codisjoint a b) (hc : Codisjoint a c) : Codisjoint a (b ⊓ c) :=
   codisjoint_inf_right.2 ⟨hb, hc⟩
 
-theorem Codisjoint.left_le_of_le_inf_right (h : a ⊓ b ≤ c) (hd : Codisjoint b c) : a ≤ c :=
-  @Disjoint.left_le_of_le_sup_right αᵒᵈ _ _ _ _ _ h hd.symm
+theorem Codisjoint.left_le_of_le_inf_right (h : a ⊓ b ≤ c) (hd : Codisjoint b c) : a ≤ c := by
+  unsealing_newtype OrderDual =>
+    exact @Disjoint.left_le_of_le_sup_right αᵒᵈ _ _ _ _ _ h hd.symm
 
 theorem Codisjoint.left_le_of_le_inf_left (h : b ⊓ a ≤ c) (hd : Codisjoint b c) : a ≤ c :=
   hd.left_le_of_le_inf_right <| by rwa [inf_comm]
@@ -290,18 +291,21 @@ open OrderDual
 
 @[to_dual]
 theorem Disjoint.dual [PartialOrder α] [OrderBot α] {a b : α} :
-    Disjoint a b → Codisjoint (toDual a) (toDual b) :=
-  id
+    Disjoint a b → Codisjoint (toDual a) (toDual b) := by
+  unsealing_newtype OrderDual =>
+    exact id
 
 @[to_dual (attr := simp, grind =)]
 theorem disjoint_toDual_iff [PartialOrder α] [OrderTop α] {a b : α} :
-    Disjoint (toDual a) (toDual b) ↔ Codisjoint a b :=
-  Iff.rfl
+    Disjoint (toDual a) (toDual b) ↔ Codisjoint a b := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual (attr := simp, grind =)]
 theorem disjoint_ofDual_iff [PartialOrder α] [OrderBot α] {a b : αᵒᵈ} :
-    Disjoint (ofDual a) (ofDual b) ↔ Codisjoint a b :=
-  Iff.rfl
+    Disjoint (ofDual a) (ofDual b) ↔ Codisjoint a b := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 section DistribLattice
 
@@ -345,10 +349,12 @@ protected theorem symm (h : IsCompl x y) : IsCompl y x :=
 lemma _root_.isCompl_comm : IsCompl x y ↔ IsCompl y x := ⟨IsCompl.symm, IsCompl.symm⟩
 
 theorem dual (h : IsCompl x y) : IsCompl (toDual x) (toDual y) :=
-  ⟨h.2, h.1⟩
+  ⟨h.2.dual, h.1.dual⟩
 
-theorem ofDual {a b : αᵒᵈ} (h : IsCompl a b) : IsCompl (ofDual a) (ofDual b) :=
-  ⟨h.2, h.1⟩
+theorem ofDual {a b : αᵒᵈ} (h : IsCompl a b) :
+    IsCompl (OrderDual.ofDual a) (OrderDual.ofDual b) := by
+  unsealing_newtype OrderDual =>
+    exact ⟨h.2, h.1⟩
 
 end BoundedPartialOrder
 
@@ -401,8 +407,9 @@ theorem le_left_iff (h : IsCompl x y) : z ≤ x ↔ Disjoint z y :=
 theorem le_right_iff (h : IsCompl x y) : z ≤ y ↔ Disjoint z x :=
   h.symm.le_left_iff
 
-theorem left_le_iff (h : IsCompl x y) : x ≤ z ↔ Codisjoint z y :=
-  h.dual.le_left_iff
+theorem left_le_iff (h : IsCompl x y) : x ≤ z ↔ Codisjoint z y := by
+  unsealing_newtype OrderDual =>
+    exact h.dual.le_left_iff
 
 theorem right_le_iff (h : IsCompl x y) : y ≤ z ↔ Codisjoint z x :=
   h.symm.left_le_iff
@@ -445,8 +452,9 @@ protected theorem disjoint_iff [OrderBot α] [OrderBot β] {x y : α × β} :
 
 @[grind =]
 protected theorem codisjoint_iff [OrderTop α] [OrderTop β] {x y : α × β} :
-    Codisjoint x y ↔ Codisjoint x.1 y.1 ∧ Codisjoint x.2 y.2 :=
-  @Prod.disjoint_iff αᵒᵈ βᵒᵈ _ _ _ _ _ _
+    Codisjoint x y ↔ Codisjoint x.1 y.1 ∧ Codisjoint x.2 y.2 := by
+  unsealing_newtype OrderDual =>
+    exact @Prod.disjoint_iff αᵒᵈ βᵒᵈ _ _ _ _ _ _
 
 @[grind =]
 protected theorem isCompl_iff [BoundedOrder α] [BoundedOrder β] {x y : α × β} :
@@ -478,11 +486,13 @@ theorem eq_top_of_isCompl_bot (h : IsCompl x ⊥) : x = ⊤ := by rw [← sup_bo
 theorem eq_top_of_bot_isCompl (h : IsCompl ⊥ x) : x = ⊤ :=
   eq_top_of_isCompl_bot h.symm
 
-theorem eq_bot_of_isCompl_top (h : IsCompl x ⊤) : x = ⊥ :=
-  eq_top_of_isCompl_bot h.dual
+theorem eq_bot_of_isCompl_top (h : IsCompl x ⊤) : x = ⊥ := by
+  unsealing_newtype OrderDual =>
+    exact eq_top_of_isCompl_bot h.dual
 
-theorem eq_bot_of_top_isCompl (h : IsCompl ⊤ x) : x = ⊥ :=
-  eq_top_of_bot_isCompl h.dual
+theorem eq_bot_of_top_isCompl (h : IsCompl ⊤ x) : x = ⊥ := by
+  unsealing_newtype OrderDual =>
+    exact eq_top_of_bot_isCompl h.dual
 
 end
 
@@ -540,8 +550,8 @@ variable [Lattice α] [BoundedOrder α] [ComplementedLattice α]
 
 instance : ComplementedLattice αᵒᵈ :=
   ⟨fun a ↦
-    let ⟨b, hb⟩ := exists_isCompl (show α from a)
-    ⟨b, hb.dual⟩⟩
+    let ⟨b, hb⟩ := exists_isCompl (OrderDual.ofDual a)
+    ⟨OrderDual.toDual b, hb.dual⟩⟩
 
 end ComplementedLattice
 

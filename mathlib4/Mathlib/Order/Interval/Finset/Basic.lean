@@ -222,8 +222,8 @@ theorem Icc_subset_Ioo_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ioo a₂ b
 theorem Icc_subset_Ico_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ico a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ < b₂ := by
   rw [← coe_subset, coe_Icc, coe_Ico, Set.Icc_subset_Ico_iff h₁]
 
-theorem Icc_subset_Ioc_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ a₂ < a₁ ∧ b₁ ≤ b₂ :=
-  (Icc_subset_Ico_iff h₁.dual).trans and_comm
+theorem Icc_subset_Ioc_iff (h₁ : a₁ ≤ b₁) : Icc a₁ b₁ ⊆ Ioc a₂ b₂ ↔ a₂ < a₁ ∧ b₁ ≤ b₂ := by
+  rw [← coe_subset, coe_Icc, coe_Ioc, Set.Icc_subset_Ioc_iff h₁]
 
 --TODO: `Ico_subset_Ioo_iff`, `Ioc_subset_Ioo_iff`
 theorem Icc_ssubset_Icc_left (hI : a₂ ≤ b₂) (ha : a₂ < a₁) (hb : b₁ ≤ b₂) :
@@ -394,7 +394,8 @@ section LocallyFiniteOrderBot
 variable [LocallyFiniteOrderBot α]
 
 @[simp]
-theorem Iio_eq_empty : Iio a = ∅ ↔ IsMin a := Ioi_eq_empty (α := αᵒᵈ)
+theorem Iio_eq_empty : Iio a = ∅ ↔ IsMin a := by
+  rw [← coe_eq_empty, coe_Iio, Set.Iio_eq_empty_iff]
 
 @[simp] alias ⟨_, _root_.IsMin.finsetIio_eq⟩ := Iio_eq_empty
 
@@ -492,8 +493,9 @@ variable [LocallyFiniteOrderBot α] {a : α}
 theorem Iio_subset_Iic_self : Iio a ⊆ Iic a := by
   simpa [← coe_subset] using Set.Iio_subset_Iic_self
 
-theorem _root_.BddAbove.finite {s : Set α} (hs : BddAbove s) : s.Finite :=
-  hs.dual.finite
+theorem _root_.BddAbove.finite {s : Set α} (hs : BddAbove s) : s.Finite := by
+  unsealing_newtype OrderDual =>
+    exact hs.dual.finite
 
 theorem _root_.Set.Infinite.not_bddAbove {s : Set α} : s.Infinite → ¬BddAbove s :=
   mt BddAbove.finite
@@ -643,8 +645,11 @@ theorem card_Ico_eq_card_Icc_sub_one (a b : α) : #(Ico a b) = #(Icc a b) - 1 :=
     exact (Nat.add_sub_cancel _ _).symm
   · rw [Ico_eq_empty fun h' => h h'.le, Icc_eq_empty h, card_empty, Nat.zero_sub]
 
-theorem card_Ioc_eq_card_Icc_sub_one (a b : α) : #(Ioc a b) = #(Icc a b) - 1 :=
-  @card_Ico_eq_card_Icc_sub_one αᵒᵈ _ _ _ _
+theorem card_Ioc_eq_card_Icc_sub_one (a b : α) : #(Ioc a b) = #(Icc a b) - 1 := by
+  by_cases h : a ≤ b
+  · rw [Icc_eq_cons_Ioc h, card_cons]
+    exact (Nat.add_sub_cancel _ _).symm
+  · rw [Ioc_eq_empty fun h' => h h'.le, Icc_eq_empty h, card_empty, Nat.zero_sub]
 
 theorem card_Ioo_eq_card_Ico_sub_one (a b : α) : #(Ioo a b) = #(Ico a b) - 1 := by
   by_cases h : a < b
@@ -652,8 +657,11 @@ theorem card_Ioo_eq_card_Ico_sub_one (a b : α) : #(Ioo a b) = #(Ico a b) - 1 :=
     exact (Nat.add_sub_cancel _ _).symm
   · rw [Ioo_eq_empty h, Ico_eq_empty h, card_empty, Nat.zero_sub]
 
-theorem card_Ioo_eq_card_Ioc_sub_one (a b : α) : #(Ioo a b) = #(Ioc a b) - 1 :=
-  @card_Ioo_eq_card_Ico_sub_one αᵒᵈ _ _ _ _
+theorem card_Ioo_eq_card_Ioc_sub_one (a b : α) : #(Ioo a b) = #(Ioc a b) - 1 := by
+  by_cases h : a < b
+  · rw [Ioc_eq_cons_Ioo h, card_cons]
+    exact (Nat.add_sub_cancel _ _).symm
+  · rw [Ioo_eq_empty h, Ioc_eq_empty h, card_empty, Nat.zero_sub]
 
 theorem card_Ioo_eq_card_Icc_sub_two (a b : α) : #(Ioo a b) = #(Icc a b) - 2 := by
   rw [card_Ioo_eq_card_Ico_sub_one, card_Ico_eq_card_Icc_sub_one]
@@ -1160,19 +1168,22 @@ lemma strictMono_iff_forall_covBy [Preorder α] [LocallyFiniteOrder α] [Preorde
 /-- A function from a locally finite preorder is antitone if and only if it is antitone when
 restricted to pairs satisfying `a ⩿ b`. -/
 lemma antitone_iff_forall_wcovBy [Preorder α] [LocallyFiniteOrder α] [Preorder β]
-    (f : α → β) : Antitone f ↔ ∀ a b : α, a ⩿ b → f b ≤ f a :=
-  monotone_iff_forall_wcovBy (β := βᵒᵈ) f
+    (f : α → β) : Antitone f ↔ ∀ a b : α, a ⩿ b → f b ≤ f a := by
+  unsealing_newtype OrderDual =>
+    exact monotone_iff_forall_wcovBy (β := βᵒᵈ) f
 
 /-- A function from a locally finite partial order is antitone if and only if it is antitone when
 restricted to pairs satisfying `a ⋖ b`. -/
 lemma antitone_iff_forall_covBy [PartialOrder α] [LocallyFiniteOrder α] [Preorder β]
-    (f : α → β) : Antitone f ↔ ∀ a b : α, a ⋖ b → f b ≤ f a :=
-  monotone_iff_forall_covBy (β := βᵒᵈ) f
+    (f : α → β) : Antitone f ↔ ∀ a b : α, a ⋖ b → f b ≤ f a := by
+  unsealing_newtype OrderDual =>
+    exact monotone_iff_forall_covBy (β := βᵒᵈ) f
 
 /-- A function from a locally finite preorder is strictly antitone if and only if it is strictly
 antitone when restricted to pairs satisfying `a ⋖ b`. -/
 lemma strictAnti_iff_forall_covBy [Preorder α] [LocallyFiniteOrder α] [Preorder β]
-    (f : α → β) : StrictAnti f ↔ ∀ a b : α, a ⋖ b → f b < f a :=
-  strictMono_iff_forall_covBy (β := βᵒᵈ) f
+    (f : α → β) : StrictAnti f ↔ ∀ a b : α, a ⋖ b → f b < f a := by
+  unsealing_newtype OrderDual =>
+    exact strictMono_iff_forall_covBy (β := βᵒᵈ) f
 
 end Cover

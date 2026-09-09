@@ -23,37 +23,43 @@ public section
 
 variable {M N α : Type*}
 
+open OrderDual
+
 namespace OrderDual
 
 @[to_additive]
-instance [Monoid M] [MulAction M α] : MulAction Mᵒᵈ α := inferInstanceAs <| MulAction M α
+instance [Monoid M] [MulAction M α] : MulAction Mᵒᵈ α where
+  one_smul := one_smul M
+  mul_smul x y b := mul_smul x.ofDual' y.ofDual' b
 
 @[to_additive]
-instance [Monoid M] [MulAction M α] : MulAction M αᵒᵈ := inferInstanceAs <| MulAction M α
+instance [Monoid M] [MulAction M α] : MulAction M αᵒᵈ where
+  one_smul a := congrArg OrderDual.mk (one_smul M a.ofDual')
+  mul_smul x y b := congrArg OrderDual.mk (mul_smul x y b.ofDual')
 
 @[to_additive]
 instance [SMul M α] [SMul N α] [SMulCommClass M N α] : SMulCommClass Mᵒᵈ N α :=
-  ‹SMulCommClass M N α›
+  ⟨fun m n a ↦ smul_comm m.ofDual' n a⟩
 
 @[to_additive]
 instance [SMul M α] [SMul N α] [SMulCommClass M N α] : SMulCommClass M Nᵒᵈ α :=
-  ‹SMulCommClass M N α›
+  ⟨fun m n a ↦ smul_comm m n.ofDual' a⟩
 
 @[to_additive]
 instance [SMul M α] [SMul N α] [SMulCommClass M N α] : SMulCommClass M N αᵒᵈ :=
-  ‹SMulCommClass M N α›
+  ⟨fun m n a ↦ congrArg OrderDual.mk (smul_comm m n a.ofDual')⟩
 
 @[to_additive]
 instance [SMul M N] [SMul M α] [SMul N α] [IsScalarTower M N α] : IsScalarTower Mᵒᵈ N α :=
-  ‹IsScalarTower M N α›
+  ⟨fun x y z ↦ smul_assoc x.ofDual' y z⟩
 
 @[to_additive]
 instance [SMul M N] [SMul M α] [SMul N α] [IsScalarTower M N α] : IsScalarTower M Nᵒᵈ α :=
-  ‹IsScalarTower M N α›
+  ⟨fun x y z ↦ smul_assoc x y.ofDual' z⟩
 
 @[to_additive]
 instance [SMul M N] [SMul M α] [SMul N α] [IsScalarTower M N α] : IsScalarTower M N αᵒᵈ :=
-  ‹IsScalarTower M N α›
+  ⟨fun x y z ↦ congrArg OrderDual.mk (smul_assoc x y z.ofDual')⟩
 
 end OrderDual
 

@@ -113,8 +113,9 @@ then the upper bounds of the range of `f ∘ g`
 are the same as the upper bounds of the range of `f`. -/]
 theorem _root_.Antitone.lowerBounds_range_comp_tendsto_atTop [Preorder β] [Preorder γ]
     {l : Filter α} [l.NeBot] {f : β → γ} (hf : Antitone f) {g : α → β} (hg : Tendsto g l atTop) :
-    lowerBounds (range (f ∘ g)) = lowerBounds (range f) :=
-  hf.dual_left.lowerBounds_range_comp_tendsto_atBot hg
+    lowerBounds (range (f ∘ g)) = lowerBounds (range f) := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_left.lowerBounds_range_comp_tendsto_atBot hg
 
 @[to_dual]
 theorem tendsto_atTop_atTop_of_monotone [Preorder α] [Preorder β] {f : α → β} (hf : Monotone f)
@@ -126,8 +127,9 @@ theorem tendsto_atTop_atTop_of_monotone [Preorder α] [Preorder β] {f : α → 
 
 @[to_dual]
 theorem tendsto_atTop_atBot_of_antitone [Preorder α] [Preorder β] {f : α → β} (hf : Antitone f)
-    (h : ∀ b, ∃ a, f a ≤ b) : Tendsto f atTop atBot :=
-  @tendsto_atTop_atTop_of_monotone _ βᵒᵈ _ _ _ hf h
+    (h : ∀ b, ∃ a, f a ≤ b) : Tendsto f atTop atBot := by
+  unsealing_newtype OrderDual =>
+    exact @tendsto_atTop_atTop_of_monotone _ βᵒᵈ _ _ _ hf h
 
 @[to_dual]
 alias _root_.Monotone.tendsto_atTop_atTop := tendsto_atTop_atTop_of_monotone

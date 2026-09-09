@@ -260,7 +260,7 @@ set_option backward.isDefEq.respectTransparency false in
 of `X`. -/
 @[simps]
 def cokernelOrderHom [HasCokernels C] (X : C) : Subobject X →o (Subobject (op X))ᵒᵈ where
-  toFun :=
+  toFun x := OrderDual.toDual <|
     Subobject.lift (fun _ f _ => Subobject.mk (cokernel.π f).op)
       (by
         rintro A B f g hf hg i rfl
@@ -269,7 +269,7 @@ def cokernelOrderHom [HasCokernels C] (X : C) : Subobject X →o (Subobject (op 
             (isCokernelEpiComp (colimit.isColimit _) i.hom rfl)).symm
         · simp only [Iso.comp_inv_eq, Iso.op_hom, Iso.symm_hom, unop_comp, Quiver.Hom.unop_op,
             colimit.comp_coconePointUniqueUpToIso_hom, Cofork.ofπ_ι_app,
-            coequalizer.cofork_π])
+            coequalizer.cofork_π]) x
   monotone' :=
     Subobject.ind₂ _ <| by
       intro A B f g hf hg h
@@ -284,7 +284,7 @@ set_option backward.isDefEq.respectTransparency false in
 `X`. -/
 @[simps]
 def kernelOrderHom [HasKernels C] (X : C) : (Subobject (op X))ᵒᵈ →o Subobject X where
-  toFun :=
+  toFun x :=
     Subobject.lift (fun _ f _ => Subobject.mk (kernel.ι f.unop))
       (by
         rintro A B f g hf hg i rfl
@@ -294,10 +294,16 @@ def kernelOrderHom [HasKernels C] (X : C) : (Subobject (op X))ᵒᵈ →o Subobj
               (isKernelCompMono (limit.isLimit (parallelPair g.unop 0)) i.unop.hom rfl)
         · dsimp
           simp only [← Iso.eq_inv_comp, limit.conePointUniqueUpToIso_inv_comp,
-            Fork.ofι_π_app])
-  monotone' :=
-    Subobject.ind₂ _ <| by
-      intro A B f g hf hg h
+            Fork.ofι_π_app]) (OrderDual.ofDual x)
+  monotone' := by
+    intro x y h
+    cases x using OrderDual.rec
+    cases y using OrderDual.rec
+    rename_i x y
+    revert h
+    induction x, y using Subobject.ind₂ with
+    | _ f g =>
+      intro h
       dsimp only [Subobject.lift_mk]
       refine Subobject.mk_le_mk_of_comm (kernel.lift g.unop (kernel.ι f.unop) ?_) ?_
       · rw [← Subobject.ofMkLEMk_comp h, unop_comp, kernel.condition_assoc, zero_comp]

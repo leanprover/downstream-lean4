@@ -580,9 +580,20 @@ theorem sumAssoc_symm_apply_inr_inr : (sumAssoc α β γ).symm (inr (inr c)) = i
 
 /-- `orderDual` is distributive over `⊕` up to an order isomorphism. -/
 def sumDualDistrib (α β : Type*) [LE α] [LE β] : (α ⊕ β)ᵒᵈ ≃o αᵒᵈ ⊕ βᵒᵈ :=
-  { Equiv.refl _ with
+  { toFun := fun x ↦ Sum.map OrderDual.mk OrderDual.mk x.ofDual'
+    invFun := fun x ↦ OrderDual.mk (Sum.map OrderDual.ofDual' OrderDual.ofDual' x)
+    left_inv := by
+      intro a
+      cases a using OrderDual.rec
+      rename_i a
+      rcases a with a | a <;> rfl
+    right_inv := by rintro (a | a) <;> rfl
     map_rel_iff' := by
-      rintro (a | a) (b | b)
+      intro a b
+      cases a using OrderDual.rec
+      cases b using OrderDual.rec
+      rename_i a b
+      rcases a with a | a <;> rcases b with b | b
       · change inl (toDual a) ≤ inl (toDual b) ↔ toDual (inl a) ≤ toDual (inl b)
         simp [toDual_le_toDual, inl_le_inl_iff]
       · exact iff_of_false (@not_inl_le_inr (OrderDual β) (OrderDual α) _ _ _ _) not_inr_le_inl
@@ -591,20 +602,20 @@ def sumDualDistrib (α β : Type*) [LE α] [LE β] : (α ⊕ β)ᵒᵈ ≃o α�
         simp [toDual_le_toDual, inr_le_inr_iff] }
 
 @[simp]
-theorem sumDualDistrib_inl : sumDualDistrib α β (toDual (inl a)) = inl (toDual a) :=
-  rfl
+theorem sumDualDistrib_inl : sumDualDistrib α β (toDual (inl a)) = inl (toDual a) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
-theorem sumDualDistrib_inr : sumDualDistrib α β (toDual (inr b)) = inr (toDual b) :=
-  rfl
+theorem sumDualDistrib_inr : sumDualDistrib α β (toDual (inr b)) = inr (toDual b) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
-theorem sumDualDistrib_symm_inl : (sumDualDistrib α β).symm (inl (toDual a)) = toDual (inl a) :=
-  rfl
+theorem sumDualDistrib_symm_inl : (sumDualDistrib α β).symm (inl (toDual a)) = toDual (inl a) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
-theorem sumDualDistrib_symm_inr : (sumDualDistrib α β).symm (inr (toDual b)) = toDual (inr b) :=
-  rfl
+theorem sumDualDistrib_symm_inr : (sumDualDistrib α β).symm (inr (toDual b)) = toDual (inr b) := by
+  unsealing_newtype OrderDual => rfl
 
 /-- `Equiv.sumCongr` promoted to an order isomorphism between lexicographic sums. -/
 @[simps! apply]
@@ -676,9 +687,21 @@ theorem sumLexAssoc_symm_apply_inr_inr : (sumLexAssoc α β γ).symm (inr (inr c
 
 /-- `OrderDual` is antidistributive over `⊕ₗ` up to an order isomorphism. -/
 def sumLexDualAntidistrib (α β : Type*) [LE α] [LE β] : (α ⊕ₗ β)ᵒᵈ ≃o βᵒᵈ ⊕ₗ αᵒᵈ :=
-  { Equiv.sumComm α β with
+  { toFun := fun x ↦
+      toLex (Sum.map OrderDual.mk OrderDual.mk (Sum.swap (ofLex x.ofDual')))
+    invFun := fun x ↦ OrderDual.mk
+      (toLex (Sum.swap (Sum.map OrderDual.ofDual' OrderDual.ofDual' (ofLex x))))
+    left_inv := by
+      intro a
+      cases a using OrderDual.rec
+      rename_i a
+      rcases a with a | a <;> rfl
+    right_inv := by rintro (a | a) <;> rfl
     map_rel_iff' := fun {a b} => by
-      rcases a with (a | a) <;> rcases b with (b | b)
+      cases a using OrderDual.rec
+      cases b using OrderDual.rec
+      rename_i a b
+      rcases a with a | a <;> rcases b with b | b
       · change
           toLex (inr <| toDual a) ≤ toLex (inr <| toDual b) ↔
             toDual (toLex <| inl a) ≤ toDual (toLex <| inl b)
@@ -694,23 +717,23 @@ def sumLexDualAntidistrib (α β : Type*) [LE α] [LE β] : (α ⊕ₗ β)ᵒᵈ
 
 @[simp]
 theorem sumLexDualAntidistrib_inl :
-    sumLexDualAntidistrib α β (toDual (inl a)) = inr (toDual a) :=
-  rfl
+    sumLexDualAntidistrib α β (toDual (inl a)) = inr (toDual a) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
 theorem sumLexDualAntidistrib_inr :
-    sumLexDualAntidistrib α β (toDual (inr b)) = inl (toDual b) :=
-  rfl
+    sumLexDualAntidistrib α β (toDual (inr b)) = inl (toDual b) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
 theorem sumLexDualAntidistrib_symm_inl :
-    (sumLexDualAntidistrib α β).symm (inl (toDual b)) = toDual (inr b) :=
-  rfl
+    (sumLexDualAntidistrib α β).symm (inl (toDual b)) = toDual (inr b) := by
+  unsealing_newtype OrderDual => rfl
 
 @[simp]
 theorem sumLexDualAntidistrib_symm_inr :
-    (sumLexDualAntidistrib α β).symm (inr (toDual a)) = toDual (inl a) :=
-  rfl
+    (sumLexDualAntidistrib α β).symm (inr (toDual a)) = toDual (inl a) := by
+  unsealing_newtype OrderDual => rfl
 
 /-- `Equiv.sumEmpty` as an `OrderIso` with the lexicographic sum. -/
 def sumLexEmpty [IsEmpty β] : Lex (α ⊕ β) ≃o α :=

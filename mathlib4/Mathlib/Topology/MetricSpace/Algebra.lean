@@ -277,7 +277,8 @@ instance [AddMonoid α] [LipschitzAdd α] : LipschitzMul (Multiplicative α) :=
 
 @[to_additive]
 instance [Monoid α] [LipschitzMul α] : LipschitzMul αᵒᵈ :=
-  ‹LipschitzMul α›
+  ⟨LipschitzMul.C α, fun x y ↦ lipschitzWith_lipschitz_const_mul_edist (β := α)
+    (OrderDual.ofDual x.1, OrderDual.ofDual x.2) (OrderDual.ofDual y.1, OrderDual.ofDual y.2)⟩
 
 variable {ι : Type*} [Fintype ι]
 

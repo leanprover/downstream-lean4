@@ -161,12 +161,14 @@ end Finset
 open OrderDual
 
 @[to_dual (attr := simp)] lemma countableSupClosed_preimage_toDual [LE α] {s : Set αᵒᵈ} :
-    CountableSupClosed (toDual ⁻¹' s) ↔ CountableInfClosed s :=
-  ⟨fun h ↦ ⟨h.isLUB_mem⟩, fun h ↦ ⟨h.isGLB_mem⟩⟩
+    CountableSupClosed (toDual ⁻¹' s) ↔ CountableInfClosed s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ ⟨h.isLUB_mem⟩, fun h ↦ ⟨h.isGLB_mem⟩⟩
 
 @[to_dual (attr := simp)] lemma countableSupClosed_preimage_ofDual [LE α] {s : Set α} :
-    CountableSupClosed (ofDual ⁻¹' s) ↔ CountableInfClosed s :=
-  ⟨fun h ↦ ⟨h.isLUB_mem⟩, fun h ↦ ⟨h.isGLB_mem⟩⟩
+    CountableSupClosed (ofDual ⁻¹' s) ↔ CountableInfClosed s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ ⟨h.isLUB_mem⟩, fun h ↦ ⟨h.isGLB_mem⟩⟩
 
 @[to_dual] alias ⟨_, CountableSupClosed.dual⟩ := countableInfClosed_preimage_ofDual
 

@@ -292,8 +292,9 @@ theorem monotone_iff_Icc [AddCommGroup G] [LinearOrder G] [IsOrderedAddMonoid G]
 theorem antitone_iff_Icc [AddCommGroup G] [LinearOrder G] [IsOrderedAddMonoid G] [Archimedean G]
     [AddCommGroup H] [PartialOrder H] [IsOrderedAddMonoid H]
     [AddConstMapClass F G H a b] {f : F} (ha : 0 < a) (l : G) :
-    Antitone f ↔ AntitoneOn f (Icc l (l + a)) :=
-  monotone_iff_Icc (H := Hᵒᵈ) ha l
+    Antitone f ↔ AntitoneOn f (Icc l (l + a)) := by
+  unsealing_newtype OrderDual =>
+    exact monotone_iff_Icc (H := Hᵒᵈ) ha l
 
 theorem strictMono_iff_Icc [AddCommGroup G] [LinearOrder G] [IsOrderedAddMonoid G] [Archimedean G]
     [AddCommGroup H] [PartialOrder H] [IsOrderedAddMonoid H]
@@ -304,8 +305,9 @@ theorem strictMono_iff_Icc [AddCommGroup G] [LinearOrder G] [IsOrderedAddMonoid 
 theorem strictAnti_iff_Icc [AddCommGroup G] [LinearOrder G] [IsOrderedAddMonoid G] [Archimedean G]
     [AddCommGroup H] [PartialOrder H] [IsOrderedAddMonoid H]
     [AddConstMapClass F G H a b] {f : F} (ha : 0 < a) (l : G) :
-    StrictAnti f ↔ StrictAntiOn f (Icc l (l + a)) :=
-  strictMono_iff_Icc (H := Hᵒᵈ) ha l
+    StrictAnti f ↔ StrictAntiOn f (Icc l (l + a)) := by
+  unsealing_newtype OrderDual =>
+    exact strictMono_iff_Icc (H := Hᵒᵈ) ha l
 
 end AddConstMapClass
 

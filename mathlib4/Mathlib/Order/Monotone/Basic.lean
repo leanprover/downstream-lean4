@@ -73,15 +73,17 @@ Often, you should not need the rewriting lemmas. Instead, you probably want to a
 
 section OrderDual
 
-variable [Preorder α] [Preorder β] {f : α → β} {s : Set α}
+variable [Preorder α] [Preorder β] {f : α → β} {s : Set α} {t : Set αᵒᵈ}
 
 @[simp]
-theorem monotone_comp_ofDual_iff : Monotone (f ∘ ofDual) ↔ Antitone f :=
-  forall_comm
+theorem monotone_comp_ofDual_iff : Monotone (f ∘ ofDual) ↔ Antitone f := by
+  unsealing_newtype OrderDual =>
+    exact forall_comm
 
 @[simp]
-theorem antitone_comp_ofDual_iff : Antitone (f ∘ ofDual) ↔ Monotone f :=
-  forall_comm
+theorem antitone_comp_ofDual_iff : Antitone (f ∘ ofDual) ↔ Monotone f := by
+  unsealing_newtype OrderDual =>
+    exact forall_comm
 
 @[simp]
 theorem monotone_toDual_comp_iff : Monotone (toDual ∘ f) ↔ Antitone f :=
@@ -92,12 +94,14 @@ theorem antitone_toDual_comp_iff : Antitone (toDual ∘ f) ↔ Monotone f :=
   Iff.rfl
 
 @[simp]
-theorem monotoneOn_comp_ofDual_iff : MonotoneOn (f ∘ ofDual) s ↔ AntitoneOn f s :=
-  forall₂_comm
+theorem monotoneOn_comp_ofDual_iff : MonotoneOn (f ∘ ofDual) t ↔ AntitoneOn f (⇑toDual ⁻¹' t) := by
+  unsealing_newtype OrderDual =>
+    exact forall₂_comm
 
 @[simp]
-theorem antitoneOn_comp_ofDual_iff : AntitoneOn (f ∘ ofDual) s ↔ MonotoneOn f s :=
-  forall₂_comm
+theorem antitoneOn_comp_ofDual_iff : AntitoneOn (f ∘ ofDual) t ↔ MonotoneOn f (⇑toDual ⁻¹' t) := by
+  unsealing_newtype OrderDual =>
+    exact forall₂_comm
 
 @[simp]
 theorem monotoneOn_toDual_comp_iff : MonotoneOn (toDual ∘ f) s ↔ AntitoneOn f s :=
@@ -108,12 +112,14 @@ theorem antitoneOn_toDual_comp_iff : AntitoneOn (toDual ∘ f) s ↔ MonotoneOn 
   Iff.rfl
 
 @[simp]
-theorem strictMono_comp_ofDual_iff : StrictMono (f ∘ ofDual) ↔ StrictAnti f :=
-  forall_comm
+theorem strictMono_comp_ofDual_iff : StrictMono (f ∘ ofDual) ↔ StrictAnti f := by
+  unsealing_newtype OrderDual =>
+    exact forall_comm
 
 @[simp]
-theorem strictAnti_comp_ofDual_iff : StrictAnti (f ∘ ofDual) ↔ StrictMono f :=
-  forall_comm
+theorem strictAnti_comp_ofDual_iff : StrictAnti (f ∘ ofDual) ↔ StrictMono f := by
+  unsealing_newtype OrderDual =>
+    exact forall_comm
 
 @[simp]
 theorem strictMono_toDual_comp_iff : StrictMono (toDual ∘ f : α → βᵒᵈ) ↔ StrictAnti f :=
@@ -124,12 +130,16 @@ theorem strictAnti_toDual_comp_iff : StrictAnti (toDual ∘ f : α → βᵒᵈ)
   Iff.rfl
 
 @[simp]
-theorem strictMonoOn_comp_ofDual_iff : StrictMonoOn (f ∘ ofDual) s ↔ StrictAntiOn f s :=
-  forall₂_comm
+theorem strictMonoOn_comp_ofDual_iff :
+    StrictMonoOn (f ∘ ofDual) t ↔ StrictAntiOn f (⇑toDual ⁻¹' t) := by
+  unsealing_newtype OrderDual =>
+    exact forall₂_comm
 
 @[simp]
-theorem strictAntiOn_comp_ofDual_iff : StrictAntiOn (f ∘ ofDual) s ↔ StrictMonoOn f s :=
-  forall₂_comm
+theorem strictAntiOn_comp_ofDual_iff :
+    StrictAntiOn (f ∘ ofDual) t ↔ StrictMonoOn f (⇑toDual ⁻¹' t) := by
+  unsealing_newtype OrderDual =>
+    exact forall₂_comm
 
 @[simp]
 theorem strictMonoOn_toDual_comp_iff : StrictMonoOn (toDual ∘ f : α → βᵒᵈ) s ↔ StrictAntiOn f s :=
@@ -145,12 +155,12 @@ theorem monotone_dual_iff : Monotone (toDual ∘ f ∘ ofDual : αᵒᵈ → β�
 theorem antitone_dual_iff : Antitone (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) ↔ Antitone f := by
   rw [antitone_toDual_comp_iff, monotone_comp_ofDual_iff]
 
-set_option backward.isDefEq.respectTransparency false in
-theorem monotoneOn_dual_iff : MonotoneOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) s ↔ MonotoneOn f s := by
+theorem monotoneOn_dual_iff :
+    MonotoneOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) t ↔ MonotoneOn f (⇑toDual ⁻¹' t) := by
   rw [monotoneOn_toDual_comp_iff, antitoneOn_comp_ofDual_iff]
 
-set_option backward.isDefEq.respectTransparency false in
-theorem antitoneOn_dual_iff : AntitoneOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) s ↔ AntitoneOn f s := by
+theorem antitoneOn_dual_iff :
+    AntitoneOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) t ↔ AntitoneOn f (⇑toDual ⁻¹' t) := by
   rw [antitoneOn_toDual_comp_iff, monotoneOn_comp_ofDual_iff]
 
 theorem strictMono_dual_iff : StrictMono (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) ↔ StrictMono f := by
@@ -159,14 +169,12 @@ theorem strictMono_dual_iff : StrictMono (toDual ∘ f ∘ ofDual : αᵒᵈ →
 theorem strictAnti_dual_iff : StrictAnti (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) ↔ StrictAnti f := by
   rw [strictAnti_toDual_comp_iff, strictMono_comp_ofDual_iff]
 
-set_option backward.isDefEq.respectTransparency false in
 theorem strictMonoOn_dual_iff :
-    StrictMonoOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) s ↔ StrictMonoOn f s := by
+    StrictMonoOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) t ↔ StrictMonoOn f (⇑toDual ⁻¹' t) := by
   rw [strictMonoOn_toDual_comp_iff, strictAntiOn_comp_ofDual_iff]
 
-set_option backward.isDefEq.respectTransparency false in
 theorem strictAntiOn_dual_iff :
-    StrictAntiOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) s ↔ StrictAntiOn f s := by
+    StrictAntiOn (toDual ∘ f ∘ ofDual : αᵒᵈ → βᵒᵈ) t ↔ StrictAntiOn f (⇑toDual ⁻¹' t) := by
   rw [strictAntiOn_toDual_comp_iff, strictMonoOn_comp_ofDual_iff]
 
 alias ⟨_, Monotone.dual_left⟩ := antitone_comp_ofDual_iff
@@ -293,8 +301,9 @@ protected theorem StrictMono.ite (hf : StrictMono f) (hg : StrictMono g) {p : α
 protected theorem StrictAnti.ite' (hf : StrictAnti f) (hg : StrictAnti g) {p : α → Prop}
     [DecidablePred p]
     (hp : ∀ ⦃x y⦄, x < y → p y → p x) (hfg : ∀ ⦃x y⦄, p x → ¬p y → x < y → g y < f x) :
-    StrictAnti fun x ↦ if p x then f x else g x :=
-  StrictMono.ite' hf.dual_right hg.dual_right hp hfg
+    StrictAnti fun x ↦ if p x then f x else g x := by
+  unsealing_newtype OrderDual =>
+    exact StrictMono.ite' hf.dual_right hg.dual_right hp hfg
 
 protected theorem StrictAnti.ite (hf : StrictAnti f) (hg : StrictAnti g) {p : α → Prop}
     [DecidablePred p] (hp : ∀ ⦃x y⦄, x < y → p y → p x) (hfg : ∀ x, g x ≤ f x) :
@@ -356,8 +365,9 @@ theorem StrictMonoOn.eq_iff_eq (hf : StrictMonoOn f s) {a b : α} (ha : a ∈ s)
     rfl⟩
 
 theorem StrictAntiOn.eq_iff_eq (hf : StrictAntiOn f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-    f a = f b ↔ b = a :=
-  (hf.dual_right.eq_iff_eq ha hb).trans eq_comm
+    f a = f b ↔ b = a := by
+  unsealing_newtype OrderDual =>
+    exact (hf.dual_right.eq_iff_eq ha hb).trans eq_comm
 
 @[to_dual self (reorder := a b, ha hb)]
 theorem StrictMonoOn.lt_iff_lt (hf : StrictMonoOn f s) {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
@@ -394,7 +404,7 @@ protected theorem StrictMonoOn.compares (hf : StrictMonoOn f s) {a b : α} (ha :
 
 protected theorem StrictAntiOn.compares (hf : StrictAntiOn f s) {a b : α} (ha : a ∈ s)
     (hb : b ∈ s) {o : Ordering} : o.Compares (f a) (f b) ↔ o.Compares b a :=
-  toDual_compares_toDual.trans <| hf.dual_right.compares hb ha
+  toDual_compares_toDual.symm.trans <| hf.dual_right.compares hb ha
 
 protected theorem StrictMono.compares (hf : StrictMono f) {a b : α} {o : Ordering} :
     o.Compares (f a) (f b) ↔ o.Compares a b :=
@@ -413,7 +423,9 @@ theorem StrictAnti.injective (hf : StrictAnti f) : Injective f :=
 lemma StrictMonoOn.injOn (hf : StrictMonoOn f s) : s.InjOn f := fun x hx y hy hxy ↦
   show Ordering.eq.Compares x y from (hf.compares hx hy).1 hxy
 
-lemma StrictAntiOn.injOn (hf : StrictAntiOn f s) : s.InjOn f := hf.dual_left.injOn
+lemma StrictAntiOn.injOn (hf : StrictAntiOn f s) : s.InjOn f := by
+  unsealing_newtype OrderDual =>
+    exact hf.dual_left.injOn
 
 @[to_dual]
 theorem StrictMono.maximal_of_maximal_image (hf : StrictMono f) {a} (hmax : ∀ p, p ≤ f a) (x : α) :
@@ -550,28 +562,33 @@ theorem monotone_add_nat_iff_monotoneOn_nat_Ici {f : ℕ → α} {k : ℕ} :
   · rw [← Nat.add_le_add_iff_right] at hle
     exact h (Nat.le_add_left k x) (Nat.le_add_left k y) hle
 
-theorem antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) : Antitone f :=
-  @monotone_nat_of_le_succ αᵒᵈ _ _ hf
+theorem antitone_nat_of_succ_le {f : ℕ → α} (hf : ∀ n, f (n + 1) ≤ f n) : Antitone f := by
+  unsealing_newtype OrderDual =>
+    exact @monotone_nat_of_le_succ αᵒᵈ _ _ hf
 
 theorem antitone_add_nat_of_succ_le {f : ℕ → α} {k : ℕ} (hf : ∀ n ≥ k, f (n + 1) ≤ f n) :
-    Antitone (fun n ↦ f (n + k)) :=
-  @monotone_add_nat_of_le_succ αᵒᵈ _ f k hf
+    Antitone (fun n ↦ f (n + k)) := by
+  unsealing_newtype OrderDual =>
+    exact @monotone_add_nat_of_le_succ αᵒᵈ _ f k hf
 
 -- TODO replace `{ x | k ≤ x }` with `Set.Ici k`
 theorem antitoneOn_nat_Ici_of_succ_le {f : ℕ → α} {k : ℕ} (hf : ∀ n ≥ k, f (n + 1) ≤ f n) :
-    AntitoneOn f { x | k ≤ x } :=
-  @monotoneOn_nat_Ici_of_le_succ αᵒᵈ _ f k hf
+    AntitoneOn f { x | k ≤ x } := by
+  unsealing_newtype OrderDual =>
+    exact @monotoneOn_nat_Ici_of_le_succ αᵒᵈ _ f k hf
 
 -- TODO replace `{ x | k ≤ x }` with `Set.Ici k`
 theorem antitone_add_nat_iff_antitoneOn_nat_Ici {f : ℕ → α} {k : ℕ} :
-    Antitone (fun n ↦ f (n + k)) ↔ AntitoneOn f { x | k ≤ x } :=
-  @monotone_add_nat_iff_monotoneOn_nat_Ici αᵒᵈ _ f k
+    Antitone (fun n ↦ f (n + k)) ↔ AntitoneOn f { x | k ≤ x } := by
+  unsealing_newtype OrderDual =>
+    exact @monotone_add_nat_iff_monotoneOn_nat_Ici αᵒᵈ _ f k
 
 theorem strictMono_nat_of_lt_succ {f : ℕ → α} (hf : ∀ n, f n < f (n + 1)) : StrictMono f :=
   Nat.rel_of_forall_rel_succ_of_lt (· < ·) hf
 
-theorem strictAnti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : StrictAnti f :=
-  @strictMono_nat_of_lt_succ αᵒᵈ _ f hf
+theorem strictAnti_nat_of_succ_lt {f : ℕ → α} (hf : ∀ n, f (n + 1) < f n) : StrictAnti f := by
+  unsealing_newtype OrderDual =>
+    exact @strictMono_nat_of_lt_succ αᵒᵈ _ f hf
 
 namespace Nat
 
@@ -583,8 +600,9 @@ theorem exists_strictMono' [NoMaxOrder α] (a : α) : ∃ f : ℕ → α, Strict
 
 /-- If `α` is a preorder with no maximal elements, then there exists a strictly antitone function
 `ℕ → α` with any prescribed value of `f 0`. -/
-theorem exists_strictAnti' [NoMinOrder α] (a : α) : ∃ f : ℕ → α, StrictAnti f ∧ f 0 = a :=
-  exists_strictMono' (OrderDual.toDual a)
+theorem exists_strictAnti' [NoMinOrder α] (a : α) : ∃ f : ℕ → α, StrictAnti f ∧ f 0 = a := by
+  unsealing_newtype OrderDual =>
+    exact exists_strictMono' (OrderDual.toDual a)
 
 theorem exists_strictMono_subsequence {P : ℕ → Prop} (h : ∀ N, ∃ n > N, P n) :
     ∃ φ : ℕ → ℕ, StrictMono φ ∧ ∀ n, P (φ n) := by
@@ -604,8 +622,9 @@ theorem exists_strictMono [Nonempty α] [NoMaxOrder α] : ∃ f : ℕ → α, St
 
 /-- If `α` is a nonempty preorder with no minimal elements, then there exists a strictly antitone
 function `ℕ → α`. -/
-theorem exists_strictAnti [Nonempty α] [NoMinOrder α] : ∃ f : ℕ → α, StrictAnti f :=
-  exists_strictMono αᵒᵈ
+theorem exists_strictAnti [Nonempty α] [NoMinOrder α] : ∃ f : ℕ → α, StrictAnti f := by
+  unsealing_newtype OrderDual =>
+    exact exists_strictMono αᵒᵈ
 
 lemma pow_self_mono : Monotone fun n : ℕ ↦ n ^ n := by
   refine monotone_nat_of_le_succ fun n ↦ ?_
@@ -666,8 +685,9 @@ theorem exists_strictMono : ∃ f : ℤ → α, StrictMono f := by
 
 /-- If `α` is a nonempty preorder with no minimal or maximal elements, then there exists a strictly
 antitone function `f : ℤ → α`. -/
-theorem exists_strictAnti : ∃ f : ℤ → α, StrictAnti f :=
-  exists_strictMono αᵒᵈ
+theorem exists_strictAnti : ∃ f : ℤ → α, StrictAnti f := by
+  unsealing_newtype OrderDual =>
+    exact exists_strictMono αᵒᵈ
 
 end Int
 

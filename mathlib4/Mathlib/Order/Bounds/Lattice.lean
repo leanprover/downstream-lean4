@@ -33,8 +33,9 @@ theorem gc_upperBounds_lowerBounds : GaloisConnection
 
 @[to_dual (attr := simp)]
 theorem upperBounds_iUnion :
-    upperBounds (⋃ i, s i) = ⋂ i, upperBounds (s i) :=
-  gc_upperBounds_lowerBounds.l_iSup
+    upperBounds (⋃ i, s i) = ⋂ i, upperBounds (s i) := by
+  unsealing_newtype OrderDual =>
+    exact gc_upperBounds_lowerBounds.l_iSup
 
 @[to_dual]
 theorem isLUB_iUnion_iff_of_isLUB {u : ι → α} (hs : ∀ i, IsLUB (s i) (u i)) (c : α) :

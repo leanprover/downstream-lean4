@@ -163,7 +163,9 @@ variable (𝕜 E)
 /-- `orthogonal` gives a `GaloisConnection` between
 `Submodule 𝕜 E` and its `OrderDual`. -/
 theorem orthogonal_gc :
-    @GaloisConnection (Submodule 𝕜 E) (Submodule 𝕜 E)ᵒᵈ _ _ orthogonal orthogonal := fun _K₁ _K₂ =>
+    @GaloisConnection (Submodule 𝕜 E) (Submodule 𝕜 E)ᵒᵈ _ _
+      (fun K ↦ OrderDual.toDual (orthogonal K)) (fun K ↦ orthogonal (OrderDual.ofDual K)) :=
+  fun _K₁ _K₂ =>
   ⟨fun h _v hv _u hu => inner_left_of_mem_orthogonal hv (h hu), fun h _v hv _u hu =>
     inner_left_of_mem_orthogonal hv (h hu)⟩
 
@@ -185,17 +187,20 @@ theorem le_orthogonal_orthogonal : K ≤ Kᗮᗮ :=
 
 /-- The inf of two orthogonal subspaces equals the subspace orthogonal
 to the sup. -/
-theorem inf_orthogonal (K₁ K₂ : Submodule 𝕜 E) : K₁ᗮ ⊓ K₂ᗮ = (K₁ ⊔ K₂)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_sup.symm
+theorem inf_orthogonal (K₁ K₂ : Submodule 𝕜 E) : K₁ᗮ ⊓ K₂ᗮ = (K₁ ⊔ K₂)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_sup.symm
 
 /-- The inf of an indexed family of orthogonal subspaces equals the
 subspace orthogonal to the sup. -/
-theorem iInf_orthogonal {ι : Type*} (K : ι → Submodule 𝕜 E) : ⨅ i, (K i)ᗮ = (iSup K)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_iSup.symm
+theorem iInf_orthogonal {ι : Type*} (K : ι → Submodule 𝕜 E) : ⨅ i, (K i)ᗮ = (iSup K)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_iSup.symm
 
 /-- The inf of a set of orthogonal subspaces equals the subspace orthogonal to the sup. -/
-theorem sInf_orthogonal (s : Set <| Submodule 𝕜 E) : ⨅ K ∈ s, Kᗮ = (sSup s)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_sSup.symm
+theorem sInf_orthogonal (s : Set <| Submodule 𝕜 E) : ⨅ K ∈ s, Kᗮ = (sSup s)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_sSup.symm
 
 @[simp]
 theorem top_orthogonal_eq_bot : (⊤ : Submodule 𝕜 E)ᗮ = ⊥ := by
@@ -489,7 +494,8 @@ variable (𝕜 E)
 /-- `orthogonal` gives a `GaloisConnection` between
 `ClosedSubmodule 𝕜 E` and its `OrderDual`. -/
 theorem orthogonal_gc :
-    @GaloisConnection (ClosedSubmodule 𝕜 E) (ClosedSubmodule 𝕜 E)ᵒᵈ _ _ orthogonal orthogonal :=
+    @GaloisConnection (ClosedSubmodule 𝕜 E) (ClosedSubmodule 𝕜 E)ᵒᵈ _ _
+      (fun K ↦ OrderDual.toDual (orthogonal K)) (fun K ↦ orthogonal (OrderDual.ofDual K)) :=
   fun _K₁ _K₂ =>
   ⟨fun h _v hv _u hu => Submodule.inner_left_of_mem_orthogonal hv (h hu), fun h _v hv _u hu =>
     Submodule.inner_left_of_mem_orthogonal hv (h hu)⟩
@@ -508,17 +514,20 @@ theorem orthogonal_orthogonal_monotone {K₁ K₂ : ClosedSubmodule 𝕜 E} (h :
 
 /-- The inf of two orthogonal subspaces equals the subspace orthogonal
 to the sup. -/
-theorem inf_orthogonal (K₁ K₂ : ClosedSubmodule 𝕜 E) : K₁ᗮ ⊓ K₂ᗮ = (K₁ ⊔ K₂)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_sup.symm
+theorem inf_orthogonal (K₁ K₂ : ClosedSubmodule 𝕜 E) : K₁ᗮ ⊓ K₂ᗮ = (K₁ ⊔ K₂)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_sup.symm
 
 /-- The inf of an indexed family of orthogonal subspaces equals the
 subspace orthogonal to the sup. -/
-theorem iInf_orthogonal {ι : Type*} (K : ι → ClosedSubmodule 𝕜 E) : ⨅ i, (K i)ᗮ = (iSup K)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_iSup.symm
+theorem iInf_orthogonal {ι : Type*} (K : ι → ClosedSubmodule 𝕜 E) : ⨅ i, (K i)ᗮ = (iSup K)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_iSup.symm
 
 /-- The inf of a set of orthogonal subspaces equals the subspace orthogonal to the sup. -/
-theorem sInf_orthogonal (s : Set <| ClosedSubmodule 𝕜 E) : ⨅ K ∈ s, Kᗮ = (sSup s)ᗮ :=
-  (orthogonal_gc 𝕜 E).l_sSup.symm
+theorem sInf_orthogonal (s : Set <| ClosedSubmodule 𝕜 E) : ⨅ K ∈ s, Kᗮ = (sSup s)ᗮ := by
+  unsealing_newtype OrderDual =>
+    exact (orthogonal_gc 𝕜 E).l_sSup.symm
 
 @[simp]
 theorem top_orthogonal_eq_bot : (⊤ : ClosedSubmodule 𝕜 E)ᗮ = ⊥ := by ext x; simp

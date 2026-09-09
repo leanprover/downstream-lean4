@@ -55,7 +55,7 @@ theorem essSup_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) : essSup f μ = e
   limsup_congr hfg
 
 theorem essInf_congr_ae {f g : α → β} (hfg : f =ᵐ[μ] g) : essInf f μ = essInf g μ :=
-  @essSup_congr_ae α βᵒᵈ _ _ _ _ _ hfg
+  liminf_congr hfg
 
 @[simp]
 theorem essSup_const' [NeZero μ] (c : β) : essSup (fun _ : α => c) μ = c :=
@@ -290,8 +290,9 @@ theorem essSup_measure_zero {m : MeasurableSpace α} {f : α → β} : essSup f 
   le_bot_iff.mp (sInf_le (by simp))
 
 @[simp]
-theorem essInf_measure_zero {_ : MeasurableSpace α} {f : α → β} : essInf f (0 : Measure α) = ⊤ :=
-  @essSup_measure_zero α βᵒᵈ _ _ _
+theorem essInf_measure_zero {_ : MeasurableSpace α} {f : α → β} : essInf f (0 : Measure α) = ⊤ := by
+  unsealing_newtype OrderDual =>
+    exact @essSup_measure_zero α βᵒᵈ _ _ _
 
 theorem essSup_const_bot : essSup (fun _ : α => (⊥ : β)) μ = (⊥ : β) :=
   limsup_const_bot

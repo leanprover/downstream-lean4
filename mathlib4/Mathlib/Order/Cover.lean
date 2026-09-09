@@ -128,12 +128,14 @@ theorem apply_wcovBy_apply_iff {E : Type*} [EquivLike E α β] [OrderIsoClass E 
   (ordConnected_range (e : α ≃o β)).apply_wcovBy_apply_iff ((e : α ≃o β) : α ↪o β)
 
 @[simp, to_dual self]
-theorem toDual_wcovBy_toDual_iff : toDual b ⩿ toDual a ↔ a ⩿ b :=
-  and_congr_right' <| forall_congr' fun _ => forall_comm
+theorem toDual_wcovBy_toDual_iff : toDual b ⩿ toDual a ↔ a ⩿ b := by
+  unsealing_newtype OrderDual =>
+    exact and_congr_right' <| forall_congr' fun _ => forall_comm
 
 @[simp, to_dual self]
-theorem ofDual_wcovBy_ofDual_iff {a b : αᵒᵈ} : ofDual a ⩿ ofDual b ↔ b ⩿ a :=
-  and_congr_right' <| forall_congr' fun _ => forall_comm
+theorem ofDual_wcovBy_ofDual_iff {a b : αᵒᵈ} : ofDual a ⩿ ofDual b ↔ b ⩿ a := by
+  unsealing_newtype OrderDual =>
+    exact and_congr_right' <| forall_congr' fun _ => forall_comm
 
 @[to_dual self]
 alias ⟨_, WCovBy.toDual⟩ := toDual_wcovBy_toDual_iff
@@ -223,12 +225,14 @@ theorem denselyOrdered_iff_forall_not_covBy : DenselyOrdered α ↔ ∀ a b : α
     ⟨fun _ _ hab => exists_lt_lt_of_not_covBy hab <| h _ _⟩⟩
 
 @[to_dual self, simp]
-theorem toDual_covBy_toDual_iff : toDual b ⋖ toDual a ↔ a ⋖ b :=
-  and_congr_right' <| forall_congr' fun _ => forall_comm
+theorem toDual_covBy_toDual_iff : toDual b ⋖ toDual a ↔ a ⋖ b := by
+  unsealing_newtype OrderDual =>
+    exact and_congr_right' <| forall_congr' fun _ => forall_comm
 
 @[to_dual self, simp]
-theorem ofDual_covBy_ofDual_iff {a b : αᵒᵈ} : ofDual a ⋖ ofDual b ↔ b ⋖ a :=
-  and_congr_right' <| forall_congr' fun _ => forall_comm
+theorem ofDual_covBy_ofDual_iff {a b : αᵒᵈ} : ofDual a ⋖ ofDual b ↔ b ⋖ a := by
+  unsealing_newtype OrderDual =>
+    exact and_congr_right' <| forall_congr' fun _ => forall_comm
 
 @[to_dual self]
 alias ⟨_, CovBy.toDual⟩ := toDual_covBy_toDual_iff

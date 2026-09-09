@@ -173,12 +173,13 @@ instance Lex.wellFoundedLT [LT ι] [@Std.Trichotomous ι (· < ·)] [hι : WellF
     WellFoundedLT (Lex (Π₀ i, α i)) :=
   ⟨Lex.wellFounded' (fun _ _ => not_lt_zero) (fun i => (hα i).wf) hι.wf⟩
 
-set_option backward.isDefEq.respectTransparency false in
-instance Colex.wellFoundedLT [LT ι] [@Std.Trichotomous ι (· < ·)] [WellFoundedLT ι]
+instance Colex.wellFoundedLT [LT ι] [@Std.Trichotomous ι (· < ·)] [hι : WellFoundedLT ι]
     [∀ i, AddMonoid (α i)] [∀ i, PartialOrder (α i)] [∀ i, IsBotZeroClass (α i)]
-    [∀ i, WellFoundedLT (α i)] :
+    [hα : ∀ i, WellFoundedLT (α i)] :
     WellFoundedLT (Colex (Π₀ i, α i)) :=
-  Lex.wellFoundedLT (ι := ιᵒᵈ)
+  haveI : @Std.Trichotomous ι (· > ·) :=
+    ⟨fun a b h₁ h₂ ↦ Std.Trichotomous.trichotomous (r := (· < ·)) a b h₂ h₁⟩
+  ⟨Lex.wellFounded' (r := (· > ·)) (fun _ _ ↦ not_lt_zero) (fun i ↦ (hα i).wf) hι.wf⟩
 
 end DFinsupp
 
@@ -199,10 +200,9 @@ instance Pi.Lex.wellFoundedLT [LinearOrder ι] [Finite ι] [∀ i, LT (α i)]
     [hwf : ∀ i, WellFoundedLT (α i)] : WellFoundedLT (Lex (∀ i, α i)) :=
   ⟨Pi.Lex.wellFounded (· < ·) fun i => (hwf i).1⟩
 
-set_option backward.isDefEq.respectTransparency false in
 instance Pi.Colex.wellFoundedLT [LinearOrder ι] [Finite ι] [∀ i, LT (α i)]
-    [∀ i, WellFoundedLT (α i)] : WellFoundedLT (Colex (∀ i, α i)) :=
-  Pi.Lex.wellFoundedLT (ι := ιᵒᵈ)
+    [hwf : ∀ i, WellFoundedLT (α i)] : WellFoundedLT (Colex (∀ i, α i)) :=
+  ⟨Pi.Lex.wellFounded (· > ·) fun i => (hwf i).1⟩
 
 instance Function.Lex.wellFoundedLT {α} [LinearOrder ι] [Finite ι] [LT α] [WellFoundedLT α] :
     WellFoundedLT (Lex (ι → α)) :=
@@ -217,10 +217,9 @@ instance DFinsupp.Lex.wellFoundedLT_of_finite [LinearOrder ι] [Finite ι] [∀ 
     [∀ i, LT (α i)] [hwf : ∀ i, WellFoundedLT (α i)] : WellFoundedLT (Lex (Π₀ i, α i)) :=
   ⟨DFinsupp.Lex.wellFounded_of_finite (· < ·) fun i => (hwf i).1⟩
 
-set_option backward.isDefEq.respectTransparency false in
 instance DFinsupp.Colex.wellFoundedLT_of_finite [LinearOrder ι] [Finite ι] [∀ i, Zero (α i)]
     [∀ i, LT (α i)] [hwf : ∀ i, WellFoundedLT (α i)] : WellFoundedLT (Colex (Π₀ i, α i)) :=
-  DFinsupp.Lex.wellFoundedLT_of_finite (ι := ιᵒᵈ)
+  ⟨DFinsupp.Lex.wellFounded_of_finite (· > ·) fun i => (hwf i).1⟩
 
 protected theorem DFinsupp.wellFoundedLT [∀ i, Zero (α i)] [∀ i, Preorder (α i)]
     [∀ i, WellFoundedLT (α i)] (hbot : ∀ ⦃i⦄ ⦃a : α i⦄, ¬a < 0) : WellFoundedLT (Π₀ i, α i) :=

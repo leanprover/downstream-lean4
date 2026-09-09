@@ -92,7 +92,9 @@ lemma Ici_ne_top : Ici a ≠ ⊤ := SetLike.coe_ne_coe.1 nonempty_Ici.ne_empty
 lemma Ici_lt_top : Ici a < ⊤ := lt_top_iff_ne_top.2 Ici_ne_top
 
 @[to_dual (attr := simp) Iic_le]
-lemma le_Ici : s ≤ Ici a ↔ a ∈ s := ⟨fun h ↦ h le_rfl, fun ha ↦ s.upper.Ici_subset ha⟩
+lemma le_Ici : s ≤ Ici a ↔ a ∈ s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ h le_rfl, fun ha ↦ s.upper.Ici_subset ha⟩
 
 variable (α) in
 @[to_dual]

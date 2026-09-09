@@ -163,8 +163,9 @@ theorem isPiSystem_image_Iio (s : Set α) : IsPiSystem (Iio '' s) := by
 theorem isPiSystem_Iio : IsPiSystem (range Iio : Set (Set α)) :=
   @image_univ α _ Iio ▸ isPiSystem_image_Iio univ
 
-theorem isPiSystem_image_Ioi (s : Set α) : IsPiSystem (Ioi '' s) :=
-  @isPiSystem_image_Iio αᵒᵈ _ s
+theorem isPiSystem_image_Ioi (s : Set α) : IsPiSystem (Ioi '' s) := by
+  unsealing_newtype OrderDual =>
+    exact @isPiSystem_image_Iio αᵒᵈ _ s
 
 theorem isPiSystem_Ioi : IsPiSystem (range Ioi : Set (Set α)) :=
   @image_univ α _ Ioi ▸ isPiSystem_image_Ioi univ
@@ -176,8 +177,9 @@ theorem isPiSystem_image_Iic (s : Set α) : IsPiSystem (Iic '' s) := by
 theorem isPiSystem_Iic : IsPiSystem (range Iic : Set (Set α)) :=
   @image_univ α _ Iic ▸ isPiSystem_image_Iic univ
 
-theorem isPiSystem_image_Ici (s : Set α) : IsPiSystem (Ici '' s) :=
-  @isPiSystem_image_Iic αᵒᵈ _ s
+theorem isPiSystem_image_Ici (s : Set α) : IsPiSystem (Ici '' s) := by
+  unsealing_newtype OrderDual =>
+    exact @isPiSystem_image_Iic αᵒᵈ _ s
 
 theorem isPiSystem_Ici : IsPiSystem (range Ici : Set (Set α)) :=
   @image_univ α _ Ici ▸ isPiSystem_image_Ici univ

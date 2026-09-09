@@ -73,9 +73,10 @@ theorem comap_coe_nhdsLT_eq_atTop_iff :
 theorem comap_coe_nhdsGT_eq_atBot_iff :
     comap ((↑) : s → X) (𝓝[>] b) = atBot ↔
       s ⊆ Ioi b ∧ (s.Nonempty → ∀ a > b, (s ∩ Ioo b a).Nonempty) := by
-  refine comap_coe_nhdsLT_eq_atTop_iff (s := OrderDual.ofDual ⁻¹' s) (b := OrderDual.toDual b)
-    |>.trans ?_
-  simp [← preimage_inter, ofDual.surjective]
+  unsealing_newtype OrderDual =>
+    refine comap_coe_nhdsLT_eq_atTop_iff (s := OrderDual.ofDual ⁻¹' s) (b := OrderDual.toDual b)
+      |>.trans ?_
+    simp [← preimage_inter, ofDual.surjective]
 
 theorem comap_coe_nhdsLT_of_Ioo_subset (hsb : s ⊆ Iio b) (hs : s.Nonempty → ∃ a < b, Ioo a b ⊆ s)
     (hb : IsSuccPrelimit b := by exact .of_dense _) :
@@ -90,8 +91,9 @@ theorem comap_coe_nhdsLT_of_Ioo_subset (hsb : s ⊆ Iio b) (hs : s.Nonempty → 
 theorem comap_coe_nhdsGT_of_Ioo_subset (hsa : s ⊆ Ioi a) (hs : s.Nonempty → ∃ b > a, Ioo a b ⊆ s)
     (ha : IsPredPrelimit a := by exact .of_dense _) :
     comap ((↑) : s → X) (𝓝[>] a) = atBot := by
-  refine comap_coe_nhdsLT_of_Ioo_subset (show ofDual ⁻¹' s ⊆ Iio (toDual a) from hsa) ?_ ha.dual
-  simpa only [OrderDual.exists, Ioo_toDual]
+  unsealing_newtype OrderDual =>
+    refine comap_coe_nhdsLT_of_Ioo_subset (show ofDual ⁻¹' s ⊆ Iio (toDual a) from hsa) ?_ ha.dual
+    simpa only [OrderDual.exists, Ioo_toDual]
 
 theorem map_coe_atTop_of_Ioo_subset (hsb : s ⊆ Iio b) (hs : ∀ a' < b, ∃ a < b, Ioo a b ⊆ s)
     (hb : IsSuccPrelimit b := by exact .of_dense _) :
@@ -106,9 +108,10 @@ theorem map_coe_atTop_of_Ioo_subset (hsb : s ⊆ Iio b) (hs : ∀ a' < b, ∃ a 
 theorem map_coe_atBot_of_Ioo_subset (hsa : s ⊆ Ioi a) (hs : ∀ b' > a, ∃ b > a, Ioo a b ⊆ s)
     (ha : IsPredPrelimit a := by exact .of_dense _) :
     map ((↑) : s → X) atBot = 𝓝[>] a := by
-  refine map_coe_atTop_of_Ioo_subset (s := ofDual ⁻¹' s) (b := toDual a) hsa ?_ ha.dual
-  intro b' hb'
-  simpa [OrderDual.exists] using hs (ofDual b') hb'
+  unsealing_newtype OrderDual =>
+    refine map_coe_atTop_of_Ioo_subset (s := ofDual ⁻¹' s) (b := toDual a) hsa ?_ ha.dual
+    intro b' hb'
+    simpa [OrderDual.exists] using hs (ofDual b') hb'
 
 /-- The `atTop` filter for an open interval `Ioo a b` comes from the left-neighbourhoods filter at
 the right endpoint in the ambient order. -/
@@ -133,8 +136,9 @@ theorem comap_coe_Ioi_nhdsGT (a : X) (ha : IsPredPrelimit a := by exact .of_dens
 
 @[simp]
 theorem comap_coe_Iio_nhdsLT (a : X) (ha : IsSuccPrelimit a := by exact .of_dense _) :
-    comap ((↑) : Iio a → X) (𝓝[<] a) = atTop :=
-  comap_coe_Ioi_nhdsGT (toDual a) ha.dual
+    comap ((↑) : Iio a → X) (𝓝[<] a) = atTop := by
+  unsealing_newtype OrderDual =>
+    exact comap_coe_Ioi_nhdsGT (toDual a) ha.dual
 
 @[simp]
 theorem map_coe_Ioo_atTop (h : a < b) (hb : IsSuccPrelimit b := by exact .of_dense _) :
@@ -153,8 +157,9 @@ theorem map_coe_Ioi_atBot (a : X) (ha : IsPredPrelimit a := by exact .of_dense _
 
 @[simp]
 theorem map_coe_Iio_atTop (a : X) (ha : IsSuccPrelimit a := by exact .of_dense _) :
-    map ((↑) : Iio a → X) atTop = 𝓝[<] a :=
-  map_coe_Ioi_atBot (toDual a) ha.dual
+    map ((↑) : Iio a → X) atTop = 𝓝[<] a := by
+  unsealing_newtype OrderDual =>
+    exact map_coe_Ioi_atBot (toDual a) ha.dual
 
 variable {α : Type*} {l : Filter α} {f : X → α}
 

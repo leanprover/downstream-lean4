@@ -186,12 +186,12 @@ instance [BoundedSpace α] : BoundedSpace (Multiplicative α) :=
 /-!
 ### Order dual
 
-The bornology on this type synonym is inherited without change.
+The bornology on `αᵒᵈ` is transported from `α` along `toDual`.
+The instance is defined in `Mathlib/Topology/Bornology/Basic.lean`.
 -/
 
 
-instance : Bornology αᵒᵈ :=
-  ‹Bornology α›
-
-instance [BoundedSpace α] : BoundedSpace αᵒᵈ :=
-  ‹BoundedSpace α›
+instance [BoundedSpace α] : BoundedSpace αᵒᵈ where
+  bounded_univ := by
+    rw [← Set.preimage_univ (f := OrderDual.ofDual)]
+    exact OrderDual.isBounded_preimage_ofDual.2 BoundedSpace.bounded_univ

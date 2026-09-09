@@ -82,7 +82,7 @@ theorem Lex.lt_iff_of_unique [Unique α] [LT N] [Preorder α] {x y : Lex (α →
 set_option backward.isDefEq.respectTransparency false in
 theorem Colex.lt_iff_of_unique [Unique α] [LT N] [Preorder α] {x y : Colex (α →₀ N)} :
     x < y ↔ x default < y default :=
-  Lex.lt_iff_of_unique (α := αᵒᵈ)
+  lex_iff_of_unique
 
 variable [LinearOrder α]
 
@@ -90,8 +90,9 @@ instance Lex.isStrictOrder [PartialOrder N] : IsStrictOrder (Lex (α →₀ N)) 
   irrefl _ := lt_irrefl (α := Lex (α → N)) _
   trans _ _ _ := lt_trans (α := Lex (α → N))
 
-instance Colex.isStrictOrder [PartialOrder N] : IsStrictOrder (Colex (α →₀ N)) (· < ·) :=
-  Lex.isStrictOrder (α := αᵒᵈ)
+instance Colex.isStrictOrder [PartialOrder N] : IsStrictOrder (Colex (α →₀ N)) (· < ·) where
+  irrefl _ := lt_irrefl (α := Colex (α → N)) _
+  trans _ _ _ := lt_trans (α := Colex (α → N))
 
 /-- The partial order on `Finsupp`s obtained by the lexicographic ordering.
 See `Finsupp.Lex.linearOrder` for a proof that this partial order is in fact linear. -/
@@ -128,7 +129,7 @@ theorem Lex.le_iff_of_unique [Unique α] [PartialOrder N] {x y : Lex (α →₀ 
 set_option backward.isDefEq.respectTransparency false in
 theorem Colex.le_iff_of_unique [Unique α] [PartialOrder N] {x y : Colex (α →₀ N)} :
     x ≤ y ↔ x default ≤ y default :=
-  Lex.le_iff_of_unique (α := αᵒᵈ)
+  Pi.colex_le_iff_of_unique
 
 theorem Lex.single_strictAnti : StrictAnti fun (a : α) ↦ toLex (single a 1) := by
   intro a b h
@@ -140,8 +141,9 @@ theorem Lex.single_strictAnti : StrictAnti fun (a : α) ↦ toLex (single a 1) :
     simp only [Finsupp.single_eq_of_ne hd.ne, Finsupp.single_eq_of_ne (hd.trans h).ne]
   · simp [h.ne']
 
-theorem Colex.single_strictMono : StrictMono fun (a : α) ↦ toColex (single a 1) :=
-  fun _ _ h ↦ Lex.single_strictAnti (α := αᵒᵈ) h
+theorem Colex.single_strictMono : StrictMono fun (a : α) ↦ toColex (single a 1) := by
+  unsealing_newtype OrderDual =>
+    exact fun _ _ h ↦ Lex.single_strictAnti (α := αᵒᵈ) h
 
 theorem Lex.single_lt_iff {a b : α} : toLex (single b 1) < toLex (single a 1) ↔ a < b :=
   Lex.single_strictAnti.lt_iff_gt
@@ -160,8 +162,9 @@ variable [PartialOrder N]
 theorem toLex_monotone : Monotone (@toLex (α →₀ N)) :=
   fun a b h ↦ DFinsupp.toLex_monotone (id h : ∀ i, (toDFinsupp a) i ≤ (toDFinsupp b) i)
 
-theorem toColex_monotone : Monotone (@toColex (α →₀ N)) :=
-  toLex_monotone (α := αᵒᵈ)
+theorem toColex_monotone : Monotone (@toColex (α →₀ N)) := by
+  unsealing_newtype OrderDual =>
+    exact toLex_monotone (α := αᵒᵈ)
 
 end NHasZero
 
@@ -185,7 +188,7 @@ instance Lex.addLeftStrictMono : AddLeftStrictMono (Lex (α →₀ N)) :=
   ⟨fun _ _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr_arg _ (lta j ja), add_lt_add_right ha _⟩⟩
 
 instance Colex.addLeftStrictMono : AddLeftStrictMono (Colex (α →₀ N)) :=
-  Lex.addLeftStrictMono (α := αᵒᵈ)
+  ⟨fun _ _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr_arg _ (lta j ja), add_lt_add_right ha _⟩⟩
 
 instance Lex.addLeftMono : AddLeftMono (Lex (α →₀ N)) :=
   addLeftMono_of_addLeftStrictMono _
@@ -203,8 +206,9 @@ set_option backward.isDefEq.respectTransparency false in
 instance Lex.addRightStrictMono : AddRightStrictMono (Lex (α →₀ N)) :=
   ⟨fun f _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr($(lta j ja) + f j), add_lt_add_left ha _⟩⟩
 
+set_option backward.isDefEq.respectTransparency false in
 instance Colex.addRightStrictMono : AddRightStrictMono (Colex (α →₀ N)) :=
-  Lex.addRightStrictMono (α := αᵒᵈ)
+  ⟨fun f _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr($(lta j ja) + f j), add_lt_add_left ha _⟩⟩
 
 instance Lex.addRightMono : AddRightMono (Lex (α →₀ N)) :=
   addRightMono_of_addRightStrictMono _
@@ -246,8 +250,9 @@ instance Lex.isOrderedCancelAddMonoid
 
 instance Colex.isOrderedCancelAddMonoid
     [AddCommMonoid N] [PartialOrder N] [IsOrderedCancelAddMonoid N] :
-    IsOrderedCancelAddMonoid (Colex (α →₀ N)) :=
-  Lex.isOrderedCancelAddMonoid (α := αᵒᵈ)
+    IsOrderedCancelAddMonoid (Colex (α →₀ N)) := by
+  unsealing_newtype OrderDual =>
+    exact Lex.isOrderedCancelAddMonoid (α := αᵒᵈ)
 
 end OrderedAddMonoid
 

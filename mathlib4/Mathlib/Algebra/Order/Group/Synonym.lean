@@ -6,6 +6,7 @@ Authors: Yury Kudryashov, Yaël Dillies
 module
 
 public import Mathlib.Algebra.Group.Defs
+public import Mathlib.Algebra.Group.InjSurj
 public import Mathlib.Algebra.Notation.Defs
 public import Mathlib.Order.Lex
 public import Mathlib.Order.OrderDual
@@ -27,37 +28,33 @@ variable {α β : Type*}
 
 namespace OrderDual
 
-set_option backward.inferInstanceAs.wrap.instances false in
-@[to_additive] instance [One α] : One αᵒᵈ := inferInstanceAs <| One α
+@[to_additive] instance [One α] : One αᵒᵈ := ⟨OrderDual.mk 1⟩
 
-set_option backward.inferInstanceAs.wrap.instances false in
-@[to_additive] instance [Mul α] : Mul αᵒᵈ := inferInstanceAs <| Mul α
+@[to_additive] instance [Mul α] : Mul αᵒᵈ := ⟨fun a b ↦ OrderDual.mk (a.ofDual' * b.ofDual')⟩
 
-set_option backward.inferInstanceAs.wrap.instances false in
-@[to_additive] instance [Inv α] : Inv αᵒᵈ := inferInstanceAs <| Inv α
+@[to_additive] instance [Inv α] : Inv αᵒᵈ := ⟨fun a ↦ OrderDual.mk a.ofDual'⁻¹⟩
 
-set_option backward.inferInstanceAs.wrap.instances false in
-@[to_additive] instance [Div α] : Div αᵒᵈ := inferInstanceAs <| Div α
+@[to_additive] instance [Div α] : Div αᵒᵈ := ⟨fun a b ↦ OrderDual.mk (a.ofDual' / b.ofDual')⟩
 
-set_option backward.inferInstanceAs.wrap.instances false in
 @[to_additive (attr := to_additive) (reorder := 1 2) OrderDual.instSMul]
-instance [Pow α β] : Pow αᵒᵈ β := inferInstanceAs <| Pow α β
+instance [Pow α β] : Pow αᵒᵈ β := ⟨fun a b ↦ OrderDual.mk (a.ofDual' ^ b)⟩
 
-set_option backward.inferInstanceAs.wrap.instances false in
 @[to_additive (attr := to_additive) (reorder := 1 2) OrderDual.instSMul']
-instance [Pow α β] : Pow α βᵒᵈ := inferInstanceAs <| Pow α β
+instance [Pow α β] : Pow α βᵒᵈ := ⟨fun a b ↦ a ^ b.ofDual'⟩
 
-@[to_additive] instance [Semigroup α] : Semigroup αᵒᵈ := inferInstanceAs <| Semigroup α
+@[to_additive] instance [Semigroup α] : Semigroup αᵒᵈ :=
+  ofDual.injective.semigroup _ fun _ _ ↦ rfl
 
-@[to_additive] instance [CommSemigroup α] : CommSemigroup αᵒᵈ := inferInstanceAs <| CommSemigroup α
+@[to_additive] instance [CommSemigroup α] : CommSemigroup αᵒᵈ :=
+  ofDual.injective.commSemigroup _ fun _ _ ↦ rfl
 
 @[to_additive]
 instance [Mul α] [IsLeftCancelMul α] : IsLeftCancelMul αᵒᵈ :=
-  inferInstanceAs <| IsLeftCancelMul α
+  ofDual.injective.isLeftCancelMul _ fun _ _ ↦ rfl
 
 @[to_additive]
 instance [Mul α] [IsRightCancelMul α] : IsRightCancelMul αᵒᵈ :=
-  inferInstanceAs <| IsRightCancelMul α
+  ofDual.injective.isRightCancelMul _ fun _ _ ↦ rfl
 
 @[to_additive]
 instance [Mul α] [IsCancelMul α] : IsCancelMul αᵒᵈ where
@@ -69,44 +66,61 @@ instance [LeftCancelSemigroup α] : LeftCancelSemigroup αᵒᵈ where
 instance [RightCancelSemigroup α] : RightCancelSemigroup αᵒᵈ where
 
 @[to_additive]
-instance [MulOneClass α] : MulOneClass αᵒᵈ := inferInstanceAs <| MulOneClass α
+instance [MulOneClass α] : MulOneClass αᵒᵈ :=
+  ofDual.injective.mulOneClass _ rfl fun _ _ ↦ rfl
 
 @[to_additive]
-instance [Monoid α] : Monoid αᵒᵈ := inferInstanceAs <| Monoid α
+instance [Monoid α] : Monoid αᵒᵈ :=
+  ofDual.injective.monoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [CommMonoid α] : CommMonoid αᵒᵈ := inferInstanceAs <| CommMonoid α
+instance [CommMonoid α] : CommMonoid αᵒᵈ :=
+  ofDual.injective.commMonoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [LeftCancelMonoid α] : LeftCancelMonoid αᵒᵈ := inferInstanceAs <| LeftCancelMonoid α
+instance [LeftCancelMonoid α] : LeftCancelMonoid αᵒᵈ :=
+  ofDual.injective.leftCancelMonoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [RightCancelMonoid α] : RightCancelMonoid αᵒᵈ := inferInstanceAs <| RightCancelMonoid α
+instance [RightCancelMonoid α] : RightCancelMonoid αᵒᵈ :=
+  ofDual.injective.rightCancelMonoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [CancelMonoid α] : CancelMonoid αᵒᵈ := inferInstanceAs <| CancelMonoid α
+instance [CancelMonoid α] : CancelMonoid αᵒᵈ :=
+  ofDual.injective.cancelMonoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [CancelCommMonoid α] : CancelCommMonoid αᵒᵈ := inferInstanceAs <| CancelCommMonoid α
+instance [CancelCommMonoid α] : CancelCommMonoid αᵒᵈ :=
+  ofDual.injective.cancelCommMonoid _ rfl (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [InvolutiveInv α] : InvolutiveInv αᵒᵈ := inferInstanceAs <| InvolutiveInv α
+instance [InvolutiveInv α] : InvolutiveInv αᵒᵈ :=
+  ofDual.injective.involutiveInv _ fun _ ↦ rfl
 
 @[to_additive]
-instance [DivInvMonoid α] : DivInvMonoid αᵒᵈ := inferInstanceAs <| DivInvMonoid α
+instance [DivInvMonoid α] : DivInvMonoid αᵒᵈ :=
+  ofDual.injective.divInvMonoid _ rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [DivisionMonoid α] : DivisionMonoid αᵒᵈ := inferInstanceAs <| DivisionMonoid α
+instance [DivisionMonoid α] : DivisionMonoid αᵒᵈ :=
+  ofDual.injective.divisionMonoid _ rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
 instance [DivisionCommMonoid α] : DivisionCommMonoid αᵒᵈ :=
-  inferInstanceAs <| DivisionCommMonoid α
+  ofDual.injective.divisionCommMonoid _ rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [Group α] : Group αᵒᵈ := inferInstanceAs <| Group α
+instance [Group α] : Group αᵒᵈ :=
+  ofDual.injective.group _ rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 @[to_additive]
-instance [CommGroup α] : CommGroup αᵒᵈ := inferInstanceAs <| CommGroup α
+instance [CommGroup α] : CommGroup αᵒᵈ :=
+  ofDual.injective.commGroup _ rfl (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) fun _ _ ↦ rfl
 
 end OrderDual
 
@@ -116,8 +130,11 @@ theorem toDual_one [One α] : toDual (1 : α) = 1 := rfl
 @[to_additive (attr := simp)]
 theorem ofDual_one [One α] : (ofDual 1 : α) = 1 := rfl
 
-@[to_additive (attr := simp)] lemma toDual_eq_one [One α] {a : α} : toDual a = 1 ↔ a = 1 := .rfl
-@[to_additive (attr := simp)] lemma ofDual_eq_one [One α] {a : αᵒᵈ} : ofDual a = 1 ↔ a = 1 := .rfl
+@[to_additive (attr := simp)]
+lemma toDual_eq_one [One α] {a : α} : toDual a = 1 ↔ a = 1 := toDual_inj
+@[to_additive (attr := simp)]
+lemma ofDual_eq_one [One α] {a : αᵒᵈ} : ofDual a = 1 ↔ a = 1 := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
 theorem toDual_mul [Mul α] (a b : α) : toDual (a * b) = toDual a * toDual b := rfl
@@ -153,22 +170,28 @@ section Monoid
 variable [Monoid α]
 
 @[to_additive (attr := simp)]
-lemma isLeftRegular_toDual {a : α} : IsLeftRegular (toDual a) ↔ IsLeftRegular a := .rfl
+lemma isLeftRegular_toDual {a : α} : IsLeftRegular (toDual a) ↔ IsLeftRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
-lemma isLeftRegular_ofDual {a : αᵒᵈ} : IsLeftRegular (ofDual a) ↔ IsLeftRegular a := .rfl
+lemma isLeftRegular_ofDual {a : αᵒᵈ} : IsLeftRegular (ofDual a) ↔ IsLeftRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
-lemma isRightRegular_toDual {a : α} : IsRightRegular (toDual a) ↔ IsRightRegular a := .rfl
+lemma isRightRegular_toDual {a : α} : IsRightRegular (toDual a) ↔ IsRightRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
-lemma isRightRegular_ofDual {a : αᵒᵈ} : IsRightRegular (ofDual a) ↔ IsRightRegular a := .rfl
+lemma isRightRegular_ofDual {a : αᵒᵈ} : IsRightRegular (ofDual a) ↔ IsRightRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
-lemma isRegular_toDual {a : α} : IsRegular (toDual a) ↔ IsRegular a := .rfl
+lemma isRegular_toDual {a : α} : IsRegular (toDual a) ↔ IsRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 @[to_additive (attr := simp)]
-lemma isRegular_ofDual {a : αᵒᵈ} : IsRegular (ofDual a) ↔ IsRegular a := .rfl
+lemma isRegular_ofDual {a : αᵒᵈ} : IsRegular (ofDual a) ↔ IsRegular a := by
+  unsealing_newtype OrderDual => rfl
 
 end Monoid
 

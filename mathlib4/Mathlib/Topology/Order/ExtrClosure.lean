@@ -29,8 +29,9 @@ protected theorem IsMaxOn.closure (h : IsMaxOn f s a) (hc : ContinuousOn f (clos
   ContinuousWithinAt.closure_le hx ((hc x hx).mono subset_closure) continuousWithinAt_const h
 
 protected theorem IsMinOn.closure (h : IsMinOn f s a) (hc : ContinuousOn f (closure s)) :
-    IsMinOn f (closure s) a :=
-  h.dual.closure hc
+    IsMinOn f (closure s) a := by
+  unsealing_newtype OrderDual =>
+    exact h.dual.closure hc
 
 protected theorem IsExtrOn.closure (h : IsExtrOn f s a) (hc : ContinuousOn f (closure s)) :
     IsExtrOn f (closure s) a :=
@@ -48,8 +49,9 @@ protected theorem IsLocalMaxOn.closure (h : IsLocalMaxOn f s a) (hc : Continuous
   · exact (hc _ hxs).mono (inter_subset_right.trans subset_closure)
 
 protected theorem IsLocalMinOn.closure (h : IsLocalMinOn f s a) (hc : ContinuousOn f (closure s)) :
-    IsLocalMinOn f (closure s) a :=
-  IsLocalMaxOn.closure h.dual hc
+    IsLocalMinOn f (closure s) a := by
+  unsealing_newtype OrderDual =>
+    exact IsLocalMaxOn.closure h.dual hc
 
 protected theorem IsLocalExtrOn.closure (h : IsLocalExtrOn f s a)
     (hc : ContinuousOn f (closure s)) : IsLocalExtrOn f (closure s) a :=

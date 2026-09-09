@@ -56,8 +56,13 @@ section SeparatelyContinuousMul
 variable [TopologicalSpace M] [Mul M] [SeparatelyContinuousMul M]
 
 @[to_additive]
-instance : SeparatelyContinuousMul Mᵒᵈ :=
-  ‹SeparatelyContinuousMul M›
+instance : SeparatelyContinuousMul Mᵒᵈ where
+  continuous_const_mul {a} := continuous_toDual.comp
+    ((SeparatelyContinuousMul.continuous_const_mul (a := OrderDual.ofDual a)).comp
+      continuous_ofDual)
+  continuous_mul_const {a} := continuous_toDual.comp
+    ((SeparatelyContinuousMul.continuous_mul_const (a := OrderDual.ofDual a)).comp
+      continuous_ofDual)
 
 @[to_additive]
 instance : SeparatelyContinuousMul (ULift.{u} M) :=
@@ -79,7 +84,8 @@ variable [TopologicalSpace M] [Mul M] [ContinuousMul M]
 
 @[to_additive]
 instance : ContinuousMul Mᵒᵈ :=
-  ‹ContinuousMul M›
+  ⟨continuous_toDual.comp
+    (continuous_mul.comp (continuous_ofDual.prodMap continuous_ofDual))⟩
 
 @[to_additive]
 instance : ContinuousMul (ULift.{u} M) := ⟨continuous_uliftUp.comp (by fun_prop)⟩

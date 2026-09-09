@@ -85,11 +85,13 @@ instance : ContinuousSMul (ULift M) X :=
 
 @[to_additive]
 instance OrderDual.instContinuousSMul_right : ContinuousSMul M Xᵒᵈ where
-  continuous_smul := continuous_smul (M := M) (X := X)
+  continuous_smul := continuous_toDual.comp
+    ((continuous_smul (M := M) (X := X)).comp (continuous_id.prodMap continuous_ofDual))
 
 @[to_additive]
 instance OrderDual.instContinuousSMul_left : ContinuousSMul Mᵒᵈ X where
-  continuous_smul := continuous_smul (M := M) (X := X)
+  continuous_smul := (continuous_smul (M := M) (X := X)).comp
+    (continuous_ofDual.prodMap continuous_id)
 
 @[to_additive]
 instance (priority := 100) ContinuousSMul.continuousConstSMul : ContinuousConstSMul M X where

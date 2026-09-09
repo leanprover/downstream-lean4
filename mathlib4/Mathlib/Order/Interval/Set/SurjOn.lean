@@ -46,7 +46,8 @@ theorem surjOn_Ico_of_monotone_surjective (h_mono : Monotone f) (h_surj : Functi
 
 theorem surjOn_Ioc_of_monotone_surjective (h_mono : Monotone f) (h_surj : Function.Surjective f)
     (a b : α) : SurjOn f (Ioc a b) (Ioc (f a) (f b)) := by
-  simpa using! surjOn_Ico_of_monotone_surjective h_mono.dual h_surj (toDual b) (toDual a)
+  unsealing_newtype OrderDual =>
+    simpa using! surjOn_Ico_of_monotone_surjective h_mono.dual h_surj (toDual b) (toDual a)
 
 -- to see that the hypothesis `a ≤ b` is necessary, consider a constant function
 theorem surjOn_Icc_of_monotone_surjective (h_mono : Monotone f) (h_surj : Function.Surjective f)
@@ -65,8 +66,9 @@ theorem surjOn_Ioi_of_monotone_surjective (h_mono : Monotone f) (h_surj : Functi
   exact fun x hx => (h_mono hx).not_gt
 
 theorem surjOn_Iio_of_monotone_surjective (h_mono : Monotone f) (h_surj : Function.Surjective f)
-    (a : α) : SurjOn f (Iio a) (Iio (f a)) :=
-  @surjOn_Ioi_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a
+    (a : α) : SurjOn f (Iio a) (Iio (f a)) := by
+  unsealing_newtype OrderDual =>
+    exact @surjOn_Ioi_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a
 
 theorem surjOn_Ici_of_monotone_surjective (h_mono : Monotone f) (h_surj : Function.Surjective f)
     (a : α) : SurjOn f (Ici a) (Ici (f a)) := by
@@ -76,5 +78,6 @@ theorem surjOn_Ici_of_monotone_surjective (h_mono : Monotone f) (h_surj : Functi
       (@image_singleton _ _ f a ▸ surjOn_image _ _)
 
 theorem surjOn_Iic_of_monotone_surjective (h_mono : Monotone f) (h_surj : Function.Surjective f)
-    (a : α) : SurjOn f (Iic a) (Iic (f a)) :=
-  @surjOn_Ici_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a
+    (a : α) : SurjOn f (Iic a) (Iic (f a)) := by
+  unsealing_newtype OrderDual =>
+    exact @surjOn_Ici_of_monotone_surjective _ _ _ _ _ h_mono.dual h_surj a

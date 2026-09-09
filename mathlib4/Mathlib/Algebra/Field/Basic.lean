@@ -297,12 +297,30 @@ end Function.Injective
 
 namespace OrderDual
 
-instance [RatCast K] : RatCast Kᵒᵈ := inferInstanceAs <| RatCast K
-instance [NNRatCast K] : NNRatCast Kᵒᵈ := inferInstanceAs <| NNRatCast K
-instance [DivisionSemiring K] : DivisionSemiring Kᵒᵈ := inferInstanceAs <| DivisionSemiring K
-instance [DivisionRing K] : DivisionRing Kᵒᵈ := inferInstanceAs <| DivisionRing K
-instance [Semifield K] : Semifield Kᵒᵈ := inferInstanceAs <| Semifield K
-instance [Field K] : Field Kᵒᵈ := inferInstanceAs <| Field K
+instance [RatCast K] : RatCast Kᵒᵈ := ⟨fun q ↦ OrderDual.mk q⟩
+instance [NNRatCast K] : NNRatCast Kᵒᵈ := ⟨fun q ↦ OrderDual.mk q⟩
+
+instance [DivisionSemiring K] : DivisionSemiring Kᵒᵈ :=
+  ofDual.injective.divisionSemiring _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    fun _ ↦ rfl
+
+instance [DivisionRing K] : DivisionRing Kᵒᵈ :=
+  ofDual.injective.divisionRing _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦ rfl)
+    fun _ ↦ rfl
+
+instance [Semifield K] : Semifield Kᵒᵈ :=
+  ofDual.injective.semifield _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    fun _ ↦ rfl
+
+instance [Field K] : Field Kᵒᵈ :=
+  ofDual.injective.field _ rfl rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦ rfl)
+    fun _ ↦ rfl
 
 end OrderDual
 

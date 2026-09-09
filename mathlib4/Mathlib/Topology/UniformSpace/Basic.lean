@@ -561,9 +561,13 @@ end
 instance ULift.uniformSpace [UniformSpace α] : UniformSpace (ULift α) :=
   UniformSpace.comap ULift.down ‹_›
 
-/-- Uniform space structure on `αᵒᵈ`. -/
+/-- Uniform space structure on `αᵒᵈ`.  The topology of `αᵒᵈ` is coinduced by `toDual`, which is the
+same as being induced by `ofDual`, so `replaceTopology` keeps the two instances defeq. -/
 instance OrderDual.instUniformSpace [UniformSpace α] : UniformSpace (αᵒᵈ) :=
-  ‹UniformSpace α›
+  (UniformSpace.comap OrderDual.ofDual ‹_›).replaceTopology <| by
+    refine TopologicalSpace.ext_iff.2 fun s ↦ ⟨fun hs ↦ ⟨_, hs, rfl⟩, ?_⟩
+    rintro ⟨u, hu, rfl⟩
+    exact hu
 
 section UniformContinuousInfi
 

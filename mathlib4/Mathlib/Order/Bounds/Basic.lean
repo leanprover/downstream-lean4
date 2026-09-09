@@ -73,22 +73,54 @@ theorem not_bddAbove_iff {α : Type*} [LinearOrder α] {s : Set α} :
   simp only [not_bddAbove_iff', not_le]
 
 @[to_dual (attr := simp)]
-lemma bddAbove_preimage_ofDual {s : Set α} : BddAbove (ofDual ⁻¹' s) ↔ BddBelow s := Iff.rfl
+lemma upperBounds_preimage_ofDual {s : Set α} :
+    upperBounds (ofDual ⁻¹' s) = ofDual ⁻¹' lowerBounds s :=
+  Set.ext fun _ ↦
+    ⟨fun h _ hy ↦ h (show toDual _ ∈ ofDual ⁻¹' s from hy), fun h _ hy ↦ h hy⟩
 
 @[to_dual (attr := simp)]
-lemma bddAbove_preimage_toDual {s : Set αᵒᵈ} : BddAbove (toDual ⁻¹' s) ↔ BddBelow s := Iff.rfl
+lemma upperBounds_preimage_toDual {s : Set αᵒᵈ} :
+    upperBounds (toDual ⁻¹' s) = toDual ⁻¹' lowerBounds s :=
+  Set.ext fun _ ↦
+    ⟨fun h _ hy ↦ h (show ofDual _ ∈ toDual ⁻¹' s from hy), fun h _ hy ↦ h hy⟩
+
+@[to_dual (attr := simp)]
+lemma bddAbove_preimage_ofDual {s : Set α} : BddAbove (ofDual ⁻¹' s) ↔ BddBelow s := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
+
+@[to_dual (attr := simp)]
+lemma bddAbove_preimage_toDual {s : Set αᵒᵈ} : BddAbove (toDual ⁻¹' s) ↔ BddBelow s := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual]
-theorem BddAbove.dual (h : BddAbove s) : BddBelow (ofDual ⁻¹' s) :=
-  h
+theorem BddAbove.dual (h : BddAbove s) : BddBelow (ofDual ⁻¹' s) := by
+  unsealing_newtype OrderDual =>
+    exact h
 
 @[to_dual]
-theorem IsLeast.dual (h : IsLeast s a) : IsGreatest (ofDual ⁻¹' s) (toDual a) :=
-  h
+theorem IsLeast.dual (h : IsLeast s a) : IsGreatest (ofDual ⁻¹' s) (toDual a) := by
+  unsealing_newtype OrderDual =>
+    exact h
 
 @[to_dual]
-theorem IsLUB.dual (h : IsLUB s a) : IsGLB (ofDual ⁻¹' s) (toDual a) :=
-  h
+theorem IsLUB.dual (h : IsLUB s a) : IsGLB (ofDual ⁻¹' s) (toDual a) := by
+  unsealing_newtype OrderDual =>
+    exact h
+
+@[to_dual (attr := simp)]
+lemma isLUB_preimage_ofDual {s : Set α} {a : α} : IsLUB (ofDual ⁻¹' s) (toDual a) ↔ IsGLB s a :=
+  ⟨fun h ↦ ⟨fun y hy ↦ h.1 (show toDual y ∈ ofDual ⁻¹' s from hy),
+      fun b hb ↦ h.2 (show toDual b ∈ upperBounds (ofDual ⁻¹' s) from fun _ hc ↦ hb hc)⟩,
+    IsGLB.dual⟩
+
+@[to_dual (attr := simp)]
+lemma isLUB_preimage_toDual {s : Set αᵒᵈ} {a : αᵒᵈ} :
+    IsLUB (toDual ⁻¹' s) (ofDual a) ↔ IsGLB s a :=
+  ⟨fun h ↦ ⟨fun y hy ↦ h.1 (show ofDual y ∈ toDual ⁻¹' s from hy),
+      fun b hb ↦ h.2 (show ofDual b ∈ upperBounds (toDual ⁻¹' s) from fun _ hc ↦ hb hc)⟩,
+    fun h ↦ ⟨fun _ hy ↦ h.1 hy, fun _ hb ↦ h.2 fun y hy ↦ hb (a := ofDual y) hy⟩⟩
 
 /-- If `a` is the least element of a set `s`, then subtype `s` is an order with bottom element. -/
 @[to_dual
@@ -425,8 +457,9 @@ theorem bddAbove_iff_exists_ge [SemilatticeSup γ] {s : Set γ} (x₀ : γ) :
 
 @[to_dual existing bddAbove_iff_exists_ge]
 theorem bddBelow_iff_exists_le [SemilatticeInf γ] {s : Set γ} (x₀ : γ) :
-    BddBelow s ↔ ∃ x, x ≤ x₀ ∧ ∀ y ∈ s, x ≤ y :=
-  bddAbove_iff_exists_ge (toDual x₀)
+    BddBelow s ↔ ∃ x, x ≤ x₀ ∧ ∀ y ∈ s, x ≤ y := by
+  unsealing_newtype OrderDual =>
+    exact bddAbove_iff_exists_ge (toDual x₀)
 
 @[to_dual exists_le]
 theorem BddAbove.exists_ge [SemilatticeSup γ] {s : Set γ} (hs : BddAbove s) (x₀ : γ) :

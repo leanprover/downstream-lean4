@@ -190,16 +190,24 @@ lemma isSublattice_pi {ι : Type*} {α : ι → Type*} [∀ i, Lattice (α i)] {
   ⟨supClosed_pi fun _i hi ↦ (ht _ hi).1, infClosed_pi fun _i hi ↦ (ht _ hi).2⟩
 
 @[to_dual (attr := simp)] lemma supClosed_preimage_toDual {s : Set αᵒᵈ} :
-    SupClosed (toDual ⁻¹' s) ↔ InfClosed s := Iff.rfl
+    SupClosed (toDual ⁻¹' s) ↔ InfClosed s := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual (attr := simp)] lemma supClosed_preimage_ofDual {s : Set α} :
-    SupClosed (ofDual ⁻¹' s) ↔ InfClosed s := Iff.rfl
+    SupClosed (ofDual ⁻¹' s) ↔ InfClosed s := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[simp] lemma isSublattice_preimage_toDual {s : Set αᵒᵈ} :
-    IsSublattice (toDual ⁻¹' s) ↔ IsSublattice s := ⟨fun h ↦ ⟨h.2, h.1⟩, fun h ↦ ⟨h.2, h.1⟩⟩
+    IsSublattice (toDual ⁻¹' s) ↔ IsSublattice s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ ⟨h.2, h.1⟩, fun h ↦ ⟨h.2, h.1⟩⟩
 
 @[simp] lemma isSublattice_preimage_ofDual :
-    IsSublattice (ofDual ⁻¹' s) ↔ IsSublattice s := ⟨fun h ↦ ⟨h.2, h.1⟩, fun h ↦ ⟨h.2, h.1⟩⟩
+    IsSublattice (ofDual ⁻¹' s) ↔ IsSublattice s := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ ⟨h.2, h.1⟩, fun h ↦ ⟨h.2, h.1⟩⟩
 
 @[to_dual] alias ⟨_, InfClosed.dual⟩ := supClosed_preimage_ofDual
 alias ⟨_, IsSublattice.dual⟩ := isSublattice_preimage_ofDual
@@ -379,8 +387,9 @@ lemma ofDual_preimage_latticeClosure (s : Set α) :
 lemma image_latticeClosure' (s : Set α) (f : α → β)
     (map_sup : ∀ a b, f (a ⊔ b) = f a ⊓ f b) (map_inf : ∀ a b, f (a ⊓ b) = f a ⊔ f b) :
     f '' latticeClosure s = latticeClosure (f '' s) := by
-  simpa only [Set.image_comp, Equiv.image_symm_eq_preimage, ← ofDual_preimage_latticeClosure]
-    using! image_latticeClosure s (ofDual.symm ∘ f) map_sup map_inf
+  unsealing_newtype OrderDual =>
+    simpa only [Set.image_comp, Equiv.image_symm_eq_preimage, ← ofDual_preimage_latticeClosure]
+      using! image_latticeClosure s (ofDual.symm ∘ f) map_sup map_inf
 
 end Lattice
 

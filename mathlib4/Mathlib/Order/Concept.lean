@@ -109,8 +109,9 @@ theorem lowerPolar_union (t₁ t₂ : Set β) :
 
 @[simp]
 theorem upperPolar_iUnion (f : ι → Set α) :
-    upperPolar r (⋃ i, f i) = ⋂ i, upperPolar r (f i) :=
-  (gc_upperPolar_lowerPolar r).l_iSup
+    upperPolar r (⋃ i, f i) = ⋂ i, upperPolar r (f i) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_upperPolar_lowerPolar r).l_iSup
 
 @[simp]
 theorem lowerPolar_iUnion (f : ι → Set β) :
@@ -118,16 +119,17 @@ theorem lowerPolar_iUnion (f : ι → Set β) :
   upperPolar_iUnion ..
 
 theorem upperPolar_iUnion₂ (f : ∀ i, κ i → Set α) :
-    upperPolar r (⋃ (i) (j), f i j) = ⋂ (i) (j), upperPolar r (f i j) :=
-  (gc_upperPolar_lowerPolar r).l_iSup₂
+    upperPolar r (⋃ (i) (j), f i j) = ⋂ (i) (j), upperPolar r (f i j) := by
+  simp
 
 theorem lowerPolar_iUnion₂ (f : ∀ i, κ i → Set β) :
     lowerPolar r (⋃ (i) (j), f i j) = ⋂ (i) (j), lowerPolar r (f i j) :=
   upperPolar_iUnion₂ ..
 
 theorem subset_lowerPolar_upperPolar (s : Set α) :
-    s ⊆ lowerPolar r (upperPolar r s) :=
-  (gc_upperPolar_lowerPolar r).le_u_l _
+    s ⊆ lowerPolar r (upperPolar r s) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_upperPolar_lowerPolar r).le_u_l _
 
 theorem subset_upperPolar_lowerPolar (t : Set β) :
     t ⊆ upperPolar r (lowerPolar r t) :=
@@ -135,8 +137,9 @@ theorem subset_upperPolar_lowerPolar (t : Set β) :
 
 @[simp]
 theorem upperPolar_lowerPolar_upperPolar (s : Set α) :
-    upperPolar r (lowerPolar r <| upperPolar r s) = upperPolar r s :=
-  (gc_upperPolar_lowerPolar r).l_u_l_eq_l _
+    upperPolar r (lowerPolar r <| upperPolar r s) = upperPolar r s := by
+  unsealing_newtype OrderDual =>
+    exact (gc_upperPolar_lowerPolar r).l_u_l_eq_l _
 
 @[simp]
 theorem lowerPolar_upperPolar_lowerPolar (t : Set β) :
@@ -149,11 +152,13 @@ theorem upperPolar_anti : Antitone (upperPolar r) :=
 theorem lowerPolar_anti : Antitone (lowerPolar r) :=
   upperPolar_anti _
 
-theorem lowerPolar_upperPolar_monotone : Monotone (lowerPolar r ∘ upperPolar r) :=
-  (gc_upperPolar_lowerPolar r).monotone_u_comp_l
+theorem lowerPolar_upperPolar_monotone : Monotone (lowerPolar r ∘ upperPolar r) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_upperPolar_lowerPolar r).monotone_u_comp_l
 
-theorem upperPolar_lowerPolar_monotone : Monotone (upperPolar r ∘ lowerPolar r) :=
-  (gc_lowerPolar_upperPolar r).monotone_u_comp_l
+theorem upperPolar_lowerPolar_monotone : Monotone (upperPolar r ∘ lowerPolar r) := by
+  unsealing_newtype OrderDual =>
+    exact (gc_lowerPolar_upperPolar r).monotone_u_comp_l
 
 /-- The `extentClosure` of a set is the smallest extent containing it. See
 `IsExtent.lowerPolar_upperPolar_subset` for this proof. -/
@@ -191,8 +196,9 @@ theorem isExtent_iff : IsExtent r s ↔ lowerPolar r (upperPolar r s) = s :=
 alias ⟨IsExtent.eq, _⟩ := isExtent_iff
 
 @[simp]
-protected theorem IsExtent.univ : IsExtent r univ :=
-  isExtent_iff.2 (gc_upperPolar_lowerPolar r).u_l_top
+protected theorem IsExtent.univ : IsExtent r univ := by
+  unsealing_newtype OrderDual =>
+    exact isExtent_iff.2 (gc_upperPolar_lowerPolar r).u_l_top
 
 protected theorem IsExtent.inter {s' : Set α} :
     IsExtent r s → IsExtent r s' → IsExtent r (s ∩ s') := by
@@ -599,7 +605,7 @@ theorem swap_lt_swap_iff : c.swap < d.swap ↔ d < c :=
 def swapEquiv : (Concept α β r)ᵒᵈ ≃o Concept β α (Function.swap r) where
   toFun := swap ∘ ofDual
   invFun := toDual ∘ swap
-  left_inv := swap_swap
+  left_inv x := congrArg OrderDual.toDual (swap_swap (OrderDual.ofDual x))
   right_inv := swap_swap
   map_rel_iff' := swap_le_swap_iff
 

@@ -28,35 +28,41 @@ variable {G₀ M₀ : Type*}
 
 namespace OrderDual
 
-instance [Zero M₀] [SMulZeroClass G₀ M₀] : SMulZeroClass G₀ᵒᵈ M₀ :=
-  inferInstanceAs <| SMulZeroClass G₀ M₀
+instance [Zero M₀] [SMulZeroClass G₀ M₀] : SMulZeroClass G₀ᵒᵈ M₀ where
+  smul_zero a := smul_zero a.ofDual'
 
-instance [Zero M₀] [SMulZeroClass G₀ M₀] : SMulZeroClass G₀ M₀ᵒᵈ :=
-  inferInstanceAs <| SMulZeroClass G₀ M₀
+instance [Zero M₀] [SMulZeroClass G₀ M₀] : SMulZeroClass G₀ M₀ᵒᵈ where
+  smul_zero a := congrArg OrderDual.mk (smul_zero a)
 
-instance [Zero G₀] [Zero M₀] [SMulWithZero G₀ M₀] : SMulWithZero G₀ᵒᵈ M₀ :=
-  inferInstanceAs <| SMulWithZero G₀ M₀
+instance [Zero G₀] [Zero M₀] [SMulWithZero G₀ M₀] : SMulWithZero G₀ᵒᵈ M₀ where
+  zero_smul m := zero_smul G₀ m
 
-instance [Zero G₀] [Zero M₀] [SMulWithZero G₀ M₀] : SMulWithZero G₀ M₀ᵒᵈ :=
-  inferInstanceAs <| SMulWithZero G₀ M₀
+instance [Zero G₀] [Zero M₀] [SMulWithZero G₀ M₀] : SMulWithZero G₀ M₀ᵒᵈ where
+  zero_smul m := congrArg OrderDual.mk (zero_smul G₀ m.ofDual')
 
-instance [AddZeroClass M₀] [DistribSMul G₀ M₀] : DistribSMul G₀ᵒᵈ M₀ :=
-  inferInstanceAs <| DistribSMul G₀ M₀
+instance [AddZeroClass M₀] [DistribSMul G₀ M₀] : DistribSMul G₀ᵒᵈ M₀ where
+  smul_add a := smul_add a.ofDual'
 
-instance [AddZeroClass M₀] [DistribSMul G₀ M₀] : DistribSMul G₀ M₀ᵒᵈ :=
-  inferInstanceAs <| DistribSMul G₀ M₀
+instance [AddZeroClass M₀] [DistribSMul G₀ M₀] : DistribSMul G₀ M₀ᵒᵈ where
+  smul_add a b c := congrArg OrderDual.mk (smul_add a b.ofDual' c.ofDual')
 
-instance [Monoid G₀] [AddMonoid M₀] [DistribMulAction G₀ M₀] : DistribMulAction G₀ᵒᵈ M₀ :=
-  inferInstanceAs <| DistribMulAction G₀ M₀
+instance [Monoid G₀] [AddMonoid M₀] [DistribMulAction G₀ M₀] : DistribMulAction G₀ᵒᵈ M₀ where
+  smul_zero a := smul_zero a.ofDual'
+  smul_add a := smul_add a.ofDual'
 
-instance [Monoid G₀] [AddMonoid M₀] [DistribMulAction G₀ M₀] : DistribMulAction G₀ M₀ᵒᵈ :=
-  inferInstanceAs <| DistribMulAction G₀ M₀
+instance [Monoid G₀] [AddMonoid M₀] [DistribMulAction G₀ M₀] : DistribMulAction G₀ M₀ᵒᵈ where
+  smul_zero a := congrArg OrderDual.mk (smul_zero a)
+  smul_add a b c := congrArg OrderDual.mk (smul_add a b.ofDual' c.ofDual')
 
 instance [MonoidWithZero G₀] [AddMonoid M₀] [MulActionWithZero G₀ M₀] :
-    MulActionWithZero G₀ᵒᵈ M₀ := inferInstanceAs <| MulActionWithZero G₀ M₀
+    MulActionWithZero G₀ᵒᵈ M₀ where
+  smul_zero a := smul_zero a.ofDual'
+  zero_smul m := zero_smul G₀ m
 
 instance [MonoidWithZero G₀] [AddMonoid M₀] [MulActionWithZero G₀ M₀] :
-    MulActionWithZero G₀ M₀ᵒᵈ := inferInstanceAs <| MulActionWithZero G₀ M₀
+    MulActionWithZero G₀ M₀ᵒᵈ where
+  smul_zero a := congrArg OrderDual.mk (smul_zero a)
+  zero_smul m := congrArg OrderDual.mk (zero_smul G₀ m.ofDual')
 
 end OrderDual
 

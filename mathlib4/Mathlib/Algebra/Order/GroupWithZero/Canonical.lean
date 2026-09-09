@@ -184,12 +184,11 @@ instance instLinearOrderedCommMonoidWithZeroMultiplicativeOrderDual
     [LinearOrderedAddCommMonoidWithTop α] :
     LinearOrderedCommMonoidWithZero (Multiplicative αᵒᵈ) where
   zero := .ofAdd <| .toDual ⊤
-  zero_mul := @top_add _ (_)
-  mul_zero := @add_top _ (_)
+  zero_mul a := congrArg OrderDual.mk (top_add (OrderDual.ofDual' a.toAdd))
+  mul_zero a := congrArg OrderDual.mk (add_top (OrderDual.ofDual' a.toAdd))
   isBot_zero _ := (le_top : _ ≤ ⊤)
-  mul_lt_mul_of_pos_left := by
-    simpa [← ofAdd_add, ← toDual_add]
-      using! fun a ha b c hbc ↦ add_right_strictMono_of_ne_top (by simpa using! ha.ne') hbc
+  mul_lt_mul_of_pos_left := @fun _ ha _ _ hbc ↦
+    add_right_strictMono_of_ne_top (fun h ↦ ha.ne' (congrArg OrderDual.mk h)) hbc
 
 @[simp]
 theorem ofDual_toAdd_zero [LinearOrderedAddCommMonoidWithTop α] :
@@ -197,8 +196,10 @@ theorem ofDual_toAdd_zero [LinearOrderedAddCommMonoidWithTop α] :
 
 instance [LinearOrderedAddCommGroupWithTop α] :
     LinearOrderedCommGroupWithZero (Multiplicative αᵒᵈ) where
-  inv_zero := LinearOrderedAddCommGroupWithTop.neg_top (α := α)
-  mul_inv_cancel := LinearOrderedAddCommGroupWithTop.add_neg_cancel_of_ne_top (α := α)
+  inv_zero := congrArg OrderDual.mk (LinearOrderedAddCommGroupWithTop.neg_top (α := α))
+  mul_inv_cancel _ ha := congrArg OrderDual.mk
+    (LinearOrderedAddCommGroupWithTop.add_neg_cancel_of_ne_top
+      (fun h ↦ ha (congrArg OrderDual.mk h)))
 
 namespace WithZero
 

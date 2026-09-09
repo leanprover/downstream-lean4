@@ -53,15 +53,16 @@ instance instCanLift :
   prf x hx := ⟨⟨x, hx⟩, rfl⟩
 
 /-- The injection that induces the order on intervals. -/
-def toDualProd : NonemptyInterval α → αᵒᵈ × α :=
-  toProd
+def toDualProd (s : NonemptyInterval α) : αᵒᵈ × α :=
+  (toDual s.fst, s.snd)
 
 @[simp]
 theorem toDualProd_apply (s : NonemptyInterval α) : s.toDualProd = (toDual s.fst, s.snd) :=
   rfl
 
-theorem toDualProd_injective : Injective (toDualProd : NonemptyInterval α → αᵒᵈ × α) :=
-  toProd_injective
+theorem toDualProd_injective : Injective (toDualProd : NonemptyInterval α → αᵒᵈ × α) := by
+  unsealing_newtype OrderDual =>
+    exact toProd_injective
 
 instance [IsEmpty α] : IsEmpty (NonemptyInterval α) :=
   ⟨fun s => isEmptyElim s.fst⟩
@@ -90,8 +91,10 @@ def toDualProdHom : NonemptyInterval α ↪o αᵒᵈ × α where
 
 /-- Turn an interval into an interval in the dual order. -/
 def dual : NonemptyInterval α ≃ NonemptyInterval αᵒᵈ where
-  toFun s := ⟨s.toProd.swap, s.fst_le_snd⟩
-  invFun s := ⟨s.toProd.swap, s.fst_le_snd⟩
+  toFun s := ⟨(toDual s.snd, toDual s.fst), s.fst_le_snd⟩
+  invFun s := ⟨(ofDual s.snd, ofDual s.fst), s.fst_le_snd⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
 
 @[simp]
 theorem fst_dual (s : NonemptyInterval α) : s.dual.fst = toDual s.snd :=

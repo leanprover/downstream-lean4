@@ -171,13 +171,23 @@ elab_rules : tactic
 
 end Mathlib.Tactic.Borelize
 
+/-- The topology of `αᵒᵈ` is coinduced by `toDual` and `MeasurableSet[αᵒᵈ] s` is by definition
+`MeasurableSet (⇑toDual ⁻¹' s)`, so both classes transfer by taking preimages along `toDual`. -/
 instance (priority := 100) OrderDual.opensMeasurableSpace {α : Type*} [TopologicalSpace α]
-    [MeasurableSpace α] [h : OpensMeasurableSpace α] : OpensMeasurableSpace αᵒᵈ where
-  borel_le := h.borel_le
+    [MeasurableSpace α] [OpensMeasurableSpace α] : OpensMeasurableSpace αᵒᵈ where
+  borel_le := generateFrom_le fun _s hs ↦
+    OpensMeasurableSpace.borel_le (α := α) _ <|
+      GenerateMeasurable.basic _ (IsOpen.preimage continuous_toDual hs)
 
 instance (priority := 100) OrderDual.borelSpace {α : Type*} [TopologicalSpace α]
     [MeasurableSpace α] [h : BorelSpace α] : BorelSpace αᵒᵈ where
-  measurable_eq := h.measurable_eq
+  measurable_eq := by
+    have : OpensMeasurableSpace α := ⟨ge_of_eq h.measurable_eq⟩
+    refine le_antisymm (fun s hs ↦ ?_) (OrderDual.opensMeasurableSpace (α := α)).borel_le
+    refine continuous_ofDual.borel_measurable
+      (show MeasurableSet[borel α] (⇑OrderDual.toDual ⁻¹' s) from ?_)
+    rw [← h.measurable_eq]
+    exact hs
 
 /-- In a `BorelSpace` all open sets are measurable. -/
 instance (priority := 100) BorelSpace.opensMeasurable {α : Type*} [TopologicalSpace α]

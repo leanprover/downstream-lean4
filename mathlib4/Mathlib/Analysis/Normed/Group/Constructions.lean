@@ -206,23 +206,24 @@ namespace OrderDual
 
 -- See note [lower instance priority]
 @[to_additive]
-instance (priority := 100) seminormedGroup [SeminormedGroup E] : SeminormedGroup Eᵒᵈ :=
-  inferInstanceAs <| SeminormedGroup E
+instance (priority := 100) seminormedGroup [SeminormedGroup E] : SeminormedGroup Eᵒᵈ where
+  dist_eq x y := SeminormedGroup.dist_eq (ofDual x) (ofDual y)
 
 -- See note [lower instance priority]
 @[to_additive]
-instance (priority := 100) seminormedCommGroup [SeminormedCommGroup E] : SeminormedCommGroup Eᵒᵈ :=
-  inferInstanceAs <| SeminormedCommGroup E
+instance (priority := 100) seminormedCommGroup [SeminormedCommGroup E] :
+    SeminormedCommGroup Eᵒᵈ where
+  dist_eq x y := SeminormedGroup.dist_eq (ofDual x) (ofDual y)
 
 -- See note [lower instance priority]
 @[to_additive]
-instance (priority := 100) normedGroup [NormedGroup E] : NormedGroup Eᵒᵈ :=
-  inferInstanceAs <| NormedGroup E
+instance (priority := 100) normedGroup [NormedGroup E] : NormedGroup Eᵒᵈ where
+  dist_eq x y := SeminormedGroup.dist_eq (ofDual x) (ofDual y)
 
 -- See note [lower instance priority]
 @[to_additive]
-instance (priority := 100) normedCommGroup [NormedCommGroup E] : NormedCommGroup Eᵒᵈ :=
-  inferInstanceAs <| NormedCommGroup E
+instance (priority := 100) normedCommGroup [NormedCommGroup E] : NormedCommGroup Eᵒᵈ where
+  dist_eq x y := SeminormedGroup.dist_eq (ofDual x) (ofDual y)
 
 end OrderDual
 end OrderDual

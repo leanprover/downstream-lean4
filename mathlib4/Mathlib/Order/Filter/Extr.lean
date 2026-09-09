@@ -148,8 +148,9 @@ theorem IsMinOn.isGLB (ha : a ∈ s) (hfsa : IsMinOn f s a) :
   exact ⟨fun hba x hx ↦ le_trans hba (hfsa hx), fun hb ↦ hb a ha⟩
 
 theorem IsMaxOn.isLUB (ha : a ∈ s) (hfsa : IsMaxOn f s a) :
-    IsLUB {f x | x ∈ s} (f a) :=
-  IsMinOn.isGLB (α := αᵒᵈ) (β := βᵒᵈ) ha hfsa
+    IsLUB {f x | x ∈ s} (f a) := by
+  unsealing_newtype OrderDual =>
+    exact IsMinOn.isGLB (α := αᵒᵈ) (β := βᵒᵈ) ha hfsa
 
 theorem IsMaxOn.bddAbove (h : IsMaxOn f s a) :
     BddAbove (f '' s) :=
@@ -708,8 +709,9 @@ theorem Filter.EventuallyEq.isMaxFilter_iff {α β : Type*} [Preorder β] {f g :
 
 theorem Filter.EventuallyLE.isMinFilter {α β : Type*} [Preorder β] {f g : α → β} {a : α}
     {l : Filter α} (hle : f ≤ᶠ[l] g) (hfga : f a = g a) (h : IsMinFilter f l a) :
-    IsMinFilter g l a :=
-  @Filter.EventuallyLE.isMaxFilter _ βᵒᵈ _ _ _ _ _ hle hfga h
+    IsMinFilter g l a := by
+  unsealing_newtype OrderDual =>
+    exact @Filter.EventuallyLE.isMaxFilter _ βᵒᵈ _ _ _ _ _ hle hfga h
 
 theorem IsMinFilter.congr {α β : Type*} [Preorder β] {f g : α → β} {a : α} {l : Filter α}
     (h : IsMinFilter f l a) (heq : f =ᶠ[l] g) (hfga : f a = g a) : IsMinFilter g l a :=
@@ -741,8 +743,9 @@ theorem IsMaxOn.iSup_eq (hx₀ : x₀ ∈ s) (h : IsMaxOn f s x₀) : ⨆ x : s,
   haveI : Nonempty s := ⟨⟨x₀, hx₀⟩⟩
   ciSup_eq_of_forall_le_of_forall_lt_exists_gt (fun x => h x.2) fun _w hw => ⟨⟨x₀, hx₀⟩, hw⟩
 
-theorem IsMinOn.iInf_eq (hx₀ : x₀ ∈ s) (h : IsMinOn f s x₀) : ⨅ x : s, f x = f x₀ :=
-  @IsMaxOn.iSup_eq αᵒᵈ β _ _ _ _ hx₀ h
+theorem IsMinOn.iInf_eq (hx₀ : x₀ ∈ s) (h : IsMinOn f s x₀) : ⨅ x : s, f x = f x₀ := by
+  unsealing_newtype OrderDual =>
+    exact @IsMaxOn.iSup_eq αᵒᵈ β _ _ _ _ hx₀ h
 
 end ConditionallyCompleteLinearOrder
 
@@ -769,10 +772,11 @@ section SemilatticeInf
 variable [SemilatticeInf β] [OrderTop β] {D : α → β} {s : Finset α}
 
 theorem inf_eq_of_isMinOn {a : α} (hmem : a ∈ s) (hmax : IsMinOn D s a) : s.inf D = D a :=
-  sup_eq_of_isMaxOn (α := αᵒᵈ) (β := βᵒᵈ) hmem hmax.dual
+  (Finset.inf_le hmem).antisymm (Finset.le_inf hmax)
 
 theorem inf_eq_of_min [Nonempty α] {b : β} (hb : b ∈ Set.range D) (hmem : D.invFun b ∈ s)
-    (hmin : ∀ a ∈ s, b ≤ D a) : s.inf D = b :=
-  sup_eq_of_max (α := αᵒᵈ) (β := βᵒᵈ) hb hmem hmin
+    (hmin : ∀ a ∈ s, b ≤ D a) : s.inf D = b := by
+  unsealing_newtype OrderDual =>
+    exact sup_eq_of_max (α := αᵒᵈ) (β := βᵒᵈ) hb hmem hmin
 
 end SemilatticeInf

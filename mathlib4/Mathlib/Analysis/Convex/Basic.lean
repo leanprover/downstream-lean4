@@ -250,8 +250,9 @@ theorem convex_Iic (r : β) : Convex 𝕜 (Iic r) := fun x hx y hy a b ha hb hab
       add_le_add (smul_le_smul_of_nonneg_left hx ha) (smul_le_smul_of_nonneg_left hy hb)
     _ = r := Convex.combo_self hab _
 
-theorem convex_Ici (r : β) : Convex 𝕜 (Ici r) :=
-  convex_Iic (β := βᵒᵈ) r
+theorem convex_Ici (r : β) : Convex 𝕜 (Ici r) := by
+  unsealing_newtype OrderDual =>
+    exact convex_Iic (β := βᵒᵈ) r
 
 theorem convex_Icc (r s : β) : Convex 𝕜 (Icc r s) :=
   Ici_inter_Iic.subst ((convex_Ici r).inter <| convex_Iic s)
@@ -282,8 +283,9 @@ theorem convex_Iio (r : β) : Convex 𝕜 (Iio r) := by
         (smul_lt_smul_of_pos_left hx ha') (smul_le_smul_of_nonneg_left hy.le hb)
     _ = r := Convex.combo_self hab _
 
-theorem convex_Ioi (r : β) : Convex 𝕜 (Ioi r) :=
-  convex_Iio (β := βᵒᵈ) r
+theorem convex_Ioi (r : β) : Convex 𝕜 (Ioi r) := by
+  unsealing_newtype OrderDual =>
+    exact convex_Iio (β := βᵒᵈ) r
 
 theorem convex_Ioo (r s : β) : Convex 𝕜 (Ioo r s) :=
   Ioi_inter_Iio.subst ((convex_Ioi r).inter <| convex_Iio s)
@@ -349,28 +351,34 @@ theorem MonotoneOn.convex_lt (hf : MonotoneOn f s) (hs : Convex 𝕜 s) (r : β)
       (max_rec' (f · < r) hx.2 hy.2)⟩
 
 theorem MonotoneOn.convex_ge (hf : MonotoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | r ≤ f x }) :=
-  MonotoneOn.convex_le (E := Eᵒᵈ) (β := βᵒᵈ) hf.dual (by exact hs) r
+    Convex 𝕜 ({ x ∈ s | r ≤ f x }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_le (E := Eᵒᵈ) (β := βᵒᵈ) hf.dual (by exact hs) r
 
 theorem MonotoneOn.convex_gt (hf : MonotoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | r < f x }) :=
-  MonotoneOn.convex_lt (E := Eᵒᵈ) (β := βᵒᵈ) hf.dual (by exact hs) r
+    Convex 𝕜 ({ x ∈ s | r < f x }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_lt (E := Eᵒᵈ) (β := βᵒᵈ) hf.dual (by exact hs) r
 
 theorem AntitoneOn.convex_le (hf : AntitoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | f x ≤ r }) :=
-  MonotoneOn.convex_ge (β := βᵒᵈ) hf hs r
+    Convex 𝕜 ({ x ∈ s | f x ≤ r }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_ge (β := βᵒᵈ) hf hs r
 
 theorem AntitoneOn.convex_lt (hf : AntitoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | f x < r }) :=
-  MonotoneOn.convex_gt (β := βᵒᵈ) hf hs r
+    Convex 𝕜 ({ x ∈ s | f x < r }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_gt (β := βᵒᵈ) hf hs r
 
 theorem AntitoneOn.convex_ge (hf : AntitoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | r ≤ f x }) :=
-  MonotoneOn.convex_le (β := βᵒᵈ) hf hs r
+    Convex 𝕜 ({ x ∈ s | r ≤ f x }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_le (β := βᵒᵈ) hf hs r
 
 theorem AntitoneOn.convex_gt (hf : AntitoneOn f s) (hs : Convex 𝕜 s) (r : β) :
-    Convex 𝕜 ({ x ∈ s | r < f x }) :=
-  MonotoneOn.convex_lt (β := βᵒᵈ) hf hs r
+    Convex 𝕜 ({ x ∈ s | r < f x }) := by
+  unsealing_newtype OrderDual =>
+    exact MonotoneOn.convex_lt (β := βᵒᵈ) hf hs r
 
 theorem Monotone.convex_le (hf : Monotone f) (r : β) : Convex 𝕜 { x | f x ≤ r } :=
   Set.sep_univ.subst ((hf.monotoneOn univ).convex_le convex_univ r)

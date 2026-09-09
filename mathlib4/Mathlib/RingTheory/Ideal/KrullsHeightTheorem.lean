@@ -61,46 +61,47 @@ lemma Ideal.height_le_one_of_isPrincipal_of_mem_minimalPrimes_of_isLocalRing
     [IsLocalRing R] (I : Ideal R) [I.IsPrincipal]
     (hp : (IsLocalRing.maximalIdeal R) ∈ I.minimalPrimes) :
     (IsLocalRing.maximalIdeal R).height ≤ 1 := by
-  refine Ideal.height_le_iff.mpr fun q h₁ h₂ ↦ ?_
-  suffices q.height = 0 by rw [this]; exact zero_lt_one
-  rw [← WithBot.coe_inj,
-    ← IsLocalization.AtPrime.ringKrullDim_eq_height q (Localization.AtPrime q),
-    WithBot.coe_zero, ← ringKrullDimZero_iff_ringKrullDim_eq_zero,
-    ← isArtinianRing_iff_krullDimLE_zero, isArtinianRing_iff_isNilpotent_maximalIdeal,
-    ← Localization.AtPrime.map_eq_maximalIdeal]
-  have : IsArtinianRing (R ⧸ I) :=
-    IsLocalRing.quotient_artinian_of_mem_minimalPrimes_of_isLocalRing I hp
-  let f := algebraMap R (Localization.AtPrime q)
-  let qs : ℕ →o (Ideal (R ⧸ I))ᵒᵈ :=
-    { toFun n := ((q.map f ^ n).comap f).map (Ideal.Quotient.mk I)
-      monotone' i j e := Ideal.map_mono (Ideal.comap_mono (Ideal.pow_le_pow_right e)) }
-  obtain ⟨n, hn⟩ := IsArtinian.monotone_stabilizes qs
-  refine ⟨n, ?_⟩
-  apply Submodule.eq_bot_of_le_smul_of_le_jacobson_bot (q.map f) _ (IsNoetherian.noetherian _)
-  rotate_left
-  · rw [IsLocalRing.jacobson_eq_maximalIdeal, Localization.AtPrime.map_eq_maximalIdeal]
-    exact bot_ne_top
-  rw [smul_eq_mul, ← pow_succ',
-    ← (IsLocalization.orderEmbedding q.primeCompl (Localization.AtPrime q)).map_rel_iff]
-  refine Submodule.le_of_le_smul_of_le_jacobson_bot (I := I) (IsNoetherian.noetherian _) ?_ ?_
-  · rw [IsLocalRing.jacobson_eq_maximalIdeal]
-    exacts [hp.le, bot_ne_top]
-  · replace hn := congr(Ideal.comap (Ideal.Quotient.mk I) $(hn _ n.le_succ))
-    simp only [qs, OrderHom.coe_mk, ← RingHom.ker_eq_comap_bot, Ideal.mk_ker,
-      Ideal.comap_map_of_surjective _ Ideal.Quotient.mk_surjective] at hn
-    intro x hx
-    obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.mp (hn.le (Ideal.mem_sup_left hx))
-    refine Submodule.add_mem_sup hy ?_
-    obtain ⟨z, rfl⟩ := (Submodule.IsPrincipal.mem_iff_eq_smul_generator I).mp hz
-    rw [smul_eq_mul, smul_eq_mul, mul_comm]
-    refine Ideal.mul_mem_mul ?_ (Submodule.IsPrincipal.generator_mem _)
-    dsimp [IsLocalization.orderEmbedding] at hx
-    rwa [Ideal.mem_comap, f.map_add, f.map_mul, Ideal.add_mem_iff_right _
-      (Ideal.pow_le_pow_right n.le_succ hy), mul_comm, Ideal.unit_mul_mem_iff_mem] at hx
-    refine IsLocalization.map_units (M := q.primeCompl) _ ⟨_, ?_⟩
-    change Submodule.IsPrincipal.generator I ∉ (↑q : Set R)
-    rw [← Set.singleton_subset_iff, ← Ideal.span_le, Ideal.span_singleton_generator]
-    exact fun e ↦ h₂.not_ge (hp.2 ⟨h₁, e⟩ h₂.le)
+  unsealing_newtype OrderDual =>
+    refine Ideal.height_le_iff.mpr fun q h₁ h₂ ↦ ?_
+    suffices q.height = 0 by rw [this]; exact zero_lt_one
+    rw [← WithBot.coe_inj,
+      ← IsLocalization.AtPrime.ringKrullDim_eq_height q (Localization.AtPrime q),
+      WithBot.coe_zero, ← ringKrullDimZero_iff_ringKrullDim_eq_zero,
+      ← isArtinianRing_iff_krullDimLE_zero, isArtinianRing_iff_isNilpotent_maximalIdeal,
+      ← Localization.AtPrime.map_eq_maximalIdeal]
+    have : IsArtinianRing (R ⧸ I) :=
+      IsLocalRing.quotient_artinian_of_mem_minimalPrimes_of_isLocalRing I hp
+    let f := algebraMap R (Localization.AtPrime q)
+    let qs : ℕ →o (Ideal (R ⧸ I))ᵒᵈ :=
+      { toFun n := ((q.map f ^ n).comap f).map (Ideal.Quotient.mk I)
+        monotone' i j e := Ideal.map_mono (Ideal.comap_mono (Ideal.pow_le_pow_right e)) }
+    obtain ⟨n, hn⟩ := IsArtinian.monotone_stabilizes qs
+    refine ⟨n, ?_⟩
+    apply Submodule.eq_bot_of_le_smul_of_le_jacobson_bot (q.map f) _ (IsNoetherian.noetherian _)
+    rotate_left
+    · rw [IsLocalRing.jacobson_eq_maximalIdeal, Localization.AtPrime.map_eq_maximalIdeal]
+      exact bot_ne_top
+    rw [smul_eq_mul, ← pow_succ',
+      ← (IsLocalization.orderEmbedding q.primeCompl (Localization.AtPrime q)).map_rel_iff]
+    refine Submodule.le_of_le_smul_of_le_jacobson_bot (I := I) (IsNoetherian.noetherian _) ?_ ?_
+    · rw [IsLocalRing.jacobson_eq_maximalIdeal]
+      exacts [hp.le, bot_ne_top]
+    · replace hn := congr(Ideal.comap (Ideal.Quotient.mk I) $(hn _ n.le_succ))
+      simp only [qs, OrderHom.coe_mk, ← RingHom.ker_eq_comap_bot, Ideal.mk_ker,
+        Ideal.comap_map_of_surjective _ Ideal.Quotient.mk_surjective] at hn
+      intro x hx
+      obtain ⟨y, hy, z, hz, rfl⟩ := Submodule.mem_sup.mp (hn.le (Ideal.mem_sup_left hx))
+      refine Submodule.add_mem_sup hy ?_
+      obtain ⟨z, rfl⟩ := (Submodule.IsPrincipal.mem_iff_eq_smul_generator I).mp hz
+      rw [smul_eq_mul, smul_eq_mul, mul_comm]
+      refine Ideal.mul_mem_mul ?_ (Submodule.IsPrincipal.generator_mem _)
+      dsimp [IsLocalization.orderEmbedding] at hx
+      rwa [Ideal.mem_comap, f.map_add, f.map_mul, Ideal.add_mem_iff_right _
+        (Ideal.pow_le_pow_right n.le_succ hy), mul_comm, Ideal.unit_mul_mem_iff_mem] at hx
+      refine IsLocalization.map_units (M := q.primeCompl) _ ⟨_, ?_⟩
+      change Submodule.IsPrincipal.generator I ∉ (↑q : Set R)
+      rw [← Set.singleton_subset_iff, ← Ideal.span_le, Ideal.span_singleton_generator]
+      exact fun e ↦ h₂.not_ge (hp.2 ⟨h₁, e⟩ h₂.le)
 
 /-- **Krull's principal ideal theorem** (also known as **Krullscher Hauptidealsatz**) :
   In a commutative Noetherian ring `R`, any prime ideal that is minimal over a principal ideal

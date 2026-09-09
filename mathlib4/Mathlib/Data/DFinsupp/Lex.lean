@@ -95,10 +95,10 @@ instance Lex.isStrictOrder [∀ i, PartialOrder (α i)] :
   irrefl _ := lt_irrefl (α := Lex (∀ i, α i)) _
   trans _ _ _ := lt_trans (α := Lex (∀ i, α i))
 
-set_option backward.isDefEq.respectTransparency false in
 instance Colex.isStrictOrder [∀ i, PartialOrder (α i)] :
-    IsStrictOrder (Colex (Π₀ i, α i)) (· < ·) :=
-  Lex.isStrictOrder (ι := ιᵒᵈ)
+    IsStrictOrder (Colex (Π₀ i, α i)) (· < ·) where
+  irrefl _ := lt_irrefl (α := Colex (∀ i, α i)) _
+  trans _ _ _ := lt_trans (α := Colex (∀ i, α i))
 
 /-- The partial order on `DFinsupp`s obtained by the lexicographic ordering.
 See `DFinsupp.Lex.linearOrder` for a proof that this partial order is in fact linear. -/
@@ -124,7 +124,7 @@ theorem Lex.le_iff_of_unique [Unique ι] [∀ i, PartialOrder (α i)] {x y : Lex
 set_option backward.isDefEq.respectTransparency false in
 theorem Colex.le_iff_of_unique [Unique ι] [∀ i, PartialOrder (α i)] {x y : Colex (Π₀ i, α i)} :
     x ≤ y ↔ x default ≤ y default :=
-  Lex.le_iff_of_unique (ι := ιᵒᵈ)
+  Pi.colex_le_iff_of_unique
 
 section LinearOrder
 
@@ -148,9 +148,25 @@ private def lt_trichotomy_rec {P : Lex (Π₀ i, α i) → Lex (Π₀ i, α i) �
 instance Lex.total_le : @Std.Total (Lex (Π₀ i, α i)) (· ≤ ·) where
   total := lt_trichotomy_rec (fun h ↦ Or.inl h.le) (fun h ↦ Or.inl h.le) fun h ↦ Or.inr h.le
 
-set_option backward.isDefEq.respectTransparency false in
-instance Colex.total_le : @Std.Total (Colex (Π₀ i, α i)) (· ≤ ·) :=
-  Lex.total_le (ι := ιᵒᵈ)
+set_option backward.privateInPublic true in
+/-- Computable trichotomy for the colexicographic order, using the largest index
+at which the functions differ. -/
+private def colex_lt_trichotomy_rec {P : Colex (Π₀ i, α i) → Colex (Π₀ i, α i) → Sort*}
+    (h_lt : ∀ {f g}, toColex f < toColex g → P (toColex f) (toColex g))
+    (h_eq : ∀ {f g}, toColex f = toColex g → P (toColex f) (toColex g))
+    (h_gt : ∀ {f g}, toColex g < toColex f → P (toColex f) (toColex g)) : ∀ f g, P f g :=
+  Colex.rec fun f ↦ Colex.rec fun g ↦
+    match (motive := ∀ y, (f.neLocus g).max = y → _) _, rfl with
+    | ⊥, h => h_eq (neLocus_eq_empty.mp <| Finset.max_eq_bot.mp h)
+    | (wit : ι), h => by
+      apply (mem_neLocus.mp <| Finset.mem_of_max h).lt_or_gt.by_cases <;> intro hwit
+      · exact h_lt ⟨wit, fun j hj ↦ notMem_neLocus.mp (Finset.notMem_of_max_lt hj h), hwit⟩
+      · exact h_gt ⟨wit, fun j hj ↦
+          notMem_neLocus.mp (Finset.notMem_of_max_lt hj <| by rwa [neLocus_comm]), hwit⟩
+
+set_option backward.isDefEq.respectTransparency.types false in
+instance Colex.total_le : @Std.Total (Colex (Π₀ i, α i)) (· ≤ ·) := by
+  unsealing_newtype OrderDual => exact Lex.total_le (ι := ιᵒᵈ)
 
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
@@ -160,10 +176,13 @@ instance Lex.decidableLE : DecidableLE (Lex (Π₀ i, α i)) :=
     (fun h ↦ isTrue <| Or.inl <| congr_arg _ h)
     fun h ↦ isFalse fun h' ↦ lt_irrefl _ (h.trans_le h')
 
-set_option backward.isDefEq.respectTransparency false in
+set_option backward.privateInPublic true in
+set_option backward.privateInPublic.warn false in
 /-- The less-or-equal relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLE : DecidableLE (Colex (Π₀ i, α i)) :=
-  Lex.decidableLE (ι := ιᵒᵈ)
+  colex_lt_trichotomy_rec (fun h ↦ isTrue <| Or.inr h)
+    (fun h ↦ isTrue <| Or.inl <| congr_arg _ h)
+    fun h ↦ isFalse fun h' ↦ lt_irrefl _ (h.trans_le h')
 
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
@@ -171,10 +190,11 @@ set_option backward.privateInPublic.warn false in
 instance Lex.decidableLT : DecidableLT (Lex (Π₀ i, α i)) :=
   lt_trichotomy_rec (fun h ↦ isTrue h) (fun h ↦ isFalse h.not_lt) fun h ↦ isFalse h.asymm
 
-set_option backward.isDefEq.respectTransparency false in
+set_option backward.privateInPublic true in
+set_option backward.privateInPublic.warn false in
 /-- The less-than relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLT : DecidableLT (Colex (Π₀ i, α i)) :=
-  Lex.decidableLT (ι := ιᵒᵈ)
+  colex_lt_trichotomy_rec (fun h ↦ isTrue h) (fun h ↦ isFalse h.not_lt) fun h ↦ isFalse h.asymm
 
 /-- The linear order on `DFinsupp`s obtained by the lexicographic ordering. -/
 instance Lex.linearOrder : LinearOrder (Lex (Π₀ i, α i)) where
@@ -200,9 +220,9 @@ theorem toLex_monotone : Monotone (@toLex (Π₀ i, α i)) := by
     fun j hj ↦ notMem_neLocus.1 fun h ↦ (Finset.min'_le _ _ h).not_gt hj,
     (h _).lt_of_ne (mem_neLocus.1 <| Finset.min'_mem _ _)⟩
 
-set_option backward.isDefEq.respectTransparency false in
-theorem toColex_monotone : Monotone (@toColex (Π₀ i, α i)) :=
-  toLex_monotone (ι := ιᵒᵈ)
+theorem toColex_monotone : Monotone (@toColex (Π₀ i, α i)) := by
+  unsealing_newtype OrderDual =>
+    exact toLex_monotone (ι := ιᵒᵈ) (α := fun i ↦ α (OrderDual.ofDual i))
 
 end Zero
 
@@ -223,16 +243,17 @@ set_option backward.defeqAttrib.useBackward true in
 instance Lex.addLeftStrictMono : AddLeftStrictMono (Lex (Π₀ i, α i)) :=
   ⟨fun _ _ _ ⟨a, lta, ha⟩ ↦ ⟨a, fun j ja ↦ congr_arg _ (lta j ja), by dsimp; gcongr⟩⟩
 
-set_option backward.isDefEq.respectTransparency false in
-instance Colex.addLeftStrictMono : AddLeftStrictMono (Colex (Π₀ i, α i)) :=
-  Lex.addLeftStrictMono (ι := ιᵒᵈ)
+set_option backward.defeqAttrib.useBackward true in
+set_option backward.isDefEq.respectTransparency.types false in
+instance Colex.addLeftStrictMono : AddLeftStrictMono (Colex (Π₀ i, α i)) := by
+  unsealing_newtype OrderDual => exact Lex.addLeftStrictMono (ι := ιᵒᵈ)
 
 instance Lex.addLeftMono : AddLeftMono (Lex (Π₀ i, α i)) :=
   addLeftMono_of_addLeftStrictMono _
 
-set_option backward.isDefEq.respectTransparency false in
-instance Colex.addLeftMono : AddLeftMono (Colex (Π₀ i, α i)) :=
-  Lex.addLeftMono (ι := ιᵒᵈ)
+set_option backward.isDefEq.respectTransparency.types false in
+instance Colex.addLeftMono : AddLeftMono (Colex (Π₀ i, α i)) := by
+  unsealing_newtype OrderDual => exact Lex.addLeftMono (ι := ιᵒᵈ)
 
 end Left
 
@@ -245,16 +266,16 @@ instance Lex.addRightStrictMono : AddRightStrictMono (Lex (Π₀ i, α i)) :=
   ⟨fun f _ _ ⟨a, lta, ha⟩ ↦
     ⟨a, fun j ja ↦ congr_arg (· + ofLex f j) (lta j ja), by dsimp; gcongr⟩⟩
 
-set_option backward.isDefEq.respectTransparency false in
+set_option backward.defeqAttrib.useBackward true in
 instance Colex.addRightStrictMono : AddRightStrictMono (Colex (Π₀ i, α i)) :=
-  Lex.addRightStrictMono (ι := ιᵒᵈ)
+  ⟨fun f _ _ ⟨a, lta, ha⟩ ↦
+    ⟨a, fun j ja ↦ congr_arg (· + ofColex f j) (lta j ja), by dsimp; gcongr⟩⟩
 
 instance Lex.addRightMono : AddRightMono (Lex (Π₀ i, α i)) :=
   addRightMono_of_addRightStrictMono _
 
-set_option backward.isDefEq.respectTransparency false in
 instance Colex.addRightMono : AddRightMono (Colex (Π₀ i, α i)) :=
-  Lex.addRightMono (ι := ιᵒᵈ)
+  addRightMono_of_addRightStrictMono _
 
 end Right
 
@@ -292,22 +313,21 @@ instance Lex.isOrderedCancelAddMonoid [∀ i, AddCommMonoid (α i)] [∀ i, Part
   add_le_add_left _ _ h _ := add_le_add_left (α := Lex (∀ i, α i)) h _
   le_of_add_le_add_left _ _ _ := le_of_add_le_add_left (α := Lex (∀ i, α i))
 
-set_option backward.isDefEq.respectTransparency false in
 instance Colex.isOrderedCancelAddMonoid [∀ i, AddCommMonoid (α i)] [∀ i, PartialOrder (α i)]
     [∀ i, IsOrderedCancelAddMonoid (α i)] :
-    IsOrderedCancelAddMonoid (Colex (Π₀ i, α i)) :=
-  Lex.isOrderedCancelAddMonoid (ι := ιᵒᵈ)
+    IsOrderedCancelAddMonoid (Colex (Π₀ i, α i)) where
+  add_le_add_left _ _ h _ := add_le_add_left (α := Colex (∀ i, α i)) h _
+  le_of_add_le_add_left _ _ _ := le_of_add_le_add_left (α := Colex (∀ i, α i))
 
 instance Lex.isOrderedAddMonoid [∀ i, AddCommGroup (α i)] [∀ i, PartialOrder (α i)]
     [∀ i, IsOrderedAddMonoid (α i)] :
     IsOrderedAddMonoid (Lex (Π₀ i, α i)) where
   add_le_add_left _ _ := add_le_add_left
 
-set_option backward.isDefEq.respectTransparency false in
 instance Colex.isOrderedAddMonoid [∀ i, AddCommGroup (α i)] [∀ i, PartialOrder (α i)]
     [∀ i, IsOrderedAddMonoid (α i)] :
-    IsOrderedAddMonoid (Colex (Π₀ i, α i)) :=
-  Lex.isOrderedAddMonoid (ι := ιᵒᵈ)
+    IsOrderedAddMonoid (Colex (Π₀ i, α i)) where
+  add_le_add_left _ _ := add_le_add_left
 
 end OrderedAddMonoid
 

@@ -73,11 +73,47 @@ protected theorem IsOpen.upperClosure : IsOpen s → IsOpen (upperClosure s : Se
 protected theorem IsOpen.lowerClosure : IsOpen s → IsOpen (lowerClosure s : Set α) :=
   HasUpperLowerClosure.isOpen_lowerClosure _
 
+private lemma preimage_ofDual_closure {α : Type*} [TopologicalSpace α] (t : Set α) :
+    ⇑OrderDual.ofDual ⁻¹' closure t = closure (⇑OrderDual.ofDual ⁻¹' t) := by
+  refine Subset.antisymm (fun z hz ↦ ?_) (closure_minimal (preimage_mono subset_closure)
+    (isClosed_closure.preimage continuous_ofDual))
+  have h : closure t ⊆ ⇑OrderDual.toDual ⁻¹' closure (⇑OrderDual.ofDual ⁻¹' t) :=
+    closure_minimal (fun y hy ↦ subset_closure hy) (isClosed_closure.preimage continuous_toDual)
+  exact h hz
+
+private lemma coe_upperClosure_dual {α : Type*} [Preorder α] (s : Set αᵒᵈ) :
+    (upperClosure s : Set αᵒᵈ) =
+      ⇑OrderDual.ofDual ⁻¹' (lowerClosure (⇑OrderDual.toDual ⁻¹' s) : Set α) := by
+  ext z
+  simp only [Set.mem_preimage, SetLike.mem_coe, mem_upperClosure, mem_lowerClosure]
+  exact ⟨fun ⟨a, ha, h⟩ ↦ ⟨OrderDual.ofDual a, ha, h⟩,
+    fun ⟨a, ha, h⟩ ↦ ⟨OrderDual.toDual a, ha, h⟩⟩
+
+private lemma coe_lowerClosure_dual {α : Type*} [Preorder α] (s : Set αᵒᵈ) :
+    (lowerClosure s : Set αᵒᵈ) =
+      ⇑OrderDual.ofDual ⁻¹' (upperClosure (⇑OrderDual.toDual ⁻¹' s) : Set α) := by
+  ext z
+  simp only [Set.mem_preimage, SetLike.mem_coe, mem_lowerClosure, mem_upperClosure]
+  exact ⟨fun ⟨a, ha, h⟩ ↦ ⟨OrderDual.ofDual a, ha, h⟩,
+    fun ⟨a, ha, h⟩ ↦ ⟨OrderDual.toDual a, ha, h⟩⟩
+
 instance : HasUpperLowerClosure αᵒᵈ where
-  isUpperSet_closure := @IsLowerSet.closure α _ _ _
-  isLowerSet_closure := @IsUpperSet.closure α _ _ _
-  isOpen_upperClosure := @IsOpen.lowerClosure α _ _ _
-  isOpen_lowerClosure := @IsOpen.upperClosure α _ _ _
+  isUpperSet_closure s hs := by
+    have h2 : IsUpperSet (⇑OrderDual.ofDual ⁻¹' closure (⇑OrderDual.toDual ⁻¹' s)) :=
+      isUpperSet_preimage_ofDual_iff.2
+        ((isUpperSet_preimage_ofDual_iff (s := ⇑OrderDual.toDual ⁻¹' s)).1 hs).closure
+    rwa [preimage_ofDual_closure] at h2
+  isLowerSet_closure s hs := by
+    have h2 : IsLowerSet (⇑OrderDual.ofDual ⁻¹' closure (⇑OrderDual.toDual ⁻¹' s)) :=
+      isLowerSet_preimage_ofDual_iff.2
+        ((isLowerSet_preimage_ofDual_iff (s := ⇑OrderDual.toDual ⁻¹' s)).1 hs).closure
+    rwa [preimage_ofDual_closure] at h2
+  isOpen_upperClosure s hs := by
+    rw [coe_upperClosure_dual]
+    exact (IsOpen.lowerClosure (OrderDual.isOpen_preimage_toDual.2 hs)).preimage continuous_ofDual
+  isOpen_lowerClosure s hs := by
+    rw [coe_lowerClosure_dual]
+    exact (IsOpen.upperClosure (OrderDual.isOpen_preimage_toDual.2 hs)).preimage continuous_ofDual
 
 /-
 Note: `s.OrdConnected` does not imply `(closure s).OrdConnected`, as we can see by taking
@@ -97,8 +133,9 @@ protected theorem IsUpperSet.interior (h : IsUpperSet s) : IsUpperSet (interior 
   rw [← isLowerSet_compl, ← closure_compl]
   exact h.compl.closure
 
-protected theorem IsLowerSet.interior (h : IsLowerSet s) : IsLowerSet (interior s) :=
-  h.toDual.interior
+protected theorem IsLowerSet.interior (h : IsLowerSet s) : IsLowerSet (interior s) := by
+  unsealing_newtype OrderDual =>
+    exact h.toDual.interior
 
 protected theorem Set.OrdConnected.interior (h : s.OrdConnected) : (interior s).OrdConnected := by
   rw [← h.upperClosure_inter_lowerClosure, interior_inter]

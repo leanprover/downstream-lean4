@@ -153,20 +153,24 @@ section SemilatticeSup
 variable [SemilatticeSup α]
 
 @[to_dual (attr := simp)]
-theorem infIrred_toDual {a : α} : InfIrred (toDual a) ↔ SupIrred a :=
-  Iff.rfl
+theorem infIrred_toDual {a : α} : InfIrred (toDual a) ↔ SupIrred a := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual (attr := simp)]
-theorem infPrime_toDual {a : α} : InfPrime (toDual a) ↔ SupPrime a :=
-  Iff.rfl
+theorem infPrime_toDual {a : α} : InfPrime (toDual a) ↔ SupPrime a := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual (attr := simp)]
-theorem supIrred_ofDual {a : αᵒᵈ} : SupIrred (ofDual a) ↔ InfIrred a :=
-  Iff.rfl
+theorem supIrred_ofDual {a : αᵒᵈ} : SupIrred (ofDual a) ↔ InfIrred a := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual (attr := simp)]
-theorem supPrime_ofDual {a : αᵒᵈ} : SupPrime (ofDual a) ↔ InfPrime a :=
-  Iff.rfl
+theorem supPrime_ofDual {a : αᵒᵈ} : SupPrime (ofDual a) ↔ InfPrime a := by
+  unsealing_newtype OrderDual =>
+    exact Iff.rfl
 
 @[to_dual] alias ⟨_, SupIrred.dual⟩ := infIrred_toDual
 

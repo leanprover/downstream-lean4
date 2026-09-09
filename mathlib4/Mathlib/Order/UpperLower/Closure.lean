@@ -128,15 +128,19 @@ theorem upperClosure_singleton (a : α) : upperClosure ({a} : Set α) = UpperSet
 theorem upperClosure_univ : upperClosure (univ : Set α) = ⊥ :=
   bot_unique subset_upperClosure
 
-theorem upperClosure_union (s t : Set α) : upperClosure (s ∪ t) = upperClosure s ⊓ upperClosure t :=
-  (@gc_upperClosure_coe α _).l_sup
+theorem upperClosure_union (s t : Set α) :
+    upperClosure (s ∪ t) = upperClosure s ⊓ upperClosure t := by
+  unsealing_newtype OrderDual =>
+    exact (@gc_upperClosure_coe α _).l_sup
 
 @[to_dual existing (attr := simp)]
 theorem lowerClosure_union (s t : Set α) : lowerClosure (s ∪ t) = lowerClosure s ⊔ lowerClosure t :=
   (@gc_lowerClosure_coe α _).l_sup
 
-theorem upperClosure_iUnion (f : ι → Set α) : upperClosure (⋃ i, f i) = ⨅ i, upperClosure (f i) :=
-  (@gc_upperClosure_coe α _).l_iSup
+theorem upperClosure_iUnion (f : ι → Set α) :
+    upperClosure (⋃ i, f i) = ⨅ i, upperClosure (f i) := by
+  unsealing_newtype OrderDual =>
+    exact (@gc_upperClosure_coe α _).l_iSup
 
 @[to_dual existing (attr := simp)]
 theorem lowerClosure_iUnion (f : ι → Set α) : lowerClosure (⋃ i, f i) = ⨆ i, lowerClosure (f i) :=
@@ -200,8 +204,9 @@ lemma IsAntichain.minimal_mem_upperClosure_iff_mem (hs : IsAntichain (· ≤ ·)
   rwa [← hs.eq has h (hab.trans hbx)]
 
 lemma IsAntichain.maximal_mem_lowerClosure_iff_mem (hs : IsAntichain (· ≤ ·) s) :
-    Maximal (· ∈ lowerClosure s) x ↔ x ∈ s :=
-  hs.to_dual.minimal_mem_upperClosure_iff_mem
+    Maximal (· ∈ lowerClosure s) x ↔ x ∈ s := by
+  unsealing_newtype OrderDual =>
+    exact hs.to_dual.minimal_mem_upperClosure_iff_mem
 
 end PartialOrder
 

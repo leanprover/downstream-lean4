@@ -76,8 +76,9 @@ theorem piecewise_le {δ : α → Type*} [∀ i, Preorder (δ i)] {s : Set α} [
 
 theorem le_piecewise {δ : α → Type*} [∀ i, Preorder (δ i)] {s : Set α} [∀ j, Decidable (j ∈ s)]
     {f₁ f₂ g : ∀ i, δ i} (h₁ : ∀ i ∈ s, g i ≤ f₁ i) (h₂ : ∀ i ∉ s, g i ≤ f₂ i) :
-    g ≤ s.piecewise f₁ f₂ :=
-  @piecewise_le α (fun i => (δ i)ᵒᵈ) _ s _ _ _ _ h₁ h₂
+    g ≤ s.piecewise f₁ f₂ := by
+  unsealing_newtype OrderDual =>
+    exact @piecewise_le α (fun i => (δ i)ᵒᵈ) _ s _ _ _ _ h₁ h₂
 
 @[gcongr]
 theorem piecewise_mono {δ : α → Type*} [∀ i, Preorder (δ i)] {s : Set α}

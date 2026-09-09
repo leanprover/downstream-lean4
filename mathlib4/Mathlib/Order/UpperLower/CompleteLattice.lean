@@ -93,12 +93,15 @@ instance : PartialOrder (UpperSet α) :=
 
 instance completeLattice : CompleteLattice (UpperSet α) :=
   (toDual.injective.comp SetLike.coe_injective).completeLattice _
-    .rfl .rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl) (fun _ ↦ rfl) (fun _ ↦ rfl) rfl rfl
+    .rfl .rfl (fun _ _ ↦ rfl) (fun _ _ ↦ rfl)
+    (fun _ ↦ by simp [← OrderDual.ofDual_inj, ofDual_iSup]; rfl)
+    (fun _ ↦ by simp [← OrderDual.ofDual_inj, ofDual_iInf]; rfl) rfl rfl
 
 instance completelyDistribLattice : CompletelyDistribLattice (UpperSet α) :=
   .ofMinimalAxioms <|
     (toDual.injective.comp SetLike.coe_injective).completelyDistribLatticeMinimalAxioms .of _
-      (fun _ ↦ rfl) (fun _ ↦ rfl)
+      (fun _ ↦ by simp [← OrderDual.ofDual_inj, ofDual_iSup]; rfl)
+      (fun _ ↦ by simp [← OrderDual.ofDual_inj, ofDual_iInf]; rfl)
 
 @[to_dual existing]
 instance _root_.LowerSet.instPartialOrder : PartialOrder (LowerSet α) :=

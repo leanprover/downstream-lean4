@@ -464,7 +464,7 @@ def dualAnnihilatorGci (K V : Type*) [Field K] [AddCommGroup V] [Module K V] :
     GaloisCoinsertion
       (OrderDual.toDual ∘ (dualAnnihilator : Subspace K V → Subspace K (Module.Dual K V)))
       (dualCoannihilator ∘ OrderDual.ofDual) where
-  choice W _ := dualCoannihilator W
+  choice W _ := dualCoannihilator (OrderDual.ofDual W)
   gc := dualAnnihilator_gc K V
   u_l_le _ := dualAnnihilator_dualCoannihilator_eq.le
   choice_eq _ _ := rfl
@@ -474,8 +474,9 @@ theorem dualAnnihilator_le_dualAnnihilator_iff {W W' : Subspace K V} :
   (dualAnnihilatorGci K V).l_le_l_iff
 
 theorem dualAnnihilator_inj {W W' : Subspace K V} :
-    W.dualAnnihilator = W'.dualAnnihilator ↔ W = W' :=
-  ⟨fun h ↦ (dualAnnihilatorGci K V).l_injective h, congr_arg _⟩
+    W.dualAnnihilator = W'.dualAnnihilator ↔ W = W' := by
+  unsealing_newtype OrderDual =>
+    exact ⟨fun h ↦ (dualAnnihilatorGci K V).l_injective h, congr_arg _⟩
 
 /-- Given a subspace `W` of `V` and an element of its dual `φ`, `dualLift W φ` is
 an arbitrary extension of `φ` to an element of the dual of `V`.
@@ -1040,7 +1041,8 @@ def orderIsoFiniteCodimDim :
   invFun W := ⟨(ofDual W).1.dualCoannihilator,
     finiteDimensional_quot_dualCoannihilator_iff.mpr (ofDual W).2⟩
   left_inv _ := Subtype.ext dualAnnihilator_dualCoannihilator_eq
-  right_inv W := have := (ofDual W).2; Subtype.ext dualCoannihilator_dualAnnihilator_eq
+  right_inv W := have := (ofDual W).2
+    congrArg toDual (Subtype.ext dualCoannihilator_dualAnnihilator_eq)
   map_rel_iff' := dualAnnihilator_le_dualAnnihilator_iff
 
 open OrderDual in
@@ -1052,7 +1054,7 @@ def orderIsoFiniteDimensional [FiniteDimensional K V] :
   toFun W := toDual W.dualAnnihilator
   invFun W := (ofDual W).dualCoannihilator
   left_inv _ := dualAnnihilator_dualCoannihilator_eq
-  right_inv _ := dualCoannihilator_dualAnnihilator_eq
+  right_inv _ := congrArg toDual dualCoannihilator_dualAnnihilator_eq
   map_rel_iff' := dualAnnihilator_le_dualAnnihilator_iff
 
 open Submodule in

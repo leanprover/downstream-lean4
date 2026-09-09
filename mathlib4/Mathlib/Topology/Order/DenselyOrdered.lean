@@ -41,8 +41,9 @@ theorem closure_Ioi (a : α) [NoMaxOrder α] : closure (Ioi a) = Ici a :=
 
 /-- The closure of the interval `(-∞, a)` is the closed interval `(-∞, a]`, unless `a` is a bottom
 element. -/
-theorem closure_Iio' (h : (Iio a).Nonempty) : closure (Iio a) = Iic a :=
-  closure_Ioi' (α := αᵒᵈ) h
+theorem closure_Iio' (h : (Iio a).Nonempty) : closure (Iio a) = Iic a := by
+  unsealing_newtype OrderDual =>
+    exact closure_Ioi' (α := αᵒᵈ) h
 
 /-- The closure of the interval `(-∞, a)` is the interval `(-∞, a]`. -/
 @[simp]
@@ -56,8 +57,9 @@ theorem IsMax.of_disjoint_nhds_Ioi {x : α} {u : Set α} (hu : u ∈ nhds x)
     (disjoint_iff.mp hd)
 
 theorem IsMin.of_disjoint_nhds_Iio {x : α} {u : Set α} (hu : u ∈ nhds x)
-    (hd : Disjoint u (Set.Iio x)) : IsMin x :=
-  IsMax.of_disjoint_nhds_Ioi (α := αᵒᵈ) hu hd
+    (hd : Disjoint u (Set.Iio x)) : IsMin x := by
+  unsealing_newtype OrderDual =>
+    exact IsMax.of_disjoint_nhds_Ioi (α := αᵒᵈ) hu hd
 
 theorem nonempty_nhds_inter_Ioi {x : α} {u : Set α} (hu : u ∈ nhds x) (hx : ¬IsMax x) :
     (u ∩ Set.Ioi x).Nonempty := by
@@ -66,8 +68,9 @@ theorem nonempty_nhds_inter_Ioi {x : α} {u : Set α} (hu : u ∈ nhds x) (hx : 
     (Set.not_nonempty_iff_eq_empty.mp h)))
 
 theorem nonempty_nhds_inter_Iio {x : α} {u : Set α} (hu : u ∈ nhds x) (hx : ¬IsMin x) :
-    (u ∩ Set.Iio x).Nonempty :=
-  nonempty_nhds_inter_Ioi (α := αᵒᵈ) hu hx
+    (u ∩ Set.Iio x).Nonempty := by
+  unsealing_newtype OrderDual =>
+    exact nonempty_nhds_inter_Ioi (α := αᵒᵈ) hu hx
 
 /-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
 @[simp]
@@ -114,8 +117,9 @@ theorem interior_Ici [NoMinOrder α] {a : α} : interior (Ici a) = Ioi a :=
   interior_Ici' nonempty_Iio
 
 @[simp]
-theorem interior_Iic' {a : α} (ha : (Ioi a).Nonempty) : interior (Iic a) = Iio a :=
-  interior_Ici' (α := αᵒᵈ) ha
+theorem interior_Iic' {a : α} (ha : (Ioi a).Nonempty) : interior (Iic a) = Iio a := by
+  unsealing_newtype OrderDual =>
+    exact interior_Ici' (α := αᵒᵈ) ha
 
 theorem interior_Iic [NoMaxOrder α] {a : α} : interior (Iic a) = Iio a :=
   interior_Iic' nonempty_Ioi
@@ -162,8 +166,9 @@ theorem Ioc_subset_closure_interior (a b : α) : Ioc a b ⊆ closure (interior (
         closure_mono (interior_maximal Ioo_subset_Ioc_self isOpen_Ioo)
 
 theorem Ico_subset_closure_interior (a b : α) : Ico a b ⊆ closure (interior (Ico a b)) := by
-  simpa only [Ioc_toDual] using!
-    Ioc_subset_closure_interior (OrderDual.toDual b) (OrderDual.toDual a)
+  unsealing_newtype OrderDual =>
+    simpa only [Ioc_toDual] using!
+      Ioc_subset_closure_interior (OrderDual.toDual b) (OrderDual.toDual a)
 
 @[simp]
 theorem frontier_Ici' {a : α} (ha : (Iio a).Nonempty) : frontier (Ici a) = {a} := by

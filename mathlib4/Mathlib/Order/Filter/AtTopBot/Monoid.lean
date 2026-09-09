@@ -30,8 +30,9 @@ theorem Tendsto.one_eventuallyLE_mul_atTop (hf : 1 ≤ᶠ[l] f) (hg : Tendsto g 
 
 @[to_additive]
 theorem Tendsto.eventuallyLE_one_mul_atBot (hf : f ≤ᶠ[l] 1) (hg : Tendsto g l atBot) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  hg.one_eventuallyLE_mul_atTop (M := Mᵒᵈ) hf
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact hg.one_eventuallyLE_mul_atTop (M := Mᵒᵈ) hf
 
 @[to_additive]
 theorem Tendsto.one_le_mul_atTop (hf : ∀ x, 1 ≤ f x) (hg : Tendsto g l atTop) :
@@ -50,8 +51,9 @@ theorem Tendsto.atTop_mul_one_eventuallyLE (hf : Tendsto f l atTop) (hg : 1 ≤�
 
 @[to_additive]
 theorem Tendsto.atBot_mul_eventuallyLE_one (hf : Tendsto f l atBot) (hg : g ≤ᶠ[l] 1) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  hf.atTop_mul_one_eventuallyLE (M := Mᵒᵈ) hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact hf.atTop_mul_one_eventuallyLE (M := Mᵒᵈ) hg
 
 @[to_additive]
 theorem Tendsto.atTop_mul_one_le (hf : Tendsto f l atTop) (hg : ∀ x, 1 ≤ g x) :
@@ -78,8 +80,9 @@ Earlier, this name was used for a similar lemma about rings (with conclusion `f 
 which is now called `Filter.Tendsto.atBot_mul_atBot₀`. -/
 @[to_additive]
 theorem Tendsto.atBot_mul_atBot (hf : Tendsto f l atBot) (hg : Tendsto g l atBot) :
-    Tendsto (fun x => f x * g x) l atBot :=
-  hf.atTop_mul_atTop (M := Mᵒᵈ) hg
+    Tendsto (fun x => f x * g x) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact hf.atTop_mul_atTop (M := Mᵒᵈ) hg
 
 @[to_additive nsmul_atTop]
 theorem Tendsto.atTop_pow (hf : Tendsto f l atTop) {n : ℕ} (hn : 0 < n) :
@@ -89,8 +92,9 @@ theorem Tendsto.atTop_pow (hf : Tendsto f l atTop) {n : ℕ} (hn : 0 < n) :
 
 @[to_additive nsmul_atBot]
 theorem Tendsto.atBot_pow (hf : Tendsto f l atBot) {n : ℕ} (hn : 0 < n) :
-    Tendsto (fun x => f x ^ n) l atBot :=
-  Tendsto.atTop_pow (M := Mᵒᵈ) hf hn
+    Tendsto (fun x => f x ^ n) l atBot := by
+  unsealing_newtype OrderDual =>
+    exact Tendsto.atTop_pow (M := Mᵒᵈ) hf hn
 
 end OrderedCommMonoid
 
@@ -107,8 +111,10 @@ theorem Tendsto.atTop_of_const_mul (C : M) (hf : Tendsto (C * f ·) l atTop) : T
   tendsto_atTop.2 fun b ↦ (tendsto_atTop.1 hf (C * b)).mono fun _ ↦ le_of_mul_le_mul_left'
 
 @[to_additive]
-theorem Tendsto.atBot_of_const_mul (C : M) (hf : Tendsto (C * f ·) l atBot) : Tendsto f l atBot :=
-  hf.atTop_of_const_mul (M := Mᵒᵈ)
+theorem Tendsto.atBot_of_const_mul (C : M) (hf : Tendsto (C * f ·) l atBot) :
+    Tendsto f l atBot := by
+  unsealing_newtype OrderDual =>
+    exact hf.atTop_of_const_mul (M := Mᵒᵈ)
 
 /-- In an ordered cancellative multiplicative monoid, if `f x * C → +∞`, then `f x → +∞`.
 
@@ -119,8 +125,10 @@ theorem Tendsto.atTop_of_mul_const (C : M) (hf : Tendsto (f · * C) l atTop) : T
   tendsto_atTop.2 fun b => (tendsto_atTop.1 hf (b * C)).mono fun _ => le_of_mul_le_mul_right'
 
 @[to_additive]
-theorem Tendsto.atBot_of_mul_const (C : M) (hf : Tendsto (f · * C) l atBot) : Tendsto f l atBot :=
-  hf.atTop_of_mul_const (M := Mᵒᵈ)
+theorem Tendsto.atBot_of_mul_const (C : M) (hf : Tendsto (f · * C) l atBot) :
+    Tendsto f l atBot := by
+  unsealing_newtype OrderDual =>
+    exact hf.atTop_of_mul_const (M := Mᵒᵈ)
 
 /-- If `f` is eventually bounded from above along `l` and `f * g` tends to `+∞`,
 then `g` tends to `+∞`. -/
@@ -134,8 +142,9 @@ theorem Tendsto.atTop_of_isBoundedUnder_le_mul (hf : IsBoundedUnder (· ≤ ·) 
 
 @[to_additive]
 theorem Tendsto.atBot_of_isBoundedUnder_ge_mul (hf : IsBoundedUnder (· ≥ ·) l f)
-    (h : Tendsto (fun x => f x * g x) l atBot) : Tendsto g l atBot :=
-  h.atTop_of_isBoundedUnder_le_mul (M := Mᵒᵈ) hf
+    (h : Tendsto (fun x => f x * g x) l atBot) : Tendsto g l atBot := by
+  unsealing_newtype OrderDual =>
+    exact h.atTop_of_isBoundedUnder_le_mul (M := Mᵒᵈ) hf
 
 @[to_additive]
 theorem Tendsto.atTop_of_le_const_mul (hf : ∃ C, ∀ x, f x ≤ C)
@@ -144,8 +153,9 @@ theorem Tendsto.atTop_of_le_const_mul (hf : ∃ C, ∀ x, f x ≤ C)
 
 @[to_additive]
 theorem Tendsto.atBot_of_const_le_mul (hf : ∃ C, ∀ x, C ≤ f x)
-    (hfg : Tendsto (fun x ↦ f x * g x) l atBot) : Tendsto g l atBot :=
-  Tendsto.atTop_of_le_const_mul (M := Mᵒᵈ) hf hfg
+    (hfg : Tendsto (fun x ↦ f x * g x) l atBot) : Tendsto g l atBot := by
+  unsealing_newtype OrderDual =>
+    exact Tendsto.atTop_of_le_const_mul (M := Mᵒᵈ) hf hfg
 
 @[to_additive]
 theorem Tendsto.atTop_of_mul_isBoundedUnder_le (hg : IsBoundedUnder (· ≤ ·) l g)
@@ -156,8 +166,9 @@ theorem Tendsto.atTop_of_mul_isBoundedUnder_le (hg : IsBoundedUnder (· ≤ ·) 
 
 @[to_additive]
 theorem Tendsto.atBot_of_mul_isBoundedUnder_ge (hg : IsBoundedUnder (· ≥ ·) l g)
-    (h : Tendsto (fun x => f x * g x) l atBot) : Tendsto f l atBot :=
-  h.atTop_of_mul_isBoundedUnder_le (M := Mᵒᵈ) hg
+    (h : Tendsto (fun x => f x * g x) l atBot) : Tendsto f l atBot := by
+  unsealing_newtype OrderDual =>
+    exact h.atTop_of_mul_isBoundedUnder_le (M := Mᵒᵈ) hg
 
 @[to_additive]
 theorem Tendsto.atTop_of_mul_le_const (hg : ∃ C, ∀ x, g x ≤ C)
@@ -166,8 +177,9 @@ theorem Tendsto.atTop_of_mul_le_const (hg : ∃ C, ∀ x, g x ≤ C)
 
 @[to_additive]
 theorem Tendsto.atBot_of_mul_const_le (hg : ∃ C, ∀ x, C ≤ g x)
-    (hfg : Tendsto (fun x ↦ f x * g x) l atBot) : Tendsto f l atBot :=
-  Tendsto.atTop_of_mul_le_const (M := Mᵒᵈ) hg hfg
+    (hfg : Tendsto (fun x ↦ f x * g x) l atBot) : Tendsto f l atBot := by
+  unsealing_newtype OrderDual =>
+    exact Tendsto.atTop_of_mul_le_const (M := Mᵒᵈ) hg hfg
 
 end OrderedCancelCommMonoid
 

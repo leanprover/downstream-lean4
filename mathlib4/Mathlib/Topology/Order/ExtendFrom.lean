@@ -69,10 +69,11 @@ theorem continuousOn_Ico_extendFrom_Ioo
 theorem continuousOn_Ioc_extendFrom_Ioo
     (hf : ContinuousOn f (Ioo a b)) (hb : Tendsto f (𝓝[<] b) (𝓝 lb)) :
     ContinuousOn (extendFrom (Ioo a b) f) (Ioc a b) := by
-  have := continuousOn_Ico_extendFrom_Ioo (f := f ∘ OrderDual.ofDual) (a := OrderDual.toDual b)
-    (b := OrderDual.toDual a) (la := lb)
-  rw [Ico_toDual, Ioi_toDual, Ioo_toDual] at this
-  exact this hf hb
+  unsealing_newtype OrderDual =>
+    have := continuousOn_Ico_extendFrom_Ioo (f := f ∘ OrderDual.ofDual) (a := OrderDual.toDual b)
+      (b := OrderDual.toDual a) (la := lb)
+    rw [Ico_toDual, Ioi_toDual, Ioo_toDual] at this
+    exact this hf hb
 
 end RegularSpace
 

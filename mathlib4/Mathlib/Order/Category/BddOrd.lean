@@ -182,7 +182,7 @@ def dualEquiv : BddOrd ≌ BddOrd where
   functor := dual
   inverse := dual
   unitIso := NatIso.ofComponents fun X => Iso.mk <| OrderIso.dualDual X
-  counitIso := NatIso.ofComponents fun X => Iso.mk <| OrderIso.dualDual X
+  counitIso := NatIso.ofComponents fun X => Iso.mk <| (OrderIso.dualDual X).symm
 
 end BddOrd
 
@@ -193,5 +193,5 @@ theorem bddOrd_dual_comp_forget_to_partOrd :
 
 theorem bddOrd_dual_comp_forget_to_bipointed :
     BddOrd.dual ⋙ forget₂ BddOrd Bipointed =
-    forget₂ BddOrd Bipointed ⋙ Bipointed.swap :=
-  rfl
+    forget₂ BddOrd Bipointed ⋙ Bipointed.swap := by
+  unsealing_newtype OrderDual => rfl

@@ -130,25 +130,26 @@ instance wellFoundedGT [h : IsNoetherian R M] : WellFoundedGT (Submodule R M) :=
 
 theorem isNoetherian_iff_fg_wellFounded :
     IsNoetherian R M ↔ WellFoundedGT { N : Submodule R M // N.FG } := by
-  let α := { N : Submodule R M // N.FG }
-  constructor
-  · intro H
-    let f : α ↪o Submodule R M := OrderEmbedding.subtype _
-    exact OrderEmbedding.wellFoundedLT f.dual
-  · intro H
+  unsealing_newtype OrderDual =>
+    let α := { N : Submodule R M // N.FG }
     constructor
-    intro N
-    obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ :=
-      WellFounded.has_min H.wf { N' : α | N'.1 ≤ N } ⟨⟨⊥, Submodule.fg_bot⟩, @bot_le _ _ _ N⟩
-    convert! h₁
-    refine (e.antisymm ?_).symm
-    by_contra h₃
-    obtain ⟨x, hx₁ : x ∈ N, hx₂ : x ∉ N₀⟩ := Set.not_subset.mp h₃
-    apply hx₂
-    rw [eq_of_le_of_not_lt (le_sup_right : N₀ ≤ _) (h₂
-      ⟨_, Submodule.FG.sup ⟨{x}, by rw [Finset.coe_singleton]⟩ h₁⟩ <|
-      sup_le ((Submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e)]
-    exact (le_sup_left : R ∙ x ≤ _) (Submodule.mem_span_singleton_self _)
+    · intro H
+      let f : α ↪o Submodule R M := OrderEmbedding.subtype _
+      exact OrderEmbedding.wellFoundedLT f.dual
+    · intro H
+      constructor
+      intro N
+      obtain ⟨⟨N₀, h₁⟩, e : N₀ ≤ N, h₂⟩ :=
+        WellFounded.has_min H.wf { N' : α | N'.1 ≤ N } ⟨⟨⊥, Submodule.fg_bot⟩, @bot_le _ _ _ N⟩
+      convert! h₁
+      refine (e.antisymm ?_).symm
+      by_contra h₃
+      obtain ⟨x, hx₁ : x ∈ N, hx₂ : x ∉ N₀⟩ := Set.not_subset.mp h₃
+      apply hx₂
+      rw [eq_of_le_of_not_lt (le_sup_right : N₀ ≤ _) (h₂
+        ⟨_, Submodule.FG.sup ⟨{x}, by rw [Finset.coe_singleton]⟩ h₁⟩ <|
+        sup_le ((Submodule.span_singleton_le_iff_mem _ _).mpr hx₁) e)]
+      exact (le_sup_left : R ∙ x ≤ _) (Submodule.mem_span_singleton_self _)
 
 /-- A module is Noetherian iff every nonempty set of submodules has a maximal submodule among them.
 -/

@@ -67,9 +67,10 @@ lemma IsAntichain.interior_eq_empty [∀ x : α, (𝓝[<] x).NeBot] {s : Set α}
   exact hs hys (interior_subset hx) hyx.ne hyx.le
 
 lemma IsAntichain.interior_eq_empty' [∀ x : α, (𝓝[>] x).NeBot] {s : Set α}
-    (hs : IsAntichain (· ≤ ·) s) : interior s = ∅ :=
-  have : ∀ x : αᵒᵈ, NeBot (𝓝[<] x) := ‹_›
-  hs.to_dual.interior_eq_empty
+    (hs : IsAntichain (· ≤ ·) s) : interior s = ∅ := by
+  unsealing_newtype OrderDual =>
+    exact have : ∀ x : αᵒᵈ, NeBot (𝓝[<] x) := ‹_›
+      hs.to_dual.interior_eq_empty
 
 end Preorder
 

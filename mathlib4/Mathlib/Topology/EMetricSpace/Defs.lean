@@ -948,7 +948,7 @@ section
 
 variable [EDist X]
 
-instance : EDist Xᵒᵈ := ‹EDist X›
+instance : EDist Xᵒᵈ := ⟨fun a b ↦ edist (ofDual a) (ofDual b)⟩
 
 @[simp]
 theorem edist_toDual (a b : X) : edist (toDual a) (toDual b) = edist a b :=
@@ -978,11 +978,17 @@ instance {α : Type*} {p : α → Prop} [TopologicalSpace α] [WeakEMetricSpace 
 
 end
 
-instance [TopologicalSpace X] [WeakPseudoEMetricSpace X] : WeakPseudoEMetricSpace Xᵒᵈ :=
-  ‹WeakPseudoEMetricSpace X›
+instance OrderDual.instWeakPseudoEMetricSpace [TopologicalSpace X] [WeakPseudoEMetricSpace X] :
+    WeakPseudoEMetricSpace Xᵒᵈ :=
+  WeakPseudoEMetricSpace.IsInducing (f := ofDual)
+    ⟨by
+      refine TopologicalSpace.ext_iff.2 fun s ↦ ⟨fun hs ↦ ⟨_, hs, rfl⟩, ?_⟩
+      rintro ⟨u, hu, rfl⟩
+      exact hu⟩ ‹_›
 instance [TopologicalSpace X] [WeakEMetricSpace X] : WeakEMetricSpace Xᵒᵈ :=
-  ‹WeakEMetricSpace X›
+  { OrderDual.instWeakPseudoEMetricSpace with
+    eq_of_edist_eq_zero := fun h ↦ congrArg toDual (eq_of_edist_eq_zero h) }
 instance [PseudoEMetricSpace X] : PseudoEMetricSpace Xᵒᵈ :=
-  ‹PseudoEMetricSpace X›
+  (PseudoEMetricSpace.induced ofDual ‹_›).replaceUniformity (by rfl)
 instance [EMetricSpace X] : EMetricSpace Xᵒᵈ :=
-  ‹EMetricSpace X›
+  (EMetricSpace.induced ofDual (fun _ _ h ↦ congrArg toDual h) ‹_›).replaceUniformity (by rfl)

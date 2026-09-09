@@ -179,8 +179,9 @@ alias prod_le_prod_of_subset_of_one_le' := prod_le_prod_of_subset_of_one_le
 
 @[to_additive]
 lemma prod_le_prod_of_subset_of_le_one [MulLeftMono N] (h : s ⊆ t) (hf : ∀ i ∈ t, i ∉ s → f i ≤ 1) :
-    ∏ i ∈ t, f i ≤ ∏ i ∈ s, f i :=
-  prod_le_prod_of_subset_of_one_le (N := Nᵒᵈ) h hf
+    ∏ i ∈ t, f i ≤ ∏ i ∈ s, f i := by
+  unsealing_newtype OrderDual =>
+    exact prod_le_prod_of_subset_of_one_le (N := Nᵒᵈ) h hf
 
 @[deprecated (since := "2026-09-01")]
 alias prod_le_prod_of_subset_of_le_one' := prod_le_prod_of_subset_of_le_one
@@ -249,16 +250,18 @@ lemma one_lt_prod_iff_of_one_le {ι : Type u_1} {N : Type u_5} [CommMonoid N] [P
 @[to_additive]
 theorem prod_eq_one_iff_of_le_one {ι : Type u_1} {N : Type u_5} [CommMonoid N] [PartialOrder N]
     {f : ι → N} {s : Finset ι} [MulLeftMono N] :
-    (∀ i ∈ s, f i ≤ 1) → ((∏ i ∈ s, f i) = 1 ↔ ∀ i ∈ s, f i = 1) :=
-  prod_eq_one_iff_of_one_le (N := Nᵒᵈ)
+    (∀ i ∈ s, f i ≤ 1) → ((∏ i ∈ s, f i) = 1 ↔ ∀ i ∈ s, f i = 1) := by
+  unsealing_newtype OrderDual =>
+    exact prod_eq_one_iff_of_one_le (N := Nᵒᵈ)
 
 @[deprecated (since := "2026-09-01")] alias prod_eq_one_iff_of_le_one' := prod_eq_one_iff_of_le_one
 
 @[to_additive]
 lemma prod_lt_one_iff_of_le_one {ι : Type u_1} {N : Type u_5} [CommMonoid N] [PartialOrder N]
     {f : ι → N} {s : Finset ι} [MulLeftMono N] (hf : ∀ x ∈ s, f x ≤ 1) :
-    ∏ x ∈ s, f x < 1 ↔ ∃ x ∈ s, f x < 1 :=
-  one_lt_prod_iff_of_one_le (N := Nᵒᵈ) hf
+    ∏ x ∈ s, f x < 1 ↔ ∃ x ∈ s, f x < 1 := by
+  unsealing_newtype OrderDual =>
+    exact one_lt_prod_iff_of_one_le (N := Nᵒᵈ) hf
 
 @[to_additive]
 theorem single_le_prod [MulLeftMono N] (hf : ∀ i ∈ s, 1 ≤ f i) {a} (h : a ∈ s) :
@@ -289,7 +292,9 @@ theorem prod_le_pow_card [MulLeftMono N] (s : Finset ι) (f : ι → N) (n : N) 
 
 @[to_additive card_nsmul_le_sum]
 theorem pow_card_le_prod [MulLeftMono N] (s : Finset ι) (f : ι → N) (n : N) (h : ∀ x ∈ s, n ≤ f x) :
-    n ^ #s ≤ s.prod f := Finset.prod_le_pow_card (N := Nᵒᵈ) _ _ _ h
+    n ^ #s ≤ s.prod f := by
+  unsealing_newtype OrderDual =>
+    exact Finset.prod_le_pow_card (N := Nᵒᵈ) _ _ _ h
 
 theorem card_biUnion_le_card_mul [DecidableEq β] (s : Finset ι) (f : ι → Finset β) (n : ℕ)
     (h : ∀ a ∈ s, #(f a) ≤ n) : #(s.biUnion f) ≤ #s * n :=
@@ -314,8 +319,9 @@ alias prod_fiberwise_le_prod_of_one_le_prod_fiber' := prod_fiberwise_le_prod_of_
 @[to_additive]
 theorem prod_le_prod_fiberwise_of_prod_fiber_le_one [MulLeftMono N] {t : Finset ι'} {g : ι → ι'}
     {f : ι → N} (h : ∀ y ∉ t, ∏ x ∈ s with g x = y, f x ≤ 1) :
-    ∏ x ∈ s, f x ≤ ∏ y ∈ t, ∏ x ∈ s with g x = y, f x :=
-  prod_fiberwise_le_prod_of_one_le_prod_fiber (N := Nᵒᵈ) h
+    ∏ x ∈ s, f x ≤ ∏ y ∈ t, ∏ x ∈ s with g x = y, f x := by
+  unsealing_newtype OrderDual =>
+    exact prod_fiberwise_le_prod_of_one_le_prod_fiber (N := Nᵒᵈ) h
 
 @[deprecated (since := "2026-09-01")]
 alias prod_le_prod_fiberwise_of_prod_fiber_le_one' := prod_le_prod_fiberwise_of_prod_fiber_le_one
@@ -344,8 +350,9 @@ theorem apply_prod_le_sum_apply (h_one : g 1 ≤ 0) (h_mul : ∀ (a b : α), g (
   rw [Multiset.map_map, Function.comp_def, Finset.sum_map_val]
 
 theorem sum_apply_le_apply_prod (h_one : 0 ≤ g 1) (h_mul : ∀ (a b : α), g a + g b ≤ g (a * b)) :
-    ∑ x ∈ s, g (f x) ≤ g (∏ x ∈ s, f x) :=
-  s.apply_prod_le_sum_apply (β := βᵒᵈ) g h_one h_mul
+    ∑ x ∈ s, g (f x) ≤ g (∏ x ∈ s, f x) := by
+  unsealing_newtype OrderDual =>
+    exact s.apply_prod_le_sum_apply (β := βᵒᵈ) g h_one h_mul
 
 end ProdSum
 
@@ -684,8 +691,9 @@ theorem exists_one_lt_of_prod_one_of_exists_ne_one [MulLeftMono M] (f : ι → M
 
 @[to_additive exists_neg_of_sum_zero_of_exists_nonzero]
 theorem exists_lt_one_of_prod_one_of_exists_ne_one [MulLeftMono M] (f : ι → M)
-    (h₁ : ∏ i ∈ s, f i = 1) (h₂ : ∃ i ∈ s, f i ≠ 1) : ∃ i ∈ s, f i < 1 :=
-  exists_one_lt_of_prod_one_of_exists_ne_one (M := Mᵒᵈ) f h₁ h₂
+    (h₁ : ∏ i ∈ s, f i = 1) (h₂ : ∃ i ∈ s, f i ≠ 1) : ∃ i ∈ s, f i < 1 := by
+  unsealing_newtype OrderDual =>
+    exact exists_one_lt_of_prod_one_of_exists_ne_one (M := Mᵒᵈ) f h₁ h₂
 
 variable [IsOrderedCancelMonoid M]
 

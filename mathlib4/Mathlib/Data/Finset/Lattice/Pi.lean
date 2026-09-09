@@ -53,7 +53,9 @@ theorem inf_sup {κ : ι → Type*} (s : Finset ι) (t : ∀ i, Finset (κ i)) (
   · simpa [ne_of_mem_of_not_mem hj hi] using! hg _ _
 
 theorem sup_inf {κ : ι → Type*} (s : Finset ι) (t : ∀ i, Finset (κ i)) (f : ∀ i, κ i → α) :
-    (s.sup fun i => (t i).inf (f i)) = (s.pi t).inf fun g => s.attach.sup fun i => f _ <| g _ i.2 :=
-  @inf_sup αᵒᵈ _ _ _ _ _ _ _ _
+    (s.sup fun i => (t i).inf (f i)) =
+      (s.pi t).inf fun g => s.attach.sup fun i => f _ <| g _ i.2 := by
+  unsealing_newtype OrderDual =>
+    exact @inf_sup αᵒᵈ _ _ _ _ _ _ _ _
 
 end Finset

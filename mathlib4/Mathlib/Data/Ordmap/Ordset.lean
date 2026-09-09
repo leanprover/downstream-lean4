@@ -97,24 +97,24 @@ theorem Valid'.node {s l} {x : α} {r o₁ o₂} (hl : Valid' o₁ l x) (hr : Va
     Valid' o₁ (@node α s l x r) o₂ :=
   ⟨⟨hl.1, hr.1⟩, ⟨hs, hl.2, hr.2⟩, ⟨H, hl.3, hr.3⟩⟩
 
-set_option backward.isDefEq.respectTransparency false in
-theorem Valid'.dual : ∀ {t : Ordnode α} {o₁ o₂}, Valid' o₁ t o₂ → @Valid' αᵒᵈ _ o₂ (dual t) o₁
-  | .nil, _, _, h => valid'_nil h.1.dual
-  | .node _ l _ r, _, _, ⟨⟨ol, Or⟩, ⟨rfl, sl, sr⟩, ⟨b, bl, br⟩⟩ =>
-    let ⟨ol', sl', bl'⟩ := Valid'.dual ⟨ol, sl, bl⟩
-    let ⟨or', sr', br'⟩ := Valid'.dual ⟨Or, sr, br⟩
-    ⟨⟨or', ol'⟩, ⟨by simp [size_dual, add_comm], sr', sl'⟩,
-      ⟨by rw [size_dual, size_dual]; exact b.symm, br', bl'⟩⟩
+theorem Valid'.dual_iff {t : Ordnode α} {o₁ o₂} :
+    Valid' o₁ t o₂ ↔
+      Valid' (WithTop.toDual o₂) ((dual t).map OrderDual.toDual) (WithBot.toDual o₁) := by
+  constructor
+  · intro h
+    exact ⟨h.ord.dual, (sized_map ..).2 h.sz.dual, (balanced_map ..).2 h.bal.dual⟩
+  · intro h
+    exact ⟨Bounded.dual_iff.2 h.ord, Sized.dual_iff.1 ((sized_map ..).1 h.sz),
+      Balanced.dual_iff.1 ((balanced_map ..).1 h.bal)⟩
 
-set_option backward.isDefEq.respectTransparency false in
-theorem Valid'.dual_iff {t : Ordnode α} {o₁ o₂} : Valid' o₁ t o₂ ↔ @Valid' αᵒᵈ _ o₂ (.dual t) o₁ :=
-  ⟨Valid'.dual, fun h => by
-    have := Valid'.dual h; rwa [dual_dual, OrderDual.Preorder.dual_dual] at this⟩
+theorem Valid'.dual {t : Ordnode α} {o₁ o₂} (h : Valid' o₁ t o₂) :
+    Valid' (WithTop.toDual o₂) ((dual t).map OrderDual.toDual) (WithBot.toDual o₁) :=
+  Valid'.dual_iff.1 h
 
-theorem Valid.dual {t : Ordnode α} : Valid t → @Valid αᵒᵈ _ (.dual t) :=
+theorem Valid.dual {t : Ordnode α} : Valid t → Valid ((dual t).map OrderDual.toDual) :=
   Valid'.dual
 
-theorem Valid.dual_iff {t : Ordnode α} : Valid t ↔ @Valid αᵒᵈ _ (.dual t) :=
+theorem Valid.dual_iff {t : Ordnode α} : Valid t ↔ Valid (t.dual.map OrderDual.toDual) :=
   Valid'.dual_iff
 
 theorem Valid'.left {s l x r o₁ o₂} (H : Valid' o₁ (@Ordnode.node α s l x r) o₂) : Valid' o₁ l x :=
@@ -293,12 +293,17 @@ set_option backward.isDefEq.respectTransparency false in
 theorem Valid'.rotateR {l} {x : α} {r o₁ o₂} (hl : Valid' o₁ l x) (hr : Valid' x r o₂)
     (H1 : ¬size l + size r ≤ 1) (H2 : delta * size r < size l)
     (H3 : 2 * size l ≤ 9 * size r + 5 ∨ size l ≤ 3) : Valid' o₁ (@rotateR α l x r) o₂ := by
-  refine Valid'.dual_iff.2 ?_
-  rw [dual_rotateR]
-  refine hr.dual.rotateL hl.dual ?_ ?_ ?_
-  · rwa [size_dual, size_dual, add_comm]
-  · rwa [size_dual, size_dual]
-  · rwa [size_dual, size_dual]
+  unsealing_newtype OrderDual =>
+    refine Valid'.dual_iff.2 ?_
+    have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+    rw [dual_rotateR, map_toDual]
+    have hl' := hl.dual
+    have hr' := hr.dual
+    simp only [map_toDual] at hl' hr'
+    refine hr'.rotateL hl' ?_ ?_ ?_
+    · rwa [size_dual, size_dual, add_comm]
+    · rwa [size_dual, size_dual]
+    · rwa [size_dual, size_dual]
 
 theorem Valid'.balance'_aux {l} {x : α} {r o₁ o₂} (hl : Valid' o₁ l x) (hr : Valid' x r o₂)
     (H₁ : 2 * @size α r ≤ 9 * size l + 5 ∨ size r ≤ 3)
@@ -362,17 +367,24 @@ set_option backward.isDefEq.respectTransparency false in
 theorem Valid'.balanceR_aux {l} {x : α} {r o₁ o₂} (hl : Valid' o₁ l x) (hr : Valid' x r o₂)
     (H₁ : size r = 0 → size l ≤ 1) (H₂ : 1 ≤ size r → 1 ≤ size l → size l ≤ delta * size r)
     (H₃ : 2 * @size α r ≤ 9 * size l + 5 ∨ size r ≤ 3) : Valid' o₁ (@balanceR α l x r) o₂ := by
-  rw [Valid'.dual_iff, dual_balanceR]
-  have := hr.dual.balanceL_aux hl.dual
-  rw [size_dual, size_dual] at this
-  exact this H₁ H₂ H₃
+  unsealing_newtype OrderDual =>
+    have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+    rw [Valid'.dual_iff, dual_balanceR, map_toDual]
+    have := hr.dual.balanceL_aux hl.dual
+    simp only [map_toDual, size_dual] at this
+    exact this H₁ H₂ H₃
 
 set_option backward.isDefEq.respectTransparency false in
 theorem Valid'.balanceR {l} {x : α} {r o₁ o₂} (hl : Valid' o₁ l x) (hr : Valid' x r o₂)
     (H : (∃ l', Raised (size l) l' ∧ BalancedSz l' (size r)) ∨
         ∃ r', Raised r' (size r) ∧ BalancedSz (size l) r') :
     Valid' o₁ (@balanceR α l x r) o₂ := by
-  rw [Valid'.dual_iff, dual_balanceR]; exact hr.dual.balanceL hl.dual (balance_sz_dual H)
+  unsealing_newtype OrderDual =>
+    have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+    rw [Valid'.dual_iff, dual_balanceR, map_toDual]
+    have := hr.dual.balanceL hl.dual (by simpa only [size_map] using balance_sz_dual H)
+    simp only [map_toDual] at this
+    exact this
 
 theorem Valid'.eraseMax_aux {s l x r o₁ o₂} (H : Valid' o₁ (.node s l x r) o₂) :
     Valid' o₁ (@eraseMax α (.node' l x r)) ↑(findMax' x r) ∧
@@ -391,9 +403,15 @@ set_option backward.isDefEq.respectTransparency false in
 theorem Valid'.eraseMin_aux {s l} {x : α} {r o₁ o₂} (H : Valid' o₁ (.node s l x r) o₂) :
     Valid' ↑(findMin' l x) (@eraseMin α (.node' l x r)) o₂ ∧
       size (.node' l x r) = size (eraseMin (.node' l x r)) + 1 := by
-  have := H.dual.eraseMax_aux
-  rwa [← dual_node', size_dual, ← dual_eraseMin, size_dual, ← Valid'.dual_iff, findMax'_dual]
-    at this
+  unsealing_newtype OrderDual =>
+    have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+    have H' := H.dual
+    simp only [map_toDual] at H'
+    have := H'.eraseMax_aux
+    rw [← dual_node', size_dual, ← dual_eraseMin, size_dual, findMax'_dual] at this
+    refine ⟨Valid'.dual_iff.2 ?_, this.2⟩
+    simp only [map_toDual]
+    exact this.1
 
 theorem eraseMin.valid : ∀ {t}, @Valid α _ t → Valid (eraseMin t)
   | nil, _ => valid_nil
@@ -401,7 +419,10 @@ theorem eraseMin.valid : ∀ {t}, @Valid α _ t → Valid (eraseMin t)
 
 set_option backward.isDefEq.respectTransparency false in
 theorem eraseMax.valid {t} (h : @Valid α _ t) : Valid (eraseMax t) := by
-  rw [Valid.dual_iff, dual_eraseMax]; exact eraseMin.valid h.dual
+  unsealing_newtype OrderDual =>
+    have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+    rw [Valid.dual_iff, dual_eraseMax, map_toDual]
+    simpa only [map_toDual] using eraseMin.valid h.dual
 
 theorem Valid'.glue_aux {l r o₁ o₂} (hl : Valid' o₁ l o₂) (hr : Valid' o₁ r o₂)
     (sep : l.All fun x => r.All fun y => x < y) (bal : BalancedSz (size l) (size r)) :
@@ -464,22 +485,29 @@ set_option backward.isDefEq.respectTransparency false in
 theorem Valid'.merge_aux {l r o₁ o₂} (hl : Valid' o₁ l o₂) (hr : Valid' o₁ r o₂)
     (sep : l.All fun x => r.All fun y => x < y) :
     Valid' o₁ (@merge α l r) o₂ ∧ size (merge l r) = size l + size r := by
-  induction l generalizing o₁ o₂ r with
-  | nil => exact ⟨hr, (zero_add _).symm⟩
-  | node ls ll lx lr _ IHlr => ?_
-  induction r generalizing o₁ o₂ with
-  | nil => exact ⟨hl, rfl⟩
-  | node rs rl rx rr IHrl _ => ?_
-  rw [merge_node]; split_ifs with h h_1
-  · obtain ⟨v, e⟩ := IHrl (hl.of_lt hr.1.1.to_nil <| sep.imp fun x h => h.2.1) hr.left
-      (sep.imp fun x h => h.1)
-    exact Valid'.merge_aux₁ hl hr h v e
-  · obtain ⟨v, e⟩ := IHlr hl.right (hr.of_gt hl.1.2.to_nil sep.2.1) sep.2.2
-    have := Valid'.merge_aux₁ hr.dual hl.dual h_1 v.dual
-    rw [size_dual, add_comm, size_dual, ← dual_balanceR, ← Valid'.dual_iff, size_dual,
-      add_comm rs] at this
-    exact this e
-  · refine Valid'.glue_aux hl hr sep (Or.inr ⟨not_lt.1 h_1, not_lt.1 h⟩)
+  unsealing_newtype OrderDual =>
+    induction l generalizing o₁ o₂ r with
+    | nil => exact ⟨hr, (zero_add _).symm⟩
+    | node ls ll lx lr _ IHlr => ?_
+    induction r generalizing o₁ o₂ with
+    | nil => exact ⟨hl, rfl⟩
+    | node rs rl rx rr IHrl _ => ?_
+    rw [merge_node]; split_ifs with h h_1
+    · obtain ⟨v, e⟩ := IHrl (hl.of_lt hr.1.1.to_nil <| sep.imp fun x h => h.2.1) hr.left
+        (sep.imp fun x h => h.1)
+      exact Valid'.merge_aux₁ hl hr h v e
+    · obtain ⟨v, e⟩ := IHlr hl.right (hr.of_gt hl.1.2.to_nil sep.2.1) sep.2.2
+      have map_toDual (t : Ordnode α) : t.map OrderDual.toDual = t := map_id t
+      have hr' := hr.dual
+      have hl' := hl.dual
+      have v' := v.dual
+      simp only [map_toDual] at hr' hl' v'
+      have := Valid'.merge_aux₁ hr' hl' h_1 v'
+      rw [size_dual, add_comm, size_dual, ← dual_balanceR, size_dual, add_comm rs] at this
+      obtain ⟨hv, he⟩ := this e
+      refine ⟨Valid'.dual_iff.2 ?_, he⟩
+      simpa only [map_toDual] using hv
+    · refine Valid'.glue_aux hl hr sep (Or.inr ⟨not_lt.1 h_1, not_lt.1 h⟩)
 
 theorem Valid.merge {l r} (hl : Valid l) (hr : Valid r)
     (sep : l.All fun x => r.All fun y => x < y) : Valid (@merge α l r) :=

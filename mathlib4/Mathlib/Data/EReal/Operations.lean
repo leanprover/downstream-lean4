@@ -292,11 +292,12 @@ theorem lt_neg_comm {a b : EReal} : a < -b ↔ b < -a := by
 protected theorem lt_neg_of_lt_neg {a b : EReal} (h : a < -b) : b < -a := lt_neg_comm.mp h
 
 /-- Negation as an order reversing isomorphism on `EReal`. -/
-def negOrderIso : EReal ≃o ERealᵒᵈ :=
-  { Equiv.neg EReal with
-    toFun := fun x => OrderDual.toDual (-x)
-    invFun := fun x => -OrderDual.ofDual x
-    map_rel_iff' := neg_le_neg_iff }
+def negOrderIso : EReal ≃o ERealᵒᵈ where
+  toFun x := OrderDual.toDual (-x)
+  invFun x := -OrderDual.ofDual x
+  left_inv _ := neg_neg _
+  right_inv _ := congrArg OrderDual.toDual (neg_neg _)
+  map_rel_iff' := neg_le_neg_iff
 
 lemma neg_add {x y : EReal} (h1 : x ≠ ⊥ ∨ y ≠ ⊤) (h2 : x ≠ ⊤ ∨ y ≠ ⊥) :
     -(x + y) = -x - y := by

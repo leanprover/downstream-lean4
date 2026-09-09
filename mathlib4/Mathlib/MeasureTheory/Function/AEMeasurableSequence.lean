@@ -117,7 +117,8 @@ theorem iSup [SupSet β] [Countable ι] (hf : ∀ i, AEMeasurable (f i) μ)
   simp [iSup_apply, hx]
 
 theorem iInf [InfSet β] [Countable ι] (hf : ∀ i, AEMeasurable (f i) μ)
-    (hp : ∀ᵐ x ∂μ, p x fun n ↦ f n x) : ⨅ n, aeSeq hf p n =ᵐ[μ] ⨅ n, f n :=
-  iSup (β := βᵒᵈ) hf hp
+    (hp : ∀ᵐ x ∂μ, p x fun n ↦ f n x) : ⨅ n, aeSeq hf p n =ᵐ[μ] ⨅ n, f n := by
+  unsealing_newtype OrderDual =>
+    exact iSup (β := βᵒᵈ) hf hp
 
 end aeSeq

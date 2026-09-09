@@ -80,8 +80,9 @@ theorem _root_.Monotone.measure_iUnion [Preorder ι] [IsDirectedOrder ι]
 
 theorem _root_.Antitone.measure_iUnion [Preorder ι] [IsCodirectedOrder ι]
     [(atBot : Filter ι).IsCountablyGenerated] (hs : Antitone s) :
-    μ (⋃ i, s i) = ⨆ i, μ (s i) :=
-  hs.dual_left.measure_iUnion
+    μ (⋃ i, s i) = ⨆ i, μ (s i) := by
+  unsealing_newtype OrderDual =>
+    exact hs.dual_left.measure_iUnion
 
 /-- Continuity from below: the measure of the union of a sequence of
 (not necessarily measurable) sets is the supremum of the measures of the partial unions. -/
@@ -167,8 +168,9 @@ is equal to the infimum of the measures. -/
 theorem _root_.Antitone.measure_iInter [Preorder ι] [IsDirectedOrder ι]
     [(atTop : Filter ι).IsCountablyGenerated] (hs : Antitone s)
     (hsm : ∀ i, NullMeasurableSet (s i) μ) (hfin : ∃ i, μ (s i) ≠ ∞) :
-    μ (⋂ i, s i) = ⨅ i, μ (s i) :=
-  hs.dual_left.measure_iInter hsm hfin
+    μ (⋂ i, s i) = ⨅ i, μ (s i) := by
+  unsealing_newtype OrderDual =>
+    exact hs.dual_left.measure_iInter hsm hfin
 
 /-- Continuity from above (a.e. version):
 the measure of the intersection of a family of sets that is almost everywhere antitone
@@ -177,8 +179,9 @@ lemma measure_iInter_of_ae_antitone [Preorder ι] [IsDirectedOrder ι]
     [(atTop : Filter ι).IsCountablyGenerated] (hs : ∀ᵐ ω ∂μ, Antitone (ω ∈ s ·))
     (hsm : ∀ (i : ι), NullMeasurableSet (s i) μ) (hfin : ∃ i, μ (s i) ≠ ∞) :
     μ (⋂ i, s i) = ⨅ i, μ (s i) := by
-  refine measure_iInter_of_ae_monotone (ι := ιᵒᵈ) ?_ hsm hfin
-  filter_upwards [hs] with ω hω using hω.dual_left
+  unsealing_newtype OrderDual =>
+    refine measure_iInter_of_ae_monotone (ι := ιᵒᵈ) ?_ hsm hfin
+    filter_upwards [hs] with ω hω using hω.dual_left
 
 /-- Continuity from above: the measure of the intersection of a sequence of
 measurable sets is the infimum of the measures of the partial intersections. -/
@@ -203,8 +206,9 @@ theorem tendsto_measure_iUnion_atTop [Preorder ι] [IsCountablyGenerated (atTop 
   exact tendsto_atTop_iSup fun n m hnm => measure_mono <| hm hnm
 
 theorem tendsto_measure_iUnion_atBot [Preorder ι] [IsCountablyGenerated (atBot : Filter ι)]
-    (hm : Antitone s) : Tendsto (μ ∘ s) atBot (𝓝 (μ (⋃ n, s n))) :=
-  tendsto_measure_iUnion_atTop (ι := ιᵒᵈ) hm.dual_left
+    (hm : Antitone s) : Tendsto (μ ∘ s) atBot (𝓝 (μ (⋃ n, s n))) := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_measure_iUnion_atTop (ι := ιᵒᵈ) hm.dual_left
 
 /-- Continuity from below: the measure of the union of a sequence of (not necessarily measurable)
 sets is the limit of the measures of the partial unions. -/
@@ -230,8 +234,9 @@ theorem tendsto_measure_iInter_atTop [Preorder ι]
 sets is the limit of the measures. -/
 theorem tendsto_measure_iInter_atBot [Preorder ι] [IsCountablyGenerated (atBot : Filter ι)]
     (hs : ∀ i, NullMeasurableSet (s i) μ) (hm : Monotone s)
-    (hf : ∃ i, μ (s i) ≠ ∞) : Tendsto (μ ∘ s) atBot (𝓝 (μ (⋂ n, s n))) :=
-  tendsto_measure_iInter_atTop (ι := ιᵒᵈ) hs hm.dual_left hf
+    (hf : ∃ i, μ (s i) ≠ ∞) : Tendsto (μ ∘ s) atBot (𝓝 (μ (⋂ n, s n))) := by
+  unsealing_newtype OrderDual =>
+    exact tendsto_measure_iInter_atTop (ι := ιᵒᵈ) hs hm.dual_left hf
 
 /-- Continuity from above: the measure of the intersection of a sequence of measurable
 sets such that one has finite measure is the limit of the measures of the partial intersections. -/

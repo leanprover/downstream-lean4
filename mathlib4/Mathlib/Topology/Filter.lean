@@ -176,12 +176,14 @@ protected theorem tendsto_nhds_atTop_iff [Preorder β] {l : Filter α} {f : α �
     Tendsto f l (𝓝 atTop) ↔ ∀ y, ∀ᶠ a in l, Ici y ∈ f a := by
   simp only [nhds_atTop, tendsto_iInf, tendsto_principal, mem_Iic, le_principal_iff]
 
-theorem nhds_atBot [Preorder α] : 𝓝 atBot = ⨅ x : α, 𝓟 (Iic (𝓟 (Iic x))) :=
-  @nhds_atTop αᵒᵈ _
+theorem nhds_atBot [Preorder α] : 𝓝 atBot = ⨅ x : α, 𝓟 (Iic (𝓟 (Iic x))) := by
+  unsealing_newtype OrderDual =>
+    exact @nhds_atTop αᵒᵈ _
 
 protected theorem tendsto_nhds_atBot_iff [Preorder β] {l : Filter α} {f : α → Filter β} :
-    Tendsto f l (𝓝 atBot) ↔ ∀ y, ∀ᶠ a in l, Iic y ∈ f a :=
-  @Filter.tendsto_nhds_atTop_iff α βᵒᵈ _ _ _
+    Tendsto f l (𝓝 atBot) ↔ ∀ y, ∀ᶠ a in l, Iic y ∈ f a := by
+  unsealing_newtype OrderDual =>
+    exact @Filter.tendsto_nhds_atTop_iff α βᵒᵈ _ _ _
 
 variable [TopologicalSpace X]
 

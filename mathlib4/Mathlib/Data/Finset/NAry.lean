@@ -549,28 +549,33 @@ lemma le_inf'_image₂ {g : γ → δ} {a : δ} (h : (image₂ f s t).Nonempty) 
 
 lemma inf'_image₂_left (g : γ → δ) (h : (image₂ f s t).Nonempty) :
     inf' (image₂ f s t) h g =
-      inf' s h.of_image₂_left fun x ↦ inf' t h.of_image₂_right (g <| f x ·) :=
-  sup'_image₂_left (δ := δᵒᵈ) g h
+      inf' s h.of_image₂_left fun x ↦ inf' t h.of_image₂_right (g <| f x ·) := by
+  unsealing_newtype OrderDual =>
+    exact sup'_image₂_left (δ := δᵒᵈ) g h
 
 lemma inf'_image₂_right (g : γ → δ) (h : (image₂ f s t).Nonempty) :
     inf' (image₂ f s t) h g =
-      inf' t h.of_image₂_right fun y ↦ inf' s h.of_image₂_left (g <| f · y) :=
-  sup'_image₂_right (δ := δᵒᵈ) g h
+      inf' t h.of_image₂_right fun y ↦ inf' s h.of_image₂_left (g <| f · y) := by
+  unsealing_newtype OrderDual =>
+    exact sup'_image₂_right (δ := δᵒᵈ) g h
 
 variable [OrderTop δ]
 
 @[simp (default + 1)] -- otherwise `simp` doesn't use `forall_mem_image₂`
 lemma le_inf_image₂ {g : γ → δ} {a : δ} :
-    a ≤ inf (image₂ f s t) g ↔ ∀ x ∈ s, ∀ y ∈ t, a ≤ g (f x y) :=
-  sup_image₂_le (δ := δᵒᵈ)
+    a ≤ inf (image₂ f s t) g ↔ ∀ x ∈ s, ∀ y ∈ t, a ≤ g (f x y) := by
+  unsealing_newtype OrderDual =>
+    exact sup_image₂_le (δ := δᵒᵈ)
 
 variable (s t)
 
-lemma inf_image₂_left (g : γ → δ) : inf (image₂ f s t) g = inf s fun x ↦ inf t (g ∘ f x) :=
-  sup_image₂_left (δ := δᵒᵈ) ..
+lemma inf_image₂_left (g : γ → δ) : inf (image₂ f s t) g = inf s fun x ↦ inf t (g ∘ f x) := by
+  unsealing_newtype OrderDual =>
+    exact sup_image₂_left (δ := δᵒᵈ) ..
 
-lemma inf_image₂_right (g : γ → δ) : inf (image₂ f s t) g = inf t fun y ↦ inf s (g <| f · y) :=
-  sup_image₂_right (δ := δᵒᵈ) ..
+lemma inf_image₂_right (g : γ → δ) : inf (image₂ f s t) g = inf t fun y ↦ inf s (g <| f · y) := by
+  unsealing_newtype OrderDual =>
+    exact sup_image₂_right (δ := δᵒᵈ) ..
 
 end SemilatticeInf
 

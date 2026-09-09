@@ -261,8 +261,9 @@ end InvolutiveInv
 
 @[to_additive (attr := simp)]
 lemma inv_atTop {G : Type*} [CommGroup G] [Preorder G] [IsOrderedMonoid G] :
-    (atTop : Filter G)⁻¹ = atBot :=
-  (OrderIso.inv G).map_atTop
+    (atTop : Filter G)⁻¹ = atBot := by
+  unsealing_newtype OrderDual =>
+    exact (OrderIso.inv G).map_atTop
 
 /-! ### Filter addition/multiplication -/
 

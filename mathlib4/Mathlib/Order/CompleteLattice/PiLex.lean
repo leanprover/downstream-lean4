@@ -66,19 +66,24 @@ private theorem isGLB_sInf {s : Set (Πₗ i, α i)} : IsGLB s (sInf s) := by
 
 @[no_expose]
 instance : SupSet (Πₗ i, α i) where
-  sSup s := sInf (α := Πₗ i, (α i)ᵒᵈ) s
+  sSup s := toLex fun i ↦ OrderDual.ofDual <|
+    sInf (α := Πₗ i, (α i)ᵒᵈ)
+      ((fun f ↦ toLex fun i ↦ OrderDual.ofDual (f i)) ⁻¹' s) i
 
 theorem sSup_apply (s : Set (Πₗ i, α i)) (i : ι) :
-    sSup s i = ⨆ e : {e ∈ s | ∀ j < i, e j = sSup s j}, e.1 i :=
-  sInf_apply (α := fun i ↦ (α i)ᵒᵈ) ..
+    sSup s i = ⨆ e : {e ∈ s | ∀ j < i, e j = sSup s j}, e.1 i := by
+  unsealing_newtype OrderDual =>
+    exact sInf_apply (α := fun i ↦ (α i)ᵒᵈ) ..
 
 theorem le_sSup_apply {s : Set (Πₗ i, α i)} {i : ι} {e : Πₗ i, α i}
-    (he : e ∈ s) (h : ∀ j < i, e j = sSup s j) : e i ≤ sSup s i :=
-  sInf_apply_le (α := fun i ↦ (α i)ᵒᵈ) he h
+    (he : e ∈ s) (h : ∀ j < i, e j = sSup s j) : e i ≤ sSup s i := by
+  unsealing_newtype OrderDual =>
+    exact sInf_apply_le (α := fun i ↦ (α i)ᵒᵈ) he h
 
 theorem sSup_apply_le {s : Set (Πₗ i, α i)} {i : ι} {e : Πₗ i, α i}
-    (h : ∀ f ∈ s, (∀ j < i, f j = sSup s j) → f i ≤ e i) : sSup s i ≤ e i :=
-  le_sInf_apply (α := fun i ↦ (α i)ᵒᵈ) h
+    (h : ∀ f ∈ s, (∀ j < i, f j = sSup s j) → f i ≤ e i) : sSup s i ≤ e i := by
+  unsealing_newtype OrderDual =>
+    exact le_sInf_apply (α := fun i ↦ (α i)ᵒᵈ) h
 
 private theorem isLUB_sSup {s : Set (Πₗ i, α i)} : IsLUB s (sSup s) := by
   refine ⟨fun e he ↦ ?_, fun e h ↦ ?_⟩
@@ -109,49 +114,63 @@ variable [WellFoundedGT ι]
 set_option backward.isDefEq.respectTransparency false in
 @[no_expose]
 instance : InfSet (Colex ((i : ι) → α i)) where
-  sInf s := sInf (α := Πₗ i : ιᵒᵈ, α i) s
+  sInf s := toColex fun i ↦
+    sInf (α := Πₗ j : ιᵒᵈ, α (OrderDual.ofDual j))
+      ((fun f ↦ toColex fun j ↦ f (OrderDual.toDual j)) ⁻¹' s) (OrderDual.toDual i)
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sInf_apply (s : Set (Colex ((i : ι) → α i))) (i : ι) :
-    sInf s i = ⨅ e : {e ∈ s | ∀ j > i, e j = sInf s j}, e.1 i :=
-  Lex.sInf_apply (ι := ιᵒᵈ) s i
+    sInf s i = ⨅ e : {e ∈ s | ∀ j > i, e j = sInf s j}, e.1 i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.sInf_apply (ι := ιᵒᵈ) s i
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sInf_apply_le {s : Set (Colex ((i : ι) → α i))} {i : ι} {e : Colex ((i : ι) → α i)}
-    (he : e ∈ s) (h : ∀ j > i, e j = sInf s j) : sInf s i ≤ e i :=
-  Lex.sInf_apply_le (ι := ιᵒᵈ) he h
+    (he : e ∈ s) (h : ∀ j > i, e j = sInf s j) : sInf s i ≤ e i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.sInf_apply_le (ι := ιᵒᵈ) he h
 
 set_option backward.isDefEq.respectTransparency false in
 theorem le_sInf_apply {s : Set (Colex ((i : ι) → α i))} {i : ι} {e : Colex ((i : ι) → α i)}
-    (h : ∀ f ∈ s, (∀ j > i, f j = sInf s j) → e i ≤ f i) : e i ≤ sInf s i :=
-  Lex.le_sInf_apply (ι := ιᵒᵈ) h
+    (h : ∀ f ∈ s, (∀ j > i, f j = sInf s j) → e i ≤ f i) : e i ≤ sInf s i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.le_sInf_apply (ι := ιᵒᵈ) h
 
 -- TODO: figure out how to use `to_dual` here
 
 set_option backward.isDefEq.respectTransparency false in
 @[no_expose]
 instance : SupSet (Colex ((i : ι) → α i)) where
-  sSup s := sSup (α := Πₗ i : ιᵒᵈ, α i) s
+  sSup s := toColex fun i ↦
+    sSup (α := Πₗ j : ιᵒᵈ, α (OrderDual.ofDual j))
+      ((fun f ↦ toColex fun j ↦ f (OrderDual.toDual j)) ⁻¹' s) (OrderDual.toDual i)
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sSup_apply (s : Set (Colex ((i : ι) → α i))) (i : ι) :
-    sSup s i = ⨆ e : {e ∈ s | ∀ j > i, e j = sSup s j}, e.1 i :=
-  Lex.sSup_apply (ι := ιᵒᵈ) s i
+    sSup s i = ⨆ e : {e ∈ s | ∀ j > i, e j = sSup s j}, e.1 i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.sSup_apply (ι := ιᵒᵈ) s i
 
 set_option backward.isDefEq.respectTransparency false in
 theorem le_sSup_apply {s : Set (Colex ((i : ι) → α i))} {i : ι} {e : Colex ((i : ι) → α i)}
-    (he : e ∈ s) (h : ∀ j > i, e j = sSup s j) : e i ≤ sSup s i :=
-  Lex.le_sSup_apply (ι := ιᵒᵈ) he h
+    (he : e ∈ s) (h : ∀ j > i, e j = sSup s j) : e i ≤ sSup s i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.le_sSup_apply (ι := ιᵒᵈ) he h
 
 set_option backward.isDefEq.respectTransparency false in
 theorem sSup_apply_le {s : Set (Colex ((i : ι) → α i))} {i : ι} {e : Colex ((i : ι) → α i)}
-    (h : ∀ f ∈ s, (∀ j > i, f j = sSup s j) → f i ≤ e i) : sSup s i ≤ e i :=
-  Lex.sSup_apply_le (ι := ιᵒᵈ) h
+    (h : ∀ f ∈ s, (∀ j > i, f j = sSup s j) → f i ≤ e i) : sSup s i ≤ e i := by
+  unsealing_newtype OrderDual =>
+    exact Lex.sSup_apply_le (ι := ιᵒᵈ) h
 
 set_option backward.isDefEq.respectTransparency false in
 noncomputable instance completeLattice : CompleteLattice (Colex ((i : ι) → α i)) where
-  isLUB_sSup _ := by exact Lex.isLUB_sSup (ι := ιᵒᵈ)
-  isGLB_sInf _ := by exact Lex.isGLB_sInf (ι := ιᵒᵈ)
+  isLUB_sSup _ := by
+    unsealing_newtype OrderDual =>
+      exact Lex.isLUB_sSup (ι := ιᵒᵈ)
+  isGLB_sInf _ := by
+    unsealing_newtype OrderDual =>
+      exact Lex.isGLB_sInf (ι := ιᵒᵈ)
 
 noncomputable instance : CompleteLinearOrder (Colex ((i : ι) → α i)) where
   __ := linearOrder
