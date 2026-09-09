@@ -67,7 +67,7 @@ meta partial def headerTagLinter : Linter where
         }
         let toks := Parser.getTokenTable (← getEnv)
         let s := { cache := { tokenCache := {}, parserCache := {} }, pos := nextLine.i }
-        let s := Lean.Doc.Parser.metadataBlock.run ictx pmctx toks s
+        let s := Verso.Parser.metadataBlock.run ictx pmctx toks s
         let tagNote :=
           MessageData.note <|
             "The tag is used as a permanent name for the section or chapter. Writers "++

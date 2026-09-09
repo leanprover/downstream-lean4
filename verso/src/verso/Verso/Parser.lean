@@ -667,6 +667,11 @@ mutual
     text <|> linebreak ctxt <|> delimitedInline ctxt
 end
 
+/--
+One or more inline elements. With `allowNewlines`, they may continue onto the following lines.
+-/
+def textLine (allowNewlines := true) : ParserFn := many1Fn (inline { allowNewlines })
+
 open Lean.Parser Term in
 def metadataContents : Parser :=
   structInstFields (sepByIndent structInstField ", " (allowTrailingSep := true))
