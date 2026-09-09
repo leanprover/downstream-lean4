@@ -842,9 +842,10 @@ as the challenge, uses no axiom outside the permitted list, and is accepted by
 the kernel.
 
 The project is untrusted input: its configuration is evaluated, and its code
-built and exported, inside a `landrun` sandbox, and none of its `.olean` files
-is ever loaded into Lake's own address space. `landrun` is required; there is
-no unsandboxed mode, so this command is available on Linux only.
+built and exported, inside a `bwrap` sandbox, and none of its `.olean` files
+is ever loaded into Lake's own address space. `bubblewrap` is required, and
+needs either unprivileged user namespaces or to be installed setuid root;
+there is no unsandboxed mode, so this command is available on Linux only.
 
 The project has to carry a `lake-manifest.json`, because dependencies are
 resolved inside the sandbox and it cannot write to the project directory.
@@ -883,28 +884,23 @@ EXIT CODES:
   0                     accepted
   1                     rejected: statement mismatch, forbidden axiom, kernel
                         rejection, or a build that did not succeed
-  2                     could not start: `landrun` or the manifest is missing,
+  2                     could not start: `bwrap` or the manifest is missing,
                         or the configuration is missing, unreadable or
                         malformed
 
 ENVIRONMENT:
-  COMPARATOR_LANDRUN    sandbox executable (default: `landrun` on PATH)
+  COMPARATOR_BWRAP      sandbox executable (default: `bwrap` on PATH)
 
   The exporter is always the `leanexport` of this toolchain, and deliberately
   not configurable: the export format has to match the compiler that produced
   the `.olean` files being exported.
 
 HARDENING:
-  The sandbox bounds writes and TCP connections: only `.lake` is writable, and
-  only dependency resolution may connect, on the ports git's transports use.
-  It does not bound reads, execution, or non-TCP traffic.
-
-  Until the Landlock fix released in Linux 7.1 is widely available, `landrun`
-  can be escaped through an `AF_UNIX` socket. Where that matters, run the
-  command under a wrapper that removes the capability:
-
-    systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
-      lake challenge --config challenge.json
+  `challenge` uses `bwrap` for sandboxing. `/` is bound read-only and the home directories are then
+  covered, so the code being judged builds against the system it expects and reads none of the
+  invoking user's files. Only `.lake` is writable. Only dependency resolution has a network, because
+  it has to fetch git dependencies; the build, the export and any external kernels run in an empty
+  network namespace.
 ```
 
 ::::lake challenge "\"--config\" file"
@@ -914,9 +910,9 @@ Judges a solution against a {deftech}_challenge_: a trusted configuration that s
 
 The current Lake workspace is considered to be the {deftech}_solution_ project: it should satisfy the specification provided by the challenge.
 The solution is considered untrusted input.
-Its configuration is evaluated, and its code built and exported, inside a [`landrun`](https://github.com/Zouuup/landrun) sandbox, and its {tech}[`.olean` files] are kept out of Lake's own address space.
-Because `landrun` is required, the command is only available on Linux.
-The `landrun` executable name is determined by the {envVar +def}`COMPARATOR_LANDRUN` environment variable, defaulting to `landrun` if this is not set.
+Its configuration is evaluated, and its code built and exported, inside a [`bwrap`](https://github.com/containers/bubblewrap) sandbox, and its {tech}[`.olean` files] are kept out of Lake's own address space.
+Because `bubblewrap` is required, the command is only available on Linux, and it needs either unprivileged user namespaces or to be installed setuid root.
+The `bwrap` executable name is determined by the {envVar +def}`COMPARATOR_BWRAP` environment variable, defaulting to `bwrap` if this is not set.
 The executable is resolved via the {envVar}`PATH`.
 The export is produced by the toolchain's own `leanexport` executable, so the export format matches the compiler that produced the {tech}[`.olean` files].
 
@@ -977,21 +973,12 @@ The challenge configuration is a JSON file that contains an object with the foll
 ## Sandbox
 
 :::paragraph
-The sandbox restricts only filesystem writes and outbound TCP connections:
+The sandbox is constructed with `bwrap`:
 
+* `/` is bound read-only and the home directories are then covered, so the code being judged builds against the system it expects while reading none of the invoking user's files.
 * Writes are confined to the project's `.lake` directory.
-* Only dependency resolution may open connections, on ports 443 and 22, the ports used by git's `https` and `ssh` transports.
-
-Reads, execution, and network traffic other than TCP are unrestricted.
+* Only dependency resolution has a network, because it has to fetch git dependencies. The build, the export, and any external kernels run in an empty network namespace.
 :::
-
-On Linux kernels that predate the Landlock fix released in Linux 7.1, `landrun` can be escaped through an `AF_UNIX` socket.
-Where that matters, run the command under a wrapper that removes the capability:
-
-```
-systemd-run --user --pty --property=RestrictAddressFamilies=~AF_UNIX \
-  lake challenge --config challenge.json
-```
 
 # Development Tools
 
