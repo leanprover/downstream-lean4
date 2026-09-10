@@ -9,7 +9,7 @@ public import Mathlib.Init
 public meta import Lean.Meta.Tactic.Rfl
 
 /-!
-# `Lean.MVarId.liftReflToEq`
+# `Mathlib.Tactic.liftReflToEq`
 
 Convert a goal of the form `x ~ y` into the form `x = y`, where `~` is a reflexive
 relation, that is, a relation which has a reflexive lemma tagged with the attribute `@[refl]`.
@@ -28,6 +28,35 @@ relation, that is, a relation which has a reflexive lemma tagged with the attrib
 -/
 def rflTac : TacticM Unit :=
   withMainContext do liftMetaFinishingTactic (·.applyRfl)
+
+/-- Helper theorem for `Mathlib.Tactic.liftReflToEq`. -/
+theorem rel_of_eq_and_refl {α : Sort*} {R : α → α → Prop}
+    {x y : α} (hxy : x = y) (h : R x x) : R x y :=
+  hxy ▸ h
+
+/--
+Convert a goal of the form `x ~ y` into the form `x = y`, where `~` is a reflexive
+relation, that is, a relation which has a reflexive lemma tagged with the attribute `@[refl]`.
+If this can't be done, returns the original `MVarId`.
+-/
+def liftReflToEq (mvarId : MVarId) : MetaM MVarId := do
+  mvarId.checkNotAssigned `liftReflToEq
+  let .app (.app rel _) _ ← withReducible mvarId.getType' | return mvarId
+  if rel.isAppOf `Eq then
+    -- No need to lift Eq to Eq
+    return mvarId
+  for lem in ← (reflExt.getState (← getEnv)).getMatch rel do
+    let res ← observing? do
+      -- First create an equality relating the LHS and RHS
+      -- and reduce the goal to proving that LHS is related to LHS.
+      let [mvarIdEq, mvarIdR] ← mvarId.apply
+        (← mkConstWithFreshMVarLevels ``Mathlib.Tactic.rel_of_eq_and_refl) | failure
+      -- Then fill in the proof of the latter by reflexivity.
+      let [] ← mvarIdR.apply (← mkConstWithFreshMVarLevels lem) | failure
+      return mvarIdEq
+    if let some mvarIdEq := res then
+      return mvarIdEq
+  return mvarId
 
 /-- If `e` is the form `@R .. x y`, where `R` is a reflexive
 relation, return `some (R, x, y)`.
