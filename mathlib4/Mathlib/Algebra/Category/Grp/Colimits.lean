@@ -293,6 +293,8 @@ open QuotientAddGroup
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/12179:
+
 This definition fails without `respectTransparency false`. Removing `lift_mk` from the `dsimp only`
 set in `inv_hom_id` would help. A more sustainable fix would probably be to revisit the `lift_mk`
 refl lemma: Its LHS and RHS are not defeq at implicit transparency. Either the lemma shouldn't be

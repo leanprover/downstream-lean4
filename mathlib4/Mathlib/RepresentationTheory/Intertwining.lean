@@ -489,6 +489,8 @@ instance : Module A (IntertwiningMap ρ σ) :=
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `LinearMap.CompatibleSMul ρ.asModule σ.asModule A A[G]`

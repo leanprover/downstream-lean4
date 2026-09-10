@@ -71,11 +71,10 @@ def checkKernelDecide {u : Level} (α : Q(Type u)) : MetaM Unit := do
   have _cr : Q(CommRing $α) := ← synthInstanceQ q(CommRing $α)
   -- `Decidable` of the single equality rather than `DecidableEq`: a ring where equality
   -- is only decidable against zero should pass
-  unless (← synthInstance? q(Decidable (((1 : ℤ) : $α) = 0))).isSome do
+  let some _inst ← synthInstanceQ? q(Decidable (((1 : ℤ) : $α) = 0)) |
     throwError "equality with zero in the element type is not decidable{indentExpr α}"
-  -- check if the equality reduced to a concrete false; we reduce `decide` rather than the
-  -- instance itself, as the shape of a reduced `Decidable` value is not stable
-  let d ← mkDecide q(((1 : ℤ) : $α) = 0)
+  -- check if the equality reduced to a concrete false
+  let d := q(decide (((1 : ℤ) : $α) = 0))
   unless (Kernel.whnf (← getEnv) (← getLCtx) d).toOption.any (·.isConstOf ``Bool.false) do
     throwError "equality in the element type does not reduce in the kernel{indentExpr α}"
 

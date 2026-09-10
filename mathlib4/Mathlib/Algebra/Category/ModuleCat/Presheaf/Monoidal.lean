@@ -39,6 +39,8 @@ variable (M₁ M₂ M₃ M₄ : PresheafOfModulesOfCommRing.{u} R)
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `TensorProduct.CompatibleSMul ↑(R.obj Y) ↑(R.obj Y) ↑(M₁.obj Y) ↑(M₂.obj Y)`

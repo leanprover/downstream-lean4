@@ -86,6 +86,8 @@ lemma hom₁_single (r : σ) :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `RingHomSurjective (RingHom.id pres.Ring)`

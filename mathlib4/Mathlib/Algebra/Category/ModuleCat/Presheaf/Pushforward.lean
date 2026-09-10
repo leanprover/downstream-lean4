@@ -110,6 +110,8 @@ lemma pushforward_obj_map_apply (M : PresheafOfModules.{v} R) {X Y : Cᵒᵖ} (f
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized, writing `P Z` for
 `(ModuleCat.restrictScalars (RingCat.Hom.hom (φ.app Z))).obj (((pushforward₀ F R).obj M).obj Z)`:
@@ -156,6 +158,8 @@ lemma pushforward_map_app_apply {M N : PresheafOfModules.{v} R} (α : M ⟶ N) (
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized, writing `P Z` for
 `(ModuleCat.restrictScalars (RingCat.Hom.hom (φ.app Z))).obj (((pushforward₀ F R).obj M).obj Z)`:

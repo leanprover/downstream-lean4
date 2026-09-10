@@ -588,6 +588,8 @@ def _root_.RingEquiv.toSemilinearEquiv (f : R ≃+* S) :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` and `respectTransparency` backward compatibility flags to
 make an instance search succeed. Concretely, the following instance cannot be synthesized:
 `CoeFun (R ≃ₛₗ[↑f] S) ?m`
