@@ -15,6 +15,16 @@
       "type": "path",
       "subDir": null,
       "scope": "",
+      "name": "Cli",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../lean4-cli"
+    },
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
       "name": "illuminate",
       "manifestFile": "lake-manifest.json",
       "inherited": true,
