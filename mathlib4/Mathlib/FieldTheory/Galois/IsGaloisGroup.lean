@@ -202,6 +202,9 @@ instance intermediateField [Finite G] [hGKL : IsGaloisGroup G K L] :
   have := hGKL.isGalois
   .of_mulEquiv_algEquiv e fun _ _ ↦ rfl
 
+set_option synthInstance.maxHeartbeats 80000 in
+-- The `Algebra K (IsScalarTower.toAlgHom K F L).fieldRange` instance in the proof needs more
+-- than the default limit.
 attribute [local instance] FractionRing.liftAlgebra in
 /-- If `G` is a finite Galois group for `B / R` and `R ⊆ A ⊆ B` is a tower of commutative domains
 with `A` integrally closed, then the fixing subgroup of the image of `A` in `B` is a Galois group
