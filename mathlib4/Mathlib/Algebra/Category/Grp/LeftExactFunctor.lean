@@ -105,7 +105,6 @@ noncomputable def unitIsoAux (F : C ⥤ AddCommGrpCat.{v}) [PreservesFiniteLimit
   rw [dsimp% [types_tensorObj_def, types_tensorUnit_def] μ_forget_apply]
   rfl
 
-set_option dsimp.resynthInstances false in
 /-- Implementation, see `leftExactFunctorForgetEquivalence`. -/
 noncomputable def unitIso : 𝟭 (C ⥤ₗ AddCommGrpCat) ≅
     (LeftExactFunctor.whiskeringRight _ _ _).obj (LeftExactFunctor.of (forget _)) ⋙ inverse :=

@@ -130,7 +130,6 @@ def unitIsoAddEquiv {V : Rep.{w} k G} : V ≃+ (toModuleMonoidAlgebra ⋙
   dsimp [ofModuleMonoidAlgebra, toModuleMonoidAlgebra]
   exact V.ρ.asModuleEquiv.symm.toAddEquiv.trans (RestrictScalars.addEquiv _ _ _).symm
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition for `equivalenceModuleMonoidAlgebra`. -/
 def counitIso (M : ModuleCat.{w} k[G]) :

@@ -442,7 +442,6 @@ namespace QPF
 variable {F₂ : Type u → Type u} [q₂ : QPF F₂]
 variable {F₁ : Type u → Type u} [q₁ : QPF F₁]
 
-set_option dsimp.resynthInstances false in
 /-- composition of qpfs gives another qpf -/
 @[instance_reducible]
 def comp : QPF (Functor.Comp F₂ F₁) where

@@ -1189,7 +1189,6 @@ attribute [local simp] eqToIso_map
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 
-set_option dsimp.resynthInstances false in
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
 -/
