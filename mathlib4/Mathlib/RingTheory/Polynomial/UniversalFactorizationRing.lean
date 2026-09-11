@@ -440,6 +440,7 @@ lemma UniversalFactorizationRing.factor₁_mul_factor₂ :
 
 set_option backward.isDefEq.respectTransparency false in
 attribute [-instance] leftModule in
+set_option dsimp.resynthInstances false in
 /-- The universal factorization ring represents
 `S ↦ "factorizations of p into (monic deg m) * (monic deg k) in S"`. -/
 def UniversalFactorizationRing.homEquiv :

@@ -43,6 +43,7 @@ The sign is determined using the two's complement convention: the result is nega
   · have hlt := Nat.ofBits_lt_two_pow f
     simp [subNatNat_of_lt hlt, testBit, Nat.sub_sub, Nat.testBit_two_pow_sub_succ hlt, h]
 
+set_option dsimp.resynthInstances false in
 @[simp] theorem testBit_ofBits_ge {f : Fin n → Bool} (h : i ≥ n) :
     (ofBits f).testBit i = decide (ofBits f < 0) := by
   simp only [ofBits]

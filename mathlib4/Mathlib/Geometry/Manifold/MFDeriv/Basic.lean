@@ -581,12 +581,14 @@ theorem hasMFDerivAt_unique (h₀ : HasMFDerivAt% f x f₀') (h₁ : HasMFDerivA
   rw [← hasMFDerivWithinAt_univ] at h₀ h₁
   exact (uniqueMDiffWithinAt_univ I).eq h₀ h₁
 
+set_option dsimp.resynthInstances false in
 theorem hasMFDerivWithinAt_inter' (h : t ∈ 𝓝[s] x) :
     HasMFDerivAt[s ∩ t] f x f' ↔ HasMFDerivAt[s] f x f' := by
   rw [HasMFDerivWithinAt, HasMFDerivWithinAt, extChartAt_preimage_inter_eq,
     hasFDerivWithinAt_inter', continuousWithinAt_inter' h]
   exact extChartAt_preimage_mem_nhdsWithin h
 
+set_option dsimp.resynthInstances false in
 theorem hasMFDerivWithinAt_inter (h : t ∈ 𝓝 x) :
     HasMFDerivAt[s ∩ t] f x f' ↔ HasMFDerivAt[s] f x f' := by
   rw [HasMFDerivWithinAt, HasMFDerivWithinAt, extChartAt_preimage_inter_eq, hasFDerivWithinAt_inter,

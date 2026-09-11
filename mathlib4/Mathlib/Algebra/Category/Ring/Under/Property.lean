@@ -142,6 +142,7 @@ open RingHom
 
 variable {P}
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 lemma CommRingCat.preservesLimit_parallelPair_tensorProd_iff_tensorEqualizer_bijective

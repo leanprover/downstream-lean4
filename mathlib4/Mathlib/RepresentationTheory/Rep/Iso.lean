@@ -115,6 +115,7 @@ theorem ofModuleMonoidAlgebra_obj_ρ (M : ModuleCat.{w} k[G]) :
     (ofModuleMonoidAlgebra.obj M).ρ = Representation.ofModule M :=
   rfl
 
+set_option dsimp.resynthInstances false in
 /-- Auxiliary definition for `equivalenceModuleMonoidAlgebra`. -/
 def counitIsoAddEquiv {M : ModuleCat.{w} k[G]} :
     (ofModuleMonoidAlgebra ⋙ toModuleMonoidAlgebra).obj M ≃+ M := by
@@ -122,12 +123,14 @@ def counitIsoAddEquiv {M : ModuleCat.{w} k[G]} :
   exact (Representation.ofModule M).asModuleEquiv.toAddEquiv.trans
     (RestrictScalars.addEquiv k k[G] _)
 
+set_option dsimp.resynthInstances false in
 /-- Auxiliary definition for `equivalenceModuleMonoidAlgebra`. -/
 def unitIsoAddEquiv {V : Rep.{w} k G} : V ≃+ (toModuleMonoidAlgebra ⋙
     ofModuleMonoidAlgebra).obj V := by
   dsimp [ofModuleMonoidAlgebra, toModuleMonoidAlgebra]
   exact V.ρ.asModuleEquiv.symm.toAddEquiv.trans (RestrictScalars.addEquiv _ _ _).symm
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition for `equivalenceModuleMonoidAlgebra`. -/
 def counitIso (M : ModuleCat.{w} k[G]) :
@@ -137,6 +140,7 @@ def counitIso (M : ModuleCat.{w} k[G]) :
       map_smul' := fun r x => by
         simp [counitIsoAddEquiv] }
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 theorem unit_iso_comm (V : Rep.{w} k G) (g : G) (x : V) :
     unitIsoAddEquiv ((V.ρ g).toFun x) = ((ofModuleMonoidAlgebra.obj

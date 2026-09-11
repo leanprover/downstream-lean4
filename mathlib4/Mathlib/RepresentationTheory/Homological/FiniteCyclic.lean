@@ -204,6 +204,7 @@ noncomputable def resolution.π (g : G) :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 lemma resolution_quasiIso (g : G) (hg : ∀ x, x ∈ Subgroup.zpowers g) :
     QuasiIso (resolution.π k g) where
   quasiIsoAt m := by

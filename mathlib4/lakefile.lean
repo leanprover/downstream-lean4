@@ -45,6 +45,7 @@ abbrev mathlibLeanOptions := #[
     ⟨`maxSynthPendingDepth, .ofNat 3⟩,
     ⟨`weak.linter.unreachableTactic, false⟩, -- superseded by the unused tactic linter
     ⟨`weak.linter.unnecessarySeqFocus, false⟩, -- superseded by the unused tactic linter
+    ⟨`backward.isDefEq.respectTransparency.instances, false⟩,
   ] ++ -- options that are used in `lake build`
     mathlibOnlyLinters.map fun s ↦ { s with name := `weak ++ s.name }
 

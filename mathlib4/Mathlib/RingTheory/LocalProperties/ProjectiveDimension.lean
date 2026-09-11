@@ -30,6 +30,7 @@ namespace ModuleCat
 
 open CategoryTheory
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 instance [Small.{v} R] (S : Submonoid R) :
     (ModuleCat.localizedModuleFunctor.{v} S).PreservesProjectiveObjects where

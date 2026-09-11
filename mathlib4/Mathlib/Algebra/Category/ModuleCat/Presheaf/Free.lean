@@ -73,6 +73,7 @@ noncomputable def freeObjDesc (φ : F ⟶ G.presheaf ⋙ forget _) : freeObj F �
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable (F R) in
+set_option dsimp.resynthInstances false in
 /-- The unit of `PresheafOfModules.freeAdjunction`. -/
 @[simps]
 noncomputable def freeAdjunctionUnit : F ⟶ (freeObj (R := R) F).presheaf ⋙ forget _ where
@@ -81,6 +82,7 @@ noncomputable def freeAdjunctionUnit : F ⟶ (freeObj (R := R) F).presheaf ⋙ f
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The bijection `(freeObj F ⟶ G) ≃ (F ⟶ G.presheaf ⋙ forget _)` when
 `F` is a presheaf of types and `G` a presheaf of modules. -/
 noncomputable def freeHomEquiv : (freeObj F ⟶ G) ≃ (F ⟶ G.presheaf ⋙ forget _) where
@@ -97,6 +99,7 @@ lemma free_hom_ext {ψ ψ' : freeObj F ⟶ G}
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable (R) in
+set_option dsimp.resynthInstances false in
 /-- The free presheaf of modules functor is left adjoint to the forget functor
 `PresheafOfModules.{u} R ⥤ Cᵒᵖ ⥤ Type u`. -/
 noncomputable def freeAdjunction :

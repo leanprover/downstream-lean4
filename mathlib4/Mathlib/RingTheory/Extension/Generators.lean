@@ -273,6 +273,7 @@ def baseChange (T) [CommRing T] [Algebra R T] (P : Generators R S ι) :
 set_option backward.defeqAttrib.useBackward true in
 variable (T) in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The forwards direction of the canonical isomorphism `T ⊗[R] R[Xᵢ] ≃ₐ[T] T[Xᵢ]` as
 a map of extensions. -/
 noncomputable def baseChangeFromBaseChange :
@@ -291,6 +292,7 @@ lemma baseChangeFromBaseChange_apply (x : P.toExtension.baseChange.Ring) :
 set_option backward.defeqAttrib.useBackward true in
 variable (T) in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The backwards direction of the canonical isomorphism `T ⊗[R] R[Xᵢ] ≃ₐ[T] T[Xᵢ]` as
 a map of extensions. -/
 noncomputable def baseChangeToBaseChange :
@@ -581,6 +583,7 @@ def toExtendScalars (P : Generators R T ι) : Hom P (P.extendScalars S) where
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable {P P'} in
+set_option dsimp.resynthInstances false in
 /-- Reinterpret a hom between generators as a hom between extensions. -/
 @[simps]
 noncomputable
@@ -592,6 +595,7 @@ def Hom.toExtensionHom [Algebra R S'] [IsScalarTower R R' S'] [IsScalarTower R S
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma Hom.toExtensionHom_id : Hom.toExtensionHom (.id P) = .id _ := by ext; simp
 
@@ -614,6 +618,7 @@ noncomputable abbrev ker : Ideal P.Ring := P.toExtension.ker
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 lemma ker_eq_ker_aeval_val : P.ker = RingHom.ker (aeval P.val) := by
   simp only [ker, Extension.ker, toExtension_Ring, algebraMap_eq]
   rfl
@@ -631,6 +636,7 @@ lemma ker_naive {σ : Type*} {I : Ideal (MvPolynomial σ R)}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma ker_ofAlgHom {I : Type*} (f : MvPolynomial I R →ₐ[R] S) (h : Function.Surjective ⇑f) :
     (ofAlgHom f h).ker = RingHom.ker f.toRingHom := by
@@ -789,6 +795,7 @@ namespace Algebra.Extension
 
 set_option backward.isDefEq.respectTransparency false in
 set_option backward.defeqAttrib.useBackward true in
+set_option dsimp.resynthInstances false in
 /-- The canonical homomorphism of extensions from the universal extension `R[S] → S`
 (given by `Generators.self R S`) to any extension `P` defined via the designated section `P.σ`. -/
 @[simps!]

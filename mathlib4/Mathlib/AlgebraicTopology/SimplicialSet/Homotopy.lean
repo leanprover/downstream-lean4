@@ -62,6 +62,7 @@ lemma h₁ (H : Homotopy f g) : ι₁ ≫ H.h = g :=
   RelativeMorphism.Homotopy.h₁ H
 
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- If `H : Homotopy f g` is a homotopy between morphisms of simplicial sets
 `f : X ⟶ Y` and `g : X ⟶ Y` (i.e. `H.h` is a morphism `X ⊗ Δ[1] ⟶ Y` inducing
 `f` and `g`), then this is the corresponding (combinatorial) homotopy of

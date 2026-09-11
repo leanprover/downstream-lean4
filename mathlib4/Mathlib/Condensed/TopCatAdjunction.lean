@@ -125,6 +125,7 @@ noncomputable def topCatAdjunctionUnit (X : CondensedSet.{u}) : X ⟶ X.toTopCat
         TypeCat.Fun.coe_mk, ← Functor.map_comp_apply]
       rfl }
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The adjunction `condensedSetToTopCat ⊣ topCatToCondensedSet` -/

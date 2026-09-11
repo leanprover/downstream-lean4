@@ -510,6 +510,7 @@ variable {A₂ : Type u₇} {B₂ : Type u₈} {C₂ : Type u₉}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The construction `CatCommSqOver.transform` respects vertical composition
 of `CatCospanTransform`s. -/
 @[simps!]
@@ -524,6 +525,7 @@ def transformObjComp (X : Type u₁₀) [Category.{v₁₀} X]
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The construction `CatCommSqOver.transform` respects the identity
 `CatCospanTransform`s. -/
 @[simps!]

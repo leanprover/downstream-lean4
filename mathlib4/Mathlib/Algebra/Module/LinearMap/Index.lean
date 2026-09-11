@@ -80,6 +80,7 @@ public lemma index_of_bijective (hf : Bijective f) :
   nontriviality R
   rw [index_of_surjective hf.surjective, ker_eq_bot.mpr hf.injective, finrank_bot, Nat.cast_zero]
 
+set_option dsimp.resynthInstances false in
 @[simp] public lemma index_id :
     (id : M →ₗ[R] M).index = 0 :=
   index_of_bijective bijective_id

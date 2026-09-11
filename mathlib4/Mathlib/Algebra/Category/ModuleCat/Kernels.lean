@@ -45,6 +45,7 @@ def kernelIsLimit : IsLimit (kernelCone f) :=
       hom_ext <| LinearMap.ext fun x => Subtype.ext_iff.2 (by simp [← h]; rfl)
 
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- Construct an `IsLimit` structure of kernels given `Function.Exact`. -/
 noncomputable
 def isLimitKernelFork (f : M ⟶ N) (g : N ⟶ P) (H : Function.Exact f.hom g.hom)

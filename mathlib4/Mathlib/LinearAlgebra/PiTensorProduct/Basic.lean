@@ -743,6 +743,7 @@ theorem reindex_symm_symm_tprod (e : ι₂ ≃ ι) (f : Π i, s i) :
   simp
 
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 @[simp]
 theorem reindex_refl : reindex R s (Equiv.refl ι) = LinearEquiv.refl R _ := by
   ext

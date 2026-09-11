@@ -69,12 +69,14 @@ lemma comm₂₃' : pres.toExtension.toKaehler.comp pres.cotangentSpaceBasis.rep
   ext
   simp
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The canonical map `(σ →₀ S) →ₗ[S] pres.toExtension.Cotangent`. -/
 noncomputable def hom₁ : (σ →₀ S) →ₗ[S] pres.toExtension.Cotangent :=
   Finsupp.linearCombination S (fun r ↦ Extension.Cotangent.mk ⟨pres.relation r, by simp⟩)
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma hom₁_single (r : σ) :
@@ -106,6 +108,7 @@ the transparency bump that instance-implicit arguments would otherwise receive.
 Potential fix: Mark `Generators.toExtension` implicit-reducible; then `respectTransparency false`
 and `instanceSearchTypes false` can both go.
 -/
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -135,6 +138,7 @@ lemma surjective_hom₁ : Function.Surjective (hom₁ pres) := by
   simp only [LinearMap.coe_mk, AddHom.coe_mk, hom₁_single, φ]
   rfl
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma comm₁₂_single (r : σ) :

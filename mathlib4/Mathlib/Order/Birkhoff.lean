@@ -128,6 +128,7 @@ namespace OrderIso
 section SemilatticeSup
 variable [SemilatticeSup α] [OrderBot α] [Finite α]
 
+set_option dsimp.resynthInstances false in
 @[to_dual (attr := simp)]
 lemma supIrredLowerSet_symm_apply (s : {s : LowerSet α // SupIrred s}) [Fintype s] :
     supIrredLowerSet.symm s = (s.val : Set α).toFinset.sup id := by

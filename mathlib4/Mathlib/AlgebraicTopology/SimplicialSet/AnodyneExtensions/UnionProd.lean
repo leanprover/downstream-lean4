@@ -101,6 +101,7 @@ lemma isIndex_succ (l : Fin d) :
       (x.cast hd).simplex.1 l.succ = k.succ ∧
       (x.cast hd).simplex.2 l.succ = (x.cast hd).simplex.2 l.castSucc := Iff.rfl
 
+set_option dsimp.resynthInstances false in
 lemma mem_range_left (i : Fin (m + 2)) (hi : i ≠ k.castSucc) :
     i ∈ Set.range (x.cast hd).simplex.1 := by
   subst hd
@@ -108,6 +109,7 @@ lemma mem_range_left (i : Fin (m + 2)) (hi : i ≠ k.castSucc) :
   simp [Subcomplex.mem_unionProd_iff, mem_horn_iff_notMem_range] at this
   tauto
 
+set_option dsimp.resynthInstances false in
 lemma mem_range_right (i : Fin (n + 1)) :
     i ∈ Set.range (x.cast hd).simplex.2 := by
   subst hd
@@ -207,6 +209,7 @@ variable {x} {hd : x.dim = d + 1} {l : Fin (d + 1)} (hl : IsIndex x hd l.succ)
 
 include hl
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- The type (II) simplex obtained as a face of a type (I) simplex. -/
 @[simps -isSimp]

@@ -94,6 +94,7 @@ def inverseObj (F : C ⥤ Mon D) : Mon (C ⥤ D) where
   { one := { app X := η[(F.obj X).X] }
     mul := { app X := μ[(F.obj X).X] } }
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 /-- Functor translating a functor into the category of monoid objects
 to a monoid object in the functor category
@@ -195,6 +196,7 @@ def inverseObj (F : C ⥤ Comon D) : Comon (C ⥤ D) where
   { counit := { app X := ε[(F.obj X).X] }
     comul := { app X := Δ[(F.obj X).X] } }
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.privateInPublic true in
 /-- Functor translating a functor into the category of comonoid objects

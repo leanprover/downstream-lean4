@@ -178,6 +178,7 @@ lemma right_coherence_app {ψ ψ' : CatCospanTransform F G F' G'}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- Whiskering left of a `CatCospanTransformMorphism` by a `CatCospanTransform`. -/
 @[simps]
 def whiskerLeft (φ : CatCospanTransform F G F' G')
@@ -189,6 +190,7 @@ def whiskerLeft (φ : CatCospanTransform F G F' G')
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- Whiskering right of a `CatCospanTransformMorphism` by a `CatCospanTransform`. -/
 @[simps]
 def whiskerRight {ψ ψ' : CatCospanTransform F G F' G'} (α : ψ ⟶ ψ')
@@ -317,6 +319,7 @@ end Iso
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The left unitor isomorphism for categorical cospan transformations. -/
 @[simps!]
 def leftUnitor (φ : CatCospanTransform F G F' G') :
@@ -325,6 +328,7 @@ def leftUnitor (φ : CatCospanTransform F G F' G') :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The right unitor isomorphism for categorical cospan transformations. -/
 @[simps!]
 def rightUnitor (φ : CatCospanTransform F G F' G') :
@@ -333,6 +337,7 @@ def rightUnitor (φ : CatCospanTransform F G F' G') :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The associator isomorphism for categorical cospan transformations. -/
 @[simps!]
 def associator {A''' : Type u₁₀} {B''' : Type u₁₁} {C''' : Type u₁₂}

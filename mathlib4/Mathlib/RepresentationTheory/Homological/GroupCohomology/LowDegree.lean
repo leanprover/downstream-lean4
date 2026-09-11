@@ -972,6 +972,7 @@ lemma π_comp_H1Iso_hom :
 
 variable {A}
 
+set_option dsimp.resynthInstances false in
 lemma H1π_eq_zero_iff (x : cocycles₁ A) : H1π A x = 0 ↔ ⇑x ∈ coboundaries₁ A := by
   rw [← map_eq_zero_iff _ ((ModuleCat.mono_iff_injective (H1Iso A).hom).1 inferInstance), H1π]
   simp [π_comp_H1Iso_hom_apply _, LinearMap.range_codRestrict, shortComplexH1, coboundaries₁]
@@ -1042,6 +1043,7 @@ lemma π_comp_H2Iso_hom :
 
 variable {A}
 
+set_option dsimp.resynthInstances false in
 lemma H2π_eq_zero_iff (x : cocycles₂ A) : H2π A x = 0 ↔ ⇑x ∈ coboundaries₂ A := by
   rw [← map_eq_zero_iff _ ((ModuleCat.mono_iff_injective (H2Iso A).hom).1 inferInstance)]
   simp [H2π, π_comp_H2Iso_hom_apply _, LinearMap.range_codRestrict, shortComplexH2, coboundaries₂]

@@ -66,6 +66,7 @@ lemma map_lift_mapCone (c : Cone F) :
   have h₂ := (c.π.app i).map_val
   simpa [-Functor.comp_obj, ← comp_apply, ← Functor.map_comp, liftedConeElement, liftedConeElement']
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma map_π_liftedConeElement (i : I) :
     dsimp% A.map (limit.π (F ⋙ π A) i) (liftedConeElement F) = (F.obj i).val := by

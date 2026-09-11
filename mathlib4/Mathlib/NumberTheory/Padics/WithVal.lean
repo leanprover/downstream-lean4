@@ -34,6 +34,7 @@ variable {p : ℕ} [Fact p.Prime]
 
 open WithZero UniformSpace
 
+set_option dsimp.resynthInstances false in
 open MonoidWithZeroHom.ValueGroup₀ in
 lemma isUniformInducing_cast_withVal : IsUniformInducing ((Rat.castHom ℚ_[p]).comp
     (WithVal.equiv (Rat.padicValuation p)).toRingHom) := by

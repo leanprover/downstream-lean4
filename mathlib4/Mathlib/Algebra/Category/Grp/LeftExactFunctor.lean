@@ -76,6 +76,7 @@ open scoped MonObj
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 attribute [-instance] Functor.LaxMonoidal.comp Functor.Monoidal.instComp in
+set_option dsimp.resynthInstances false in
 /-- Implementation, see `leftExactFunctorForgetEquivalence`.
 This is the complicated bit, where we show that forgetting the group structure in the image of
 `F` and then reconstructing it recovers the group structure we started with. -/
@@ -104,6 +105,7 @@ noncomputable def unitIsoAux (F : C ⥤ AddCommGrpCat.{v}) [PreservesFiniteLimit
   rw [dsimp% [types_tensorObj_def, types_tensorUnit_def] μ_forget_apply]
   rfl
 
+set_option dsimp.resynthInstances false in
 /-- Implementation, see `leftExactFunctorForgetEquivalence`. -/
 noncomputable def unitIso : 𝟭 (C ⥤ₗ AddCommGrpCat) ≅
     (LeftExactFunctor.whiskeringRight _ _ _).obj (LeftExactFunctor.of (forget _)) ⋙ inverse :=

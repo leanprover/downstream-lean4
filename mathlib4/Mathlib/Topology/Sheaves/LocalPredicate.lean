@@ -320,6 +320,7 @@ theorem stalkToFiber_surjective (P : LocalPredicate T) (x : X)
   · exact (subsheafToTypes P).presheaf.germ _ x U.property ⟨f, h⟩
   · exact stalkToFiber_germ P U.val x U.property ⟨f, h⟩
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 /-- The `stalkToFiber` map is injective at `x` if any two allowed sections which agree at `x`
 agree on some neighborhood of `x`.

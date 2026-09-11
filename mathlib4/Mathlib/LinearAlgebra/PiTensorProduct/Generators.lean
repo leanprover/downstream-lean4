@@ -90,6 +90,7 @@ Then both backward compatibility options can go: first `respectTransparency fals
 -/
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma equivPiTensorComplSingletonTensor_tprod (i₀ : ι) (m : ∀ i, M i) :
     equivPiTensorComplSingletonTensor R M i₀ (⨂ₜ[R] i, m i) =

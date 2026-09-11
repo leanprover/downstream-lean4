@@ -284,6 +284,7 @@ namespace Grpd
 open FreeGroupoid
 
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- The free groupoid construction on a category as a functor. -/
 def free : Cat.{u, u} ⥤ Grpd.{u, u} where
   obj C := ↧(FreeGroupoid C)

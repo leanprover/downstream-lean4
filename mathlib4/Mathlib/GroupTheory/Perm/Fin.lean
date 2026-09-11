@@ -603,6 +603,7 @@ noncomputable def decomposeFin' : Perm (Fin (n + 2)) ≃ Fin (n + 2) × Perm (Fi
 lemma decomposeFin'_symm (i : Fin (n + 2)) (σ : Perm (Fin (n + 1))) :
     decomposeFin'.symm ⟨i, σ⟩ = decomposeFin'Symm i σ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma sign_decomposeFin'Symm (i : Fin (n + 2)) (σ : Perm (Fin (n + 1))) :
     (decomposeFin'Symm i σ).sign = (-1) ^ i.val * σ.sign := by

@@ -105,6 +105,7 @@ def encodeChar (c : Char) : Fin Char.count :=
   else
     Char.ofNatAux (i.val + (Char.maxSurrogate + 1 - Char.minSurrogate)) (by grind)
 
+set_option dsimp.resynthInstances false in
 @[simp] theorem encodeChar_decodeChar (x) : encodeChar (decodeChar x) = x := by
   simp only [decodeChar, encodeChar]
   split
@@ -112,6 +113,7 @@ def encodeChar (c : Char) : Fin Char.count :=
   · have : ¬ x.val + (Char.maxSurrogate + 1 - Char.minSurrogate) < Char.minSurrogate := by grind
     simp [*]
 
+set_option dsimp.resynthInstances false in
 @[simp] theorem decodeChar_encodeChar (x) : decodeChar (encodeChar x) = x := by
   ext; simp only [decodeChar, encodeChar]
   split

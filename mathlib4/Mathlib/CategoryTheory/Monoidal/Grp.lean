@@ -661,6 +661,7 @@ def mapGrpNatTrans (f : F ⟶ F') : F.mapGrp ⟶ F'.mapGrp where
 
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
+set_option dsimp.resynthInstances false in
 /-- Natural isomorphisms between functors lift to group objects. -/
 @[to_additive (attr := simps!)
 /-- Natural isomorphisms between functors lift to additive group objects. -/]
@@ -670,6 +671,7 @@ def mapGrpNatIso (e : F ≅ F') : F.mapGrp ≅ F'.mapGrp :=
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 attribute [local instance] Monoidal.ofChosenFiniteProducts in
+set_option dsimp.resynthInstances false in
 /-- `mapGrp` is functorial in the left-exact functor. -/
 @[to_additive (attr := simps)
 /-- `mapAddGrp` is functorial in the left-exact functor. -/]

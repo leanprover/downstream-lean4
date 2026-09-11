@@ -128,6 +128,7 @@ def FiniteEtale.finiteSpec (k : Type u) [Field k] : (FiniteEtale.{v} k)ᵒᵖ �
   map f := FintypeCat.homMk (PrimeSpectrum.comap f.unop.hom.hom)
 
 set_option backward.defeqAttrib.useBackward true in
+set_option dsimp.resynthInstances false in
 /-- If the geometric point `Ω` factors through `S`, the fiber can be computed after base change
 to `S`. -/
 @[expose]
@@ -155,6 +156,7 @@ noncomputable def FiniteEtale.fiberIsoComp [IsSepClosed Ω] :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option dsimp.resynthInstances false in
 /-- If `Ω` is a separably closed field, the category of finite étale `Ω`-algebras is
 anti-equivalent to `FintypeCat`. -/
 @[expose, simps! functor inverse_obj inverse_map]

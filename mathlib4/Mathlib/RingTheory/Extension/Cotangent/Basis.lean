@@ -57,6 +57,7 @@ of `I/I²` in `I`. -/
 abbrev T :=
   MvPolynomial ι R ⧸ (Ideal.span <| Set.range <| Subtype.val ∘ D.f ∘ b)
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The map `R[X₁, ..., Xₙ] → S` factors via `T`, because the `bᵢ` are in `I`. -/
@@ -110,6 +111,7 @@ def presLeft : Presentation R D.T ι σ :=
 def kerGen (i : σ) : D.presLeft.toExtension.ker :=
   ⟨(D.f (b i)).val, Presentation.mem_ker_naive _ _ i⟩
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The identity on `R[X₁, ..., Xₙ]` as a map of presentations of `T` to `S`. -/
@@ -122,6 +124,7 @@ lemma toAlgHom_fhom : D.fhom.toAlgHom = AlgHom.id R P.Ring := by
   ext : 1
   simp [fhom]
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma ker_presLeft_le : D.presLeft.ker ≤ P.ker := by
@@ -135,6 +138,7 @@ set_option backward.isDefEq.respectTransparency.types false in
 def tensorCotangentHom : S ⊗[D.T] D.presLeft.toExtension.Cotangent →ₗ[S] P.toExtension.Cotangent :=
   LinearMap.liftBaseChange _ (Extension.Cotangent.map D.fhom.toExtensionHom)
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma tensorCotangentHom_tmul (x : D.presLeft.toExtension.ker) :
@@ -191,6 +195,7 @@ set_option backward.isDefEq.respectTransparency false in
 def pres : Presentation R S (Unit ⊕ ι) (Unit ⊕ σ) :=
   D.presRight.comp D.presLeft
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma map_ofComp_mk [Nontrivial S] :
@@ -350,6 +355,7 @@ set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 open PresentationOfFreeCotangent in
+set_option dsimp.resynthInstances false in
 /--
 Version of `Algebra.Generators.exists_presentation_of_free_cotangent` taking a basis instead
 of a `Module.Free` assumption.

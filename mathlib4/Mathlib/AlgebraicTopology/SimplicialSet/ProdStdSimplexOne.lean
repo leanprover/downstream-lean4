@@ -98,6 +98,7 @@ lemma ofSimplex_le_filtration {i j : Fin (p + 1)} (hij : i ≤ j) :
     Subcomplex.ofSimplex (nonDegenerateEquiv i.val).val) ⟨i, hij⟩
 
 variable (p) in
+set_option dsimp.resynthInstances false in
 lemma filtration_zero :
     filtration.{u} (0 : Fin (p + 1)) = .ofSimplex (nonDegenerateEquiv 0).val :=
   le_antisymm (by simp [filtration]) (ofSimplex_le_filtration.{u} (by rfl))

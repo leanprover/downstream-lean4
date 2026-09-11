@@ -40,6 +40,7 @@ def range (p : F' ⟶ F) : Subfunctor F where
 variable (F) in
 lemma range_id : range (𝟙 F) = ⊤ := by aesop
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma range_ι (G : Subfunctor F) : range G.ι = G := by aesop
 
