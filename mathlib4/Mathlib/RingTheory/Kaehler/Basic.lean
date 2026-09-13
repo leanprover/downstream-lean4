@@ -83,14 +83,12 @@ theorem Derivation.tensorProductTo_mul (D : Derivation R S M) (x y : S ⊗[R] S)
     D.tensorProductTo (x * y) =
       TensorProduct.lmul' (S := S) R x • D.tensorProductTo y +
         TensorProduct.lmul' (S := S) R y • D.tensorProductTo x := by
-  refine TensorProduct.induction_on x ?_ ?_ ?_
-  · rw [zero_mul, map_zero, map_zero, zero_smul, smul_zero, add_zero]
+  refine TensorProduct.inductionOn x ?_ ?_
   swap
   · intro x₁ y₁ h₁ h₂
     rw [add_mul, map_add, map_add, map_add, add_smul, smul_add, h₁, h₂, add_add_add_comm]
   intro x₁ x₂
-  refine TensorProduct.induction_on y ?_ ?_ ?_
-  · rw [mul_zero, map_zero, map_zero, zero_smul, smul_zero, add_zero]
+  refine TensorProduct.inductionOn y ?_ ?_
   swap
   · intro x₁ y₁ h₁ h₂
     rw [mul_add, map_add, map_add, map_add, add_smul, smul_add, h₁, h₂, add_add_add_comm]
@@ -117,8 +115,7 @@ theorem KaehlerDifferential.submodule_span_range_eq_ideal :
       rw [hx, TensorProduct.zero_tmul, sub_zero]
     rw [← this]
     clear this hx
-    refine TensorProduct.induction_on x ?_ ?_ ?_
-    · rw [map_zero, TensorProduct.zero_tmul, sub_zero]; exact zero_mem _
+    refine TensorProduct.inductionOn x ?_ ?_
     · intro x y
       have : x ⊗ₜ[R] y - (x * y) ⊗ₜ[R] (1 : S) = x • ((1 : S) ⊗ₜ y - y ⊗ₜ (1 : S)) := by
         simp_rw [smul_sub, TensorProduct.smul_tmul', smul_eq_mul, mul_one]
@@ -194,6 +191,8 @@ theorem KaehlerDifferential.DLinearMap_apply (s : S) :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `LinearMap.CompatibleSMul (↥(ideal R S)) (ideal R S).Cotangent S (S ⊗[R] S)`
@@ -762,7 +761,6 @@ lemma KaehlerDifferential.range_mapBaseChange :
   apply le_antisymm
   · rintro _ ⟨x, rfl⟩
     induction x with
-    | zero => simp
     | tmul r s =>
       obtain ⟨x, rfl⟩ := linearCombination_surjective _ _ s
       simp only [mapBaseChange_tmul, LinearMap.mem_ker, map_smul]

@@ -55,7 +55,7 @@ def main() -> None:
     if args.prune:
         updater.prune_subrepos()
     for subrepo in fixup_repos:
-        updater.fixup_subrepo(subrepo)
+        updater.add_or_fixup_subrepo(subrepo)
     for subrepo in update_repos:
         updater.add_or_update_subrepo(subrepo)
     for subrepo in reset_repos:

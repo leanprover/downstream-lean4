@@ -38,6 +38,11 @@ inputs:
       Label to add to an upstream PR to trigger adaptation PR creation.
     default: downstream
 
+  upstream-label-force:
+    description:
+      Label to add to an upstream PR to force adaptation PR creation, even where
+      `upstream-label` would normally just leave a message.
+
   downstream-repo:
     description: >
       The downstream repository to search for adaptation PRs and dispatch the

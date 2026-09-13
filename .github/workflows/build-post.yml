@@ -12,11 +12,17 @@ jobs:
     permissions:
       actions: read
       contents: read
-      pull-requests: write
     env:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
     steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -60,7 +66,7 @@ jobs:
           ${{ steps.original-pr.outcome == 'success' &&
           steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr edit "${{ steps.original-pr.outputs.number }}" \
             --repo "${{ github.repository }}" --add-label cache-available

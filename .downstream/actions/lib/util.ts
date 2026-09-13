@@ -57,6 +57,19 @@ export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
   return data;
 }
 
+export async function isAncestor(
+  octo: Octokit,
+  repo: Repo,
+  ancestorSha: string,
+  descendantSha: string,
+): Promise<boolean> {
+  const { data } = await octo.rest.repos.compareCommitsWithBasehead({
+    ...repo,
+    basehead: `${ancestorSha}...${descendantSha}`,
+  });
+  return data.status === "ahead" || data.status === "identical";
+}
+
 export interface FindPrForOptions {
   state?: "open" | "closed" | "all";
   headOwner?: string;

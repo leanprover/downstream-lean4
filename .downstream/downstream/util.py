@@ -66,6 +66,7 @@ class Subrepo:
     aliases: list[str]
     critical: bool
     override_only: bool
+    assume_empty_manifest: bool
     build_targets: list[str]
     build_options: list[str]
     test_options: list[str]
@@ -94,6 +95,7 @@ def load_subrepos(path: Path) -> Generator[Subrepo]:
             aliases=[normalize_url(url) for url in data.get("aliases", [])],
             critical=data.get("critical", True),
             override_only=data.get("override_only", False),
+            assume_empty_manifest=data.get("assume_empty_manifest", False),
             build_targets=data.get("build_targets", []),
             build_options=data.get("build_options", []),
             test_options=data.get("test_options", []),
