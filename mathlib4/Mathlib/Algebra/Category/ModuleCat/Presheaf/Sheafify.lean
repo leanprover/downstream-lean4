@@ -340,6 +340,8 @@ lemma toSheafify_app_apply (X : Cᵒᵖ) (x : M₀.obj X) :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 ```

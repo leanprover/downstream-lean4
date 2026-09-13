@@ -7,11 +7,15 @@ import * as github from "@actions/github";
 import type { BuildReport } from "../lib/reports";
 import {
   abort,
+  assert,
   exit,
   findPrFor,
   getInput,
   getInputOpt,
+  type Octokit,
+  parseBool,
   parseRepo,
+  type Repo,
 } from "../lib/util";
 
 const subrepo = getInput("subrepo");
@@ -26,17 +30,36 @@ const trackingBranch = getInput("tracking-branch");
 const pushRepo = parseRepo(getInput("push-repo"));
 const pushBranch = getInput("push-branch");
 const pushToken = getInput("push-token");
-const targetRepo = parseRepo(getInput("target-repo"));
-const targetBranch = getInput("target-branch");
-const targetToken = getInput("target-token");
+const pushDirectly = parseBool(getInput("push-directly"));
+const targetRepo = getInputOpt("target-repo");
+const targetBranch = getInputOpt("target-branch");
+const targetToken = getInputOpt("target-token");
 const prTitle = getInput("pr-title");
 const prBody = getInputOpt("pr-body");
 
 core.setSecret(downstreamToken);
 core.setSecret(pushToken);
-core.setSecret(targetToken);
+if (targetToken !== null) core.setSecret(targetToken);
 
-const octo = github.getOctokit(targetToken);
+interface TargetOpts {
+  repo: Repo;
+  branch: string;
+  octo: Octokit;
+}
+
+// The target-* options are unused when push-directly is set and thus shouldn't
+// be required unconditionally.
+const target: TargetOpts | undefined = (function () {
+  if (pushDirectly) return undefined;
+  assert(targetRepo !== null, "target-repo is required");
+  assert(targetBranch !== null, "target-branch is required");
+  assert(targetToken !== null, "target-token is required");
+  return {
+    repo: parseRepo(targetRepo),
+    branch: targetBranch,
+    octo: github.getOctokit(targetToken),
+  };
+})();
 
 async function dRun(
   cmd: string,
@@ -125,18 +148,20 @@ async function prepareExportBranch(): Promise<boolean> {
   }
 }
 
-async function pushExportBranch(): Promise<void> {
+async function pushToPushBranch(force: boolean): Promise<void> {
   await dRun("git", [
-    ...["push", "--force"],
-    ...[authUrl(pushToken, pushRepo), `HEAD:refs/heads/${pushBranch}`],
+    "push",
+    ...(force ? ["--force"] : []),
+    authUrl(pushToken, pushRepo),
+    `HEAD:refs/heads/${pushBranch}`,
   ]);
 }
 
-async function createExportPr(): Promise<number> {
+async function createExportPr(target: TargetOpts): Promise<number> {
   core.info("Creating export PR...");
-  const { data } = await octo.rest.pulls.create({
-    ...targetRepo,
-    base: targetBranch,
+  const { data } = await target.octo.rest.pulls.create({
+    ...target.repo,
+    base: target.branch,
     head: `${pushRepo.owner}:${pushBranch}`,
     title: prTitle,
     body: prBody ?? undefined,
@@ -150,6 +175,7 @@ async function advanceTrackingBranch(sha: string): Promise<void> {
 }
 
 async function run(): Promise<void> {
+  core.setOutput("pushed", "false");
   core.setOutput("created", "false");
 
   const buildReport = await loadBuildReport();
@@ -161,15 +187,17 @@ async function run(): Promise<void> {
     exit(`Subrepo "${subrepo}" is not green, nothing to export.`);
   }
 
-  // We don't want to touch the export branch as long as an open PR exists since
-  // that would modify the PR.
-  const existingPr = await findPrFor(octo, targetRepo, pushBranch, {
-    state: "open",
-    headOwner: pushRepo.owner,
-  });
-  if (existingPr !== undefined) {
-    core.setOutput("number", String(existingPr.number));
-    exit(`Export PR #${existingPr.number} already exists.`);
+  // In PR mode, we don't want to touch the export branch as long as an open PR
+  // exists since that would modify the PR.
+  if (target !== undefined) {
+    const existingPr = await findPrFor(target.octo, target.repo, pushBranch, {
+      state: "open",
+      headOwner: pushRepo.owner,
+    });
+    if (existingPr !== undefined) {
+      core.setOutput("number", String(existingPr.number));
+      exit(`Export PR #${existingPr.number} already exists.`);
+    }
   }
 
   // Delaying the clone until we need it to avoid unnecessary overhead.
@@ -189,11 +217,17 @@ async function run(): Promise<void> {
   await dRun("git", ["checkout", buildReport.commit_sha]);
   const hasChanges = await prepareExportBranch();
   if (hasChanges) {
-    // Create the export PR
-    await pushExportBranch();
-    const number = await createExportPr();
-    core.setOutput("created", "true");
-    core.setOutput("number", String(number));
+    if (target === undefined) {
+      // Push directly to the push branch
+      await pushToPushBranch(false);
+      core.setOutput("pushed", "true");
+    } else {
+      // Create the export PR
+      await pushToPushBranch(true);
+      const number = await createExportPr(target);
+      core.setOutput("created", "true");
+      core.setOutput("number", String(number));
+    }
   }
 
   await advanceTrackingBranch(buildReport.commit_sha);

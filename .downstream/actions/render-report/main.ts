@@ -128,9 +128,12 @@ function renderDelta(
   const stayedGreen: BuildReportRepo[] = [];
 
   for (const repo of report.repos) {
-    const wasGreen = statusReport[repo.name];
-    if (wasGreen === true && !repo.green) turnedRed.push(repo);
-    else if (wasGreen === false && repo.green) turnedGreen.push(repo);
+    // By assuming that repos without status are green, newly added repos behave
+    // more sensibly. For example, newly added broken repos show up as "turned
+    // red" instead of "stayed red".
+    const wasGreen = statusReport[repo.name] ?? true;
+    if (wasGreen && !repo.green) turnedRed.push(repo);
+    else if (!wasGreen && repo.green) turnedGreen.push(repo);
     else if (repo.green) stayedGreen.push(repo);
     else stayedRed.push(repo);
   }

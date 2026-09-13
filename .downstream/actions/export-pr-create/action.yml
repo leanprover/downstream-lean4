@@ -52,19 +52,25 @@ inputs:
     description: GitHub token used to push the export branch to push-repo.
     required: true
 
+  push-directly:
+    description: >
+      If set, push the export straight to push-branch instead of opening an
+      export PR. Never force-pushes, so this fails if push-branch has moved.
+      When set, obsoletes all target-* and pr-* options.
+    default: false
+
   target-repo:
     description: >
       The upstream repository to open the export PR against, in "owner/repo"
       format.
-    required: true
 
   target-branch:
     description: The branch in target-repo to open the export PR against.
-    required: true
 
   target-token:
-    description: GitHub app token used to find and create the export PR.
-    required: true
+    description: >
+      GitHub app token used to find and create the export PR, and, if
+      push-directly is enabled, to push directly to target-branch.
 
   pr-title:
     description: Title for the export PR.
@@ -74,6 +80,10 @@ inputs:
     description: Body for the export PR.
 
 outputs:
+  pushed:
+    description: >
+      Whether the export was pushed directly to target-branch by this run.
+
   created:
     description: >
       Whether a new export PR was created by this run.

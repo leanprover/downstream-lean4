@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@octokit/types": "^18.0.0",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.4.1",
     "esbuild": "^0.28.2",
     "prettier": "^3.9.6",
     "typescript": "^7.0.2"
