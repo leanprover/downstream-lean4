@@ -389,6 +389,11 @@ info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps,
 
   The package's {tech}[transitive dependencies], topologically sorted.
 
+: `defaultModules`
+
+  The Lean modules of the package's {tech}[default targets]: every module of each default library, and the root module of each default executable together with the modules it transitively imports from the workspace.
+  Other default targets, such as {ref "lake-config-custom-target"}[custom targets], are not included.
+
 
 : `optCache`
 
