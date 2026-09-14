@@ -495,15 +495,15 @@ instance [WellFoundedLT α] : IsStronglyAtomic α where
 instance [WellFoundedGT α] : IsStronglyCoatomic α :=
   isStronglyAtomic_dual_iff_is_stronglyCoatomic.1 <| inferInstanceAs (IsStronglyAtomic (αᵒᵈ))
 
-@[deprecated instIsStronglyAtomicOfWellFoundedLT +typeChanged (since := "2026-08-01")]
+@[deprecated instIsStronglyAtomicOfWellFoundedLT (since := "2026-08-01")]
 theorem IsStronglyAtomic.of_wellFounded_lt (h : WellFounded ((· < ·) : α → α → Prop)) :
     IsStronglyAtomic α :=
-  have : WellFoundedLT α := ⟨h⟩; inferInstance
+  inferInstance
 
 @[deprecated instIsStronglyAtomicOfWellFoundedLT +typeChanged (since := "2026-08-01")]
 theorem IsStronglyCoatomic.of_wellFounded_gt (h : WellFounded ((· > ·) : α → α → Prop)) :
     IsStronglyCoatomic α :=
-  have : WellFoundedGT α := ⟨h⟩; inferInstance
+  inferInstance
 
 @[deprecated instIsStronglyAtomicOfWellFoundedLT +typeChanged (since := "2026-08-01")]
 theorem isAtomic_of_orderBot_wellFounded_lt [OrderBot α]

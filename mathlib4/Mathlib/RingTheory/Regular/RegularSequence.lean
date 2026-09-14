@@ -573,6 +573,8 @@ section Perm
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `FunLike (M ⧸ torsionBy R M b →ₗ[R] M) (M ⧸ torsionBy R M b) M`

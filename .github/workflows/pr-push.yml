@@ -7,12 +7,17 @@ on:
 jobs:
   remove-cache-available-label:
     runs-on: ubuntu-slim
-    permissions:
-      pull-requests: write
     steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
       - name: Remove cache-available label
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr edit "${{ github.event.pull_request.number }}" \
             --repo "${{ github.repository }}" --remove-label cache-available

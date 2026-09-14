@@ -157,6 +157,8 @@ def propArrow : MorphismProperty (Arrow C) := fun _ _ f ↦
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `Category.{max u v, max u v} (Comma (𝟭 C) (𝟭 C) ⥤ Comma (𝟭 C) (𝟭 C))`

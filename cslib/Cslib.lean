@@ -2,6 +2,8 @@ module  -- shake: keep-all --deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
+public import Cslib.Algorithms.Lean.Sort.Insertion
+public import Cslib.Algorithms.Lean.Sort.Merge
 public import Cslib.Algorithms.Lean.TimeM
 public import Cslib.Computability.Automata.Acceptors.Acceptor
 public import Cslib.Computability.Automata.Acceptors.OmegaAcceptor
@@ -28,6 +30,12 @@ public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
+public import Cslib.Computability.Automata.TwoWayNA.Basic
+public import Cslib.Computability.Circuit.Basic
+public import Cslib.Computability.Circuit.Homomorphism
+public import Cslib.Computability.Circuit.Program
+public import Cslib.Computability.Circuit.Signature
+public import Cslib.Computability.Circuit.Wire
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
@@ -46,7 +54,10 @@ public import Cslib.Computability.Languages.OmegaLanguage
 public import Cslib.Computability.Languages.OmegaRegularLanguage
 public import Cslib.Computability.Languages.RegularLanguage
 public import Cslib.Computability.Languages.SafetyLiveness
+public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.DeterministicToNondeterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
@@ -57,6 +68,9 @@ public import Cslib.Computability.URM.Defs
 public import Cslib.Computability.URM.Execution
 public import Cslib.Computability.URM.StandardForm
 public import Cslib.Computability.URM.StraightLine
+public import Cslib.Crypto.Protocols.Commitment.Basic
+public import Cslib.Crypto.Protocols.Commitment.Defs
+public import Cslib.Crypto.Protocols.Commitment.Scheme
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Basic
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Defs
 public import Cslib.Crypto.Protocols.PerfectSecrecy.Encryption
@@ -69,6 +83,8 @@ public import Cslib.Foundations.Combinatorics.InfiniteGraphRamsey
 public import Cslib.Foundations.Control.Monad.Free
 public import Cslib.Foundations.Control.Monad.Free.Effects
 public import Cslib.Foundations.Control.Monad.Free.Fold
+public import Cslib.Foundations.Control.Monad.IsMonadHom
+public import Cslib.Foundations.Control.Monad.IsMonadHom.List
 public import Cslib.Foundations.Data.BiTape
 public import Cslib.Foundations.Data.DecidableEqZero
 public import Cslib.Foundations.Data.FinFun.Basic
@@ -190,4 +206,5 @@ public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
 public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
 public import Cslib.Probability.PMF
+public import Cslib.Probability.StatisticalDistance
 public import Cslib.Tactic.GrindAttrs
