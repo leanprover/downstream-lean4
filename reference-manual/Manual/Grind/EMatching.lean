@@ -274,15 +274,14 @@ In addition to using the default strategy, the attribute checks which other stra
 open Lean Parser Attr
 open Lean Elab Command
 
--- The modifiers are the parsers registered in the `grind_mod` syntax category, which
--- `grindMod` wraps.
-def getGrindAlts (catName : Name) : CommandElabM (Array String) := do
-  let some cat := parserExtension.getState (← getEnv) |>.categories.find? catName
-    | throwError "Expected a syntax category {catName}"
-  return (cat.kinds.toList.toArray.map (·.1.getString!)).qsort
+def getGrindAlts : CommandElabM (Array String) := do
+  let some cat := (parserExtension.getState (← getEnv)).categories.find? `grind_mod
+    | throwError "Syntax category `grind_mod` not found"
+  let kinds := cat.kinds.foldl (init := #[]) fun acc k _ => acc.push k.getString!
+  return kinds.qsort (· < ·)
 
 /--
-info: `grindMod` can be these:
+info: `grind_mod` can be these:
 grindBwd
 grindCases
 grindCasesEager
@@ -308,8 +307,8 @@ grindUsr
 -/
 #guard_msgs in
 #eval show CommandElabM Unit from do
-  let allMods ← getGrindAlts `grind_mod
-  IO.println "`grindMod` can be these:"
+  let allMods ← getGrindAlts
+  IO.println "`grind_mod` can be these:"
   for gmod in allMods do
     IO.println gmod
 
