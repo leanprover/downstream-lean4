@@ -30,13 +30,18 @@ where
   doc : ParserFn := fun c s =>
     let opener := s.stxStack.back
     let indent := opener.getHeadInfo.getPos!
-    let col := c.fileMap.toPosition indent |>.column
 
     let opener := getOpener opener
     if opener.isEmpty || opener.any (· ≠ ':') || opener.length < 3 then
       s.mkError s!"document after at least three colons (got {opener.quote})"
     else
-      Verso.Parser.document (blockContext := {maxDirective := some (opener.length - 1), minIndent := col}) c s
+      -- The blocks start at or right of the colons' column, which a saved position enforces.
+      let startPos := s.pos
+      let blockContext := {maxDirective := some (opener.length - 1)}
+      let s := adaptCacheableContextFn ({ · with savedPos? := indent })
+        (ignoreFn Lean.Doc.Parser.lineTailWsFn >> blocksFn blockContext) c s
+      if s.hasError then s
+      else s.popSyntax.pushSyntax (Lean.Doc.Parser.setStartLeading startPos s.stxStack.back)
 
   getOpener : Syntax → String
     | .node _ _ #[stx] => getOpener stx
@@ -255,7 +260,9 @@ private meta def versoBlockCommandFn : ParserFn := fun c s =>
   let iniSz  := s.stackSize
   let lastPos? := lastVersoEndPosExt.getState c.env
   let s := lastPos? |>.map s.setPos |>.getD s
-  let s := recoverBlockWith #[.missing] (blockFn {}) c s
+  -- The block's final token takes the whitespace after it, so the next block starts at its own first
+  -- token.
+  let s := recoverBlockWith #[.missing] (blockFn { recordTrailing := true }) c s
   if s.hasError then s
   else
     let s := ignoreFn (manyFn blankLine) c s
@@ -378,17 +385,14 @@ elab_rules : command
     let txt ← getFileMap
 
     -- Edge case: if there's a Lean comment right after `#doc`, then the Lean command parser will skip
-    -- it. We need to tell the Verso parser to start parsing right after skipping blank lines only.
+    -- it. We need to tell the Verso parser to start parsing at the first block's first token, after
+    -- skipping blank lines and indentation only.
     let mut pos := txt.source.pos! stopPos
-    let mut newlinePos := pos
     while h : pos ≠ txt.source.endPos do
-      if pos.get h == ' ' then
+      if pos.get h == ' ' || pos.get h == '\n' then
         pos := pos.next h
-      else if pos.get h == '\n' then
-        pos := pos.next h
-        newlinePos := pos
       else break
-    modifyEnv fun env => lastVersoEndPosExt.setState env (some newlinePos.offset)
+    modifyEnv fun env => lastVersoEndPosExt.setState env (some pos.offset)
 
     -- Edge case: if there's no blocks after the =>, the replacement command parser won't get called,
     -- so we detect that case and call finishDoc.

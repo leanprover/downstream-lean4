@@ -318,7 +318,7 @@ def markupPreview : DirectiveExpanderOf MarkupPreviewConfig
       | throwErrorAt blk2 "Expected anonymous code block"
     let (contents, expected) := (cb1.content, cb2.content)
 
-    let stx ← blocksFn {} |>.parseString contents.getVersoCodeBlock.trimAsciiEnd.copy
+    let stx ← document |>.parseString contents.getVersoCodeBlock.trimAsciiEnd.copy
     let p ← preview stx
     let p := p.pretty (width := 35)
 
@@ -358,7 +358,7 @@ open Verso.Parser in
 def markupPreviewPre : CodeBlockExpanderOf MarkupPreviewConfig
   | {title}, contents => do
 
-    let stx ← blocksFn {} |>.parseString contents.getVersoCodeBlock
+    let stx ← document |>.parseString contents.getVersoCodeBlock
     let p ← preview stx
     let p := p.pretty (width := 35)
 
@@ -504,7 +504,7 @@ This is a new paragraph.
   <li>
     <p>
       As in Markdown and SGML,
-      lists   are not part of
+      lists are not part of
       paragraphs.
     </p>
   </li>
@@ -618,7 +618,7 @@ Any subsequent blocks whose first character is indented further than the indicat
   <li>
     <p>
       Another list, due to
-      different   indentation
+      different indentation
     </p>
   </li>
 </ul>
@@ -638,7 +638,7 @@ Any subsequent blocks whose first character is indented further than the indicat
 <ul>
   <li>
     <p>
-      A list with one item.   It
+      A list with one item. It
       contains this paragraph
     </p><ul>
       <li>
@@ -714,12 +714,12 @@ A description item is a line that starts with zero or more spaces, followed by a
 ```
 ```
 <dl>
-    <dt>  Item 1 </dt>
+    <dt> Item 1 </dt>
   <dd>
     <p> Description of item 1 </p>
   </dd>
 
-    <dt>  Item 2 </dt>
+    <dt> Item 2 </dt>
   <dd>
     <p> Description of item 2 </p>
   </dd>

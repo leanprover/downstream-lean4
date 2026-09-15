@@ -292,7 +292,7 @@ produce the syntax that Verso's elaborators consume.
 -/
 
 export Lean.Doc.Parser (
-  OrderedListType UnorderedListType InlineCtxt InList BlockCtxt
+  OrderedListType UnorderedListType InlineCtxt ListStyle BlockCtxt
   inlineTextCharFn blockOpenerFn valFn argEndWs argFn argsFn nameAndArgsFn
   textFn emphFn boldFn codeFn mathFn linkFn imageFn footnoteFn roleFn
   delimitedInlineFn inlineFn

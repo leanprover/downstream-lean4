@@ -30,8 +30,8 @@ def getWarnLineLength [Monad m] [MonadOptions m] : m (Option Nat) := do
 /--
 Warns about the lines of `code` that are too long to render in a narrow context.
 
-A code block's indentation is the leading whitespace of each of its line tokens, so a line's width
-is the width of its token's contents.
+A code block's own indentation is whitespace between its line tokens, so a line's width is the width
+of its token's contents.
 -/
 def warnLongLines [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
     (code : VersoCodeBlock) : m Unit := do
@@ -40,7 +40,7 @@ def warnLongLines [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
   let lines := code.getVersoCodeBlockLines
   for h : i in [0:lines.size] do
     let line := lines[i]
-    let width := line.getVersoCodeBlockLine.trimAsciiEnd.positions.length
+    let width := line.getVersoCodeLine.trimAsciiEnd.positions.length
     if width > maxCodeColumns then
       let note :=
         MessageData.note m!"Example code is shown on mobile devices and other narrow contexts. \
