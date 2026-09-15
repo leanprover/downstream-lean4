@@ -31,7 +31,6 @@ The language name can be an identifier (`rust`, `python`) or a string
 
 open Lean Elab
 open Verso Doc Elab
-open Lean.Doc.Syntax
 
 namespace VersoSlides
 
@@ -57,6 +56,6 @@ Uses `reveal.js`'s built-in syntax highlighting for code.
 @[code_block]
 def code : CodeBlockExpanderOf CodeConfig
   | config, str =>
-    ``(Verso.Doc.Block.other (BlockExt.otherLanguage $(quote config.language) $(quote str.getString)) #[])
+    ``(Verso.Doc.Block.other (BlockExt.otherLanguage $(quote config.language) $(quote str.getVersoCodeBlock)) #[])
 
 end VersoSlides

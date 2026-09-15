@@ -93,13 +93,18 @@ example : base = 40 := rfl
 ```lean post +error
 #check scratch
 ```
+:::::::
+
+#guard hiddenLeanBlockFlags.toPart.content.size > 0
 
 -- The canonical inline Lean role works without warnings.
 #docs (Post) inlineLeanRoleNames "Inline Lean Role Names" :=
+:::::::
 ```leanInit post
 ```
 
 Canonical role: {lean post}`Nat.succ 1`.
+:::::::
 
 #test_guard inlineLeanRoleNames.toPart.content.size > 0
 #test_guard inlineLeanRoleNamesDeprecated.toPart.content.size > 0
@@ -113,3 +118,6 @@ def x := 1
 ```
 
 Role is aware of the environment: {lean env}`x`
+:::::::
+
+#guard roleSeesEnvironment.toPart.content.size > 0

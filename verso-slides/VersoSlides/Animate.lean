@@ -16,7 +16,7 @@ open Lean Elab
 open Verso.SyntaxUtils (parserInputString)
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open Verso (withoutAsync)
-open Lean.Doc.Syntax
+open Lean.Doc (VersoCodeBlock)
 
 namespace VersoSlides
 
@@ -70,7 +70,7 @@ end
 private initialize animContainerCounter : IO.Ref Nat ← IO.mkRef 0
 
 open Lean.Widget Lean.Elab.Term Lean.Meta Illuminate in
-private meta unsafe def animateExpanderUnsafe (config : AnimateConfig) (str : StrLit) :
+private meta unsafe def animateExpanderUnsafe (config : AnimateConfig) (str : VersoCodeBlock) :
     DocElabM Term := withoutAsync do
   let altStr ← parserInputString str
 
@@ -131,11 +131,11 @@ private meta unsafe def animateExpanderUnsafe (config : AnimateConfig) (str : St
   let autoplay := config.autoplay
   ``(Verso.Doc.Block.other
       (VersoSlides.BlockExt.animate $(quote containerId) $(quote animDataJson) $(quote cssWidth) $(quote bg) $(quote fragmentIndices) $(quote autoplay))
-      #[Verso.Doc.Block.code $(quote str.getString)])
+      #[Verso.Doc.Block.code $(quote str.getVersoCodeBlock)])
 
 open Lean.Widget Lean.Elab.Term Lean.Meta Illuminate in
 @[implemented_by animateExpanderUnsafe]
-private opaque animateExpanderImpl (config : AnimateConfig) (str : StrLit) : DocElabM Term
+private opaque animateExpanderImpl (config : AnimateConfig) (str : VersoCodeBlock) : DocElabM Term
 
 @[code_block]
 def «animate» : CodeBlockExpanderOf AnimateConfig
