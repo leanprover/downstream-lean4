@@ -34,8 +34,7 @@ def reportAdaptationNote (f : Syntax → Meta.Tactic.TryThis.Suggestion) : MetaM
   else
     logError "Adaptation notes must be followed by a /-- comment -/"
     let trailing := if let .original (trailing := s) .. := stx[0].getTailInfo then s else default
-    let doc : Syntax :=
-      Syntax.node2 .none ``Parser.Command.docComment (mkAtom "/--") (mkAtom "comment -/")
+    let doc : Syntax := mkMarkdownDocComment "comment"
     -- Optional: copy the original whitespace after the `#adaptation_note` token
     -- to after the docstring comment
     let doc := doc.updateTrailing trailing

@@ -152,8 +152,13 @@ def docStringLinter : Linter where run := withSetOptionIn fun stx ↦ do
     -- ignore antiquotations from syntax patterns like `$(_)?`
     unless docStx.getKind == ``Parser.Command.docComment do continue
     -- `docString` contains e.g. trailing spaces before the `-/`, but does not contain
-    -- any leading whitespace before the actual string starts.
-    let docString ← try getDocStringText ⟨docStx⟩ catch _ => continue
+    -- any leading whitespace before the actual string starts. The text atom keeps the spaces
+    -- before the `-/` as its trailing whitespace.
+    let text ← try getDocStringText ⟨docStx⟩ catch _ => continue
+    let endSubstring := match docStx with
+      | .node _ _ #[_, .node _ _ #[(.atom si ..), _]] => si.getTrailing?.getD default
+      | _ => default
+    let docString := text ++ endSubstring.toString
     if docString.trimAscii.isEmpty then
       Linter.logLintIf linter.style.docString.empty docStx m!"warning: this doc-string is empty"
       continue

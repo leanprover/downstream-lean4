@@ -70,7 +70,7 @@ def docPrimeLinter : Linter where run := withSetOptionIn fun stx ↦ do
       presence of a `'` in their doc-string. This may consist of discussion of the difference \
       relative to the unprimed version, or an explanation as to why no better naming scheme \
       is possible."
-  if docstring[0][1].getAtomVal.isEmpty && declName.toString.back == '\'' then
+  if docstring[0].isMissing && declName.toString.back == '\'' then
     if ← System.FilePath.pathExists "scripts/nolints_prime_decls.txt" then
       if (← IO.FS.lines "scripts/nolints_prime_decls.txt").contains declName.toString then
         return
