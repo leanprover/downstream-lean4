@@ -698,10 +698,10 @@ partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name
     | ``Attr.simple, _, #[.ident kinfo _ name _, other] => do
       return infoWrap info (infoWrap kinfo (← lift <| tag .keyword name.toString) ++ (← production which other))
     | ``FreeSyntax.docCommentItem, _, _ =>
-      match stx[0][1] with
-      | .atom _ val => do
+      match stx[0][1][0] with
+      | .atom info val => do
         -- TODO: use a slice here. As of nightly-2025-10-20, the code panicked (reported)
-        let mut str := val.dropEnd 2
+        let mut str := (val ++ (info.getTrailing?.map (·.toString) |>.getD "")).toSlice
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
