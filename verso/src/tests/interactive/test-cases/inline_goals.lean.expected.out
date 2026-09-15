@@ -14,7 +14,7 @@
  {"start": {"line": 17, "character": 3}, "end": {"line": 17, "character": 7}},
  "contents":
  {"value":
-  "Code block `Verso.Genre.Manual.InlineLean.lean`\n\nNamed: `name : Ident` (optional) — a name\n\nFlags:\n* `show` (default `true`) - Flag\n* `keep` (default `true`) - Flag\n* `error` (default `false`) - Flag\n* `fresh` (default `false`) - Flag\n\n\nElaborates the provided Lean command in the context of the current Verso module.\n",
+  "Code block `Verso.Genre.Manual.InlineLean.lean`\n\nNamed: `name : Ident` (optional) — a name\n\nFlags:\n* `show` (default `true`) - Flag\n* `keep` (default `true`) - Flag\n* `error` (default `false`) - Flag\n* `fresh` (default `false`) - Flag\n\n\nElaborates the provided Lean command in the context of the current Verso module.",
   "kind": "markdown"}}
 {"textDocument":
  {"uri": "file:///src/tests/interactive/test-cases/inline_goals.lean"},
