@@ -466,7 +466,7 @@ The {lakeMeta}`template` may be:
 
   Creates a package that contains a library that depends on [Mathlib](https://github.com/leanprover-community/mathlib4).
 
-The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` (the default) or `toml`.
+The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` or `toml` (the default).
 :::
 
 :::TODO
@@ -533,9 +533,9 @@ to a remote cache with `lake cache put`. This will only include the artifacts
 from the covered targets. Other targets in the package will not be tracked.
 ```
 
-::::lake build "[targets...] [\"-o\" mappings]"
+::::lake build "[targets...] [\"-o\" mappings] [\"--package\" name]"
 
-Builds the specified facts of the specified targets.
+Builds the specified facets of the specified targets.
 
 Each of the {lakeMeta}`targets` is specified by a string of the form:
 
@@ -550,7 +550,11 @@ The available {tech}[facets] depend on whether a package, library, executable, o
 They are listed in {ref "lake-facets"}[the section on facets].
 
 When using the {ref "lake-cache"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
-This file can be used with {lake}`cache get` and {lake}`cache put` to interact with a remote cache.
+The mappings file describes the targets from one package that are included in the build, restricted to the {tech}[root package] by default.
+Targets that were already up to date are included in the mappings file.
+The {lakeOptDef option}`--package` option causes the named package's targets to be written to the mappings file instead of the root package's targets, which makes it possible to upload build outputs for a dependency.
+Targets that are not part of the build are not tracked.
+This mappings file can be used with {lake}`cache get` and {lake}`cache put` to interact with a remote cache.
 The mappings file is in JSON Lines format, with one valid JSON object per line, and its filename extension is conventionally `.jsonl`.
 ::::
 
@@ -827,7 +831,7 @@ The {lakeMeta}`options` may be:
 
 # Challenges and External Checkers
 %%%
-tag := "lake-challenge"
+tag := "lake-comparator"
 %%%
 
 Lake supports invoking {ref "validating-comparator"}[`comparator`] and {ref "validating-lean4checker"}[`lean4checker`] as part of {ref "validating-proofs"}[performing extra validation on proofs].
@@ -906,7 +910,7 @@ HARDENING:
   network namespace.
 ```
 
-::::lake comparator "[\"--config\" file]"
+::::lake comparator "[\"--config=\" file]"
 
 Judges a solution against a {deftech}_challenge_: a trusted configuration that states which theorems must be proved and which axioms are permitted.
 {lake}`comparator` establishes that every named theorem in the solution proves the same statement as the challenge, that the solution uses only permitted axioms, and that it is accepted by Lean's kernel as well as by every configured external kernel.
@@ -919,8 +923,9 @@ The sandbox executable name is determined by the {envVar +def}`COMPARATOR_BWRAP`
 The executable is resolved via the {envVar}`PATH`.
 The export is produced by the toolchain's own `leanexport` executable, so the export format matches the compiler that produced the {tech}[`.olean` files].
 
-The challenge author writes the {ref "lake-challenge-config"}[configuration file] in JSON format and distributes it with the challenge.
-Solutions are checked by using {lake}`comparator` with {lakeOptDef option}`--config=FILE`.
+The challenge author writes the {ref "lake-comparator-config"}[configuration file] in JSON format and distributes it with the challenge.
+By default, the configuration is read from `comparator.json` in the current directory.
+The {lakeOptDef option}`--config=FILE` option specifies a different file.
 
 The exit code distinguishes an accepted solution (`0`) and a rejected one (`1`) from an environment in which the judgment could not run at all (`2`).
 
@@ -973,15 +978,15 @@ See `lake help comparator` to judge a solution against a challenge instead.
 {lake}`check` builds the {tech}[root package]'s {tech}[default targets], exports them, and replays the result through Lean's kernel.
 It then reports the axioms that the checked code uses, and fails if any of them is not one of the {ref "standard-axioms"}[standard axioms].
 
-Like {lake}`comparator`, it treats the workspace as untrusted input: it runs in the same {ref "lake-challenge-sandbox"}[sandbox], requires the project to have a manifest, and is only available on Linux.
-Unlike {lake}`comparator`, it does not use a special {ref "lake-challenge-config"}[configuration file].
+Like {lake}`comparator`, it treats the workspace as untrusted input: it runs in the same {ref "lake-comparator-sandbox"}[sandbox], requires the project to have a manifest, and is only available on Linux.
+Unlike {lake}`comparator`, it does not use a special {ref "lake-comparator-config"}[configuration file].
 
 The exit code is `0` when the kernel accepts the project and only standard axioms are used, `1` when the kernel rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
 
 ## Configuration
 %%%
-tag := "lake-challenge-config"
+tag := "lake-comparator-config"
 %%%
 
 :::paragraph
@@ -1027,7 +1032,7 @@ The challenge configuration is a JSON file that contains an object with the foll
 
 ## Sandbox
 %%%
-tag := "lake-challenge-sandbox"
+tag := "lake-comparator-sandbox"
 %%%
 
 :::paragraph
@@ -1515,7 +1520,7 @@ See {lake}`cache services` for more information on how to configure services.
 By default, Lake will use Reservoir to download outputs for each package in the root's dependency tree in order.
 Non-Reservoir dependencies will be skipped.
 If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will instead download build outputs for the root package.
-In either case, {lakeOptDef option}`--package` restricts the download to the outputs of the named package.
+In either case, {lakeOpt}`--package` restricts the download to the outputs of the named package.
 
 For Reservoir, setting {lakeOpt}`--repo` will cause Lake to look up outputs for the package by a repository name, rather than the package's.
 This can be used to download outputs for a fork of the Reservoir package (if such artifacts are available).
@@ -1575,8 +1580,12 @@ full scope). As such, the command will warn if the work tree currently
 has changes.
 ```
 
-::::lake cache put "mappings [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--toolchain=\" «name»] [\"--platform=\" «target-triple»]"
+::::lake cache put "mappings [\"--package=\" «name»] [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--toolchain=\" «name»] [\"--platform=\" «target-triple»]"
 Uploads the input-to-outputs mappings contained in the specified file along with the corresponding output artifacts to a remote cache.
+By default, the outputs are uploaded for the {tech}[root package].
+The option {lakeOpt}`--package` specifies a different package in the workspace.
+Together with the {lakeOpt}`--package` option of {lake}`build`, this makes it possible to upload the build outputs of a dependency.
+
 The cache service used can be specified via the {lakeOpt}`--service` option.
 If not specified, Lake will use the system default, or error if none is configured.
 See {lake}`cache services` for more information on how to configure services.
@@ -1788,15 +1797,14 @@ via `--platform` and `--toolchain` (if needed). Similarly, the source revision
 the outputs correspond to must be manually specified via `--rev`.
 ```
 
-::::lake cache «put-staged» "«staging-directory» [\"--rev=\" «commit-hash»] [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--toolchain=\" «name»] [\"--platform=\" «target-triple»]"
+::::lake cache «put-staged» "«staging-directory» \"--rev=\" «commit-hash» [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--toolchain=\" «name»] [\"--platform=\" «target-triple»]"
 Uploads the mappings and artifacts stored in {lakeMeta}`staging-directory` (e.g., via {lake}`cache stage`) to a remote service.
 This works like {lake}`cache put`, except that the outputs are taken from the staging directory rather than from the Lake {tech (key:="local cache")}[artifact cache].
 
 This command does not configure the workspace, so it does not execute arbitrary user code.
 As a result, the package's platform and toolchain settings are not detected automatically for {lakeOpt}`--repo`, and they must be specified with {lakeOpt}`--platform` and {lakeOpt}`--toolchain` if they are needed.
 
-By default, Lake detects the target revision from the workspace directory's current Git revision.
-Outputs can be uploaded for a different revision by specifying it with {lakeOptDef option}`--rev`.
+The Git revision that the outputs correspond to must be specified with {lakeOptDef option}`--rev`.
 ::::
 
 
