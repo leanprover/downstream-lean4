@@ -75,14 +75,18 @@ set_option backward.isDefEq.respectTransparency false in
 lemma toFin_pow (x : BitVec w) (n : ℕ) : toFin (x ^ n) = x.toFin ^ n := by
   induction n with
   | zero => simp
-  | succ n ih => simp [ih, BitVec.pow_succ]
+  | succ n ih => simp [ih, BitVec.pow_succ, pow_succ]
 
 /-!
 ## Ring
 -/
 
--- Verify that the `HPow` instance from Lean agrees definitionally with the instance via `Monoid`.
-example : @instHPow (Fin (2 ^ w)) ℕ NPow.toPow = Lean.Grind.Fin.instHPowFinNatOfNeZero := rfl
+-- Verify that the `HPow` instance used for `Fin` agrees definitionally with the one via `Monoid`.
+-- Since leanprover/lean4#13490 this is no longer the instance from Lean core: exponentiation on
+-- `Fin` is `Nat.powMod`-based there, while the shortcut instance in `Mathlib/Data/ZMod/Defs.lean`
+-- unfolds to `npowRec` just like `Monoid.npow` does.
+example : @instHPow (Fin (2 ^ w)) ℕ NPow.toPow =
+    (inferInstance : HPow (Fin (2 ^ w)) ℕ (Fin (2 ^ w))) := rfl
 
 instance : CommSemiring (BitVec w) :=
   open Fin.CommRing in
