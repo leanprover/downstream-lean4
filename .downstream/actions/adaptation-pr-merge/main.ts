@@ -83,9 +83,10 @@ async function undoOverridesAndCommit(mergeBase: string): Promise<void> {
   // Undo overrideToolchain
   await dRun("git", ["checkout", mergeBase, "--", "lean-toolchain"]);
 
+  // https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs
   const committed = await addAndCommit(
     downstreamClone,
-    "downstream: undo overrides",
+    "downstream: undo overrides\n\nskip-checks: true",
   );
   if (!committed) return;
 

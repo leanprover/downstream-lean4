@@ -25165,7 +25165,7 @@ async function undoOverridesAndCommit(mergeBase) {
   await dRun("git", ["checkout", mergeBase, "--", "lean-toolchain"]);
   const committed = await addAndCommit(
     downstreamClone,
-    "downstream: undo overrides"
+    "downstream: undo overrides\n\nskip-checks: true"
   );
   if (!committed) return;
   info("Running downstream updater...");
