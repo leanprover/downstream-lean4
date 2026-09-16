@@ -18,8 +18,92 @@ namespace Verso.Doc.Concrete
 
 open Lean Verso Parser Doc Elab
 
+/-- The text of the delimiter that opened a document. -/
+private meta def openerText : Syntax → String
+  | .node _ _ #[stx] => openerText stx
+  | .atom _ v => v
+  | _ => ""
+
+/-- The position just after the next newline at or after `pos`. -/
+private meta partial def afterNextLine (c : ParserContext) (pos : String.Pos.Raw) :
+    Option String.Pos.Raw :=
+  if c.atEnd pos then none
+  else if c.get pos == '\n' then some (c.next pos)
+  else afterNextLine c (c.next pos)
+
+/-- The position of the first character at or after `pos` that is not a space. -/
+private meta partial def afterSpaces (c : ParserContext) (pos : String.Pos.Raw) : String.Pos.Raw :=
+  if !c.atEnd pos && c.get pos == ' ' then afterSpaces c (c.next pos) else pos
+
+/-- The length of the run of colons that begins at `pos`. -/
+private meta partial def colonRun (c : ParserContext) (pos : String.Pos.Raw) : Nat :=
+  if !c.atEnd pos && c.get pos == ':' then colonRun c (c.next pos) + 1 else 0
+
+/--
+The end of a document's contents, which is `closePos` without the spaces and newlines that separate
+them from the closing delimiter. They belong to the last block's token, as the whitespace before a
+doc comment's closing delimiter does, so the contents end with their final character.
+-/
+private meta partial def contentEnd (c : ParserContext) (startPos closePos : String.Pos.Raw) :
+    String.Pos.Raw :=
+  if closePos.byteIdx ≤ startPos.byteIdx then closePos
+  else
+    let prev := c.prev closePos
+    if c.get prev == ' ' || c.get prev == '\n' then contentEnd c startPos prev else closePos
+
+/--
+The start of the line that closes a document opened by `colons` colons, paired with the number of
+colons that line begins with.
+
+A line that begins with at least as many colons as the opener closes the document, so an author
+keeps a delimiter out of a document's contents by opening it with a longer run.
+-/
+private meta partial def closingLine (colons : Nat) (c : ParserContext) (pos : String.Pos.Raw) :
+    Option (String.Pos.Raw × Nat) :=
+  -- The opening delimiter's trailing whitespace may already have reached the line after it, so the
+  -- line `pos` is on counts when `pos` starts it.
+  let here :=
+    if pos.byteIdx == 0 || c.get (c.prev pos) == '\n' then
+      let found := colonRun c (afterSpaces c pos)
+      if found ≥ colons then some (pos, found) else none
+    else none
+  match here with
+  | some found => some found
+  | none =>
+    match afterNextLine c pos with
+    | none => none
+    | some lineStart => closingLine colons c lineStart
+
+/--
+Parses a document that a run of colons closes.
+
+The contents reach to the closing delimiter, which is found before they are read, so the document
+ends where its input does and a stray character in it is reported where it occurs.
+-/
 public meta def document : Parser where
-  fn := atomicFn <| Verso.Parser.document (blockContext := {maxDirective := some 6})
+  fn := atomicFn fun c s =>
+    let openerStx := s.stxStack.back
+    let opener := openerText openerStx
+    if opener.isEmpty || opener.any (· ≠ ':') then
+      s.mkError s!"document opened by colons (got {opener.quote})"
+    else
+      let colons := opener.length
+      match closingLine colons c s.pos with
+      | none =>
+        s.mkErrorAt s!"a line of {colons} colons to close the document"
+          (openerStx.getHeadInfo.getPos!)
+      | some (closePos, found) =>
+        if found != colons then
+          s.mkErrorAt s!"{colons} colons to close the document, not {found}" closePos
+        else
+          let contentsEnd := contentEnd c s.pos closePos
+          let endPos :=
+            if contentsEnd ≤ c.inputString.rawEndPos then contentsEnd else c.inputString.rawEndPos
+          let s :=
+            Verso.Parser.document (blockContext := {maxDirective := some (colons - 1)})
+              (c.setEndPos endPos (by unfold endPos; split <;> simp [*])) s
+          -- The contents stop at their last character, so the delimiter is where the parser resumes.
+          if s.hasError then s else s.setPos (afterSpaces c closePos)
 
 @[combinator_parenthesizer document] def document.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 @[combinator_formatter document] def document.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
@@ -31,7 +115,7 @@ where
     let opener := s.stxStack.back
     let indent := opener.getHeadInfo.getPos!
 
-    let opener := getOpener opener
+    let opener := openerText opener
     if opener.isEmpty || opener.any (· ≠ ':') || opener.length < 3 then
       s.mkError s!"document after at least three colons (got {opener.quote})"
     else
@@ -42,11 +126,6 @@ where
         (ignoreFn Lean.Doc.Parser.lineTailWsFn >> blocksFn blockContext) c s
       if s.hasError then s
       else s.popSyntax.pushSyntax (Lean.Doc.Parser.setStartLeading startPos s.stxStack.back)
-
-  getOpener : Syntax → String
-    | .node _ _ #[stx] => getOpener stx
-    | .atom _ v => v
-    | _ => ""
 
 @[combinator_parenthesizer termDocument] def termDocument.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 @[combinator_formatter termDocument] def termDocument.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
