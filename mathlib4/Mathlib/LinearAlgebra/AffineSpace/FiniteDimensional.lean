@@ -190,6 +190,22 @@ theorem AffineIndependent.vectorSpan_eq_top_of_card_eq_finrank_add_one [FiniteDi
     vectorSpan k (Set.range p) = ⊤ :=
   Submodule.eq_top_of_finrank_eq <| hi.finrank_vectorSpan hc
 
+/-- The `vectorSpan` of the image of an affinely independent finite nonempty set has dimension one
+less than its cardinality. -/
+theorem AffineIndepOn.finrank_vectorSpan_image {p : ι → P} {s : Set ι} (hs₁ : s.Finite)
+    (hs₂ : s.Nonempty) (hi : AffineIndepOn k p s) :
+    finrank k (vectorSpan k (p '' s)) = s.ncard - 1 := by
+  have := hs₁.fintype
+  rw [Set.image_eq_range]
+  apply hi.affineIndependent.finrank_vectorSpan
+  simp [Nat.sub_add_cancel <| (Set.ncard_pos hs₁).mpr hs₂]
+
+/-- The `vectorSpan` of an affinely independent finite nonempty set has dimension one less than its
+cardinality. -/
+theorem AffineIndepOn.finrank_vectorSpan {s : Set P} (hs₁ : s.Finite) (hs₂ : s.Nonempty)
+    (hi : AffineIndepOn k id s) : finrank k (vectorSpan k s) = s.ncard - 1 := by
+  rw [← hi.finrank_vectorSpan_image hs₁ hs₂, Set.image_id]
+
 namespace Affine.Simplex
 
 /-- A convenience instance for use when restricting to the affine subspace spanned by the vertices
@@ -533,7 +549,7 @@ theorem collinear_iff_of_mem {s : Set P} {p₀ : P} (h : p₀ ∈ s) :
       rcases hp₀v p hp with ⟨r, rfl⟩
       use r
       simp
-    have hw' := SetLike.le_def.1 hs hw
+    have hw' := mem_of_le_of_mem hs hw
     rwa [Submodule.mem_span_singleton] at hw'
 
 /-- A set of points is collinear if and only if they can all be
