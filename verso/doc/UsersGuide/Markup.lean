@@ -12,12 +12,11 @@ open Verso Genre Manual
 
 section
 open Lean
-open Lean.Doc (ArgValView ArgView BlockView CodeBlockView DescItemView InlineView LinebreakView OrderedListItemView ParaView UnorderedListItemView mkVersoTextFromRef)
+open Lean.Doc (ArgValView ArgView BlockView CodeBlockView DescItemView InlineView LinebreakView OrderedListItemView ParaView UnorderedListItemView VersoBlock VersoInline mkVersoTextFromRef)
 
 variable [Monad m] [MonadError m] [MonadQuotation m]
 
-def newlinesToSpace (inls : TSyntaxArray ``Lean.Doc.Parser.inline) :
-    m (TSyntaxArray ``Lean.Doc.Parser.inline) := do
+def newlinesToSpace (inls : Array VersoInline) : m (Array VersoInline) := do
   let mut out := #[]
   for h : i in [:inls.size] do
     let inl := inls[i]
@@ -118,7 +117,7 @@ mutual
       pure <| .group <| .nest 2 <| ("<dl>" ++ .line ++ Format.joinSep items .line) ++ .line ++ "</dl>"
     | .metadata _ => pure "<metadata/>"
 
-  partial def previewListItem (contents : TSyntaxArray ``Lean.Doc.Parser.block) : m Std.Format := do
+  partial def previewListItem (contents : Array VersoBlock) : m Std.Format := do
     let content ← contents.toList.mapM (preview ∘ TSyntax.raw)
     pure <| .group <| .nest 2 ("<li>" ++ .line ++ .join content) ++ .line ++ "</li>"
 
@@ -288,7 +287,7 @@ r#"
 
 section
 open Lean
-open Lean.Doc (CodeBlockView InlineView ParaView)
+open Lean.Doc (CodeBlockView ParaView VersoBlock VersoInline)
 open ArgParse
 open Doc.Elab
 
@@ -305,7 +304,7 @@ private def withNl (s : String) : String := if s.endsWith "\n" then s else s.pus
 
 open Verso Doc Elab in
 open Lean Elab in
-open Lean.Doc (CodeBlockView InlineView ParaView) in
+open Lean.Doc (CodeBlockView ParaView VersoBlock VersoInline) in
 open Verso.Parser in
 @[directive]
 def markupPreview : DirectiveExpanderOf MarkupPreviewConfig
@@ -342,12 +341,12 @@ where
     lines1 == lines2
 
   -- A paragraph of only whitespace separates the two code blocks that the directive expects.
-  nonemptyI (inl : TSyntax ``Lean.Doc.Parser.inline) : Bool :=
-    match InlineView.of inl with
-    | some (.text t) => !t.getVersoText.isEmpty
-    | some (.linebreak _) => false
+  nonemptyI (inl : VersoInline) : Bool :=
+    match inl.view with
+    | .text t => !t.getVersoText.isEmpty
+    | .linebreak _ => false
     | _ => true
-  nonempty (blk : TSyntax ``Lean.Doc.Parser.block) : Bool :=
+  nonempty (blk : VersoBlock) : Bool :=
     match ParaView.of blk with
     | some p => p.content.any nonemptyI
     | none => true

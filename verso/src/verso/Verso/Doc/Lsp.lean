@@ -878,11 +878,9 @@ where
         children.flatMap (getFromSyntax text) ++ here
       | _ => #[]
     isFoldable : Name → Bool
-      | `Lean.Doc.Parser.Block.codeblock | `Lean.Doc.Parser.Block.directive
-      | `Lean.Doc.Parser.Block.metadata_block | `Lean.Doc.Parser.Block.blockquote
-      | `Lean.Doc.Parser.Block.ol | `Lean.Doc.Parser.Block.ul | `Lean.Doc.Parser.Block.dl => true
-      | `Verso.Syntax.codeblock | `Verso.Syntax.directive | `Verso.Syntax.metadata_block | `Verso.Syntax.blockquote
-      | `Verso.Syntax.ol | `Verso.Syntax.ul | `Verso.Syntax.dl => true
+      | ``Parser.Block.codeblock | ``Parser.Block.directive
+      | ``Parser.Block.metadata_block | ``Parser.Block.blockquote
+      | ``Parser.Block.ol | ``Parser.Block.ul | ``Parser.Block.dl => true
       | _ => false
     getSections (text : FileMap) (ss : List Snapshots.Snapshot) : Array FoldingRange := Id.run do
       let mut regions := #[]

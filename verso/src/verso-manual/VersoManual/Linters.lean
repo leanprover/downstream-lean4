@@ -15,7 +15,7 @@ public section
 set_option linter.missingDocs true
 
 open Lean Linter Elab Command
-open Lean.Doc (HeaderView InlineView MetadataView)
+open Lean.Doc (HeaderView MetadataView VersoInline)
 open Lean.Doc.Parser
 
 /--
@@ -129,19 +129,19 @@ where
       | `(Lean.Parser.Term.structInstField|$x:ident := $_ ) => x.getId ≠ `tag
       | _ => true
 
-  suggestId (name : TSyntaxArray ``Lean.Doc.Parser.inline) : String :=
+  suggestId (name : Array VersoInline) : String :=
     suggestId' name |>.sluggify |>.toString
 
-  suggestId' (name : TSyntaxArray ``Lean.Doc.Parser.inline) : String := Id.run do
+  suggestId' (name : Array VersoInline) : String := Id.run do
     let mut strTitle := ""
     for inl in name do
-      match InlineView.of inl with
-      | some (.text s) => strTitle := strTitle ++ s.getVersoText.toLower
-      | some (.code c) => strTitle := strTitle ++ c.getVersoCode
-      | some (.emph e) => strTitle := strTitle ++ suggestId' e.content
-      | some (.bold b) => strTitle := strTitle ++ suggestId' b.content
-      | some (.link l) => strTitle := strTitle ++ suggestId' l.content
-      | some (.role r) => strTitle := strTitle ++ suggestId' r.content
+      match inl.view with
+      | .text s => strTitle := strTitle ++ s.getVersoText.toLower
+      | .code c => strTitle := strTitle ++ c.getVersoCode
+      | .emph e => strTitle := strTitle ++ suggestId' e.content
+      | .bold b => strTitle := strTitle ++ suggestId' b.content
+      | .link l => strTitle := strTitle ++ suggestId' l.content
+      | .role r => strTitle := strTitle ++ suggestId' r.content
       | _ => pure ()
     return strTitle
 

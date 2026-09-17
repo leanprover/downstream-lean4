@@ -16,7 +16,6 @@ meta import Lean
 
 open Errata
 open Lean Doc Elab
-open scoped Lean.Doc.Syntax
 
 /--
 A Markdown docstring with `code`, _emphasis_ and **strong** text.

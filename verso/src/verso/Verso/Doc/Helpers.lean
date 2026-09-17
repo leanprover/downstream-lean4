@@ -4,56 +4,55 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
-import Lean.DocString.Syntax
+public import Lean.Elab.DocString.Builtin.Parsing
 public import Lean.DocString.View
 public import Lean.Exception
 public import Lean.Log
 
 set_option doc.verso true
 
-open Lean Doc.Syntax
+open Lean
 open Lean.Doc
-open Lean.Doc.Parser
 
 namespace Verso.Doc
 
 /--
-If {name}`inlines` contains exactly one code inline, its contents are returned. Throws an error
-otherwise.
+If the non-whitespace elements of {name}`inlines` are a single code inline, its contents are
+returned. Otherwise, an error is logged and {name}`none` is returned.
 -/
-public def oneCodeStr [Monad m] [MonadError m]
-    (inlines : TSyntaxArray ``Parser.inline) : m VersoCode := do
-  let #[code] := inlines
-    | (if inlines.size == 0 then (throwError ·)
-       else (throwErrorAt (mkNullNode (inlines.map (·.raw))) ·)) "Expected one code element"
-  let some v := CodeView.of code
-    | throwErrorAt code "Expected a code element"
-  return v.content
+public def onlyCode? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+    (inlines : Array VersoInline) : m (Option VersoCode) := do
+  try
+    return some (← Lean.Doc.onlyCode inlines)
+  catch
+    | .error ref msg =>
+      logErrorAt ref msg
+      return none
+    | e => throw e
 
 /--
-If {name}`inlines` contains exactly one code inline, its contents are returned. Otherwise, an error
-is logged and {name}`none` is returned.
+If the non-whitespace elements of {name}`inlines` are a single code inline, the Lean name it
+contains is returned as an identifier at its source location. Otherwise, an error is thrown.
 -/
-public def oneCodeStr? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
-    (inlines : TSyntaxArray ``Parser.inline) : m (Option VersoCode) := do
-  let #[code] := inlines
-    | if inlines.size == 0 then
-        Lean.logError "Expected a code element"
-      else
-        logErrorAt (mkNullNode (inlines.map (·.raw))) "Expected one code element"
-      return none
-  let some v := CodeView.of code
-    | logErrorAt code "Expected a code element"
-      return none
-  return some v.content
-
-/--
-If {name}`inlines` contains exactly one Lean name, it is returned with its source location as an
-identifier. Otherwise, an error is thrown.
--/
-public def oneCodeName [Monad m] [MonadError m]
-    (inlines : TSyntaxArray ``Parser.inline) : m Ident := do
-  let code ← oneCodeStr inlines
+public def onlyName [Monad m] [MonadError m]
+    (inlines : Array VersoInline) : m Ident := do
+  let code ← Lean.Doc.onlyCode inlines
   let str := code.getVersoCode
   let name := if str.contains '.' then str.toName else Name.str .anonymous str
   return mkIdentFrom code name
+
+/-- Reads the single code inline that the arguments to a role consist of. -/
+@[deprecated Lean.Doc.onlyCode (since := "2026-09-17")]
+public def oneCodeStr [Monad m] [MonadError m] (inlines : Array VersoInline) : m VersoCode :=
+  Lean.Doc.onlyCode inlines
+
+/-- Reads the single code inline that the arguments to a role consist of, logging any error. -/
+@[deprecated onlyCode? (since := "2026-09-17")]
+public def oneCodeStr? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+    (inlines : Array VersoInline) : m (Option VersoCode) :=
+  onlyCode? inlines
+
+/-- Reads the Lean name that the arguments to a role consist of. -/
+@[deprecated onlyName (since := "2026-09-17")]
+public def oneCodeName [Monad m] [MonadError m] (inlines : Array VersoInline) : m Ident :=
+  onlyName inlines

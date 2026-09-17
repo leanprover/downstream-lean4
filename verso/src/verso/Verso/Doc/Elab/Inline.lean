@@ -13,7 +13,7 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc (InlineView)
+open Lean.Doc (InlineView VersoInline)
 open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
@@ -22,8 +22,7 @@ set_option backward.privateInPublic false
 public def throwUnexpected [Monad m] [MonadError m] (stx : Syntax) : m α :=
   throwErrorAt stx "unexpected syntax{indentD stx}"
 
-public partial def elabInline (inline : TSyntax ``Lean.Doc.Parser.inline) :
-    DocElabM (TSyntax `term) :=
+public partial def elabInline (inline : VersoInline) : DocElabM (TSyntax `term) :=
   withRef inline <| withFreshMacroScope <| withIncRecDepth <| do
   match inline.raw with
   | .missing =>

@@ -14,7 +14,7 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc (BlockView)
+open Lean.Doc (BlockView VersoBlock)
 open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
@@ -29,8 +29,7 @@ def decorateClosing : BlockView → DocElabM Unit
 
 
 /-- Elaborates a parsed block into syntax denoting an expression of type `Block genre`. -/
-public partial def elabBlock (block : TSyntax ``Lean.Doc.Parser.block) :
-    DocElabM (TSyntax `term) :=
+public partial def elabBlock (block : VersoBlock) : DocElabM (TSyntax `term) :=
   withTraceNode `Elab.Verso.block (fun _ => pure m!"Block {block}") <|
   withRef block <| withFreshMacroScope <| withIncRecDepth <| do
   match block.raw with

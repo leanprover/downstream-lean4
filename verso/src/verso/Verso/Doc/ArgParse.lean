@@ -701,7 +701,7 @@ open Verso.Parser in
 Parses a sequence of Verso inline elements from a string literal. The resulting syntax is adjusted
 so that escapes in the string literal are accounted for in source positions.
 -/
-def ValDesc.inlinesString [MonadFileMap m] : ValDesc m (TSyntaxArray ``Parser.inline) where
+def ValDesc.inlinesString [MonadFileMap m] : ValDesc m (Array VersoInline) where
   description := doc!"a string that contains a sequence of inline elements"
   signature := .String
   get

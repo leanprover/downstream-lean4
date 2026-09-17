@@ -31,7 +31,7 @@ namespace Verso.Doc.Elab
 open Lean
 open Lean.Elab
 open Lean.Doc (BlockView BoldView CodeView EmphView HeaderView InlineView LinebreakView RoleView
-  TextView VersoCodeBlock VersoRefName)
+  TextView VersoBlock VersoCodeBlock VersoInline VersoRefName)
 open Lean.Doc.Parser
 open Std (HashMap HashSet)
 open Verso.ArgParse (FromArgs SigDoc)
@@ -619,16 +619,15 @@ private def mkExpanderExtension (name : Name) : IO ExpanderExtension :=
       .uniform entries.toArray
   }
 
-public abbrev RoleExpander :=
-  Array Arg → TSyntaxArray ``Lean.Doc.Parser.inline → DocElabM (Array (TSyntax `term))
+public abbrev RoleExpander := Array Arg → Array VersoInline → DocElabM (Array (TSyntax `term))
 
-public abbrev RoleExpanderOf α := α → TSyntaxArray ``Lean.Doc.Parser.inline → DocElabM Term
+public abbrev RoleExpanderOf α := α → Array VersoInline → DocElabM Term
 
 initialize roleExpanderAttr : KeyedDeclsAttribute RoleExpander ←
   mkDocExpanderAttribute `role_expander ``RoleExpander "Indicates that this function is used to implement a given role" `roleExpanderAttr
 
 public def toRole {α : Type} [FromArgs α DocElabM]
-    (expander : α → TSyntaxArray ``Lean.Doc.Parser.inline → DocElabM Term) : RoleExpander :=
+    (expander : α → Array VersoInline → DocElabM Term) : RoleExpander :=
   fun args inlines => do
     let v ← ArgParse.parse args
     return #[← expander v inlines]
@@ -860,17 +859,16 @@ private def registeredCodeBlockNamesImpl : DocElabM (Array Name) :=
 @[implemented_by registeredCodeBlockNamesImpl]
 public opaque registeredCodeBlockNames : DocElabM (Array Name)
 
-public abbrev DirectiveExpander :=
-  Array Arg → TSyntaxArray ``Lean.Doc.Parser.block → DocElabM (Array (TSyntax `term))
+public abbrev DirectiveExpander := Array Arg → Array VersoBlock → DocElabM (Array (TSyntax `term))
 
-public abbrev DirectiveExpanderOf α := α → TSyntaxArray ``Lean.Doc.Parser.block → DocElabM Term
+public abbrev DirectiveExpanderOf α := α → Array VersoBlock → DocElabM Term
 
 
 initialize directiveExpanderAttr : KeyedDeclsAttribute DirectiveExpander ←
   mkDocExpanderAttribute `directive_expander ``DirectiveExpander "Indicates that this function is used to implement a given directive" `directiveExpanderAttr
 
 public def toDirective {α : Type} [FromArgs α DocElabM]
-    (expander : α → TSyntaxArray ``Lean.Doc.Parser.block → DocElabM Term) : DirectiveExpander :=
+    (expander : α → Array VersoBlock → DocElabM Term) : DirectiveExpander :=
   fun args blocks => do
     let v ← ArgParse.parse args
     return #[← expander v blocks]

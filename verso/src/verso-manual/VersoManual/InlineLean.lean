@@ -384,7 +384,7 @@ meta def lean : CodeBlockExpanderOf LeanBlockConfig
 @[role]
 meta def leanCommand : RoleExpanderOf LeanBlockConfig
   | config, inls => do
-    if let some str ← oneCodeStr? inls then
+    if let some str ← onlyCode? inls then
       elabCommands config str toHighlightedLeanInline (minCommands := some 1) (maxCommands := some 1)
     else
       `(sorry)

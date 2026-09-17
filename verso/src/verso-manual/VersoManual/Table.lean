@@ -16,7 +16,6 @@ open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
 open Lean.Doc (UnorderedListView)
-open Lean.Doc.Parser
 
 open Lean Elab
 
@@ -199,10 +198,8 @@ meta def table : DirectiveExpanderOf TableConfig
       | throwErrorAt oneBlock "Expected a single unordered list"
     let preRows := outer.items.map (·.contents)
     let rows ← preRows.mapM fun blks => do
-      let #[oneInRow] := blks.filter (·.raw.isOfKind ``Lean.Doc.Parser.Block.ul)
+      let #[inner] := blks.filterMap UnorderedListView.of
         | throwError "Each row should have exactly one list in it"
-      let some inner := UnorderedListView.of oneInRow
-        | throwErrorAt oneInRow "Each row should have exactly one list in it"
       pure (inner.items.map (·.contents))
     if h : rows.size = 0 then
       throwErrorAt oneBlock "Expected at least one row"
@@ -217,5 +214,3 @@ meta def table : DirectiveExpanderOf TableConfig
       let flattened := rows.flatten
       let blocks : Array (Syntax.TSepArray `term ",") ← flattened.mapM (·.mapM elabBlock)
       ``(Block.other (Block.table $(quote columns) $(quote cfg.header) $(quote cfg.name) $(quote cfg.alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])
-
-

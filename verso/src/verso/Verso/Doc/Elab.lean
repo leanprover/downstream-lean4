@@ -19,7 +19,7 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode)
+open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode VersoBlock)
 open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
@@ -194,7 +194,7 @@ public meta def _root_.Lean.Doc.Parser.Inline.inline_math.expand : InlineExpande
 public meta def _root_.Lean.Doc.Parser.Inline.display_math.expand : InlineExpander := mathExpand
 
 
-public meta def partCommand (cmd : TSyntax ``Lean.Doc.Parser.block) : PartElabM Unit :=
+public meta def partCommand (cmd : VersoBlock) : PartElabM Unit :=
   withTraceNode `Elab.Verso.part (fun _ => pure m!"Part modification {cmd}") <|
   withRef cmd <| withFreshMacroScope <| do
   match cmd.raw with
@@ -346,7 +346,7 @@ public meta partial def _root_.Lean.Doc.Parser.Block.para.expand : BlockExpander
     throwUnsupportedSyntax
 
 
-meta def elabLi (marker : Syntax) (contents : TSyntaxArray ``Lean.Doc.Parser.block)
+meta def elabLi (marker : Syntax) (contents : Array VersoBlock)
     (stx : Syntax) : DocElabM (Syntax × TSyntax `term) :=
   withRef stx <| do
     let genre := (← readThe DocElabContext).genreSyntax

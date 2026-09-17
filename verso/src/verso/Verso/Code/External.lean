@@ -32,6 +32,7 @@ public import Lean.ToExpr
 import Lean.Message
 import Lean.Meta.Hint
 import Lean.DocString.Syntax
+import Lean.Elab.DocString.Builtin.Parsing
 
 import Std.Data.HashSet
 
@@ -42,7 +43,7 @@ open SubVerso Highlighting
 
 open Lean Meta Hint
 open Std
-open Lean.Doc (RoleView VersoCodeBlock)
+open Lean.Doc (RoleView VersoCodeBlock VersoInline onlyCode)
 
 namespace Verso.Code.External
 
@@ -239,9 +240,9 @@ public meta def anchor : CodeBlockExpander
     else
       throwError "Expected a positional argument first (the anchor name)"
 
-meta def moduleInline (args : Array Arg) (inls : TSyntaxArray ``Lean.Doc.Parser.inline) : DocElabM (Array Term) := do
+meta def moduleInline (args : Array Arg) (inls : Array VersoInline) : DocElabM (Array Term) := do
   let cfg@{module := moduleName, project, anchor?, showProofStates := _, defSite := _} ← parseThe CodeContext args
-  let code? ← oneCodeStr? inls
+  let code? ← onlyCode? inls
 
   withAnchored project moduleName anchor? fun hl => do
     logInfos hl
@@ -279,9 +280,9 @@ where mkHover (sig : String) (doc? : Option String) : String :=
     s!"\n\n----------\n\n{d}"
   else ""
 
-public meta def moduleNameInline (args : Array Arg) (inls : TSyntaxArray ``Lean.Doc.Parser.inline) : DocElabM (Array Term) := do
+public meta def moduleNameInline (args : Array Arg) (inls : Array VersoInline) : DocElabM (Array Term) := do
   let cfg@{module := moduleName, project, anchor?, show?, showProofStates := _, defSite := _} ← parseThe NameContext args
-  let name ← oneCodeStr inls
+  let name ← onlyCode inls
   let nameStr := name.getVersoCode
 
   withAnchored project moduleName anchor? fun hl => do
@@ -347,9 +348,9 @@ private meta def suggestTerms (hl : Highlighted) (input : String) : Array String
   lines ++ (smartSuggestions out.toArray input (threshold := (max ·.length ·.length)) (count := 15))
 
 
-public meta def moduleTermInline (args : Array Arg) (inls : TSyntaxArray ``Lean.Doc.Parser.inline) : DocElabM (Array Term) := do
+public meta def moduleTermInline (args : Array Arg) (inls : Array VersoInline) : DocElabM (Array Term) := do
   let cfg@{module := moduleName, project, anchor?, showProofStates := _, defSite := _} ← parseThe CodeContext args
-  let term ← oneCodeStr inls
+  let term ← onlyCode inls
   let termStr := term.getVersoCode
 
   withAnchored project moduleName anchor? fun hl => do
@@ -599,8 +600,8 @@ public meta def anchorWarning : CodeBlockExpander
       throwError "Expected a positional argument first (the anchor name)"
 
 
-public meta def moduleOutInline (args : Array Arg) (inls : TSyntaxArray ``Lean.Doc.Parser.inline) : DocElabM (Array Term) := do
-  let str? ← oneCodeStr? inls
+public meta def moduleOutInline (args : Array Arg) (inls : Array VersoInline) : DocElabM (Array Term) := do
+  let str? ← onlyCode? inls
 
   let {module := moduleName, project, anchor?, expandTraces, onlyTrace, severity, showProofStates := _, defSite := _} ← parseThe MessageContext args
 
@@ -704,7 +705,7 @@ public meta def moduleOutWarningRole : RoleExpander
   | args, inls => withTraceNode `Elab.Verso (fun _ => pure m!"moduleOutWarningRole") <|
     moduleOutInline (#[.anon <| .name <| mkIdent ``MessageSeverity.warning] ++ args) inls
 
-public meta def anchorOutAsRole (severity : Name) (args : Array Arg) (inls : TSyntaxArray ``Lean.Doc.Parser.inline) : DocElabM (Array Term) :=
+public meta def anchorOutAsRole (severity : Name) (args : Array Arg) (inls : Array VersoInline) : DocElabM (Array Term) :=
   if let some (Arg.anon a) := args[0]? then
     moduleOutInline (#[.anon <| .name <| mkIdent severity, .named .missing (mkIdent `anchor) a] ++ args.drop 1) inls
   else
@@ -733,7 +734,7 @@ further semantics.
 public meta def lit : RoleExpander
   | args, inls => do
     ArgParse.done.run args
-    let kw ← oneCodeStr inls
+    let kw ← onlyCode inls
     return #[← ``(Inline.code $(quote kw.getVersoCode))]
 
 
