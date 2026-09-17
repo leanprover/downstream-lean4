@@ -276,7 +276,7 @@ class Updater:
                 status = status.join(self.remove_subrepo(path))
         return status
 
-    def split(
+    def export(
         self, subrepo: Subrepo, message: str = "chore: nightly adaptations"
     ) -> CommitStatus:
         self.reset()
