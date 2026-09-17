@@ -278,7 +278,7 @@ def lean : CodeBlockExpanderOf SlidesLeanBlockConfig
 @[role]
 def leanCommand : RoleExpanderOf LeanBlockConfig
   | config, inls => do
-    if let some str ← oneCodeStr? inls then
+    if let some str ← onlyCode? inls then
       elabCommandsWithFormat config str toSlidesHighlightedInline (minCommands := some 1) (maxCommands := some 1)
     else
       `(sorry)

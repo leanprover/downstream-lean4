@@ -269,7 +269,7 @@ partial def getBlocks (block : Syntax) :
     return Syntax.node i k args
   | _ => return block
 
-open Verso.Doc (oneCodeStr?) in
+open Verso.Doc (onlyCode?) in
 partial def getQuotes (stx : Syntax) : StateT (NameMap VersoCode) DocElabM Syntax := do
   if let some { name := x, args, content := inls, .. } := RoleView.of ⟨stx⟩ then
     try
@@ -277,7 +277,7 @@ partial def getQuotes (stx : Syntax) : StateT (NameMap VersoCode) DocElabM Synta
       if x' == ``VersoSlides.name then
         unless args.isEmpty do
           logErrorAt (mkNullNode (args.map (·.raw))) m!"No arguments expected here"
-        let some code ← oneCodeStr? inls
+        let some code ← onlyCode? inls
           | return ((← `(.empty)) : Syntax)
 
         let n ← mkFreshUserName `name
