@@ -320,7 +320,7 @@ theorem signAux_eq_signAux2 {n : ℕ} :
 def signAux3 [Finite α] (f : Perm α) {s : Multiset α} : (∀ x, x ∈ s) → ℤˣ :=
   Quotient.hrecOn s (fun l _ => signAux2 l f) fun l₁ l₂ h ↦ by
     rcases Finite.exists_equiv_fin α with ⟨n, ⟨e⟩⟩
-    refine Function.hfunext (forall_congr fun _ ↦ propext h.mem_iff) fun h₁ h₂ _ ↦ ?_
+    refine Function.hfunext (pi_congr fun _ ↦ propext h.mem_iff) fun h₁ h₂ _ ↦ ?_
     rw [← signAux_eq_signAux2 _ _ e fun _ _ => h₁ _, ← signAux_eq_signAux2 _ _ e fun _ _ => h₂ _]
 
 theorem signAux3_mul_and_swap [Finite α] (f g : Perm α) (s : Multiset α) (hs : ∀ x, x ∈ s) :

@@ -179,7 +179,7 @@ theorem le_refl': ∀ a : α, a ≤ a := by
 /--
 info: fun {α} [PartialOrder α] a b c h₁ h₂ => lt_le_trans._proof_1_1 a b c h₁ h₂
 ---
-info: fun {α} [PartialOrder α] => of_eq_true (Eq.trans (forall_congr fun a => Std.le_refl._simp_1 a) (implies_true α))
+info: fun {α} [PartialOrder α] => of_eq_true (Eq.trans (pi_congr fun a => Std.le_refl._simp_1 a) (implies_true α))
 -/
 #guard_msgs in
 run_meta
@@ -281,11 +281,11 @@ info: theorem Cov.Ioc_def : ∀ {α : Type} [inst : PartialOrder α] {a b x : α
     ((x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c) ∧ b < x ∧ ∀ ⦃c : α⦄, c < x → ¬b < c) ↔
       (x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c) ∧ b < x ∧ ∀ ⦃c : α⦄, c < x → ¬b < c)
   (id
-    (forall_congr fun {α} =>
-      forall_congr fun [PartialOrder α] =>
-        forall_congr fun {a} =>
-          forall_congr fun {b} =>
-            forall_congr fun {x} =>
+    (pi_congr fun {α} =>
+      pi_congr fun [PartialOrder α] =>
+        pi_congr fun {a} =>
+          pi_congr fun {b} =>
+            pi_congr fun {x} =>
               congr (congrArg Iff (congrArg (And (x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c)) (CovBy._to_dual_cast_4 x b)))
                 (Eq.trans (Cov.Ico._to_dual_cast_4 a b x)
                   (congr (congrArg And (WCovBy._to_dual_cast_4 a x)) (CovBy._to_dual_cast_4 x b)))))
@@ -295,11 +295,11 @@ info: theorem Cov.Ioc_def : ∀ {α : Type} [inst : PartialOrder α] {a b x : α
     (∀ {α : Type} [inst : PartialOrder α] {a b x : α},
       ((x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c) ∧ b < x ∧ ∀ ⦃c : α⦄, c < x → ¬b < c) ↔
         (x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c) ∧ b < x ∧ ∀ ⦃c : α⦄, c < x → ¬b < c)
-    (forall_congr fun {α} =>
-      forall_congr fun [PartialOrder α] =>
-        forall_congr fun {a} =>
-          forall_congr fun {b} =>
-            forall_congr fun {x} =>
+    (pi_congr fun {α} =>
+      pi_congr fun [PartialOrder α] =>
+        pi_congr fun {a} =>
+          pi_congr fun {b} =>
+            pi_congr fun {x} =>
               congr (congrArg Iff (congrArg (And (x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c)) (CovBy._to_dual_cast_4 x b)))
                 (congrArg (And (x ≤ a ∧ ∀ ⦃c : α⦄, c < a → ¬x < c)) (CovBy._to_dual_cast_4 x b)))
     fun {α} [PartialOrder α] {a b x} => Iff.rfl)

@@ -317,7 +317,7 @@ lemma Exact.linearMap_comp_eq_zero (h : Exact f g) : g.comp f = 0 :=
 
 lemma Surjective.comp_exact_iff_exact {p : M' →ₗ[R] M} (h : Surjective p) :
     Exact (f ∘ₗ p) g ↔ Exact f g :=
-  iff_of_eq <| forall_congr fun x =>
+  iff_of_eq <| pi_congr fun x =>
     congrArg (g x = 0 ↔ x ∈ ·) (h.range_comp f)
 
 lemma _root_.LinearEquiv.precomp_exact_iff_exact {e : M' ≃ₗ[R] M} :

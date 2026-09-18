@@ -406,7 +406,7 @@ theorem unitsSMul_cancels_iff (u : ℤˣ) (w : NormalWord d) :
   by_cases h : Cancels u w
   · simp only [unitsSMul, h, dite_true, not_true_eq_false, iff_false]
     induction w using consRecOn with
-    | ofGroup => simp [Cancels, unitsSMulWithCancel]
+    | ofGroup => simp [Cancels] at h
     | cons g u' w h1 h2 _ =>
       intro hc
       apply not_cancels_of_cons_hyp _ _ h2
@@ -459,7 +459,7 @@ theorem unitsSMul_one_group_smul (g : A) (w : NormalWord d) :
   have : Cancels 1 ((g : G) • w) ↔ Cancels 1 w := by
     simp [Cancels, Subgroup.mul_mem_cancel_left]
   by_cases hcan : Cancels 1 w
-  · simp only [unitsSMulWithCancel, toSubgroup_one, id_eq, toSubgroup_neg_one, toSubgroupEquiv_one,
+  · simp only [unitsSMulWithCancel, toSubgroup_one, toSubgroup_neg_one, toSubgroupEquiv_one,
       group_smul_head, mul_inv_rev, dite_eq_left (this.2 hcan), dite_eq_left hcan]
     cases w using consRecOn
     · simp [Cancels] at hcan
@@ -523,7 +523,7 @@ theorem prod_unitsSMul (u : ℤˣ) (w : NormalWord d) :
   · cases w using consRecOn
     · simp [Cancels] at hcan
     · cases hcan.2
-      simp only [unitsSMulWithCancel, id_eq, consRecOn_cons, prod_group_smul, prod_cons, zpow_neg]
+      simp only [unitsSMulWithCancel, consRecOn_cons, prod_group_smul, prod_cons, zpow_neg]
       rcases Int.units_eq_one_or u with (rfl | rfl)
       · simp [equiv_eq_conj, mul_assoc]
       · -- Before https://github.com/leanprover/lean4/pull/2644, this proof was just

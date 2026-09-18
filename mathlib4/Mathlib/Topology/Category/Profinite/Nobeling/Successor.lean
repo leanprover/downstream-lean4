@@ -474,7 +474,7 @@ theorem Products.max_eq_eval [Inhabited I] (l : Products I) (hl : l.val ≠ [])
     exact ((List.IsChain.rel_cons hlc hi).ne rfl).elim
   have H : (∀ i, i ∈ l.Tail.val → (x.val i = true)) =
       (∀ i, i ∈ l.Tail.val → (SwapTrue o x.val i = true)) := by
-    apply forall_congr; intro i; apply forall_congr; intro hi; rw [hi' i hi]
+    apply pi_congr; intro i; apply pi_congr; intro hi; rw [hi' i hi]
   simp only [H]
   split_ifs with h₁ h₂ h₃ <;> try (dsimp [e])
   · rw [ite_eq_left (swapTrue_eq_true _ _), ite_eq_right]
