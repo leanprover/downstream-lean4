@@ -17,7 +17,7 @@
       "scope": "",
       "name": "illuminate",
       "manifestFile": "lake-manifest.json",
-      "inherited": true,
+      "inherited": false,
       "configFile": "lakefile.lean",
       "dir": "../illuminate"
     },
