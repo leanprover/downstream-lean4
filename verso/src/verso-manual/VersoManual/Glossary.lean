@@ -12,7 +12,7 @@ public meta import Verso.Doc.Elab.Inline
 public meta import Verso.Doc.PointOfInterest
 public import VersoManual.Basic
 public import VersoManual.Glossary.Norm
-meta import VersoManual.Glossary.Norm
+public meta import VersoManual.Glossary.Norm
 public import Verso.Doc.Elab.Monad
 
 open Verso Genre Manual ArgParse
@@ -248,7 +248,7 @@ public def tech.descr : InlineDescr where
               content.mapM go
           else
             let keys := remote.domains[technicalTermDomain]?
-              |>.map (·.contents.keysArray.qsortOrd.toList |> ", ".intercalate)
+              |>.map (·.canonicalNames.toList |> ", ".intercalate)
               |>.map ("Keys are: " ++ ·)
               |>.getD "Technical term domain not found."
             reportError s!"No term def with key \"{key}\" in remote {r.quote}. {keys}" loc

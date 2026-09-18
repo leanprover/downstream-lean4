@@ -45,18 +45,27 @@ jobs:
           echo "nightly-sha=$NIGHTLY_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Update toolchain
+        id: update-toolchain
         env:
           NIGHTLY_TAG: ${{ steps.find-nightly.outputs.nightly-tag }}
         run: |
           echo "leanprover/lean4:$NIGHTLY_TAG" > lean-toolchain
           git add lean-toolchain
-          git diff --cached --quiet || git commit -m "chore: bump toolchain to $NIGHTLY_TAG"
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "chore: bump toolchain to $NIGHTLY_TAG"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Push
+        if: fromJSON(steps.update-toolchain.outputs.changed)
         run: |
           git push origin HEAD:${{ github.ref_name }}
 
       - name: Merge adaptation PRs
+        id: merge-adaptation-prs
+        if: fromJSON(steps.update-toolchain.outputs.changed)
         uses: ./.downstream/actions/adaptation-pr-merge
         with:
           app-token: ${{ steps.app-token.outputs.token }}
@@ -64,3 +73,20 @@ jobs:
           upstream-repo: leanprover/lean4
           upstream-rev: ${{ steps.find-nightly.outputs.nightly-sha }}
           downstream-clone: .
+
+      - name: Post unmerged PRs to Zulip
+        if: ${{ steps.merge-adaptation-prs.outputs.report-zulip != '' }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: ecosystem infrastructure
+          topic: downstream-lean4 adaptations
+          content: |
+            After the toolchain bump to `${{ steps.find-nightly.outputs.nightly-tag }}`, the following adaptation PRs could not be merged automatically:
+
+            ${{ steps.merge-adaptation-prs.outputs.report-zulip }}
+
+            View [all PRs requiring manual intervention](https://github.com/leanprover/downstream-lean4/pulls?q=is%3Aopen+is%3Apr+label%3Amerge-required).

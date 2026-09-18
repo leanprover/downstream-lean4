@@ -29,6 +29,11 @@ inputs:
       A marker embedded in the message to find it again for in-place updates.
       Defaults to a marker shared across all status messages.
 
+  repost:
+    description: >
+      If `true`, delete the previous status message and post the new one as a
+      fresh comment instead of editing it in place. Defaults to `false`.
+
 runs:
   using: node24
   main: dist/index.js

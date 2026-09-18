@@ -17,6 +17,7 @@ public import Verso.Output.Html.ElasticLunr
 public import Verso.Doc.Lsp
 public import Verso.Doc.Elab
 public import Verso.FS
+public import Verso.SmartSuggestions
 
 public import VersoSearch
 public import VersoSearch.DomainSearch
@@ -84,6 +85,34 @@ deriving BEq, ToJson, FromJson
 defmethod Part.htmlToc (part : Part Manual) : Bool :=
   part.metadata.map (·.htmlToc) |>.getD true
 
+/--
+Renders the names among {name}`candidates` that are close to {name}`name`, as a suffix for the
+error message about an unresolved cross-reference. Returns the empty string when no candidate is
+close enough.
+-/
+def suggestRefTargets (candidates : Array String) (name : String) : String :=
+  let suggestions := smartSuggestions candidates name (count := 5)
+  if suggestions.isEmpty then ""
+  else suggestions.foldl (init := "\nDid you mean one of these?") (· ++ s!"\n * '{·}'")
+
+/--
+The error message for a cross-reference to {name}`name` that traversal could not resolve.
+
+When the name is absent from the domain, nearby names from the domain's contents in {name}`st`
+are suggested. When the name is present, resolution failed for another reason, such as the name
+having multiple targets. The resulting message preserves this.
+-/
+def unresolvedRefMessage (st : TraverseState) (domain : Option Name) (name : String) : String :=
+  let domain := domain.getD sectionDomain
+  if (st.getDomainObject? domain name).isSome then
+    match st.resolveDomainObject domain name with
+    | .error e => e
+    | .ok _ =>
+      s!"'{name}' in {domain} was not resolved during traversal; the document may need more traversal passes"
+  else
+    let candidates := st.domains[domain]?.map (·.canonicalNames) |>.getD #[]
+    s!"No destination found for tag '{name}' in {domain}{suggestRefTargets candidates name}"
+
 inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (remote : Option String) (resolvedDestination : Option Link := none) where
   data := ToJson.toJson (RefInfo.mk canonicalName domain remote resolvedDestination)
   traverse := fun _ info content => do
@@ -108,7 +137,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
       | .error e =>
         reportError e; content.mapM go
       | .ok { canonicalName := name, domain, remote := none, resolvedDestination := none } =>
-        reportError ("No destination found for tag '" ++ name ++ "' in " ++ toString domain); content.mapM go
+        reportError (unresolvedRefMessage (← Doc.TeX.state) domain name); content.mapM go
       | .ok { canonicalName := name, domain, remote := some remote, resolvedDestination := none } =>
         reportError ("No destination found for remote '" ++ remote ++ "' tag '" ++ name ++ "' in " ++ toString domain); content.mapM go
       | .ok {resolvedDestination := some dest, remote, ..} =>
@@ -118,7 +147,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
         else
           -- Intra-document links should be page references
           let label := labelForTeX dest.htmlId
-          pure \TeX{\autoref{\Lean{label}}" (p."~\pageref{\Lean{label}} ")"}
+          pure \TeX{\hyperref[\Lean{label}]{\Lean{← content.mapM go}}" (p."~\pageref{\Lean{label}} ")"}
 
   toHtml :=
     open Verso.Output.Html in
@@ -127,7 +156,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
       | .error e =>
         reportError e; content.mapM go
       | .ok { canonicalName := name, domain, remote := none, resolvedDestination := none } =>
-        reportError ("No destination found for tag '" ++ name ++ "' in " ++ toString domain); content.mapM go
+        reportError (unresolvedRefMessage (← Doc.Html.HtmlT.state) domain name); content.mapM go
       | .ok { canonicalName := name, domain, remote := some remote, resolvedDestination := _ } =>
         let domain := domain |>.getD sectionDomain
         let remoteData ← readThe AllRemotes
@@ -141,7 +170,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
               else
                 let dests := objs.map (s!" * {·.link.link}") |>.toList |> "\n".intercalate
                 reportError s!"Remote '{remote}' domain '{domain}' contains multiple destinations for '{name}':\n{dests}"
-            else reportError s!"Remote '{remote}' contains domain '{domain}, but it not item '{name}'"
+            else reportError s!"Remote '{remote}' contains domain '{domain}', but not item '{name}'{suggestRefTargets dom.canonicalNames name}"
           else reportError s!"Remote '{remote}' does not contain domain '{domain}' (looking up '{name}')"
         else reportError s!"Remote '{remote}' not found for tag '{name}' in domain '{domain}'"
         -- If any error was logged, just don't emit a link
@@ -401,7 +430,7 @@ def emitTeX (config : Config) (text : Part Manual) : EmitM Unit := do
   withFile (dir.join "main.tex") .write fun h => do
     if config.verbose then
       IO.println s!"Saving {dir.join "main.tex"}"
-    h.putStrLn (preamble text.titleString authors date packages.toList preambleItems.toList)
+    h.putStrLn (preamble text.titleString authors date packages.toList preambleItems.toList config.twoside)
     -- \frontmatter is inserted by our hardcoded preamble before the ToC, so it doesn't get inserted
     -- here. If there's any text at the start of the front matter, then we need to clear it to a new
     -- recto page after the ToC
@@ -997,6 +1026,7 @@ where
       | .error e => throw (↑ e)
     | ("--without-word-count"::more) => opts { cfg with wordCount := none } more
     | ("--draft"::more) => opts { cfg with draft := true } more
+    | ("--twoside"::more) => opts { cfg with twoside := true } more
     | ("--verbose"::more) => opts { cfg with verbose := true } more
     | ("--remote-config"::more) =>
       match requireFilename "--remote-config" more with

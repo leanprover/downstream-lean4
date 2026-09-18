@@ -127,6 +127,7 @@ variable [Mul R] [Mul S] [Add R] [Add S] [Mul S'] [Add S']
 
 section coe
 
+@[macro_inline]
 instance : EquivLike (R ≃+* S) R S where
   coe f := f.toFun
   inv f := f.invFun
@@ -717,12 +718,12 @@ theorem toNonUnitalRingHom_refl :
     (RingEquiv.refl R).toNonUnitalRingHom = NonUnitalRingHom.id R :=
   rfl
 
-@[deprecated apply_symm_apply (since := "2026-06-16")]
+@[deprecated apply_symm_apply +typeChanged (since := "2026-06-16")]
 theorem toNonUnitalRingHom_apply_symm_toNonUnitalRingHom_apply (e : R ≃+* S) :
     ∀ y : S, e.toNonUnitalRingHom (e.symm.toNonUnitalRingHom y) = y :=
   e.toEquiv.apply_symm_apply
 
-@[deprecated symm_apply_apply (since := "2026-06-16")]
+@[deprecated symm_apply_apply +typeChanged (since := "2026-06-16")]
 theorem symm_toNonUnitalRingHom_apply_toNonUnitalRingHom_apply (e : R ≃+* S) :
     ∀ x : R, e.symm.toNonUnitalRingHom (e.toNonUnitalRingHom x) = x :=
   Equiv.symm_apply_apply e.toEquiv

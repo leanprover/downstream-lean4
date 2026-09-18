@@ -54,7 +54,7 @@ noncomputable section
 
 namespace Module
 
-variable (R A M : Type*)
+variable (R M : Type*)
 variable [CommSemiring R] [AddCommMonoid M] [Module R M]
 
 /-- The left dual space of an R-module M is the R-module of linear maps `M → R`. -/
@@ -63,7 +63,7 @@ abbrev Dual (R M : Type*) [Semiring R] [AddCommMonoid M] [Module R M] :=
   M →ₗ[R] R
 
 /-- The canonical pairing of a vector space and its algebraic dual. -/
-@[deprecated LinearMap.id (since := "2026-04-02")]
+@[deprecated LinearMap.id +typeChanged (since := "2026-04-02")]
 def dualPairing (R M) [CommSemiring R] [AddCommMonoid M] [Module R M] :
     Module.Dual R M →ₗ[R] M →ₗ[R] R :=
   LinearMap.id
@@ -196,9 +196,6 @@ lemma LinearMap.range_dualMap_dual_eq_span_singleton (f : Dual R M₁) :
 end DualMap
 
 namespace Module
-
-variable {K V : Type*}
-variable [CommSemiring K] [AddCommMonoid V] [Module K V]
 
 open Module Module.Dual Submodule LinearMap Module
 

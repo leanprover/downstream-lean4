@@ -1,0 +1,11 @@
+.lake/
+.venv/
+__pycache__/
+/build/
+*.egg-info/
+*.so
+
+_lean*
+
+/lake-manifest.json
+/uv.lock

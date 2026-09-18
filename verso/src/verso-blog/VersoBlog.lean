@@ -325,7 +325,7 @@ meta def leanCommand : BlockCommandOf LeanCommandConfig
     let projectExamples ← getSubproject project
     let (_, {highlighted := hls, original := str, ..}) ← projectExamples.getOrSuggest exampleName
     Verso.Hover.addCustomHover exampleName s!"```lean\n{str}\n```"
-    `(Block.other (Blog.BlockExt.highlightedCode { contextName := $(quote project.getId), showProofStates := $(quote showProofStates) } (SubVerso.Highlighting.Highlighted.seq $(quote hls))) #[Block.code $(quote str)])
+    `(Block.other (Blog.BlockExt.highlightedCode { contextName := $(quote project.getId), showProofStates := $(quote showProofStates) } $(quote hls)) #[Block.code $(quote str)])
 
 structure LeanCommandAtArgs where
   project : Ident
@@ -402,7 +402,7 @@ meta def leanTerm : RoleExpanderOf LeanTermArgs
     let projectExamples ← getSubproject project
     let (_, {highlighted := hls, original := str, ..}) ← projectExamples.getOrSuggest <| mkIdentFrom name exampleName
     Verso.Hover.addCustomHover arg s!"```lean\n{str}\n```"
-    `(Inline.other (Blog.InlineExt.highlightedCode { contextName := $(quote project.getId) } (SubVerso.Highlighting.Highlighted.seq $(quote hls))) #[Inline.code $(quote str)])
+    `(Inline.other (Blog.InlineExt.highlightedCode { contextName := $(quote project.getId) } $(quote hls)) #[Inline.code $(quote str)])
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Unexpected contents"
@@ -488,7 +488,7 @@ meta def lean : CodeBlockExpanderOf LeanBlockConfig
     -- Process with empty messages to avoid duplicate output
     let s ←
       withTraceNode `Elab.Verso.block.lean (fun _ => pure m!"Elaborating commands") <|
-      IO.processCommands context { state with pos := startPos } { commandState with messages.unreported := {} }
+      IO.processCommands context { state with pos := startPos, hasLeading := false } { commandState with messages.unreported := {} }
     for t in s.commandState.infoState.trees do
       pushInfoTree t
 
@@ -633,41 +633,48 @@ private meta def leanInlineImpl : RoleExpanderOf LeanInlineConfig
             if s.isEmpty then none else some s.toName
         Elab.Term.withLevelNames us
       else id
+    let oldEnv ← getEnv
+    let (newMsgs, type, tree, hls) ←
+      try
+        setEnv env
+        match Parser.runParserCategory env `term altStr (← getFileName) with
+        | .error e => throwErrorAt str e
+        | .ok stx => withOptions (fun _ => opts) <| runWithOpenDecls scopes <| runWithVariables scopes fun _ => do
+          let (newMsgs, type, tree) ← do
+            let initMsgs ← Core.getMessageLog
+            try
+              Core.resetMessageLog
+              let (tree', t) ← do
+                let expectedType ← config.type.mapM fun (s : StrLit) => do
+                  match Parser.runParserCategory env `term s.getString (← getFileName) with
+                  | .error e => throwErrorAt str e
+                  | .ok stx => withEnableInfoTree false do
+                    let t ← leveller <| Elab.Term.elabType stx
+                    Term.synthesizeSyntheticMVarsNoPostponing
+                    let t ← instantiateMVars t
+                    if t.hasExprMVar || t.hasLevelMVar then
+                      throwErrorAt s "Type contains metavariables: {t}"
+                    pure t
 
-    match Parser.runParserCategory env `term altStr (← getFileName) with
-    | .error e => throwErrorAt str e
-    | .ok stx => withOptions (fun _ => opts) <| runWithOpenDecls scopes <| runWithVariables scopes fun _ => do
-      let (newMsgs, type, tree) ← do
-        let initMsgs ← Core.getMessageLog
-        try
-          Core.resetMessageLog
-          let (tree', t) ← do
-
-            let expectedType ← config.type.mapM fun (s : StrLit) => do
-              match Parser.runParserCategory env `term s.getString (← getFileName) with
-              | .error e => throwErrorAt str e
-              | .ok stx => withEnableInfoTree false do
-                let t ← leveller <| Elab.Term.elabType stx
+                let e ← leveller <| Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
                 Term.synthesizeSyntheticMVarsNoPostponing
-                let t ← instantiateMVars t
-                if t.hasExprMVar || t.hasLevelMVar then
-                  throwErrorAt s "Type contains metavariables: {t}"
-                pure t
+                let e ← Term.levelMVarToParam (← instantiateMVars e)
+                let t ← Meta.inferType e >>= instantiateMVars >>= (Meta.ppExpr ·)
+                let t := Std.Format.group <| (← Meta.ppExpr e) ++ (" :" ++ .line) ++ t
 
-            let e ← leveller <| Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
-            Term.synthesizeSyntheticMVarsNoPostponing
-            let e ← Term.levelMVarToParam (← instantiateMVars e)
-            let t ← Meta.inferType e >>= instantiateMVars >>= (Meta.ppExpr ·)
-            let t := Std.Format.group <| (← Meta.ppExpr e) ++ (" :" ++ .line) ++ t
+                Term.synthesizeSyntheticMVarsNoPostponing
+                let ctx := PartialContextInfo.commandCtx {
+                  env, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace, openDecls, options := opts, ngen
+                }
+                pure <| (InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`VersoBlog.leanInline, code⟩) (← getInfoState).trees), t)
+              pure (← Core.getMessageLog, t, tree')
+            finally
+              Core.setMessageLog initMsgs
+          let hls ← highlight stx #[] (PersistentArray.empty.push tree)
+          pure (newMsgs, type, tree, hls)
+      finally
+        setEnv oldEnv
 
-            Term.synthesizeSyntheticMVarsNoPostponing
-            let ctx := PartialContextInfo.commandCtx {
-              env, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace, openDecls, options := opts, ngen
-            }
-            pure <| (InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`VersoBlog.leanInline, code⟩) (← getInfoState).trees), t)
-          pure (← Core.getMessageLog, t, tree')
-        finally
-          Core.setMessageLog initMsgs
       pushInfoTree tree
 
       if let `(inline|role{%$s $f $_*}%$e[$_*]) ← getRef then
@@ -678,7 +685,6 @@ private meta def leanInlineImpl : RoleExpanderOf LeanInlineConfig
           logMessage {msg with
             isSilent := msg.isSilent || msg.severity != .error
           }
-      let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
 
       `(Inline.other (Blog.InlineExt.highlightedCode { contextName := $(quote config.exampleContext.getId) } $(quote hls)) #[Inline.code $(quote str.getString)])
 

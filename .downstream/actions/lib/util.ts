@@ -57,15 +57,35 @@ export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
   return data;
 }
 
+export async function isAncestor(
+  octo: Octokit,
+  repo: Repo,
+  ancestorSha: string,
+  descendantSha: string,
+): Promise<boolean> {
+  const { data } = await octo.rest.repos.compareCommitsWithBasehead({
+    ...repo,
+    basehead: `${ancestorSha}...${descendantSha}`,
+  });
+  return data.status === "ahead" || data.status === "identical";
+}
+
+export interface FindPrForOptions {
+  state?: "open" | "closed" | "all";
+  headOwner?: string;
+}
+
 export async function findPrFor(
   octo: Octokit,
   repo: Repo,
   branchName: string,
+  options: FindPrForOptions = {},
 ): Promise<ListPr | undefined> {
+  const { state = "all", headOwner = repo.owner } = options;
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${repo.owner}:${branchName}`,
-    state: "all",
+    head: `${headOwner}:${branchName}`,
+    state,
     sort: "created",
     direction: "desc",
     per_page: 1,
@@ -73,8 +93,8 @@ export async function findPrFor(
   return data[0];
 }
 
-export function adaptationBranchNameFor(uPr: Pr): string {
-  return `adaptation-${uPr.number}`;
+export function adaptationBranchNameFor(prNumber: number): string {
+  return `adaptation-${prNumber}`;
 }
 
 // Inverse of `adaptationBranchNameFor`

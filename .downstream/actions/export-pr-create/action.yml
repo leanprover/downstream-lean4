@@ -1,0 +1,97 @@
+name: Create an export PR
+
+description: >
+  Export the current state of a subrepo from the downstream monorepo back to a
+  branch and pull request in its own upstream repository.
+
+inputs:
+  subrepo:
+    description: >
+      The name of the subrepo (as it appears in repos.toml and the build report)
+      to export.
+    required: true
+
+  build-report-path:
+    description: Path to the JSON build report produced by `build.py --report`.
+    required: true
+
+  downstream-repo:
+    description: >
+      The downstream repository to export from, in "owner/repo" format. Defaults
+      to the current repo.
+    required: false
+
+  downstream-path:
+    description: >
+      Path to an empty or nonexistent directory to clone the downstream
+      repository into.
+    required: true
+
+  downstream-token:
+    description: Github token used to interact with the downstream repository.
+    required: true
+
+  tracking-branch:
+    description: >
+      Branch that tracks the last successfully exported commit in the downstream
+      repository, to prevent outdated exports.
+    required: true
+
+  push-repo:
+    description: >
+      The upstream repository to push the export branch to and open the export
+      PR from, in "owner/repo" format.
+    required: true
+
+  push-branch:
+    description: >
+      The branch in push-repo to push the export to and open the export PR from.
+    required: true
+
+  push-token:
+    description: GitHub token used to push the export branch to push-repo.
+    required: true
+
+  push-directly:
+    description: >
+      If set, push the export straight to push-branch instead of opening an
+      export PR. Never force-pushes, so this fails if push-branch has moved.
+      When set, obsoletes all target-* and pr-* options.
+    default: false
+
+  target-repo:
+    description: >
+      The upstream repository to open the export PR against, in "owner/repo"
+      format.
+
+  target-branch:
+    description: The branch in target-repo to open the export PR against.
+
+  target-token:
+    description: >
+      GitHub app token used to find and create the export PR, and, if
+      push-directly is enabled, to push directly to target-branch.
+
+  pr-title:
+    description: Title for the export PR.
+    default: "chore: export adaptations"
+
+  pr-body:
+    description: Body for the export PR.
+
+outputs:
+  pushed:
+    description: >
+      Whether the export was pushed directly to target-branch by this run.
+
+  created:
+    description: >
+      Whether a new export PR was created by this run.
+
+  number:
+    description: >
+      The export PR number, if one exists or was created.
+
+runs:
+  using: node24
+  main: dist/index.js

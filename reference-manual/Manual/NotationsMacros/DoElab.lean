@@ -917,7 +917,7 @@ def openMutBody (x : Ident) (seq : TSyntax ``doSeq)
       resultName := ← mkFreshUserName `__r, resultType := ← mkPUnit
       k := mkClose p outerDecl.type base
     }
-    mkLetFVars #[innerX] (← declareMutVar x do elabDoSeq seq bodyCont)
+    mkLetFVars #[innerX] (← declareMutVar x false do elabDoSeq seq bodyCont)
 ```
 
 The call to {name}`addLocalVarInfo` informs the language server about the connection between the elaborated {keywordOf Lean.Parser.Term.«let»}`let`-bound variable and the identifier in the source code, enabling features such as type information on hover.

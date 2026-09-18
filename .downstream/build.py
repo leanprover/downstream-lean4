@@ -10,17 +10,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from downstream.updater import Updater
-from downstream.util import Subrepo, run
+from downstream.util import Subrepo, fprint, group, run
 
 
 @dataclass(frozen=True)
 class Phase:
     success: bool | None = None  # None == skipped
     duration: float | None = None
-
-
-def fprint(*args, **kwargs) -> None:
-    print(*args, **kwargs, flush=True)
 
 
 def check_cmd(subrepo: Subrepo, command: str) -> bool:
@@ -41,20 +37,19 @@ def print_banner(text: str) -> None:
 
 def do_subrepo(subrepo: Subrepo, command: str, args: list[str] | None = None) -> Phase:
     args = args or []
-    fprint(f"::group::{command} {subrepo.name}")
-    start = time.time()
+    with group(f"{command} {subrepo.name}"):
+        start = time.time()
 
-    if not check_cmd(subrepo, command):
-        success = None
-    elif run_cmd(subrepo, command, *args):
-        success = True
-    else:
-        success = False
+        if not check_cmd(subrepo, command):
+            success = None
+        elif run_cmd(subrepo, command, *args):
+            success = True
+        else:
+            success = False
 
-    end = time.time()
-    fprint(f"Took {end - start:.2f}s")
-    fprint("::endgroup::")
-    return Phase(success=success, duration=end - start)
+        end = time.time()
+        fprint(f"Took {end - start:.2f}s")
+        return Phase(success=success, duration=end - start)
 
 
 def do_build(
@@ -74,8 +69,10 @@ def do_build(
             continue
 
         args = []
+        args.extend(subrepo.build_targets)
         if mappings_dir is not None:
-            args = ["-o", str(mappings_dir / f"{subrepo.name}.jsonl")]
+            args.extend(["-o", str(mappings_dir / f"{subrepo.name}.jsonl")])
+        args.extend(subrepo.build_options)
 
         report[subrepo.name] = do_subrepo(subrepo, "build", args=args)
 
@@ -92,7 +89,12 @@ def do_test(
             fprint(f"{subrepo.name}: skipped, no build")
             continue
 
-        args = ["--", *subrepo.test_args] if subrepo.test_args else []
+        args = []
+        args.extend(subrepo.test_options)
+        if subrepo.test_args:
+            args.append("--")
+            args.extend(subrepo.test_args)
+
         report[subrepo.name] = do_subrepo(subrepo, "test", args=args)
 
 
@@ -108,7 +110,12 @@ def do_lint(
             fprint(f"{subrepo.name}: skipped, no build")
             continue
 
-        args = ["--", *subrepo.lint_args] if subrepo.lint_args else []
+        args = []
+        args.extend(subrepo.lint_options)
+        if subrepo.lint_args:
+            args.append("--")
+            args.extend(subrepo.lint_args)
+
         report[subrepo.name] = do_subrepo(subrepo, "lint", args=args)
 
 
