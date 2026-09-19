@@ -68,7 +68,6 @@ noncomputable instance myPredCompleteLattice : CompleteLattice (MyPred ℕ) wher
 warning: #defeq_abuse: tactic fails with `backward.isDefEq.respectTransparency true` but succeeds with `false`.
 The following isDefEq checks are the root causes of the failure:
   ❌️ (i : ℕ) → (fun a => Prop) i =?= MyPred ℕ
-  ❌️ myPredCompleteLattice.toCompleteSemilatticeInf.toPartialOrder =?= myPredDistribLattice.toSemilatticeInf.toPartialOrder
 -/
 #guard_msgs in
 noncomputable example (s : MyPred ℕ) (a : ℕ) (ha : a ∉ s) : Disjoint s {a} := by
