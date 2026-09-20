@@ -16,7 +16,6 @@ meta import Lean
 
 open Errata
 open Lean Doc Elab
-open scoped Lean.Doc.Syntax
 
 /--
 A Markdown docstring with `code`, _emphasis_ and **strong** text.
@@ -49,9 +48,10 @@ deriving TypeName
 @[doc_role]
 meta def shortName (xs : TSyntaxArray `inline) : DocM (Inline ElabInline) := do
   let #[stx] := xs | throwError "expected one code argument"
-  let `(inline|code($s)) := stx | throwErrorAt stx "expected a code argument"
-  let target ← realizeGlobalConstNoOverloadWithInfo (mkIdentFrom s s.getString.toName)
-  return .custom (ShortName.mk target) #[.code s.getString]
+  let some (.code { content, .. }) := InlineView.of stx
+    | throwErrorAt stx "expected a code argument"
+  let target ← realizeGlobalConstNoOverloadWithInfo (mkIdentFrom content content.getVersoCode.toName)
+  return .custom (ShortName.mk target) #[.code content.getVersoCode]
 
 /-- Shortens the name in the scope where the docstring is rendered. -/
 @[doc_inline_md]
