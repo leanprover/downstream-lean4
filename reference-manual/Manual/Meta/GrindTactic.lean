@@ -18,7 +18,6 @@ import Manual.Meta.Basic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Parser Tactic Doc
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
