@@ -48,7 +48,7 @@ warning-and-fallback path is exercised.
 The content of the role is ignored.
 -/
 @[doc_role]
-def unknownRole (_ : TSyntaxArray `inline) : Lean.Doc.DocM (Lean.Doc.Inline ElabInline) := do
+def unknownRole (_ : TSyntaxArray ``Lean.Doc.Parser.inline) : Lean.Doc.DocM (Lean.Doc.Inline ElabInline) := do
   return .custom
     (FallbackPayload.mk "no-handler-fallback")
     #[.text "THIS IS THE FALLBACK"]

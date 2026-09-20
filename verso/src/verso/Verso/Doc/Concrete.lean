@@ -250,8 +250,15 @@ elab "#doc" "(" genre:term ")" title:str "=>" text:completeDocument eoi : term =
   Term.elabTerm (← `( ($(doc) : VersoDoc $genre))) none
 
 
-scoped syntax (name := addBlockCmd) block : command
-scoped syntax (name := addLastBlockCmd) block : command
+-- `Lean.Doc.Parser.block` is an imported parser, so a formatter and parenthesizer cannot be
+-- generated for it here. Verso never pretty-prints document syntax, so stubs suffice.
+@[combinator_parenthesizer Lean.Doc.Parser.block]
+def versoBlock.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
+@[combinator_formatter Lean.Doc.Parser.block]
+def versoBlock.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
+
+scoped syntax (name := addBlockCmd) Lean.Doc.Parser.block : command
+scoped syntax (name := addLastBlockCmd) Lean.Doc.Parser.block : command
 
 /-!
 Unlike `#doc` expressions and `#docs` commands, which are elaborated all at once, `#doc` commands
@@ -427,7 +434,7 @@ private meta def startDoc (genreSyntax : Term) (title: StrLit) : Command.Command
   runPartElabInEnv <| do
     PartElabM.setTitle titleString (← titleParts.mapM (elabInline ⟨·⟩))
 
-private meta def runVersoBlock (block : TSyntax `block) : Command.CommandElabM Unit := do
+private meta def runVersoBlock (block : VersoBlock) : Command.CommandElabM Unit := do
   runPartElabInEnv <| partCommand block
   -- This calls pushInfoLeaf a quadratic number of times for a for a linear number of top-level
   -- verso blocks, which should be harmless but may be inefficient. It may be desirable to tag
@@ -482,7 +489,7 @@ open Command in
 /--
 Updates the saved Verso parser position to the end of `b`'s trailing whitespace.
 -/
-private meta def updatePos (b : TSyntax `block) : CommandElabM Unit := do
+private meta def updatePos (b : VersoBlock) : CommandElabM Unit := do
   let endPos? :=
     if b.raw.isMissing then
       none
