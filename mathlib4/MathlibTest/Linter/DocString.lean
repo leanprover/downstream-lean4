@@ -192,6 +192,14 @@ Note: This linter can be disabled with `set_option linter.style.docStringVerso f
 warning: unexpected ' '; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
 
 Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: expected identifier
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
+---
+warning: unexpected end of input; expected '![', '$$', '$', '*', '[', '[^', '_', '`' or '{'
+
+Note: This linter can be disabled with `set_option linter.style.docStringVerso false`
 -/
 #guard_msgs in
 /-- 0^0 + 0 = 0_0 - \frac{0}{1} -/
