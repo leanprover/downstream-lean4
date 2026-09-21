@@ -15,6 +15,9 @@ jobs:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_RESTORE_ARTIFACTS: 1
       LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
+      # Make Lean panics abort the process so they fail the build instead of
+      # only leaving a message in the log.
+      LEAN_ABORT_ON_PANIC: 1
     steps:
       - name: Checkout
         uses: actions/checkout@v6

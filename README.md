@@ -42,12 +42,14 @@ Lean repository, a corresponding branch `downstream-green` points to the commit
 the toolchain used by `green` is based on.
 
 It is recommended to set the following environment variables while working in
-this repository to benefit from cross-project caching:
+this repository to match CI and benefit from cross-project caching:
 
 - `LAKE_ARTIFACT_CACHE=1` to enable global lake artifact caching.
 - `LAKE_RESTORE_ARTIFACTS=1` to force lake to populate the `.lake` directories
   with artifacts from the global cache. Some repositories don't support the
   global artifact cache yet and may fail to build, test, or lint without this.
+- `LEAN_ABORT_ON_PANIC=1` to make Lean panics abort the process instead of only
+  printing a message, as CI does.
 
 An `.envrc` file for use with [direnv](https://direnv.net/) is provided.
 
