@@ -448,11 +448,11 @@ The facets available for libraries are:
 
 : `elabArts`
 
-  The artifacts of the library's elaboration ({tech (key := ".olean files")}`*.olean` and `*.ilean` files).
+  The library's elaboration artifacts (`*.olean` and `*.ilean` files).
 
-: `irArts`
+: `irArts` (default)
 
-  The artifacts of the library's code generation (`*.ir`, `*.ir.sig`, and `*.c` files).
+  The library's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
 
 : `leanArts`
 
@@ -537,15 +537,15 @@ The facets available for modules are:
 
 : `elabArts`
 
- The artifacts of the module's elaboration (`*.olean`, `*.ilean` files).
+ The module's elaboration artifacts (`*.olean` and `*.ilean` files).
 
 : `irArts` (default)
 
- The artifacts of the module's code generation (`*.ir`, `*.ir.sig`, `*.c` files).
+ The module's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
 
 : `leanArts`
 
- The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
+ All artifacts produced by elaboration and code generation.
 
 : `deps`
 

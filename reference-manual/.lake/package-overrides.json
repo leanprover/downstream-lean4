@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [
     {
       "type": "path",
@@ -17,7 +17,7 @@
       "scope": "",
       "name": "illuminate",
       "manifestFile": "lake-manifest.json",
-      "inherited": true,
+      "inherited": false,
       "configFile": "lakefile.lean",
       "dir": "../illuminate"
     },

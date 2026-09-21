@@ -573,7 +573,7 @@ The mappings file is in JSON Lines format, with one valid JSON object per line, 
   - The {tech}[default targets] of {tech}[package] `a`
 *
   - `+A`
-  -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
+  -  The compilation artifacts of module `A` (because the default facet of modules is `irArts`)
 *
   - `@a/b`
   - The default facet of target `b` of package `a`
