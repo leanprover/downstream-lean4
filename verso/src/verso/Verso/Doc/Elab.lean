@@ -19,7 +19,7 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode VersoBlock VersoInline)
+open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode VersoBlock)
 open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
@@ -78,6 +78,7 @@ public meta def parseArgs (argStx : TSyntaxArray ``Lean.Doc.Parser.arg) :
   pure argVals
 
 open Lean.Parser.Term in
+open Lean.Doc in
 meta def appFallback
     (stx : Syntax)
     (name : Ident) (resolvedName : Name)

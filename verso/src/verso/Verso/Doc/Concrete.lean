@@ -249,16 +249,20 @@ elab "#doc" "(" genre:term ")" title:str "=>" text:completeDocument eoi : term =
   let doc ← elabDoc genre title text.raw.getArgs endPos
   Term.elabTerm (← `( ($(doc) : VersoDoc $genre))) none
 
+section
+open Lean.Doc.Parser
 
 -- `Lean.Doc.Parser.block` is an imported parser, so a formatter and parenthesizer cannot be
 -- generated for it here. Verso never pretty-prints document syntax, so stubs suffice.
-@[combinator_parenthesizer Lean.Doc.Parser.block]
+@[combinator_parenthesizer block]
 def versoBlock.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
-@[combinator_formatter Lean.Doc.Parser.block]
+
+@[combinator_formatter block]
 def versoBlock.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
 
-scoped syntax (name := addBlockCmd) Lean.Doc.Parser.block : command
-scoped syntax (name := addLastBlockCmd) Lean.Doc.Parser.block : command
+scoped syntax (name := addBlockCmd) block : command
+scoped syntax (name := addLastBlockCmd) block : command
+end
 
 /-!
 Unlike `#doc` expressions and `#docs` commands, which are elaborated all at once, `#doc` commands
