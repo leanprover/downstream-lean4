@@ -26,6 +26,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: built-commit
+
       - name: Install elan
         run: |
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
@@ -45,9 +51,9 @@ jobs:
         run: |
           REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
           TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
-          .downstream/list.py . | while IFS= read -r repo; do
+          .downstream/list.py built-commit | while IFS= read -r repo; do
             echo "::group::cache put-staged $repo"
-            pushd "$repo"
+            pushd "built-commit/$repo"
             lake cache put-staged "$RUNNER_TEMP/staging/$repo" --rev "$REV" --scope "$TOOLCHAIN/$repo" || true
             popd
             echo "::endgroup::"
@@ -323,10 +329,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: built-commit
+
       - name: Determine nightly name
         id: nightly
         run: |
-          if NIGHTLY="$(grep -P '(?<=leanprover/lean4:)nightly-.*' lean-toolchain -o)"; then
+          if NIGHTLY="$(grep -P '(?<=leanprover/lean4:)nightly-.*' built-commit/lean-toolchain -o)"; then
             echo "::notice::Found nightly $NIGHTLY in lean-toolchain"
             echo "nightly=$NIGHTLY" >> "$GITHUB_OUTPUT"
           else
