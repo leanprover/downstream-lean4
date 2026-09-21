@@ -151,7 +151,6 @@ def checkGrindExample
 
 /-! ## The `grindTacticExample` directive -/
 
-open Lean.Doc.Syntax in
 open Manual (TacticOutputConfig)
 
 structure GrindExampleContext where
@@ -240,7 +239,6 @@ def saveGrindState (str : VersoCodeBlock) (opts : TacticOutputConfig) : m Ident 
     setCtx { st with preGS := some (str, opts) }
     return st.preStateName
 
-open scoped Lean.Doc.Syntax
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 
 open Lean.Parser in

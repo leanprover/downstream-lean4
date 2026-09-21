@@ -19,7 +19,7 @@ namespace Verso.Doc.Elab
 open Lean Elab
 open PartElabM
 open DocElabM
-open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode VersoBlock)
+open Lean.Doc (ArgView ArgValView BlockView DescItemView MathMode VersoBlock VersoInline)
 open Lean.Doc.Parser
 open Verso.ArgParse (SigDoc)
 
@@ -81,7 +81,7 @@ open Lean.Parser.Term in
 meta def appFallback
     (stx : Syntax)
     (name : Ident) (resolvedName : Name)
-    (argVals : Array Arg) (subjectArr : Option (Array (TSyntax `inline)))
+    (argVals : Array Arg) (subjectArr : Option (Array VersoInline))
     : DocElabM Term := do
   let f := mkIdentFrom name resolvedName
   let valStx : ArgVal → DocElabM Term := fun
