@@ -7,8 +7,9 @@ on:
 
 jobs:
   batteries:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
     concurrency:
@@ -76,8 +77,9 @@ jobs:
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   mathlib4:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
     concurrency:
@@ -145,8 +147,9 @@ jobs:
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   cslib:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
     concurrency:

@@ -7,7 +7,9 @@ on:
 
 jobs:
   upload-cache:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
       actions: read
@@ -78,7 +80,9 @@ jobs:
             --repo "${{ github.repository }}" --add-label cache-available
 
   update-statuses:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-slim
     permissions:
       actions: read
@@ -103,8 +107,9 @@ jobs:
           target-url: ${{ github.event.workflow_run.html_url }}
 
   post-report-pr:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch != 'master' }}
     runs-on: ubuntu-slim
@@ -182,8 +187,9 @@ jobs:
           repost: true
 
   post-report-zulip:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.run_attempt == 1 }}
@@ -313,8 +319,9 @@ jobs:
           content: ${{ steps.breakage-report-cslib.outputs.report }}
 
   update-branches:
-    if:
-      ${{ github.event.workflow_run.conclusion == 'success' &&
+    if: >
+      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-slim
     steps:
