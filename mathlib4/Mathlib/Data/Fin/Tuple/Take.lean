@@ -74,6 +74,9 @@ theorem take_succ_eq_snoc (m : ℕ) (h : m < n) (v : (i : Fin n) → α i) :
   | zero =>
     have h' : i = 0 := by ext; simp
     subst h'
+    -- `Fin.mk_zero` is now stated for `Fin n` with `[NeZero n]`, so it needs the
+    -- instance that `h` provides before it can rewrite `⟨0, h⟩` to `0`.
+    haveI : NeZero n := ⟨Nat.ne_zero_of_lt h⟩
     simp [take, snoc, castLE]
   | succ m _ =>
     induction i using reverseInduction with
