@@ -1,7 +1,9 @@
 import CslibTests.Bisimulation
+import CslibTests.BooleanCircuits
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.CircuitCounting
 import CslibTests.Circuits
 import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
@@ -25,3 +27,4 @@ import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
+import CslibTests.Synthesis
