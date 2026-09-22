@@ -8,7 +8,7 @@ on:
 jobs:
   upload-cache:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
@@ -81,7 +81,7 @@ jobs:
 
   update-statuses:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-slim
     permissions:
@@ -108,7 +108,7 @@ jobs:
 
   post-report-pr:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch != 'master' }}
@@ -188,7 +188,7 @@ jobs:
 
   post-report-zulip:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
@@ -320,7 +320,7 @@ jobs:
 
   update-branches:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-slim

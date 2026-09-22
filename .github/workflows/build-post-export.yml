@@ -8,7 +8,7 @@ on:
 jobs:
   batteries:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
@@ -78,7 +78,7 @@ jobs:
 
   mathlib4:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
@@ -148,7 +148,7 @@ jobs:
 
   cslib:
     if: >
-      ${{ !contains(github.event.workflow_run.head_commit.message, "skip-checks: true") &&
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' }}
