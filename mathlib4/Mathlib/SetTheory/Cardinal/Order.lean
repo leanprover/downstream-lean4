@@ -207,14 +207,11 @@ theorem lift_eq_zero {a : Cardinal.{v}} : lift.{u} a = 0 ↔ a = 0 :=
 theorem mk_fintype (α : Type u) [h : Fintype α] : #α = Fintype.card α :=
   mk_congr (Fintype.equivOfCardEq (by simp))
 
-set_option backward.privateInPublic true in
 private theorem cast_succ (n : ℕ) : ((n + 1 : ℕ) : Cardinal.{u}) = n + 1 := by
   change #(ULift.{u} _) = #(ULift.{u} _) + 1
   rw [← mk_option]
   simp
 
-set_option backward.privateInPublic true in
-set_option backward.privateInPublic.warn false in
 instance commSemiring : CommSemiring Cardinal.{u} where
   zero_add a := inductionOn a fun α => mk_congr <| Equiv.emptySum _ α
   add_zero a := inductionOn a fun α => mk_congr <| Equiv.sumEmpty α _
@@ -234,7 +231,7 @@ instance commSemiring : CommSemiring Cardinal.{u} where
   npow_succ n c := by simp_rw [HPow.hPow, Pow.pow]; rw [cast_succ, power_add, power_one]
   natCast n := lift #(Fin n)
   natCast_zero := rfl
-  natCast_succ n := cast_succ n
+  natCast_succ n := private cast_succ n
 
 theorem mk_bool : #Bool = 2 := by simp
 
@@ -357,7 +354,7 @@ theorem power_le_power_right {a b c : Cardinal} : a ≤ b → a ^ c ≤ b ^ c :=
 theorem power_pos {a : Cardinal} (b : Cardinal) (ha : 0 < a) : 0 < a ^ b :=
   (power_ne_zero _ ha.ne').bot_lt
 
-protected theorem lt_wf : @WellFounded Cardinal.{u} (· < ·) :=
+protected instance lt_wf : WellFoundedLT Cardinal.{u} :=
   ⟨fun a =>
     by_contradiction fun h => by
       let ι := { c : Cardinal // ¬Acc (· < ·) c }
@@ -370,10 +367,7 @@ protected theorem lt_wf : @WellFounded Cardinal.{u} (· < ·) :=
       simpa only [mk_out] using this⟩
 
 instance : WellFoundedRelation Cardinal.{u} :=
-  ⟨(· < ·), Cardinal.lt_wf⟩
-
-instance : WellFoundedLT Cardinal.{u} :=
-  ⟨Cardinal.lt_wf⟩
+  WellFoundedLT.toWellFoundedRelation
 
 instance : ConditionallyCompleteLinearOrderBot Cardinal :=
   WellFoundedLT.conditionallyCompleteLinearOrderBot _
@@ -550,14 +544,14 @@ variable (α) in
 /-- The **well-ordering theorem** (or **Zermelo's theorem**): every type can be well-ordered. -/
 theorem exists_wellFoundedLT : ∃ (_ : LinearOrder α), WellFoundedLT α := by
   classical
-  exact ⟨linearOrderOfSTO WellOrderingRel, ⟨WellOrderingRel.isWellOrder.wf⟩⟩
+  exact ⟨linearOrderOfSTO WellOrderingRel, WellOrderingRel.isWellOrder.wf⟩
 
 variable (α) in
 /-- The **well-ordering theorem** (or **Zermelo's theorem**): every type can be co-well-ordered. -/
 @[to_dual existing]
 lemma exists_wellFoundedGT : ∃ (_ : LinearOrder α), WellFoundedGT α := by
   classical
-  exact ⟨linearOrderOfSTO (Function.swap WellOrderingRel), ⟨WellOrderingRel.isWellOrder.wf⟩⟩
+  exact ⟨linearOrderOfSTO (Function.swap WellOrderingRel), WellOrderingRel.isWellOrder.wf⟩
 
 @[deprecated (since := "2026-04-12")] alias exists_wellOrder := exists_wellFoundedLT
 

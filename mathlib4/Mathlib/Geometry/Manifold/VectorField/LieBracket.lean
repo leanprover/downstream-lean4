@@ -101,6 +101,8 @@ lemma mlieBracketWithin_eq_lieBracketWithin {V W : Π (x : E), TangentSpace 𝓘
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `FunLike (TangentSpace 𝓘(𝕜, E) (↑I (↑(chartAt H x) x)) →L[𝕜] TangentSpace I x) _ _`
@@ -145,6 +147,11 @@ lemma mlieBracketWithin_eq_zero_of_eq_zero (hV : V x = 0) (hW : W x = 0) :
     rw [this, hW]
     simp +instances
 
+lemma mlieBracket_eq_zero_of_eq_zero (hV : V x = 0) (hW : W x = 0) :
+    mlieBracket I V W x = 0 := by
+  rw [← mlieBracketWithin_univ]
+  exact mlieBracketWithin_eq_zero_of_eq_zero hV hW
+
 set_option backward.isDefEq.respectTransparency false in
 lemma mlieBracketWithin_swap_apply :
     mlieBracketWithin I V W s x = - mlieBracketWithin I W V s x := by
@@ -164,6 +171,8 @@ lemma mlieBracket_swap : mlieBracket I V W = - mlieBracket I W V :=
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. This is the same failure as for `mlieBracketWithin_eq_zero_of_eq_zero` above, reached
 through the `simp` below instead: the instance
@@ -380,6 +389,8 @@ private lemma mfderiv_extChart_inverse_comp_aux :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `HSMul (TangentSpace 𝓘(𝕜, 𝕜) (f x)) (TangentSpace I x) ?m`

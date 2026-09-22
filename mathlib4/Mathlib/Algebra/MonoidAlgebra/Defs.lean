@@ -479,16 +479,13 @@ end One
 section Mul
 variable [Mul M]
 
-/-- The multiplication in an additive monoid algebra.
-
-We make it irreducible so that Lean doesn't unfold it when trying to unify two different things. -/
-@[no_expose]
-def _root_.AddMonoidAlgebra.mul' [Add M] (x y : AddMonoidAlgebra R M) : AddMonoidAlgebra R M :=
-  x.coeff.sum fun m₁ r₁ ↦ y.coeff.sum fun m₂ r₂ ↦ .single (m₁ + m₂) (r₁ * r₂)
 /-- The multiplication in a monoid algebra.
 
 We make it irreducible so that Lean doesn't unfold it when trying to unify two different things. -/
-@[to_additive existing mul', no_expose]
+@[no_expose, to_additive (dont_translate := R) mul'
+/-- The multiplication in an additive monoid algebra.
+
+We make it irreducible so that Lean doesn't unfold it when trying to unify two different things. -/]
 def mul' (x y : R[M]) : R[M] :=
   x.coeff.sum fun m₁ r₁ ↦ y.coeff.sum fun m₂ r₂ ↦ single (m₁ * m₂) (r₁ * r₂)
 
@@ -697,7 +694,7 @@ then they are equal. -/]
 lemma ringHom_ext [Semiring S] {f g : R[M] →+* S}
     (h₁ : ∀ r, f (single 1 r) = g (single 1 r)) (h_of : ∀ m, f (single m 1) = g (single m 1)) :
     f = g :=
-  RingHom.coe_addMonoidHom_injective <| addMonoidHom_ext fun m r ↦ by
+  RingHom.toAddMonoidHom_injective <| addMonoidHom_ext fun m r ↦ by
     simpa [← map_mul] using! congr($(h₁ r) * $(h_of m))
 
 /-- If two ring homomorphisms from `R[M]` are equal on all `single m 1`

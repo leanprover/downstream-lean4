@@ -80,7 +80,7 @@ instance Sentence.instSetLike : SetLike (T.CompleteType α) L[[α]].Sentence :=
     cases q
     congr ⟩
 
-instance : PartialOrder (T.CompleteType α) := .ofSetLike (T.CompleteType α) (L[[α]].Sentence)
+instance : PartialOrder (T.CompleteType α) := .ofSetLike (T.CompleteType α)
 
 theorem isMaximal (p : T.CompleteType α) : IsMaximal (p : L[[α]].Theory) :=
   p.isMaximal'
@@ -239,6 +239,8 @@ section
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `(L.lhomWithConstants α).IsExpansionOn ↑(ModelType.reduct (L.lhomWithConstants α)

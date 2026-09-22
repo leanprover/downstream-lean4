@@ -555,6 +555,13 @@ theorem countable_iff_lt_aleph_one {α : Type*} (s : Set α) : s.Countable ↔ #
 theorem preAleph_of_omega0_sq_le {o : Ordinal} (ho : ω ^ 2 ≤ o) : preAleph o = ℵ_ o := by
   simpa [← ord_inj] using preOmega_of_omega0_sq_le ho
 
+theorem countable_toType_of_lt_omega_one {o : Ordinal} (h : o < ω₁) : Countable (ToType o) := by
+  rwa [← mk_le_aleph0_iff, mk_toType, card_le_iff, succ_aleph0, ord_aleph]
+
+theorem countable_Iio_of_lt_omega_one {o : Ordinal} (h : o < ω₁) : (Iio o).Countable := by
+  rw [← countable_coe_iff, ToType.mk.toEquiv.countable_iff]
+  exact countable_toType_of_lt_omega_one h
+
 end Cardinal
 
 /-! ### Beth cardinals -/
@@ -659,7 +666,7 @@ theorem preBeth_eq_zero {o : Ordinal} : preBeth o = 0 ↔ o = 0 := by
 theorem isStrongPrelimit_preBeth {o : Ordinal} :
     IsStrongPrelimit (preBeth o) ↔ IsSuccPrelimit o := by
   refine ⟨?_, fun ho x hx ↦ ?_⟩
-  · contrapose!
+  · contrapose
     rw [not_isSuccPrelimit_iff_mem_range_succ, not_isStrongPrelimit_iff]
     rintro ⟨a, rfl⟩
     refine ⟨preBeth a, ?_, ?_⟩

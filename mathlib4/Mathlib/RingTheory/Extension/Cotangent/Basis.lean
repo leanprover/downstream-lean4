@@ -63,7 +63,7 @@ set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The map `R[X₁, ..., Xₙ] → S` factors via `T`, because the `bᵢ` are in `I`. -/
 def hom : D.T →ₐ[R] S := Ideal.Quotient.liftₐ _ (aeval P.val) <| by
-  simp_rw [← RingHom.mem_ker, ← SetLike.le_def, Ideal.span_le, Set.range_subset_iff]
+  simp_rw [← RingHom.mem_ker, ← IsConcreteLE.le_iff, Ideal.span_le, Set.range_subset_iff]
   intro i
   simpa only [Generators.toExtension_Ring, Generators.toExtension_commRing, Function.comp_apply,
     SetLike.mem_coe, RingHom.mem_ker, ← P.algebraMap_apply] using (D.f _).property
@@ -238,6 +238,8 @@ def basisRight : Module.Basis Unit S D.presRight.toExtension.Cotangent :=
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `AddCommMonoid D.presRight.toExtension.Cotangent`
@@ -275,6 +277,8 @@ lemma basis_inl [Nontrivial S] :
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following two instances cannot be synthesized:
 `OfNat D.presRight.toExtension.Cotangent 0`
@@ -322,6 +326,8 @@ end
 
 #adaptation_note
 /--
+After https://github.com/leanprover/lean4/pull/14624:
+
 We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
 succeed. Concretely, the following instance cannot be synthesized:
 `LE (Submodule P.Ring P.toExtension.Cotangent)`

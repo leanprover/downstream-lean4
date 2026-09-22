@@ -261,8 +261,10 @@ lemma dualMap_dualMap_eq_iff_of_injective
   dualMap_dualMap_eq_iff_of_injective _ _ (bijective_dual_eval R M').injective
 
 /-- The dual of a reflexive module is reflexive. -/
-instance Dual.instIsReflecive : IsReflexive R (Dual R M) :=
+instance : IsReflexive R (Dual R M) :=
   ⟨by simpa only [← symm_dualMap_evalEquiv] using! (evalEquiv R M).dualMap.symm.bijective⟩
+
+@[deprecated (since := "2026-09-17")] alias Dual.instIsReflecive := instIsReflexiveDual
 
 variable {R M N} in
 /-- A direct summand of a reflexive module is reflexive. -/
@@ -377,7 +379,7 @@ theorem dualAnnihilator_gc :
   intro a b
   induction b using OrderDual.rec
   simp only [Function.comp_apply, OrderDual.toDual_le_toDual, OrderDual.ofDual_toDual,
-    SetLike.le_def, mem_dualAnnihilator, mem_dualCoannihilator]
+    IsConcreteLE.le_iff, mem_dualAnnihilator, mem_dualCoannihilator]
   grind
 
 theorem le_dualAnnihilator_iff_le_dualCoannihilator {U : Submodule R (Module.Dual R M)}
@@ -390,7 +392,7 @@ theorem dualAnnihilator_bot : (⊥ : Submodule R M).dualAnnihilator = ⊤ :=
 
 @[simp]
 theorem dualAnnihilator_top : (⊤ : Submodule R M).dualAnnihilator = ⊥ := by
-  simp [eq_bot_iff, SetLike.le_def, LinearMap.ext_iff]
+  simp [eq_bot_iff, IsConcreteLE.le_iff, LinearMap.ext_iff]
 
 @[simp]
 theorem dualCoannihilator_bot : (⊥ : Submodule R (Module.Dual R M)).dualCoannihilator = ⊤ :=

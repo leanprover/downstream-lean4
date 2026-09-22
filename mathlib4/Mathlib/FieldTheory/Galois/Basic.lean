@@ -563,7 +563,7 @@ theorem sup_right (K L : IntermediateField F E) [IsGalois F K] [FiniteDimensiona
   constructor
   · rw [Polynomial.map_map, ← IsScalarTower.algebraMap_eq]
     exact Polynomial.Splits.of_algHom hT₂.1 (IsScalarTower.toAlgHom _ _ _)
-  · have h' : T'.rootSet E = T.rootSet E := by simp [Set.ext_iff, Polynomial.mem_rootSet', T']
+  · have h' : T'.rootSet E = T.rootSet E := by simp [T']
     rw [← lift_inj, lift_adjoin, ← coe_val, hT₂.1.image_rootSet] at hT₂
     rw [← restrictScalars_eq_top_iff (K := F), restrictScalars_adjoin, adjoin_union, adjoin_self,
       h', hT₂.2, lift_top, sup_comm, h]
@@ -623,7 +623,9 @@ theorem restrictRestrictAlgEquivMapHom_apply (φ : Gal(E/L)) (x : K) :
 theorem restrictRestrictAlgEquivMapHom_injective (h : K ⊔ L = ⊤) :
     Function.Injective (restrictRestrictAlgEquivMapHom F K L E) := by
   refine (injective_iff_map_eq_one _).mpr fun φ hφ ↦ ?_
-  suffices h : MulSemiringAction.toAlgAut Gal(E/L) F E φ = 1 by rwa [AlgEquiv.ext_iff] at h ⊢
+  suffices h : MulSemiringAction.toAlgAut Gal(E/L) F E φ = 1 by
+    rw [AlgEquiv.ext_iff] at h ⊢
+    assumption
   rw [← Subgroup.mem_bot, ← fixingSubgroup_top, ← h, fixingSubgroup_sup]
   exact ⟨fun x ↦ (hφ ▸ restrictRestrictAlgEquivMapHom_apply K L φ x).symm, φ.commutes⟩
 

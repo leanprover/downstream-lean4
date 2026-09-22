@@ -476,8 +476,7 @@ private theorem edist_apply_le_edist_aux (x y : PiLp p β) (i : ι) :
       edist (x i) (y i) = (edist (x i) (y i) ^ p.toReal) ^ (1 / p.toReal) := by
         simp [← ENNReal.rpow_mul, cancel, -one_div]
       _ ≤ (∑ i, edist (x i) (y i) ^ p.toReal) ^ (1 / p.toReal) := by
-        gcongr
-        exact Finset.single_le_sum (fun i _ => (bot_le : (0 : ℝ≥0∞) ≤ _)) (Finset.mem_univ i)
+        grw [← Finset.single_le_sum (fun i _ => (bot_le : (0 : ℝ≥0∞) ≤ _)) (Finset.mem_univ i)]
 
 private lemma lipschitzWith_ofLp_aux : LipschitzWith 1 (@ofLp p (∀ i, β i)) :=
   .of_edist_le fun x y => by
@@ -1083,7 +1082,7 @@ end Single
 
 /-- When `p = ∞`, this lemma does not hold without the additional assumption `Nonempty ι` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
-`PiLp.nnnorm_equiv_symm_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
+`PiLp.nnnorm_toLp_const'` for a version which exchanges the hypothesis `p ≠ ∞` for
 `Nonempty ι`. -/
 lemma nnnorm_toLp_const {β} [SeminormedAddCommGroup β] (hp : p ≠ ∞) (b : β) :
     ‖toLp p (Function.const ι b)‖₊ =
@@ -1097,8 +1096,7 @@ lemma nnnorm_toLp_const {β} [SeminormedAddCommGroup β] (hp : p ≠ ∞) (b : �
 
 /-- When `IsEmpty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
-`PiLp.nnnorm_toLp_const` for a version which exchanges the hypothesis `Nonempty ι`.
-for `p ≠ ∞`. -/
+`PiLp.nnnorm_toLp_const` for a version which exchanges the hypothesis `Nonempty ι` for `p ≠ ∞`. -/
 lemma nnnorm_toLp_const' {β} [SeminormedAddCommGroup β] [Nonempty ι] (b : β) :
     ‖toLp p (Function.const ι b)‖₊ =
       (Fintype.card ι : ℝ≥0) ^ (1 / p).toReal * ‖b‖₊ := by
@@ -1118,8 +1116,7 @@ lemma norm_toLp_const {β} [SeminormedAddCommGroup β] (hp : p ≠ ∞) (b : β)
 
 /-- When `IsEmpty ι`, this lemma does not hold without the additional assumption `p ≠ ∞` because
 the left-hand side simplifies to `0`, while the right-hand side simplifies to `‖b‖₊`. See
-`PiLp.norm_equiv_symm_const` for a version which exchanges the hypothesis `Nonempty ι`.
-for `p ≠ ∞`. -/
+`PiLp.norm_toLp_const` for a version which exchanges the hypothesis `Nonempty ι` for `p ≠ ∞`. -/
 lemma norm_toLp_const' {β} [SeminormedAddCommGroup β] [Nonempty ι] (b : β) :
     ‖toLp p (Function.const ι b)‖ =
       (Fintype.card ι : ℝ≥0) ^ (1 / p).toReal * ‖b‖ :=

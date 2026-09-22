@@ -198,7 +198,7 @@ That tool's {tech}[manifest] thus looks something like this:
 
 ```lakeManifest
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packagesDir": ".lake/packages",
   "packages": [{
     "url": "https://github.com/leanprover/lean4-cli",
@@ -224,7 +224,7 @@ This can be done with the following {tech}[package overrides] file:
 
 ```lakePackageOverrides
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "packages": [{
     "type": "path",
     "dir": "/etc/lean-packages/Cli",
@@ -311,7 +311,7 @@ Lake's internal API may be used to write custom facets.
 Build targets
 
 USAGE:
-  lake build [<targets>...] [-o <mappings>]
+  lake build [<targets>...] [-o <mappings>] [--package <name>]
 
 A target is specified with a string of the form:
 
@@ -328,13 +328,15 @@ The `@` and `+` markers can be used to disambiguate packages and modules
 from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   static                static artifact (*.a file)
   shared                shared artifact (*.so, *.dll, or *.dylib file)
 
 MODULE FACETS:          build the module's ...
   deps                  dependencies (e.g., imports, shared libraries, etc.)
-  leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
+  elabArts              elaboration artifacts (*.olean, *.ilean files)
+  irArts (default)      compilation artifacts (*.ir, *.ir.sig, *.c files)
   olean                 OLean (binary blob of Lean data for importers)
   ilean                 ILean (binary blob of metadata for the Lean LSP server)
   c                     compiled C file
@@ -356,11 +358,13 @@ TARGET EXAMPLES:        build the ...
 A bare `lake build` command will build the default target(s) of the root
 package. Package dependencies are not updated during a build.
 
-With the Lake cache enabled, the `-o` option will cause Lake to track the
-input-to-outputs mappings of targets in the root package touched during the
-build and write them to the specified file at the end of the build. These
-mappings can then be used to upload build artifacts to a remote cache with
-`lake cache put`.
+With the Lake cache enabled, Lake can track the targets the build covers
+(both those up-to-date and those newly built) and write the input-to-outputs
+mappings of each to a file specified by the `-o` option. By default, with `-o`,
+Lake will track the targets of the root package, use `--package` to select a
+different one. These mappings can then be used to upload the build artifacts
+to a remote cache with `lake cache put`. This will only include the artifacts
+from the covered targets. Other targets in the package will not be tracked.
 ```
 
 
@@ -371,8 +375,8 @@ The facets available for packages are:
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
-  `package.optRelease, `package.release, `package.transDeps]
+info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps, `package.extraDep, `package.optBarrel,
+  `package.optCache, `package.optRelease, `package.release, `package.transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
@@ -388,6 +392,11 @@ info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `pack
 : `transDeps`
 
   The package's {tech}[transitive dependencies], topologically sorted.
+
+: `defaultModules`
+
+  The Lean modules of the package's {tech}[default targets]: every module of each default library, and the root module of each default executable together with the modules it transitively imports from the workspace.
+  Other default targets, such as {ref "lake-config-custom-target"}[custom targets], are not included.
 
 
 : `optCache`
@@ -426,8 +435,8 @@ info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `pack
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
-  `lean_lib.default]
+info: [`lean_lib.elabArts, `lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.irArts, `lean_lib.static.export,
+  `lean_lib.shared, `lean_lib.modules, `lean_lib.static, `lean_lib.default]
 -/
 #guard_msgs in
 #eval Lake.initLibraryFacetConfigs.toList.map (·.1)
@@ -436,6 +445,14 @@ info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_li
 :::paragraph
 
 The facets available for libraries are:
+
+: `elabArts`
+
+  The library's elaboration artifacts (`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+  The library's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
 
 : `leanArts`
 
@@ -478,6 +495,7 @@ module.depHash
 module.depTrace
 module.deps
 module.dynlib
+module.elabArts
 module.exportInfo
 module.header
 module.ilean
@@ -488,11 +506,13 @@ module.imports
 module.input
 module.ir
 module.ir.sig
+module.irArts
 module.lean
 module.leanArts
 module.linkInfoExport
 module.linkInfoNoExport
 module.ltar
+module.metaExportInfo
 module.o
 module.o.export
 module.o.noexport
@@ -515,9 +535,17 @@ The facets available for modules are:
 
   The module's Lean source file.
 
-: `leanArts` (default)
+: `elabArts`
 
- The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
+ The module's elaboration artifacts (`*.olean` and `*.ilean` files).
+
+: `irArts` (default)
+
+ The module's code-generation artifacts (`*.ir`, `*.ir.sig`, and `*.c` files).
+
+: `leanArts`
+
+ All artifacts produced by elaboration and code generation.
 
 : `deps`
 
@@ -728,6 +756,7 @@ root = "Tests"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -793,6 +822,7 @@ root = "Tests"
                     weakLinkArgs := #[],
                     backend := Lake.Backend.default,
                     platformIndependent := none,
+                    precompileImports := false,
                     dynlibs := #[],
                     plugins := #[],
                     requiresModuleSystem := false,
@@ -828,6 +858,7 @@ root = "Tests"
                           weakLinkArgs := #[],
                           backend := Lake.Backend.default,
                           platformIndependent := none,
+                          precompileImports := false,
                           dynlibs := #[],
                           plugins := #[],
                           requiresModuleSystem := false,
@@ -893,6 +924,7 @@ lean_exe «my-package-tests» where
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -958,6 +990,7 @@ lean_exe «my-package-tests» where
                     weakLinkArgs := #[],
                     backend := Lake.Backend.default,
                     platformIndependent := none,
+                    precompileImports := false,
                     dynlibs := #[],
                     plugins := #[],
                     requiresModuleSystem := false,
@@ -993,6 +1026,7 @@ lean_exe «my-package-tests» where
                           weakLinkArgs := #[],
                           backend := Lake.Backend.default,
                           platformIndependent := none,
+                          precompileImports := false,
                           dynlibs := #[],
                           plugins := #[],
                           requiresModuleSystem := false,
@@ -1098,6 +1132,7 @@ root = "Lint"
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -1163,6 +1198,7 @@ root = "Lint"
                     weakLinkArgs := #[],
                     backend := Lake.Backend.default,
                     platformIndependent := none,
+                    precompileImports := false,
                     dynlibs := #[],
                     plugins := #[],
                     requiresModuleSystem := false,
@@ -1198,6 +1234,7 @@ root = "Lint"
                           weakLinkArgs := #[],
                           backend := Lake.Backend.default,
                           platformIndependent := none,
+                          precompileImports := false,
                           dynlibs := #[],
                           plugins := #[],
                           requiresModuleSystem := false,
@@ -1264,6 +1301,7 @@ lean_exe «my-package-lint» where
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
           platformIndependent := none,
+          precompileImports := false,
           dynlibs := #[],
           plugins := #[],
           requiresModuleSystem := false,
@@ -1329,6 +1367,7 @@ lean_exe «my-package-lint» where
                     weakLinkArgs := #[],
                     backend := Lake.Backend.default,
                     platformIndependent := none,
+                    precompileImports := false,
                     dynlibs := #[],
                     plugins := #[],
                     requiresModuleSystem := false,
@@ -1364,6 +1403,7 @@ lean_exe «my-package-lint» where
                           weakLinkArgs := #[],
                           backend := Lake.Backend.default,
                           platformIndependent := none,
+                          precompileImports := false,
                           dynlibs := #[],
                           plugins := #[],
                           requiresModuleSystem := false,
@@ -1486,9 +1526,12 @@ It tracks build products at the level of individual source files, {tech}[`.olean
 
 When passed the `-o` option, {lake}`build` tracks the inputs used to generate each build product.
 These are stored to a {deftech}_mappings file_ in JSON lines format, where each line of the file must be a valid JSON object.
-A mappings file tracks a single build, and includes all intermediate and final build products for the workspace's {tech}[root package], but not for its dependencies.
-This includes build products that were already up to date and not regenerated.
-The {lake}`cache put` command uploads the build products in the mappings file to the remote from the local cache to the remote cache.
+A mappings file tracks a single package within a build, and includes all intermediate and final build products from the package that are part of the build.
+
+By default, {lake}`build` saves the workspace's {tech}[root package]'s mappings.
+The {lakeOpt}`--package` option selects a different package in the workspace, such as a dependency, saving its mappings instead.
+The tracked build products include those that were already up to date and not regenerated, but not the package's targets that the build did not cover.
+The {lake}`cache put` command uploads the build products in the mappings file from the local cache to the remote cache.
 
 ### Configuration
 

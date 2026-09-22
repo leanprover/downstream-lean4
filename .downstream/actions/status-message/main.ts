@@ -3,7 +3,7 @@ import * as fs from "node:fs/promises";
 import * as github from "@actions/github";
 
 import { postOrUpdateStatus } from "../lib/status-message";
-import { abort, getInput, getInputOpt } from "../lib/util";
+import { abort, getInput, getInputOpt, parseBool } from "../lib/util";
 
 const appToken = getInput("app-token");
 const appSlug = getInput("app-slug");
@@ -11,6 +11,7 @@ const issueNumber = parseInt(getInput("issue"), 10);
 const body = getInputOpt("body");
 const bodyPath = getInputOpt("body-path");
 const marker = getInputOpt("marker");
+const repost = parseBool(getInputOpt("repost") ?? "false");
 
 const octo = github.getOctokit(appToken);
 const repo = github.context.repo;
@@ -29,6 +30,7 @@ async function run(): Promise<void> {
     issueNumber,
     body: await getBody(),
     marker: marker ?? undefined,
+    repost,
   });
 }
 

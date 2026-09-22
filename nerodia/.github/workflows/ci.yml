@@ -1,0 +1,63 @@
+name: Lean Action CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # Do not run CI twice for branch PRs (i.e., on push and pull request).
+    if: github.event.pull_request.head.repo.full_name != github.repository
+    defaults:
+      run:
+        shell: ${{ matrix.shell || 'bash -euo pipefail {0}' }}
+    strategy:
+      matrix:
+        include:
+        - name: Linux x64
+          os: ubuntu-24.04
+        - name: Linux aarch64
+          os: ubuntu-24.04-arm
+        - name: MacOS x64
+          os: macos-26-intel
+        - name: MacOS aarch64
+          os: macos-26
+        - name: Windows
+          os: windows-latest
+          shell: msys2 {0}
+      # complete all jobs
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup elan
+        shell: bash -euo pipefail {0}
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+      - name: Setup PATH for uv
+        shell: bash -euo pipefail {0}
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Setup MSYS2 (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: clang64
+          path-type: inherit
+          pacboy: clang
+      - name: Check lean
+        run: lean --version
+      - name: Setup uv
+        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      - name: Install python
+        run: uv python install --default
+      - name: Check python
+        run: which python3 && python3 --version
+      - name: Build
+        run: lake build
+      - name: Test
+        run: lake test
