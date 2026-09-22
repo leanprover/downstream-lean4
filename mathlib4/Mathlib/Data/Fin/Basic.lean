@@ -194,11 +194,8 @@ def factorial {n : ℕ} : Fin n → ℕ
 instance {n : ℕ} : WellFoundedRelation (Fin n) :=
   measure (val : Fin n → ℕ)
 
-/-- `Fin.mk_zero` in `Lean` only applies in `Fin (n + 1)`.
-This one instead uses a `NeZero n` typeclass hypothesis.
--/
-@[simp]
-theorem mk_zero' (n : ℕ) [NeZero n] : (⟨0, pos_of_neZero n⟩ : Fin n) = 0 := rfl
+@[deprecated (since := "2026-09-22")]
+alias mk_zero' := mk_zero
 
 @[simp, norm_cast]
 theorem val_pos_iff [NeZero n] {a : Fin n} : 0 < a.val ↔ 0 < a := by

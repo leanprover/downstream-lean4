@@ -49,13 +49,10 @@ theorem exists_succ_eq {x : Fin (n + 1)} : (∃ y, Fin.succ y = x) ↔ x ≠ 0 :
 theorem exists_succ_eq_of_ne_zero {x : Fin (n + 1)} (h : x ≠ 0) :
     ∃ y, Fin.succ y = x := exists_succ_eq.mpr h
 
-@[simp]
-theorem succ_zero_eq_one' [NeZero n] : Fin.succ (0 : Fin n) = 1 := by
-  cases n
-  · exact (NeZero.ne 0 rfl).elim
-  · rfl
+@[deprecated (since := "2026-09-22")]
+alias succ_zero_eq_one' := succ_zero_eq_one
 
-theorem one_pos' [NeZero n] : (0 : Fin (n + 1)) < 1 := succ_zero_eq_one' (n := n) ▸ succ_pos _
+theorem one_pos' [NeZero n] : (0 : Fin (n + 1)) < 1 := succ_zero_eq_one (n := n) ▸ succ_pos _
 theorem zero_ne_one' [NeZero n] : (0 : Fin (n + 1)) ≠ 1 := Fin.ne_of_lt one_pos'
 
 /--
@@ -719,7 +716,7 @@ lemma one_succAbove_zero {n : ℕ} : (1 : Fin (n + 2)).succAbove 0 = 0 := rfl
 simplification using `succAbove_zero` or `succ_succAbove_zero`. -/
 @[simp] lemma succ_succAbove_one {n : ℕ} [NeZero n] (i : Fin (n + 1)) :
     i.succ.succAbove 1 = (i.succAbove 0).succ := by
-  rw [← succ_zero_eq_one']
+  rw [← succ_zero_eq_one]
   exact succ_succAbove_succ i 0
 
 @[simp] lemma one_succAbove_succ {n : ℕ} (j : Fin n) :
