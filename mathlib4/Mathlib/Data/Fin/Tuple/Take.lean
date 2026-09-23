@@ -75,9 +75,11 @@ theorem take_succ_eq_snoc (m : ℕ) (h : m < n) (v : (i : Fin n) → α i) :
     have h' : i = 0 := by ext; simp
     subst h'
     -- `Fin.mk_zero` is now stated for `Fin n` with `[NeZero n]`, so it needs the
-    -- instance that `h` provides before it can rewrite `⟨0, h⟩` to `0`.
-    haveI : NeZero n := ⟨Nat.ne_zero_of_lt h⟩
+    -- instance that `h` provides before it can rewrite `⟨0, h⟩` to `0`. That
+    -- rewrite happens under `α`, leaving a `cast` that is `rfl` by proof irrelevance.
+    have : NeZero n := ⟨Nat.ne_zero_of_lt h⟩
     simp [take, snoc, castLE]
+    rfl
   | succ m _ =>
     induction i using reverseInduction with
     | last => simp [take, snoc]; congr
