@@ -412,10 +412,10 @@ script run (args) do
       IO.eprintln s!"error: {msg}"
       IO.eprintln (usage run withArgs)
       return 1
-  -- The runner's panic behavior is `--exit-on-panic`'s to decide, so LEAN_ABORT_ON_PANIC is set
-  -- from the flag in both directions. Left to the ambient environment, a build that sets it
-  -- (as CI does to catch stray panics) would abort the runner at the first test that panics on
-  -- purpose.
+  -- `--exit-on-panic` means that the runner should be invoked with LEAN_ABORT_ON_PANIC set.  If it
+  -- is not provided, then the runner should be invoked with LEAN_ABORT_ON_PANIC unset, rather than
+  -- inheriting from the ambient environment, because some CI systems change the value, which can
+  -- interfere.
   let exitOnPanic := runnerArgs.contains "--exit-on-panic"
   -- Search the named libraries, or every library in the package by default. A name may be a bare
   -- `Library` in this package or a `package/Library` reaching into a dependency, following Lake's
