@@ -213,8 +213,11 @@ theorem Nat.eq_sq_add_sq_iff {n : ℕ} :
   rcases n.eq_zero_or_pos with (rfl | hn₀)
   · exact ⟨fun _ q _ _ ↦ (padicValNat_zero_right _).symm ▸ Even.zero, fun _ ↦ ⟨0, 0, rfl⟩⟩
   -- now `0 < n`
-  refine eq_sq_add_sq_iff_eq_sq_mul.trans ⟨fun ⟨a, b, h₁, h₂⟩ q hq h ↦ ?_, fun H ↦ ?_⟩
-  · have : Fact q.Prime := ⟨prime_of_mem_primeFactors hq⟩
+  refine eq_sq_add_sq_iff_eq_sq_mul.trans ⟨fun hab q hq h ↦ ?_, fun H ↦ ?_⟩
+  · -- Destructuring in the `fun` above instead would leave the `∃ a b, _` discriminant of the
+    -- generated `match` in the context, which `grind` below then splits a second time.
+    obtain ⟨a, b, h₁, h₂⟩ := hab
+    have : Fact q.Prime := ⟨prime_of_mem_primeFactors hq⟩
     have : q ∣ b → q ∈ b.primeFactors := by grind
     grind (splits := 10) [padicValNat.mul, padicValNat.pow,
       padicValNat.eq_zero_of_not_dvd, mod_four_ne_three_of_mem_primeFactors_of_isSquare_neg_one]
