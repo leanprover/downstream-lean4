@@ -1,0 +1,8 @@
+build
+*.olean
+/lake-packages/*
+lake-manifest.json
+.lake
+.source-commit
+no-mod
+.builds

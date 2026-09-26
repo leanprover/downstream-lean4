@@ -1,0 +1,16 @@
+name = "demo"
+defaultTargets = ["demo", "Demo", "Anchors"]
+
+[[require]]
+name = "subverso"
+path = "no-mod"
+
+[[lean_lib]]
+name = "Demo"
+
+[[lean_lib]]
+name = "Anchors"
+
+[[lean_exe]]
+name = "demo"
+root = "Main"

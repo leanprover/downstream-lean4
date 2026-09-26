@@ -128,6 +128,8 @@ class Updater:
                     repo.path.relative_to(manifest_path.parent, walk_up=True)
                 )
                 package["scope"] = ""
+                if repo.copy:
+                    package["copy"] = True
                 del package["url"]
                 del package["rev"]
                 del package["inputRev"]
@@ -276,7 +278,7 @@ class Updater:
                 status = status.join(self.remove_subrepo(path))
         return status
 
-    def split(
+    def export(
         self, subrepo: Subrepo, message: str = "chore: nightly adaptations"
     ) -> CommitStatus:
         self.reset()
