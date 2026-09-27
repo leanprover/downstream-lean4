@@ -39,7 +39,15 @@ lemma prod_Icc_succ_eq_mul_endpoints {R : Type*} [CommGroup R] (f : ℤ → R) {
     ∏ m ∈ Icc (-(N + 1) : ℤ) (N + 1), f m =
     f (N + 1) * f (-(N + 1) : ℤ) * ∏ m ∈ Icc (-N : ℤ) N, f m := by
   induction N
-  · rw [Icc_succ_succ]
+  · #adaptation_note /-- Before nightly-2026-09-27 this was:
+    ```lean
+    rw [Icc_succ_succ]
+    ```
+    `↑(0 : ℕ)` normalizes to `(0 : ℤ)` only inside `grind`, which leaves a `-0` that `grind`
+    keeps as a value of its own; once it is merged with `0` the goal is closed with
+    `decide (-0 = 0) = false` and the kernel rejects the proof. Rewriting the cast away first
+    avoids the bad value. -/
+    rw [Icc_succ_succ, Nat.cast_zero, neg_zero]
     grind
   · rw [Icc_succ_succ, prod_union (by simp)]
     grind
