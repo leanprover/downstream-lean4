@@ -89,12 +89,13 @@ opaque g : UInt8 → UInt8
 example (a b d : UInt8) (h0 : d = a ||| b)
     (h1 : g d &&& 0xC0 = 0) :
     g (a ||| b) &&& 0x40 = 0 := by
-  grind =>
+  grind -hom =>
     bv_decide
 ```
 
 On its own, {tactic}`bv_decide` abstracts `g d` and `g (a ||| b)` as two unrelated opaque variables and reports a spurious counterexample.
 Inside `grind =>`, congruence closure has already merged them using `h0`, so the SAT problem it hands to the solver is the one that actually needs solving.
+The `-hom` disables {tactic}`grind`'s homomorphism rules, which have since learned to rewrite `&&&` by a constant mask into arithmetic and would otherwise close this goal before {tactic}`bv_decide` runs.
 
 ### Choosing Which Types Get Analyzed
 
