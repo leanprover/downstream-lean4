@@ -579,11 +579,11 @@ def prodCongr {R R' S S' : Type*} [NonUnitalNonAssocSemiring R] [NonUnitalNonAss
     R × S ≃+* R' × S' where
   toEquiv := Equiv.prodCongr f g
   map_mul' _ _ := by
-    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, EquivLike.coe_coe,
-      Prod.map, map_mul, Prod.mk_mul_mk]
+    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, Prod.map, Prod.fst_mul, EquivLike.coe_coe,
+      map_mul, Prod.snd_mul, Prod.mk_mul_mk]
   map_add' _ _ := by
-    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, EquivLike.coe_coe,
-      Prod.map, map_add, Prod.mk_add_mk]
+    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, Prod.map, Prod.fst_add, EquivLike.coe_coe,
+      map_add, Prod.snd_add, Prod.mk_add_mk]
 
 @[simp]
 theorem coe_prodCongr {R R' S S' : Type*} [NonUnitalNonAssocSemiring R]

@@ -162,7 +162,11 @@ noncomputable def semidirectProductToGroupExtensionEquiv :
     rw [← MonoidHom.mem_range, S.range_inl_eq_ker_rightHom, MonoidHom.mem_ker, map_mul, map_inv,
       rightHom_splitting, mul_inv_cancel]
   map_mul' := fun ⟨n₁, g₁⟩ ⟨n₂, g₂⟩ ↦ by
-    simp only [conjAct, MonoidHom.comp_apply, map_mul, inl_conjAct_comm, MonoidHom.coe_ofClass]
+    simp only [SemidirectProduct.mk_eq_inl_mul_inr, SemidirectProduct.mul_left,
+      SemidirectProduct.left_inl, SemidirectProduct.right_inl, map_one, SemidirectProduct.left_inr,
+      mul_one, SemidirectProduct.mul_right, SemidirectProduct.right_inr, one_mul,
+      map_mul]
+    simp only [conjAct, MonoidHom.comp_apply, inl_conjAct_comm, MonoidHom.coe_ofClass]
     group
   inl_comm := by
     ext n

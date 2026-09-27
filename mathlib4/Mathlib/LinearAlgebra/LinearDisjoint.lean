@@ -498,7 +498,7 @@ theorem not_linearIndependent_pair_of_commute_of_flat_left [Module.Flat R M]
   simp only [Fin.isValue, sub_eq_zero, Finsupp.single_eq_single_iff, zero_ne_one, Subtype.mk.injEq,
     SetLike.coe_eq_coe, false_and, false_or, m] at hm
   repeat rw [AddSubmonoid.mk_eq_zero, ZeroMemClass.coe_eq_zero] at hm
-  exact h.ne_zero 0 hm.2
+  exact h.ne_zero 0 (Matrix.cons_val_zero .. ▸ hm.2)
 
 /-- If `M` and `N` are linearly disjoint, if `N` is flat, then any two commutative
 elements of `↥(M ⊓ N)` are not `R`-linearly independent (namely, their span is not `R ^ 2`). -/
@@ -514,7 +514,7 @@ theorem not_linearIndependent_pair_of_commute_of_flat_right [Module.Flat R N]
   simp only [Fin.isValue, sub_eq_zero, Finsupp.single_eq_single_iff, zero_ne_one, Subtype.mk.injEq,
     SetLike.coe_eq_coe, false_and, false_or, n] at hn
   repeat rw [AddSubmonoid.mk_eq_zero, ZeroMemClass.coe_eq_zero] at hn
-  exact h.ne_zero 0 hn.2
+  exact h.ne_zero 0 (Matrix.cons_val_zero .. ▸ hn.2)
 
 /-- If `M` and `N` are linearly disjoint, if one of `M` and `N` is flat, then any two commutative
 elements of `↥(M ⊓ N)` are not `R`-linearly independent (namely, their span is not `R ^ 2`). -/

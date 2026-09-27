@@ -712,8 +712,9 @@ theorem head_main_ok {q s L} {c d : List Γ'} :
       (TransGen.head rfl (TransGen.head rfl ?_))
   · cases L <;> simp [o]
   rw [tr]
-  simp only [TM2.step, Option.mem_def, TM2.stepAux, elim_update_main, elim_rev, elim_update_rev,
-    Function.update_self, trList]
+  simp only [TM2.step, Option.mem_def, tr_read, TM2.stepAux, Option.isSome_some, elim_update_main,
+    elim, List.reverseAux_eq, List.append_nil, elim_update_rev, default_Γ', Option.getD_some,
+    Function.update_self, cond_eq_ite, ↓reduceIte, trList]
   rw [ite_eq_right (show o ≠ some Γ'.consₗ by cases L <;> simp [o])]
   refine (clear_ok (splitAtPred_eq _ _ _ none [] ?_ ⟨rfl, rfl⟩)).trans ?_
   · exact fun x h => Bool.decide_false (trList_ne_consₗ _ _ h)
@@ -730,9 +731,10 @@ theorem head_stack_ok {q s L₁ L₂ L₃} :
           (splitAtPred_eq _ _ [] (some Γ'.consₗ) L₃ (by rintro _ ⟨⟩) ⟨rfl, rfl⟩))
         (TransGen.head rfl (TransGen.head rfl ?_))
     rw [tr]
-    simp only [TM2.step, Option.mem_def, TM2.stepAux, ite_true, id_eq, trList, List.nil_append,
-      elim_update_stack, elim_rev, List.reverseAux_nil, elim_update_rev, Function.update_self,
-      List.headI_nil, trNat_default]
+    simp only [TM2.step, Option.mem_def, tr_read, TM2.stepAux, Option.isSome_some, trList,
+      List.nil_append, elim_update_stack, elim, List.reverseAux_eq, List.reverse_nil,
+      List.append_nil, elim_update_rev, default_Γ', Option.getD_some, Function.update_self,
+      cond_eq_ite, ↓reduceIte, id_eq, List.headI_nil, Nat.default_eq_zero, trNat_zero]
     convert! unrev_ok using 2
     simp
   · refine
@@ -742,7 +744,7 @@ theorem head_stack_ok {q s L₁ L₂ L₃} :
             (trNat_natEnd _) ⟨rfl, by simp⟩))
         (TransGen.head rfl (TransGen.head rfl ?_))
     simp only [TM2.step, Option.mem_def, trList, List.append_assoc,
-      List.cons_append, elim_update_stack, elim_rev, elim_update_rev, Function.update_self,
+      List.cons_append, elim_update_stack, elim_rev, elim_update_rev,
       List.headI_cons]
     refine
       TransGen.trans
