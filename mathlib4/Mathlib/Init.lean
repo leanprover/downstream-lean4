@@ -43,6 +43,13 @@ public import Mathlib.Tactic.Linter.Lint
 public import Mathlib.Tactic.MinImports
 -- This import makes the binder plicity code action available globally
 public import Mathlib.Util.CodeActions
+-- `ImportGraph.Tools` re-exports Lake into the `meta` scope of every module below this one, and
+-- Lake's high-priority `MonadLiftT` instances then win over the core ones in Mathlib's own meta
+-- code. Importing the module that declares them non-`meta` is what makes those definitions legal.
+public import Lake.Util.Lift
+
+-- Don't warn about the lake import: `Lake.Util.Lift` imports nothing but `Init.System.IO`.
+set_option linter.style.header false
 
 /-!
 This is the root file in Mathlib: it is imported by virtually *all* Mathlib files.

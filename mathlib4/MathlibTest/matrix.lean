@@ -16,6 +16,9 @@ import Mathlib.Tactic.NormDet
 meta import Mathlib.Data.Fin.VecNotation
 meta import Mathlib.Data.Matrix.Basic
 meta import Qq
+-- The Mathlib imports above are private, so the Lake `MonadLiftT` instances that
+-- `ImportGraph.Tools` re-exports (see `Mathlib.Init`) do not reach the `dims%` elaborator below.
+public meta import Lake.Util.Lift
 
 open Qq
 
