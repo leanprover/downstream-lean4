@@ -1,0 +1,198 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: David Thrane Christiansen
+-/
+module
+public import SubVerso.Highlighting.Highlighted
+import SubVerso.Compat
+public section
+
+namespace SubVerso.Highlighting
+
+open Highlighted in
+private inductive SplitCtxF where
+  | tactics : Array (Goal Highlighted) → Nat → Nat → SplitCtxF
+  | span : Array Message → SplitCtxF
+deriving Repr
+
+/--
+Wraps highlighted code in a context frame. Code that renders as the empty string with no metadata
+is returned as it is, so a frame that ends up with nothing in it contributes no messages or proof
+states.
+-/
+private def SplitCtxF.wrap (hl : Highlighted) (f : SplitCtxF) : Highlighted :=
+  if hl.isEmpty then hl
+  else
+    match f with
+    | .tactics g s e => .tactics g s e hl
+    | .span xs => .span (xs.map (fun x => ⟨x.1, x.2⟩)) hl
+
+private structure SplitCtx where
+  contents : Array (Highlighted × SplitCtxF) := #[]
+deriving Inhabited, Repr
+
+private def SplitCtx.push (ctx : SplitCtx) (current : Highlighted) (info : SplitCtxF) : SplitCtx where
+  contents := ctx.contents.push (current, info)
+
+private def SplitCtx.pop (ctx : SplitCtx) : SplitCtx where
+  contents := ctx.contents.pop
+
+private def SplitCtx.close (ctx : SplitCtx) (current : Highlighted) : Highlighted × SplitCtx :=
+  match ctx.contents.back? with
+  | none => panic! s!"Popping empty context around '{current.toString}'"
+  | some (left, f) => (left ++ f.wrap current, ctx.pop)
+
+/--
+Closes every open frame around `current`, then reopens them for the code that follows. Each
+fragment carries its own copy of the enclosing messages and goal states, so it can be rendered on
+its own.
+-/
+private def SplitCtx.split (ctx : SplitCtx) (current : Highlighted) : Highlighted × SplitCtx where
+  fst := ctx.contents.foldr (init := current) fun (left, f) curr => left ++ f.wrap curr
+  snd := { contents := ctx.contents.map (.empty, ·.2) }
+
+/--
+Splits highlighted code at each token whose contents satisfy `p`, dropping those tokens.
+
+Each fragment is wrapped in the `span` and `tactics` wrappers that enclose it in `hl`, so it
+carries its own messages and proof states and can be rendered on its own. A wrapper that ends up
+enclosing no code is left out.
+-/
+def Highlighted.split (p : String → Bool) (hl : Highlighted) : Array Highlighted := Id.run do
+  let mut todo := [some hl]
+  let mut out := #[]
+  let mut ctx : SplitCtx := {}
+  let mut current : Highlighted := .empty
+  repeat
+    match todo with
+    | [] =>
+      out := out.push current
+      break
+    | none :: hs =>
+      todo := hs
+      let (c, ctx') := ctx.close current
+      current := c
+      ctx := ctx'
+    | some (.seq xs) :: hs =>
+      todo := xs.toList.map some ++ hs
+    | some this@(.token ⟨_, t⟩) :: hs =>
+      todo := hs
+      if p t then
+        let (c, ctx') := ctx.split current
+        out := out.push c
+        current := .empty
+        ctx := ctx'
+      else
+        current := current ++ this
+    | some this@(.text ..) :: hs | some this@(.point ..) :: hs | some this@(.unparsed ..) :: hs =>
+      todo := hs
+      current := current ++ this
+    | some (.span msgs x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.span (msgs.map (fun x => ⟨x.1, x.2⟩)))
+      current := .empty
+    | some (.tactics gs b e x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.tactics gs b e)
+      current := .empty
+
+  return out
+
+/--
+Replaces each token for which `values` yields a value with that value, splitting the highlighted
+code around it.
+
+Each highlighted fragment is wrapped in the `span` and `tactics` wrappers that enclose it in `hl`,
+so it carries its own messages and proof states and can be rendered on its own. A wrapper that ends
+up enclosing no code is left out.
+-/
+def Highlighted.substM [Monad m] (values : String → m (Option α)) (hl : Highlighted) : m (Array (Highlighted ⊕ α)) := do
+  let mut todo := [some hl]
+  let mut out : Array (Highlighted ⊕ α) := #[]
+  let mut ctx : SplitCtx := {}
+  let mut current : Highlighted := .empty
+  repeat
+    match todo with
+    | [] =>
+      out := out.push (.inl current)
+      break
+    | none :: hs =>
+      todo := hs
+      let (c, ctx') := ctx.close current
+      current := c
+      ctx := ctx'
+    | some (.seq xs) :: hs =>
+      todo := xs.toList.map some ++ hs
+    | some this@(.token ⟨_, t⟩) :: hs =>
+      todo := hs
+      if let some v ← values t then
+        let (c, ctx') := ctx.split current
+        out := out.push (.inl c)
+        current := .empty
+        ctx := ctx'
+        out := out.push (.inr v)
+      else
+        current := current ++ this
+    | some this@(.text ..) :: hs | some this@(.point ..) :: hs | some this@(.unparsed ..) :: hs =>
+      todo := hs
+      current := current ++ this
+    | some (.span msgs x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.span (msgs.map (fun x => ⟨x.1, x.2⟩)))
+      current := .empty
+    | some (.tactics gs b e x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.tactics gs b e)
+      current := .empty
+  return out
+
+def Highlighted.subst (values : String → Option α) (hl : Highlighted) : Array (Highlighted ⊕ α) :=
+  hl.substM (m := Id) values
+
+def Highlighted.lines (hl : Highlighted) : Array Highlighted := Id.run do
+  let mut todo := [some hl]
+  let mut out := #[]
+  let mut ctx : SplitCtx := {}
+  let mut current : Highlighted := .empty
+  repeat
+    match todo with
+    | [] =>
+      out := out.push current
+      break
+    | none :: hs =>
+      todo := hs
+      let (c, ctx') := ctx.close current
+      current := c
+      ctx := ctx'
+    | some (.seq xs) :: hs =>
+      todo := xs.toList.map some ++ hs
+    | some this@(.token ..) :: hs =>
+      todo := hs
+      current := current ++ this
+    | some this@(.text str) :: hs | some this@(.unparsed str) :: hs =>
+      if str.contains '\n' then
+        let pre := Compat.String.takeWhile str (· ≠ '\n') ++ "\n"
+        let post := Compat.String.drop str pre.length
+        todo := some (.text post) :: hs
+        current := current ++ .text pre
+        let (c, ctx') := ctx.split current
+        out := out.push c
+        current := .empty
+        ctx := ctx'
+      else
+        todo := hs
+        current := current ++ this
+    | some this@(.point ..) :: hs =>
+      todo := hs
+      current := current ++ this
+    | some (.span msgs x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.span (msgs.map (fun x => ⟨x.1, x.2⟩)))
+      current := .empty
+    | some (.tactics gs b e x) :: hs =>
+      todo := some x :: none :: hs
+      ctx := ctx.push current (.tactics gs b e)
+      current := .empty
+
+  return out

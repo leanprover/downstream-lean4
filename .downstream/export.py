@@ -78,7 +78,7 @@ def main() -> None:
             fprint("Failed to rebase the changes.")
             raise SystemExit(EXIT_REBASE_FAILED)
 
-    committed = updater.split(subrepo, args.message)
+    committed = updater.export(subrepo, args.message)
 
     if args.push:
         prefix = "git@github.com:" if args.ssh else "https://github.com/"

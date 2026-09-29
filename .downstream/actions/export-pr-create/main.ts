@@ -121,12 +121,12 @@ async function trackingBranchIsTrueAncestor(sha: string): Promise<boolean> {
   return exitCode === 0;
 }
 
-// Run split.py and return whether there was anything to export.
+// Run export.py and return whether there was anything to export.
 async function prepareExportBranch(): Promise<boolean> {
   const exitCode = await dRun(
     "python",
     [
-      ...[".downstream/split.py", ".", subrepo],
+      ...[".downstream/export.py", ".", subrepo],
       ...["-m", prTitle, "--rebase", "--fail-if-empty"],
     ],
     { ignoreReturnCode: true },
@@ -138,13 +138,13 @@ async function prepareExportBranch(): Promise<boolean> {
     // just been merged but the changes have not yet made their way into the
     // downstream repo via an update. In this situation, if we didn't check for
     // rebaseability, we'd just re-open the same PR again.
-    exit("split.py failed to rebase");
+    exit("export.py failed to rebase");
   } else if (exitCode === 10 /* EXIT_EMPTY */) {
     return false; // Exit code returned by --fail-if-empty when empty
   } else if (exitCode === 0) {
-    return true; // Successful split, so there are changes
+    return true; // Successful export, so there are changes
   } else {
-    abort(`split.py exited with code ${exitCode}`);
+    abort(`export.py exited with code ${exitCode}`);
   }
 }
 

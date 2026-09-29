@@ -25174,19 +25174,19 @@ async function prepareExportBranch() {
   const exitCode = await dRun(
     "python",
     [
-      ...[".downstream/split.py", ".", subrepo],
+      ...[".downstream/export.py", ".", subrepo],
       ...["-m", prTitle, "--rebase", "--fail-if-empty"]
     ],
     { ignoreReturnCode: true }
   );
   if (exitCode === 11) {
-    exit("split.py failed to rebase");
+    exit("export.py failed to rebase");
   } else if (exitCode === 10) {
     return false;
   } else if (exitCode === 0) {
     return true;
   } else {
-    abort(`split.py exited with code ${exitCode}`);
+    abort(`export.py exited with code ${exitCode}`);
   }
 }
 async function pushToPushBranch(force) {
