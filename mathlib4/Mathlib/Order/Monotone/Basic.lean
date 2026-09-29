@@ -734,7 +734,7 @@ lemma Nat.stabilises_of_antitone {f : ℕ → ℕ} (hfmono : Antitone f)
       exact ⟨0, Nat.zero_le _, fun m _ => by induction m with grind⟩
     · have hlt : f 1 < f 0 := (hfmono (Nat.le_succ 0)).lt_of_ne' heq
       let g (i : ℕ) := f (i + 1)
-      have hg_anti : Antitone g := by grind [Antitone]
+      have hg_anti : Antitone g := fun _ _ hab => hfmono (by omega)
       obtain ⟨p, hp, hp'⟩ := ih (f 1) (by grind) hg_anti (by grind) rfl
       refine ⟨p + 1, by omega, fun m hm => ?_⟩
       specialize hp' (m - 1) (by lia)
