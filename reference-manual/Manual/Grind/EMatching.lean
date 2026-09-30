@@ -295,6 +295,7 @@ grindFunCC
 grindFwd
 grindGen
 grindHom
+grindHomFallback
 grindHomPred
 grindInj
 grindIntro
@@ -643,6 +644,13 @@ Homomorphism predicates present additional facts that {tactic}`grind` can use ab
 hom
 ```
 {includeDocstring Lean.Parser.Attr.grindHom}
+:::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Fallback Rules")
+```grammar
+hom fallback
+```
+{includeDocstring Lean.Parser.Attr.grindHomFallback}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Predicates")
