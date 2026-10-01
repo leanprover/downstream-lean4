@@ -587,8 +587,8 @@ Usage:
 @[code_block]
 public meta def html : CodeBlockExpanderOf Unit
   | (), str => do
-    -- The `false` parameter treats the text as unescaped raw HTML data.
-    let html := Verso.Output.Html.text false str.getVersoCodeBlock
+    -- `raw` treats the text as unescaped raw HTML data.
+    let html := Lean.Html.raw str.getVersoCodeBlock
     ``(Verso.Doc.Block.other (BlockExt.ofHtml $(quote html)) #[])
 
 /--
@@ -606,5 +606,5 @@ public meta def htmlRole : RoleExpanderOf Unit
     | throwError "Expected a single inline code argument"
   let some { content := htmlStr, .. } := CodeView.of arg
     | throwErrorAt arg "Expected inline code"
-  let html := Verso.Output.Html.text false htmlStr.getVersoCode
+  let html := Lean.Html.raw htmlStr.getVersoCode
   ``(Verso.Doc.Inline.other (VersoSlides.InlineExt.ofHtml $(quote html)) #[])
