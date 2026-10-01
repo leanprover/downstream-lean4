@@ -24322,8 +24322,11 @@ function abort(reason) {
 function assert(condition, message) {
   if (!condition) abort(message);
 }
-function getInput2(name) {
-  return getInput(name, { required: true });
+
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
 }
 
 // actions/find-original-pr/main.ts

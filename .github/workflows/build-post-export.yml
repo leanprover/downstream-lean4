@@ -7,7 +7,7 @@ on:
 
 jobs:
   batteries:
-    if: >
+    if: |
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -66,18 +66,18 @@ jobs:
         with:
           subrepo: batteries
           build-report-path: ${{ runner.temp }}/report/build-report.json
-          downstream-path: ${{ runner.temp }}/downstream
+          clone-path: ${{ runner.temp }}/downstream
+          method: same-branch
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
-          tracking-branch: export/batteries
-          push-repo: leanprover-community/batteries
-          push-branch: nightly-testing
-          push-token: ${{ steps.app-token-leanprover-community.outputs.token }}
-          push-directly: true
+          source-repo: leanprover-community/batteries
+          source-token:
+            ${{ steps.app-token-leanprover-community.outputs.token }}
+          target-branch: nightly-testing
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   mathlib4:
-    if: >
+    if: |
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -136,18 +136,18 @@ jobs:
         with:
           subrepo: mathlib4
           build-report-path: ${{ runner.temp }}/report/build-report.json
-          downstream-path: ${{ runner.temp }}/downstream
+          clone-path: ${{ runner.temp }}/downstream
+          method: same-branch
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
-          tracking-branch: export/mathlib4
-          push-repo: leanprover-community/mathlib4-nightly-testing
-          push-branch: nightly-testing
-          push-token: ${{ steps.app-token-leanprover-community.outputs.token }}
-          push-directly: true
+          source-repo: leanprover-community/mathlib4-nightly-testing
+          source-token:
+            ${{ steps.app-token-leanprover-community.outputs.token }}
+          target-branch: nightly-testing
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   cslib:
-    if: >
+    if: |
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -191,18 +191,44 @@ jobs:
           TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
           echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
 
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
       - name: Create export PR
         id: export-pr
         uses: ./.downstream/actions/export-pr-create
         with:
           subrepo: cslib
           build-report-path: ${{ runner.temp }}/report/build-report.json
-          downstream-path: ${{ runner.temp }}/downstream
+          clone-path: ${{ runner.temp }}/downstream
+          method: target-branch
           downstream-token: ${{ steps.app-token.outputs.token }}
-          tracking-branch: export/cslib
-          push-repo: leanprover/cslib
-          push-branch: nightly-testing
-          push-token: ${{ steps.app-token.outputs.token }}
-          push-directly: true
+          source-repo: leanprover/cslib
+          source-token: ${{ steps.app-token.outputs.token }}
+          target-branch: bump/v4.36.0
+          pr: true
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+          update-toolchains: true
+          update-manifests: true
+          lakefile-edits: |
+            ^name = "mathlib"\nscope = "leanprover-community"\nrev = ".*"$ -> name = "mathlib"\ngit = "https://github.com/leanprover-community/mathlib4-nightly-testing"\nrev = "nightly-testing"
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.pr-created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 PRs
+          content: >
+            PR cslib#${{ steps.export-pr.outputs.pr-number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.

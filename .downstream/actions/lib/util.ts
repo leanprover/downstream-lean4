@@ -11,8 +11,14 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function exit(reason: string): never {
-  core.info(`Exiting: ${reason}`);
+export function exit(
+  reason: string,
+  level: "info" | "notice" | "warning" = "info",
+): never {
+  if (level === "warning") core.warning(reason);
+  else if (level === "notice") core.notice(reason);
+  else core.info(reason);
+
   process.exit(0);
 }
 
@@ -25,28 +31,50 @@ export function assert(condition: boolean, message: string): asserts condition {
   if (!condition) abort(message);
 }
 
-export function getInput(name: string): string {
-  return core.getInput(name, { required: true });
+export function unreachable(value: never): never {
+  abort(`Unreachable code reached with value: ${JSON.stringify(value)}`);
 }
 
-export function getInputOpt(name: string): string | null {
-  const value = core.getInput(name, { required: false });
-  return value === "" ? null : value;
+export function runIn(cwd: string) {
+  return async function (
+    cmd: string,
+    args: string[],
+    options?: exec.ExecOptions,
+  ): Promise<number> {
+    return await exec.exec(cmd, args, { ...options, cwd });
+  };
 }
 
-export function parseBool(input: string): boolean {
-  return input.trim().toLowerCase() === "true";
+export function captureIn(cwd: string) {
+  const run = runIn(cwd);
+  return async function (cmd: string, args: string[]): Promise<string> {
+    let stdout = "";
+    await run(cmd, args, {
+      listeners: { stdout: (data) => (stdout += data.toString()) },
+    });
+    return stdout.trim();
+  };
 }
 
-export interface Repo {
-  owner: string;
-  repo: string;
-}
+export class Repo {
+  public readonly owner: string;
+  public readonly repo: string;
 
-export function parseRepo(input: string): Repo {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
+  constructor(obj: { owner: string; repo: string });
+  constructor(owner: string, repo: string);
+  constructor(fst: { owner: string; repo: string } | string, repo?: string) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo!;
+    }
+  }
+
+  get fullName(): string {
+    return `${this.owner}/${this.repo}`;
+  }
 }
 
 export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {

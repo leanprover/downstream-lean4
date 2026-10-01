@@ -12,6 +12,7 @@ public import ImportGraph.Imports.RequiredModules
 public import ImportGraph.Imports.Unused
 public import ImportGraph.Lean.EnvExtension
 public import ImportGraph.Lean.Environment
+public import ImportGraph.Lean.Json
 public import ImportGraph.Lean.Name
 public import ImportGraph.Lean.Syntax
 public import ImportGraph.Lean.WithImportModules
@@ -21,13 +22,19 @@ public import ImportGraph.Shake.Core
 public import ImportGraph.Shake.DeclNeeds
 public import ImportGraph.Shake.EnvExtension
 public import ImportGraph.Shake.Environment
+public import ImportGraph.Shake.Workspace
 public meta import ImportGraph.Tools
 public meta import ImportGraph.Tools.FindHome
 public meta import ImportGraph.Tools.ImportDiff
 public meta import ImportGraph.Tools.MinImports
+public meta import ImportGraph.Tools.NormImports
 public meta import ImportGraph.Tools.RedundantImports
 public import ImportGraph.Util.CurrentModule
 public import ImportGraph.Util.FindSorry
 public meta import ImportGraph.Widget.GoToModule
 public meta import ImportGraph.Widget.Collapsible
 public meta import ImportGraph.Widget.Copy
+public import ImportGraph.WorkspaceModel.Base
+public import ImportGraph.WorkspaceModel.Build
+public import ImportGraph.WorkspaceModel.Model
+public import ImportGraph.WorkspaceModel.Summary

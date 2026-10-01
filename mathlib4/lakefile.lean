@@ -32,7 +32,6 @@ abbrev mathlibOnlyLinters : Array LeanOption := #[
   ⟨`linter.style.header, true⟩,
   ⟨`linter.checkInitImports, true⟩,
   ⟨`linter.allScriptsDocumented, true⟩,
-  ⟨`linter.pythonStyle, true⟩,
   ⟨`linter.style.longFile, .ofNat 1500⟩,
   -- ⟨`linter.nightlyRegressionSet, true⟩,
   -- `latest_import.yml` uses this comment: if you edit it, make sure that the workflow still works
@@ -65,6 +64,7 @@ package mathlib where
   platformIndependent := true
   -- Mathlib currently expects artifacts to be in the build directory.
   restoreAllArtifacts := true
+  requiresModuleSystem := true
   -- These are additional settings which do not affect the lake hash,
   -- so they can be enabled in CI and disabled locally or vice versa.
   -- Warning: Do not put any options here that actually change the olean files,
@@ -84,10 +84,14 @@ lean_lib Mathlib where
 -- `scripts/mk_all.lean`.
 lean_lib Cache where
   globs := #[`Cache.+]
+  -- The `Cache` modules do not use the module system, but they import each other and thus
+  -- the `requiresModuleSystem` package option set above.
+  allowNonModules := true
 
 lean_lib MathlibTest where
   globs := #[`MathlibTest.+]
   leanOptions := mathlibTestOptions
+  allowNonModules := true
 
 lean_lib Archive where
   leanOptions := mathlibLeanOptions
@@ -129,6 +133,9 @@ lean_exe autolabel where
 /-- `lake exe cache get` retrieves precompiled `.olean` files from a central server. -/
 lean_exe cache where
   root := `Cache.Main
+  -- As for `lean_lib Cache`: the root does not use the module system either, and the
+  -- executable's configuration does not inherit the library's.
+  allowNonModules := true
 
 /-- `lake exe cache-test` runs the cache tool's unit tests (container URL
 construction, per-repo trust-ordered allowlist, `--cache-from` parsing).

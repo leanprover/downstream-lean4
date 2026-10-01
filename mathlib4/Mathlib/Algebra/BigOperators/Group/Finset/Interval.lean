@@ -5,7 +5,7 @@ Authors: Chris Birkbeck
 -/
 module
 
-public import Mathlib.Algebra.CharP.Defs
+import Mathlib.Algebra.CharP.Defs
 public import Mathlib.Algebra.Group.EvenFunction
 public import Mathlib.Data.Int.Interval
 
@@ -40,6 +40,10 @@ lemma prod_Icc_succ_eq_mul_endpoints {R : Type*} [CommGroup R] (f : ℤ → R) {
     f (N + 1) * f (-(N + 1) : ℤ) * ∏ m ∈ Icc (-N : ℤ) N, f m := by
   induction N
   · rw [Icc_succ_succ]
+    #adaptation_note /-- After nightly-2026-09-27, `grind` produces a kernel-rejected proof
+    containing `-0 = 0` (it claims `decide (-0 = 0) = false`), so we remove `-0` first.
+    Minimized: `example (p : Int → Prop) (h : p (-0)) : p 0 := by grind` -/
+    simp only [Nat.cast_zero, neg_zero]
     grind
   · rw [Icc_succ_succ, prod_union (by simp)]
     grind

@@ -7,37 +7,6 @@ import Nerodia
 
 open Nerodia
 
-/-- info: 0 -/
-#guard_msgs in #eval mkPyNat 0 -- base case
-/-- info: 0 -/
-#guard_msgs in #eval mkPyInt 0
-/-- info: -1 -/
-#guard_msgs in #eval mkPyInt (-1)
-/-- info: 13 -/
-#guard_msgs in #eval mkPyNat 13 -- one byte
-/-- info: 13 -/
-#guard_msgs in #eval mkPyInt 13
-/-- info: -13 -/
-#guard_msgs in #eval mkPyInt (-13)
-/-- info: 420 -/
-#guard_msgs in #eval mkPyNat 420 -- multi-byte
-/-- info: 420 -/
-#guard_msgs in #eval mkPyInt 420
-/-- info: -420 -/
-#guard_msgs in #eval mkPyInt (-420)
-/-- info: 9223372036854775808 -/
-#guard_msgs in #eval mkPyNat (2^63) -- big scalar / negative MSB
-/-- info: 9223372036854775808 -/
-#guard_msgs in #eval mkPyInt (2^63)
-/-- info: -9223372036854775808 -/
-#guard_msgs in #eval mkPyInt (-(2^63))
-/-- info: 18446744073709551616 -/
-#guard_msgs in #eval mkPyNat (2^64) -- big non-scalar / positive MSB
-/-- info: 18446744073709551616 -/
-#guard_msgs in #eval mkPyInt (2^64)
-/-- info: -18446744073709551616 -/
-#guard_msgs in #eval mkPyInt (-(2^64))
-
 /-- info: "hello" -/
 #guard_msgs in
 #eval PyIO.toIO do
@@ -142,6 +111,73 @@ open Internal Nerodia in
   let sys ← Nerodia.import "sys"
   let val ← sys.getAttrByString "bogus"
   val.str
+
+def mkNamespace : PyIO PyObject := do
+  let types ← Nerodia.import "types"
+  (← types.getAttrByString "SimpleNamespace").call0
+
+/-- info: 42 -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let ns ← mkNamespace
+  ns.setAttrByString "x" (← mkPyInt 42)
+  (← ns.getAttrByString "x").repr
+
+/-- info: 'hi' -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let ns ← mkNamespace
+  let name ← mkPyStr "y"
+  ns.setAttr name (← mkPyStr "hi")
+  (← ns.getAttr name).repr
+
+-- a `str` subclass (`http.HTTPMethod`) works too
+/-- info: 1 -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let http ← Nerodia.import "http"
+  let name ← (← http.getAttrByString "HTTPMethod").getAttrByString "GET"
+  if h : name ⦂ str then
+    let ns ← mkNamespace
+    ns.setAttr (name.attachType h) (← mkPyInt 1)
+    (← ns.getAttrByString "GET").repr
+  else
+    mkPyStr "not a str"
+
+/-- error: AttributeError: 'NoneType' object has no attribute 'x' and no __dict__ for setting new attributes -/
+#guard_msgs in
+#eval PyIO.toIO (α := Unit) do
+  let none ← getPyNone
+  none.setAttrByString "x" (← mkPyInt 0)
+
+/-- info: None -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let sys ← Nerodia.import "builtins"
+  let globals ← sys.getAttrByString "globals"
+  (← globals.call0).repr
+
+/-- error: TypeError: abs() takes exactly one argument (0 given) -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let sys ← Nerodia.import "builtins"
+  let abs ← sys.getAttrByString "abs"
+  discard <| abs.call0
+  return ()
+
+/-- info: 1 -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let sys ← Nerodia.import "builtins"
+  let abs ← sys.getAttrByString "abs"
+  IO.println (← (← abs.call1 (← mkPyInt (-1))).repr)
+
+/-- error: TypeError: bad operand type for abs(): 'NoneType' -/
+#guard_msgs in
+#eval PyIO.toIO do
+  let sys ← Nerodia.import "builtins"
+  let abs ← sys.getAttrByString "abs"
+  IO.println (← (← abs.call1 (← getPyNone)).repr)
 
 /-- error: EOFError -/
 #guard_msgs in

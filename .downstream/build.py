@@ -55,6 +55,7 @@ def do_subrepo(subrepo: Subrepo, command: str, args: list[str] | None = None) ->
 def do_build(
     subrepos: list[Subrepo],
     report: defaultdict[str, Phase],
+    blocked_by: dict[str, list[str]],
     graph: dict[str, set[str]],
     mappings_dir: Path | None,
 ) -> None:
@@ -65,6 +66,7 @@ def do_build(
         deps = graph.get(subrepo.name, set())
         failed = {dep for dep in deps if not report[dep].success}
         if failed:
+            blocked_by[subrepo.name] = sorted(failed)
             fprint(f"{subrepo.name}: skipped, no build for {', '.join(sorted(failed))}")
             continue
 
@@ -173,11 +175,12 @@ def main() -> None:
 
     run("lake", "--version")
 
+    blocked_by: dict[str, list[str]] = {}
     report_build = defaultdict(Phase)
     report_test = defaultdict(Phase)
     report_lint = defaultdict(Phase)
     if not args.no_build:
-        do_build(subrepos, report_build, graph, mappings_dir)
+        do_build(subrepos, report_build, blocked_by, graph, mappings_dir)
     if args.test:
         do_test(subrepos, report_test, report_build)
     if args.lint:
@@ -210,6 +213,7 @@ def main() -> None:
                 "name": sub.name,
                 "critical": sub.critical,
                 "green": sub.name in green_repos,
+                "blocked_by": blocked_by.get(sub.name, []),
                 "build": dataclasses.asdict(report_build[sub.name]),
                 "test": dataclasses.asdict(report_test[sub.name]),
                 "lint": dataclasses.asdict(report_lint[sub.name]),

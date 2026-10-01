@@ -23,8 +23,10 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
+import CslibTests.PRG
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
