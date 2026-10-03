@@ -24317,14 +24317,22 @@ function abort(reason) {
 function assert(condition, message) {
   if (!condition) abort(message);
 }
-function getInput2(name) {
-  return getInput(name, { required: true });
-}
-function parseRepo(input) {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
-}
+var Repo = class {
+  owner;
+  repo;
+  constructor(fst, repo) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo;
+    }
+  }
+  get fullName() {
+    return `${this.owner}/${this.repo}`;
+  }
+};
 async function findPrFor(octo2, repo, branchName, options = {}) {
   const { state = "all", headOwner = repo.owner } = options;
   const { data } = await octo2.rest.pulls.list({
@@ -24341,10 +24349,21 @@ function adaptationBranchNameFor(prNumber) {
   return `adaptation-${prNumber}`;
 }
 
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
+}
+function parseRepo(input) {
+  const match = /^([^/]+)\/([^/]+)$/.exec(input);
+  assert(match !== null, `Expected "owner/repo", not "${input}"`);
+  return new Repo(match[1], match[2]);
+}
+
 // actions/adaptation-pr-find/main.ts
 var token = getInput2("token");
-var upstreamPr = parseInt(getInput2("upstream-pr"), 10);
-var downstreamRepo = parseRepo(getInput2("downstream-repo"));
+var upstreamPr = getInput2("upstream-pr", (v) => parseInt(v, 10));
+var downstreamRepo = getInput2("downstream-repo", parseRepo);
 var octo = getOctokit(token);
 async function run() {
   const aBranchName = adaptationBranchNameFor(upstreamPr);

@@ -4,185 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mac Malone
 -/
 module
-public import Nerodia.Data.Py.Basic
+public import Nerodia.Data.PyAny
+public import Nerodia.Data.PyNever
+public import Nerodia.Data.Typing.Ops
+public import Nerodia.Data.Typing.Promotable
 meta import Nerodia.Internal.ViewMethod
 
 /-! # Type Definitions -/
 
 namespace Nerodia
-
-/--
-Auxiliary type used for values representing a static Python constant.
-
-Similar to {lean}`Lean.Parser.Category`, definitions of this type have no
-content, they simply reserve names that can be coerced into other types (e.g.,
-{lean}`TypeExpr` or {lean}`Typing`) via {lean}`CoeDep`.
-
-**Users of Nerodia should not define values of this type themselves.**
--/
-public structure Constant where
-  private mk ::
-    private val : NonScalar
-    deriving Inhabited
-
-/-! ## Universal Types -/
-
-/-! ### PyObject -/
-
-/--
-The ultimate Python base class, [{lit}`object`][1].
-
-[1]: https://docs.python.org/3/library/functions.html#object
--/
-public opaque object : Constant
-
-public instance : CoeDep Constant object Typing := ⟨.object⟩
-
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
-public protected def TypeExpr.object : TypeExpr :=
-  ⟨"object"⟩
-
-public instance : CoeDep Constant object TypeExpr := ⟨.object⟩
-public instance : ToTypeExpr object := ⟨object⟩
-
-/-- Any Python object. That is, an instance of {lit}`object`. -/
-public abbrev PyObject := Py object
-
-public instance : ViewPy object PyObject := ⟨rfl⟩
-
-/-- Shorthand for {lean}`ToPy .object α` -/
-public abbrev ToPyObject := ToPy object
-
-namespace Py.Raw
-
-@[inline] public def toPyObject (self : Py.Raw) : PyObject :=
-  Py.mk self .object
-
-@[simp, grind =] public theorem raw_toPyObject :
-  (toPyObject o).raw = o := by rfl
-
-public instance : ToPyObject Py.Raw := ⟨toPyObject⟩
-
-@[simp, grind =] public theorem toPy_eq_toPyObject :
-  toPy (o : Py.Raw) = o.toPyObject := by rfl
-
-end Py.Raw
-
-public instance : DecidablePy object := private_decl%
-  (fun _ => isTrue .object)
-
-@[inline, implicit_reducible, expose]
-public def Internal.decPy
-  (f : PyObject → Bool) (h : ∀ o, f o ↔ o ⦂ T)
-: DecidablePy T := fun o =>
-  have h : f o.toPyObject ↔ o ⦂ T := by
-    simpa using h o.toPyObject
-  if ho :  f o.toPyObject then
-    isTrue (h.mp ho)
-  else
-    isFalse ((iff_false_left ho).mp h)
-
-/-- Equips {lean}`α` with the dot notation methods of a {lean}`PyObject`. -/
-public abbrev PyObjectView (α : Type u) := α
-
-namespace PyObjectView
-
-@[inline] public def toPyObject
-  [ToPyObject α] (self : PyObjectView α)
-: PyObject := toPy self
-
-@[simp, grind =]
-public theorem toPyObject_eq_toPy
-  [ToPyObject α] (self : PyObjectView α)
-: self.toPyObject = toPy (α := α) self := by rfl
-
-public instance [ToPyObject α] :
-  CoeOut (PyObjectView α) PyObject := ⟨toPyObject⟩
-
-end PyObjectView
-
-/-! ### PyAny -/
-
-/--
-A special indicator signifying any acceptable value.
-This is analogous to Python's [{lit}`Any`][1].
-
-As a typing, this is propositionally equivalent to {lean}`object`,
-but it has different type class instances.
-
-[1]: https://typing.python.org/en/latest/spec/special-types.html#any
--/
-public opaque any : Constant
-
-@[irreducible] public def Typing.any : Typing := .object
-
-public instance : CoeDep Constant any Typing := ⟨.any⟩
-
-@[simp, grind =] public theorem Typing.any_eq_object : any = object := by
-  unfold any; rfl
-
-public instance : NonemptyPy any :=
-  ⟨⟨Classical.ofNonempty, Typing.any_eq_object ▸ .object⟩⟩
-
-public instance : DecidablePy any := private_decl%
-  (fun _ => isTrue (by simp))
-
-/--
-A Python object of unknown type. This is analogous to Python's {lit}`Any`.
-
-As Lean is statically typed, there is little utility in using this type
-instead of {name}`PyObject` within Lean code. However, it exists to enable
-defining Python functions whose parameters or return should be left untyped.
-
-For example, a module function defined as
-
-```
-@[py_module_fn] def foo (o : PyObject) : PyObject := ...
-```
-
-will be given the type {lit}`(o: object) -> object` by Nerodia, whereas
-
-```
-@[py_module_fn] def foo (o : PyAny) : PyAny := ...
-```
-
-will have the type {lit}`(o)` with no annotated parameter or return types.
--/
-public abbrev PyAny := PyObjectView <| Py any
-
-public instance : ViewPy any PyAny := ⟨rfl⟩
-
-/-! ### PyNever -/
-
-/--
-The special form [{lit}`Never`][1], which is the {lean}`Empty` of Python.
-
-[1]: https://typing.python.org/en/latest/spec/special-types.html#never
--/
-public opaque never : Constant
-
-public instance : CoeDep Constant never Typing := ⟨.never⟩
-public instance : DecidablePy never := fun _ => isFalse (by simp)
-
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
-public protected def TypeExpr.never : TypeExpr :=
-  ⟨"Never"⟩
-
-public instance : CoeDep Constant never TypeExpr := ⟨.never⟩
-public instance : ToTypeExpr never := ⟨never⟩
-
-/--
-An instance of the empty type [{lit}`Never`][1]. There are no inhabitants.
-
-[1]: https://docs.python.org/3/library/typing.html#typing.Never
--/
-public abbrev PyNever := Py never
-
-public instance : ViewPy never PyNever := ⟨rfl⟩
-
-/-- Anything holds from an instance of the empty type (c.f., {lean}`Empty.elim`). -/
-public def PyNever.elim (self : PyNever) : α :=
-  Typing.not_hasType_never self.raw_hasType |>.elim
 
 /-!
 ## Weak Types
@@ -192,17 +22,17 @@ reassigning their {lit}`__class__` attribute, and types themselves can have
 their inheritance tree change by reassigning {lit}`__bases__`.
 
 As such, most type relations in Python do not hold statically and therefore
-cannot be modelled correctly and safely by a pure relation in Lean. Nonetheless,
-statically typing Python objects in Lean is still useful, so Nerodia provides
-a mechanism for *weak typing*. Objects are annotated with *type hints* in the
-form of Python type expressions (i.e., {lean}`TypeExpr`) and are manually cast
-between types without proof.
+cannot be modelled correctly and safely by a pure {lean}`Typing` in Lean.
+Nonetheless, statically typing Python objects in Lean is still useful, so
+Nerodia provides a mechanism for _weak typing_. Objects are annotated
+with erased _type hints_ to indicate the expected type and the
+{lean}`Typing` of weak types checks for these type hints.
 -/
 
-namespace Py.Raw
+namespace PyObject
 
 set_option linter.unusedVariables.funArgs false in
-@[inline] unsafe def castImpl (ty : TypeExpr) (self : Py.Raw) : Py.Raw :=
+@[inline] unsafe def withTypeHintImpl (ty : TypeExpr) (self : PyObject) : PyObject :=
   unsafeCast self
 
 open Internal in
@@ -213,11 +43,11 @@ This weakly types the object, providing no strong guarantees.
 
 This is akin to the Python {lit}`typing.cast(ty, self)`.
 -/
-@[implemented_by castImpl]
-def cast (ty : TypeExpr) (self : Py.Raw) : Py.Raw :=
+@[implemented_by withTypeHintImpl]
+def withTypeHint (ty : TypeExpr) (self : PyObject) : PyObject :=
   .ofModel {self.toModel with hint := ty}
 
-end Py.Raw
+end PyObject
 
 open Internal in
 /-- The typing for objects weakly typed as {lean}`ty`. -/
@@ -226,16 +56,16 @@ def typeHint (ty : TypeExpr) : Typing :=
 
 instance : ToTypeExpr (typeHint ty) := ⟨ty⟩
 
-@[simp, grind .] theorem Py.Raw.cast_hasType_typeHint :
-  Py.Raw.cast ty o ⦂ typeHint ty
-:= by simp [typeHint, Py.Raw.cast]
+@[simp, grind .] theorem PyObject.withTypeHint_hasType_typeHint :
+  withTypeHint ty o ⦂ typeHint ty
+:= by simp [typeHint, PyObject.withTypeHint]
 
 instance : NonemptyPy (typeHint ty) :=
-  .intro (.cast ty Classical.ofNonempty) Py.Raw.cast_hasType_typeHint
+  ⟨.ofPyObject (.withTypeHint ty Classical.ofNonempty) PyObject.withTypeHint_hasType_typeHint⟩
 
-@[inherit_doc Py.Raw.cast]
-def Py.cast (o : Py T) (ty : TypeExpr) : Py (typeHint ty) :=
-  ⟨o.raw.cast ty, Py.Raw.cast_hasType_typeHint⟩
+@[inherit_doc PyObject.withTypeHint]
+nonrec def Py.cast (o : Py T) (ty : TypeExpr) : Py (typeHint ty) :=
+  .ofPyObject (o.toPyObject.withTypeHint ty) PyObject.withTypeHint_hasType_typeHint
 
 /-! ### Buffer -/
 
@@ -299,24 +129,24 @@ end PyBufferView
 /-!
 ## Strong Types
 
-Not all typing in Nerodia is weak. While the Python specification leaves
-the mutability of an object's type undefined, the CPython implementation has
-notable restrictions on this mutability. Notably, it prevents reassignment
-between many builtin types (e.g., {lit}`str`).
+While the Python specification leaves the mutability of an object's type
+undefined, the CPython implementation places notable restrictions on this
+mutability.  Notably, it prevents reassignment between many builtin types
+(e.g., {lit}`str`).
 
-Nerodia leverages this to provide pure type checks (e.g., {lit}`isStrInstance`)
-for these functions. Their static types (e.g., {lit}`PyStr`) then hold a proof
+Nerodia leverages this to provide pure type checks (e.g., {lit}`x ⦂ str`) for
+such types. Their static types (e.g., {lit}`PyStr`) then hold a proof
 of this check. Since many builtin types are also immutable, the data of such
 types can be safely accessed in a pure manner (e.g., {lit}`PyStr.toString`).
 
-Nonetheless, there are caveats. Foremost, this is not strictly in accordance
-with the Python specification, which leaves the mutability of an object's type
-undefined. However, CPython's implementation strongly assumes confusion between
-builtin types cannot happen (e.g., retyping an {lit}`int` to/from a {lit}`str`
-would easily segfault when used). Weighing these considerations, Nerodia chooses
-to model builtin types functionally to make reasoning easier and more pure,
+Still, there are caveats. Foremost, this is not strictly in accordance with the
+Python specification, which leaves the mutability of an object's type undefined.
+However, CPython's implementation strongly assumes confusion between builtin
+types cannot happen (e.g., retyping an {lit}`int` to/from a {lit}`str` would
+easily segfault when used). Weighing these considerations, Nerodia chooses to
+model builtin types functionally to make reasoning easier and more pure,
 accepting the cost of a potential future breakage in the event of an unlikely,
-massive Python refactor.
+massive CPython refactor.
 -/
 
 open Internal in
@@ -324,19 +154,19 @@ def Typing.kind (k : Py.Kind) : Typing :=
   .ofFn (·.toModel.kind = k)
 
 open Internal in
-noncomputable def Py.Raw.ofKind (k : Py.Kind) : Py.Raw :=
+noncomputable def PyObject.ofKind (k : Py.Kind) : PyObject :=
   .ofModel {Classical.ofNonempty (α := Py.Model) with kind := k}
 
-@[simp, grind .] theorem Py.Raw.ofKind_hasType_kind :
+@[simp, grind .] theorem PyObject.ofKind_hasType_kind :
   .ofKind k ⦂ .kind k
-:= by simp [Typing.kind, Py.Raw.ofKind]
+:= by simp [Typing.kind, PyObject.ofKind]
 
 instance : NonemptyPy (.kind k) :=
-  .intro (.ofKind k) Py.Raw.ofKind_hasType_kind
+  ⟨.ofPyObject (.ofKind k) PyObject.ofKind_hasType_kind⟩
 
-@[simp] theorem Py.Raw.cast_hasType_kind_iff :
-   o.cast ty ⦂ .kind k ↔ o ⦂ .kind k
-:= by simp [Py.Raw.cast, Typing.kind]
+@[simp] theorem PyObject.withTypeHint_hasType_kind_iff :
+   o.withTypeHint ty ⦂ .kind k ↔ o ⦂ .kind k
+:= by simp [PyObject.withTypeHint, Typing.kind]
 
 /-! ### type -/
 
@@ -372,16 +202,6 @@ public abbrev PyType := PyObjectView <| Py type
 
 public instance : ViewPy type PyType := ⟨rfl⟩
 
-open Classical in
-/-- Returns whether {lean}`self` is an instance of {lit}`type`. -/
-@[extern "nerodia_py_object_is_type_instance"]
-def PyObject.isTypeInstance (self : @& PyObject) : Bool :=
-  self ⦂ type
-
-open PyObject in
-public instance : DecidablePy type := private_decl%
-  (Internal.decPy isTypeInstance (by simp [isTypeInstance]))
-
 /-! ### BaseException -/
 
 /--
@@ -391,13 +211,14 @@ The ultimate base class of Python exceptions, [{lit}`BaseException`][1].
 -/
 public opaque baseException : Constant
 
+@[inherit_doc baseException]
 public protected def Typing.baseException : Typing :=
   .kind .baseException
   deriving NonemptyPy
 
 public instance : CoeDep Constant baseException Typing := ⟨.baseException⟩
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc baseException, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.baseException : TypeExpr :=
   ⟨"BaseException"⟩
 
@@ -430,16 +251,6 @@ public instance [ToPyBaseException α] :
 
 end PyBaseExceptionView
 
-open Classical in
-/-- Returns whether {lean}`self` is an instance of {lit}`BaseException`. -/
-@[extern "nerodia_py_object_is_base_exception_instance"]
-def PyObject.isBaseExceptionInstance (self : @& PyObject) : Bool :=
-  self ⦂ baseException
-
-open PyObject in
-public instance : DecidablePy baseException := private_decl%
-  (Internal.decPy isBaseExceptionInstance (by simp [isBaseExceptionInstance]))
-
 /-! ### str -/
 
 /--
@@ -449,13 +260,14 @@ The Python string type, [{lit}`str`][1].
 -/
 public opaque str : Constant
 
+@[inherit_doc str]
 public protected def Typing.str : Typing :=
   .kind .str
   deriving NonemptyPy
 
 public instance : CoeDep Constant str Typing := ⟨.str⟩
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc str, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.str : TypeExpr :=
   ⟨"str"⟩
 
@@ -467,16 +279,6 @@ public abbrev PyStr := PyObjectView <| Py str
 
 public instance : ViewPy str PyStr := ⟨rfl⟩
 
-open Classical in
-/-- Returns whether {lean}`self` is an instance of {lit}`str`. -/
-@[extern "nerodia_py_object_is_str_instance"]
-def PyObject.isStrInstance (self : @& PyObject) : Bool :=
-  self ⦂ str
-
-open PyObject in
-public instance : DecidablePy str := private_decl%
-  (Internal.decPy isStrInstance (by simp [isStrInstance]))
-
 /-! ### bytes -/
 
 /--
@@ -486,13 +288,14 @@ The immutable Python byte array type, [{lit}`bytes`][1].
 -/
 public opaque bytes : Constant
 
+@[inherit_doc bytes]
 public protected def Typing.bytes : Typing :=
   .kind .bytes
   deriving NonemptyPy
 
 public instance : CoeDep Constant bytes Typing := ⟨.bytes⟩
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc bytes, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.bytes : TypeExpr :=
   ⟨"bytes"⟩
 
@@ -526,13 +329,14 @@ The Python integer type, [{lit}`int`][1].
 -/
 public opaque int : Constant
 
+@[inherit_doc int]
 public protected def Typing.int : Typing :=
   .kind .int
   deriving NonemptyPy
 
 public instance : CoeDep Constant int Typing := ⟨.int⟩
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc int, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.int : TypeExpr :=
   ⟨"int"⟩
 
@@ -544,16 +348,6 @@ public abbrev PyInt := PyObjectView <| Py int
 
 public instance : ViewPy int PyInt := ⟨rfl⟩
 
-open Classical in
-/-- Returns whether {lean}`self` is an instance of {lit}`int`. -/
-@[extern "nerodia_py_object_is_int_instance"]
-def PyObject.isIntInstance (self : @& PyObject) : Bool :=
-  self ⦂ int
-
-open PyObject in
-public instance : DecidablePy int := private_decl%
-  (Internal.decPy isIntInstance (by simp [isIntInstance]))
-
 /-! ### ModuleType -/
 
 /--
@@ -563,13 +357,14 @@ The ultimate base class of Python modules, [{lit}`types.ModuleType`][1].
 -/
 public opaque moduleType : Constant
 
+@[inherit_doc moduleType]
 public protected def Typing.moduleType : Typing :=
   .kind .module
   deriving NonemptyPy
 
 public instance : CoeDep Constant moduleType Typing := ⟨.moduleType⟩
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc moduleType, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.moduleType : TypeExpr :=
   ⟨"ModuleType"⟩
 
@@ -581,15 +376,223 @@ public abbrev PyModule := PyObjectView <| Py moduleType
 
 public instance : ViewPy moduleType PyModule := ⟨rfl⟩
 
-open Classical in
-/-- Returns whether {lean}`self` is an instance of {lit}`types.ModuleType`. -/
-@[extern "nerodia_py_object_is_module_instance"]
-def PyObject.isModuleInstance (self : @& PyObject) : Bool :=
-  self ⦂ moduleType
+/-! ### None -/
 
-open PyObject in
-public instance : DecidablePy moduleType := private_decl%
-  (Internal.decPy isModuleInstance (by simp [isModuleInstance]))
+/--
+The Python constant, [{lit}`None`][1].
+
+[1]: https://docs.python.org/3/builtins/constants.html#None
+-/
+@[inline, irreducible, expose] -- for Nerodia compiler reduction
+public protected def TypeExpr.none : TypeExpr :=
+  ⟨"None"⟩
+
+public instance : CoeDep (Option α) none TypeExpr := ⟨.none⟩
+
+noncomputable opaque PyEnvironment.noneAddr (env : PyEnvironment) : Addr
+
+open Internal in
+noncomputable def PyEnvironment.noneObj (env : @& PyEnvironment) : PyObject :=
+  .ofModel {env, addr := env.noneAddr, hint := .none}
+
+open Internal in
+@[inherit_doc TypeExpr.none]
+public protected def Typing.none : Typing :=
+  ofFn fun o => o.toModel.toInnerModel = o.toModel.env.noneObj.toModel.toInnerModel
+
+public instance : CoeDep (Option α) none Typing := ⟨.none⟩
+public instance : ToTypeExpr none := ⟨none⟩
+
+theorem PyEnvironment.noneObj_hasType {env} : noneObj env ⦂ none := by
+  simp [PyEnvironment.noneObj, Typing.none]
+
+/-- A Python {lit}`None` constant. -/
+public abbrev PyNone := PyObjectView <| Py none
+
+public instance : ViewPy none PyNone := ⟨rfl⟩
+
+public noncomputable def Internal.Nerodia.PyEnvironment.noneCore (env : @& PyEnvironment) : PyNone :=
+  .ofPyObject env.noneObj env.noneObj_hasType
+
+public instance : NonemptyPy none :=
+  ⟨Internal.Nerodia.PyEnvironment.noneCore Classical.ofNonempty⟩
+
+public def Typing.optional (T : Typing) : Typing :=
+  T ∪ none
+  deriving NonemptyPy
+
+@[simp, grind _=_] public theorem Typing.optional_eq_union_none :
+  optional T = T ∪ none := by rfl
+
+public instance : PromotableRtl (T ∪ none) (.optional T) := ⟨by rfl⟩
+public instance : PromotableLtr (.optional T) (T ∪ none) := ⟨by rfl⟩
+
+public instance [ToTypeExpr T] : ToTypeExpr (.optional T) where
+  toTypeExpr := .optional (ToTypeExpr.toTypeExpr T)
+
+/-! ### bool -/
+
+public abbrev PyBoolView (α : Type u) := α
+
+/-! ### False -/
+
+/--
+The Python boolean literal, [{lit}`False`][1].
+
+[1]: https://docs.python.org/3/builtins/constants.html#False
+-/
+@[inline, irreducible, expose] -- for Nerodia compiler reduction
+public protected def TypeExpr.false : TypeExpr :=
+  ⟨"Literal[False]"⟩
+
+public instance : CoeDep Bool false TypeExpr := ⟨.false⟩
+
+noncomputable opaque PyEnvironment.falseAddr (env : PyEnvironment) : Addr
+
+open Internal in
+noncomputable def PyEnvironment.falseObj (env : @& PyEnvironment) : PyObject :=
+  .ofModel {env, addr := env.falseAddr, kind := .int, hint := .false}
+
+open Internal in
+@[inherit_doc TypeExpr.false]
+public protected def Typing.false : Typing :=
+  ofFn fun o => o.toModel.toInnerModel = o.toModel.env.falseObj.toModel.toInnerModel
+
+public instance : CoeDep Bool false Typing := ⟨.false⟩
+public instance : ToTypeExpr false := ⟨false⟩
+
+theorem PyEnvironment.falseObj_hasType {env} : falseObj env ⦂ false := by
+  simp [PyEnvironment.falseObj, Typing.false]
+
+/-- A Python {lit}`False` constant. -/
+public abbrev PyFalse := PyBoolView <| PyObjectView <| Py false
+
+public instance : ViewPy false PyFalse := ⟨rfl⟩
+
+public noncomputable def Internal.Nerodia.PyEnvironment.falseCore (env : @& PyEnvironment) : PyFalse :=
+  .ofPyObject env.falseObj env.falseObj_hasType
+
+public instance : NonemptyPy false :=
+  ⟨Internal.Nerodia.PyEnvironment.falseCore Classical.ofNonempty⟩
+
+/-! ## True -/
+
+/--
+The Python boolean literal, [{lit}`True`][1].
+
+[1]: https://docs.python.org/3/builtins/constants.html#True
+-/
+@[inline, irreducible, expose] -- for Nerodia compiler reduction
+public protected def TypeExpr.true : TypeExpr :=
+  ⟨"Literal[True]"⟩
+
+public instance : CoeDep Bool true TypeExpr := ⟨.true⟩
+
+noncomputable opaque PyEnvironment.trueAddr (env : PyEnvironment) : Addr
+
+open Internal in
+noncomputable def PyEnvironment.trueObj (env : @& PyEnvironment) : PyObject :=
+  .ofModel {env, addr := env.trueAddr, kind := .int, hint := .true}
+
+open Internal in
+@[inherit_doc TypeExpr.true]
+public protected def Typing.true : Typing :=
+  ofFn fun o => o.toModel.toInnerModel = o.toModel.env.trueObj.toModel.toInnerModel
+
+public instance : CoeDep Bool true Typing := ⟨.true⟩
+public instance : ToTypeExpr true := ⟨true⟩
+
+theorem PyEnvironment.trueObj_hasType {env} : trueObj env ⦂ true := by
+  simp [PyEnvironment.trueObj, Typing.true]
+
+/-- A Python {lit}`True` constant. -/
+public abbrev PyTrue := PyBoolView <| PyObjectView <| Py true
+
+public instance : ViewPy true PyTrue := ⟨rfl⟩
+
+public noncomputable def Internal.Nerodia.PyEnvironment.trueCore (env : @& PyEnvironment) : PyTrue :=
+  .ofPyObject env.trueObj env.trueObj_hasType
+
+public instance : NonemptyPy true :=
+  ⟨Internal.Nerodia.PyEnvironment.trueCore Classical.ofNonempty⟩
+
+/-! ## bool -/
+
+/--
+The Python boolean type, [{lit}`bool`][1].
+
+[1]: https://docs.python.org/3/library/functions.html#bool
+-/
+public opaque bool : Constant
+
+@[inherit_doc bool, inline, irreducible, expose] -- for Nerodia compiler reduction
+public protected def TypeExpr.bool : TypeExpr :=
+  ⟨"bool"⟩
+
+public instance : CoeDep Constant bool TypeExpr := ⟨.bool⟩
+
+open Internal in
+@[inherit_doc bool]
+public protected def Typing.bool : Typing :=
+  false ∪ true
+  deriving NonemptyPy
+
+public instance : CoeDep Constant bool Typing := ⟨.bool⟩
+public instance : ToTypeExpr bool := ⟨bool⟩
+
+namespace Typing
+
+@[grind _=_] public theorem bool_eq_false_union_true :
+  Typing.bool = .false ∪ .true := by rfl
+
+theorem false_subset_bool : Typing.false ⊆ bool := by
+  simp [bool_eq_false_union_true, Subset.union_left]
+
+public instance : PromotableB bool false := ⟨false_subset_bool⟩
+
+theorem true_subset_bool : Typing.true ⊆ bool := by
+  simp [bool_eq_false_union_true, Subset.union_right]
+
+public instance : PromotableB bool true := ⟨true_subset_bool⟩
+
+open Typing PyEnvironment Internal Nerodia in
+theorem bool_subset_int : Typing.bool ⊆ int := by
+  simp only [bool_eq_false_union_true, subset_iff_forall, union_iff_or]
+  intro o
+  simp only [Typing.int, Typing.false, Typing.true, kind, ofFn_iff]
+  simp only [falseObj, trueObj, PyObject.toModel_ofModel]
+  rintro (h | h) <;> rw [h]
+
+public instance : PromotableB int bool := ⟨bool_subset_int⟩
+
+end Typing
+
+/-- A Python boolean object. That is, an instance of {lit}`bool`. -/
+public abbrev PyBool := PyObjectView <| Py bool
+
+public instance : ViewPy bool PyBool := ⟨rfl⟩
+
+/-- Equips {lean}`α` with the dot notation methods of a {lean}`PyBool`. -/
+add_decl_doc PyBoolView
+
+/-- Shorthand for {lean}`ToPy bool α` -/
+public abbrev ToPyBool := ToPy bool
+
+namespace PyBoolView
+
+@[inline] public def toPyBool
+  [ToPyBool α] (self : PyBoolView α)
+: PyBool := toPy self
+
+@[simp, grind =]
+public theorem toPyBool_eq_toPy
+  [ToPyBool α] (self : PyBoolView α)
+: self.toPyBool = toPy (α := α) self := by rfl
+
+public instance [ToPyBool α] :
+  CoeOut (PyBoolView α) PyBool := ⟨toPyBool⟩
+
+end PyBoolView
 
 /-!
 ## BaseException Subtypes
@@ -601,13 +604,13 @@ As such, instances of these subtypes are weakly typed.
 
 open Typing in
 instance : NonemptyPy (baseException ∩ typeHint ty) :=
-  .intro (.cast ty (.ofKind .baseException)) <| by
-    simp [hasType_inter_iff_and, Typing.baseException]
+  .intro (.withTypeHint ty (.ofKind .baseException)) <| by
+    simp [inter_iff_and, Typing.baseException]
 
 /-- The typing for a {lit}`BaseException` weakly typed as {lean}`ty`. -/
 def exceptHint (ty : TypeExpr) : Typing :=
   baseException ∩ typeHint ty
-  deriving NonemptyPy, IsSubtypeOf baseException, IsSubtypeOf (typeHint ty)
+  deriving NonemptyPy, PromotableRtl baseException, PromotableRtl (typeHint ty)
 
 /-! ### Exception -/
 
@@ -618,21 +621,25 @@ The base class of non-exiting Python exceptions, [{lit}`Exception`][1].
 -/
 public opaque exception : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc exception, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.exception : TypeExpr :=
   ⟨"Exception"⟩
 
 public instance : CoeDep Constant exception TypeExpr := ⟨.exception⟩
 
+@[inherit_doc exception]
 public protected def Typing.exception : Typing :=
   exceptHint exception
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant exception Typing := ⟨.exception⟩
 public instance : ToTypeExpr exception := ⟨exception⟩
 
+public instance : PromotableB baseException exception :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`Exception`. -/
-public abbrev PyException := PyBaseExceptionView <| Py exception
+public abbrev PyException := PyBaseExceptionView <| PyObjectView <| Py exception
 
 public instance : ViewPy exception PyException := ⟨rfl⟩
 
@@ -645,21 +652,25 @@ The Python end-of-file exception, [{lit}`EOFError`][1].
 -/
 public opaque eofError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc eofError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.eofError : TypeExpr :=
   ⟨"EOFError"⟩
 
 public instance : CoeDep Constant eofError TypeExpr := ⟨.eofError⟩
 
+@[inherit_doc eofError]
 public protected def Typing.eofError : Typing :=
   exceptHint eofError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant eofError Typing := ⟨.eofError⟩
 public instance : ToTypeExpr eofError := ⟨eofError⟩
 
+public instance : PromotableB baseException eofError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`EOFError`. -/
-public abbrev PyEOFError := PyBaseExceptionView <| Py eofError
+public abbrev PyEOFError := PyBaseExceptionView <| PyObjectView <| Py eofError
 
 public instance : ViewPy eofError PyEOFError := ⟨rfl⟩
 
@@ -672,21 +683,25 @@ The Python type of native errors, [{lit}`OSError`][1].
 -/
 public opaque osError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc osError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.osError : TypeExpr :=
   ⟨"OSError"⟩
 
 public instance : CoeDep Constant osError TypeExpr := ⟨.osError⟩
 
+@[inherit_doc osError]
 public protected def Typing.osError : Typing :=
   exceptHint osError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant osError Typing := ⟨.osError⟩
 public instance : ToTypeExpr osError := ⟨osError⟩
 
+public instance : PromotableB baseException osError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`OSError`. -/
-public abbrev PyOSError := PyBaseExceptionView <| Py osError
+public abbrev PyOSError := PyBaseExceptionView <| PyObjectView <| Py osError
 
 public instance : ViewPy osError PyOSError := ⟨rfl⟩
 
@@ -699,21 +714,25 @@ The type of internal Python errors, [{lit}`SystemError`][1].
 -/
 public opaque systemError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc systemError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.systemError : TypeExpr :=
   ⟨"SystemError"⟩
 
 public instance : CoeDep Constant systemError TypeExpr := ⟨.systemError⟩
 
+@[inherit_doc systemError]
 public protected def Typing.systemError : Typing :=
   exceptHint systemError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant systemError Typing := ⟨.systemError⟩
 public instance : ToTypeExpr systemError := ⟨systemError⟩
 
+public instance : PromotableB baseException systemError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`SystemError`. -/
-public abbrev PySystemError := PyBaseExceptionView <| Py systemError
+public abbrev PySystemError := PyBaseExceptionView <| PyObjectView <| Py systemError
 
 public instance : ViewPy systemError PySystemError := ⟨rfl⟩
 
@@ -726,21 +745,25 @@ The Python typing exception, [{lit}`TypeError`][1].
 -/
 public opaque typeError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc typeError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.typeError : TypeExpr :=
   ⟨"TypeError"⟩
 
 public instance : CoeDep Constant typeError TypeExpr := ⟨.typeError⟩
 
+@[inherit_doc typeError]
 public protected def Typing.typeError : Typing :=
   exceptHint typeError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant typeError Typing := ⟨.typeError⟩
 public instance : ToTypeExpr typeError := ⟨typeError⟩
 
+public instance : PromotableB baseException typeError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`TypeError`. -/
-public abbrev PyTypeError := PyBaseExceptionView <| Py typeError
+public abbrev PyTypeError := PyBaseExceptionView <| PyObjectView <| Py typeError
 
 public instance : ViewPy typeError PyTypeError := ⟨rfl⟩
 
@@ -753,21 +776,25 @@ The Python exception for invalid values, [{lit}`ValueError`][1].
 -/
 public opaque valueError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc valueError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.valueError : TypeExpr :=
   ⟨"ValueError"⟩
 
 public instance : CoeDep Constant valueError TypeExpr := ⟨.valueError⟩
 
+@[inherit_doc valueError]
 public protected def Typing.valueError : Typing :=
   exceptHint valueError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant valueError Typing := ⟨.valueError⟩
 public instance : ToTypeExpr valueError := ⟨valueError⟩
 
+public instance : PromotableB baseException valueError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`ValueError`. -/
-public abbrev PyValueError := PyBaseExceptionView <| Py valueError
+public abbrev PyValueError := PyBaseExceptionView <| PyObjectView <| Py valueError
 
 public instance : ViewPy valueError PyValueError := ⟨rfl⟩
 
@@ -780,20 +807,24 @@ The type of generic Python errors, [{lit}`RuntimeError`][1].
 -/
 public opaque runtimeError : Constant
 
-@[inline, irreducible, expose] -- for Nerodia compiler reduction
+@[inherit_doc runtimeError, inline, irreducible, expose] -- for Nerodia compiler reduction
 public protected def TypeExpr.runtimeError : TypeExpr :=
   ⟨"RuntimeError"⟩
 
 public instance : CoeDep Constant runtimeError TypeExpr := ⟨.runtimeError⟩
 
+@[inherit_doc runtimeError]
 public protected def Typing.runtimeError : Typing :=
   exceptHint runtimeError
-  deriving NonemptyPy, IsSubtypeOf baseException
+  deriving NonemptyPy
 
 public instance : CoeDep Constant runtimeError Typing := ⟨.runtimeError⟩
 public instance : ToTypeExpr runtimeError := ⟨runtimeError⟩
 
+public instance : PromotableB baseException runtimeError :=
+  ⟨Promotable.infer (U := exceptHint _)⟩
+
 /-- A weakly typed instance of {lit}`RuntimeError`. -/
-public abbrev PyRuntimeError := PyBaseExceptionView <| Py runtimeError
+public abbrev PyRuntimeError := PyBaseExceptionView <| PyObjectView <| Py runtimeError
 
 public instance : ViewPy runtimeError PyRuntimeError := ⟨rfl⟩

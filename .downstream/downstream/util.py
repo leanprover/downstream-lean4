@@ -65,6 +65,7 @@ class Subrepo:
     rev: str
     aliases: list[str]
     critical: bool
+    copy: bool
     override_only: bool
     assume_empty_manifest: bool
     build_targets: list[str]
@@ -78,13 +79,6 @@ class Subrepo:
     def path(self) -> Path:
         return Path(self.name)
 
-    @property
-    def manifest_path(self) -> Path:
-        return self.path / "lake-manifest.json"
-
-    def find_manifest_paths(self) -> list[Path]:
-        return sorted(self.path.glob("**/lake-manifest.json"))
-
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:
     for name, data in tomllib.loads(path.read_text()).items():
@@ -94,6 +88,7 @@ def load_subrepos(path: Path) -> Generator[Subrepo]:
             rev=data["rev"],
             aliases=[normalize_url(url) for url in data.get("aliases", [])],
             critical=data.get("critical", True),
+            copy=data.get("copy", False),
             override_only=data.get("override_only", False),
             assume_empty_manifest=data.get("assume_empty_manifest", False),
             build_targets=data.get("build_targets", []),

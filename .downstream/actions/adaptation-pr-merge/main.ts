@@ -1,47 +1,35 @@
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
 import * as github from "@actions/github";
 
 import { RequestError } from "@octokit/request-error";
+import { getInput, parseRepo } from "../lib/input";
 import { postOrUpdateStatus } from "../lib/status-message";
 import {
   abort,
   addAndCommit,
-  getInput,
+  captureIn,
   getPr,
   isAncestor,
   type ListPr,
-  parseRepo,
   type Pr,
+  Repo,
+  runIn,
   sleep,
   upstreamPrNumberFor,
 } from "../lib/util";
 
 const appToken = getInput("app-token");
 const appSlug = getInput("app-slug");
-const upstreamRepo = parseRepo(getInput("upstream-repo"));
+const upstreamRepo = getInput("upstream-repo", parseRepo);
 const upstreamRev = getInput("upstream-rev");
-const downstreamRepo = github.context.repo;
+const downstreamRepo = new Repo(github.context.repo);
 const downstreamClone = getInput("downstream-clone");
 const downstreamLabel = getInput("downstream-label");
 const downstreamLabelMerge = getInput("downstream-label-merge");
 const octo = github.getOctokit(appToken);
 
-async function dRun(
-  cmd: string,
-  args: string[],
-  options?: exec.ExecOptions,
-): Promise<number> {
-  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
-}
-
-async function dCapture(cmd: string, args: string[]): Promise<string> {
-  let stdout = "";
-  await dRun(cmd, args, {
-    listeners: { stdout: (data) => (stdout += data.toString()) },
-  });
-  return stdout.trim();
-}
+const dRun = runIn(downstreamClone);
+const dCapture = captureIn(downstreamClone);
 
 async function tell(aPr: ListPr, body: string): Promise<void> {
   await postOrUpdateStatus({

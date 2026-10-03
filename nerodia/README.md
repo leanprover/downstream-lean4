@@ -10,9 +10,9 @@ Nerodia is a library for Lean/Python FFI inspired by [PyO3](https://github.com/P
 
 ## Requirements
 
-In order to build a Nerodia project, all of the following are required:
+In order to build a Nerodia project on the latest version, all of the following are required:
 
-* Lean 4.33 or greater
+* Lean 4.34 or greater
 * CPython 3.14 or greater (shared; not free-threaded)
 * A C compiler which supports both (e.g., recent GCC or Clang; MSYS2's CLANG64 toolchain)
 
@@ -38,6 +38,7 @@ name = "StringSum"
 [[require]]
 name = "nerodia"
 scope = "leanprover"
+rev = "release/lean-v4.34"
 ```
 
 After adding Nerodia as a dependency, run `lake update nerodia` from within the package's directory (e.g., `string_sum`). Once complete, the next step is to define the Python interface in Lean. As an example, open `StringSum.lean` and add the following code. (If you used `lake new`, you can also delete the `StringSum` directory as it will not be needed.)

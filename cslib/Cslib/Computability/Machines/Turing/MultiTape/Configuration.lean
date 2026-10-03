@@ -38,7 +38,6 @@ the configuration the run ends in.
 * `Action`: what a machine does in one step
 * `Action.apply`: the effect of one action on a configuration
 * `Cfg.Halted`, `Cfg.init`: halting, and the configuration a machine starts in
-* `tapeOfList`, `wordsCfg`: tapes and configurations holding given words
 -/
 
 @[expose] public section
@@ -80,8 +79,8 @@ structure Cfg (k : ℕ) (Symbol State : Type*) (input : List Symbol) where
   output : List Symbol
 deriving Inhabited
 
-/-- Two configurations of a machine without work tapes are equal if their states, input head
-positions and outputs are equal. -/
+/-- Two configurations with no work tapes are equal when their state, input head and output
+agree. -/
 lemma Cfg.ext_zero_tapes {Symbol State : Type*} {input : List Symbol}
     {cfg₁ cfg₂ : Cfg 0 Symbol State input} (state : cfg₁.state = cfg₂.state)
     (inputPos : cfg₁.inputPos = cfg₂.inputPos) (output : cfg₁.output = cfg₂.output) :
@@ -135,11 +134,30 @@ lemma moveInputPos_pos_of_ne_right {n : ℕ} (p : Fin (n + 2)) (h : p.val ≠ n 
   · simp
     omega
 
+/-- The value of the input head after a move, as a clamped integer. `omega`-friendly. -/
+lemma val_moveInputPos_eq {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
+    ((moveInputPos pos m).val : ℤ) = min ((n : ℤ) + 1) (max 0 ((pos.val : ℤ) + (m.cast : ℤ))) := by
+  grind
+
+/-- The input head moves by at most one position. -/
+lemma val_moveInputPos_le {n : ℕ} (pos : Fin (n + 2)) (m : SignType) :
+    (moveInputPos pos m).val ≤ pos.val + 1 := by
+  have h := val_moveInputPos_eq pos m
+  have hmc : (m.cast : ℤ) = -1 ∨ (m.cast : ℤ) = 0 ∨ (m.cast : ℤ) = 1 := by
+    rcases m with _ | _ | _ <;> simp [SignType.cast]
+  omega
+
 /-- The symbol currently under the input tape head. -/
 def Cfg.inputSymbol (cfg : Cfg k Symbol State input) : Option Symbol :=
   if h₁ : cfg.inputPos = 0 then none
   else if h₂ : cfg.inputPos = input.length + 1 then none
   else input[cfg.inputPos.val - 1]'(by grind)
+
+/-- At either boundary of the input, the head reads a blank. -/
+lemma inputSymbol_eq_none_of_boundary {cfg : Cfg k Symbol State input}
+    (h : cfg.inputPos.val = 0 ∨ cfg.inputPos.val = input.length + 1) :
+    cfg.inputSymbol = none := by
+  grind [Cfg.inputSymbol]
 
 @[simp]
 lemma inputSymbolInner {cfg : Cfg k Symbol State input} (p : ℕ)
@@ -155,14 +173,19 @@ def Cfg.workTapeSymbols (cfg : Cfg k Symbol State input) (i : Fin k) : Option Sy
 /-- A configuration is halted when it has no state to continue from. -/
 abbrev Cfg.Halted (cfg : Cfg k Symbol State input) : Prop := cfg.state = none
 
+/-- The same configuration with a different output tape. -/
+@[simps] def Cfg.withOutput (c : Cfg k Symbol State input) (out : List Symbol) :
+    Cfg k Symbol State input :=
+  ⟨c.state, c.inputPos, c.workTapes, c.workTapePos, out⟩
+
 /-- The same configuration in a different control state, possibly of a different state type. -/
 @[simps] def Cfg.withState (cfg : Cfg k Symbol State input)
     {State' : Type*} (q : Option State') : Cfg k Symbol State' input :=
   ⟨q, cfg.inputPos, cfg.workTapes, cfg.workTapePos, cfg.output⟩
 
 /-- Remap the (optional) state of a configuration through `φ`, leaving the input head, the work
-tapes, the work-tape heads and the output alone. This is the shape of embedding used to place a
-sub-machine's configurations into a larger machine built from it. -/
+tapes, the work-tape heads and the output alone. Control-flow combinators such as `seq` embed a
+sub-machine's configurations into the combined machine by exactly such a state remap. -/
 @[simps] def Cfg.mapState {State' : Type*} (φ : Option State → Option State')
     (c : Cfg k Symbol State input) : Cfg k Symbol State' input :=
   ⟨φ c.state, c.inputPos, c.workTapes, c.workTapePos, c.output⟩
@@ -172,64 +195,12 @@ sub-machine's configurations into a larger machine built from it. -/
 def Cfg.init (q₀ : State) (input : List Symbol) : Cfg k Symbol State input :=
   ⟨some q₀, 1, fun _ _ => none, fun _ => 0, []⟩
 
-/-- A tape containing exactly the symbols of `xs` at positions `0, ..., xs.length - 1`. -/
-def tapeOfList (xs : List Symbol) : ℤ → Option Symbol
-  | .ofNat n => xs[n]?
-  | .negSucc _ => none
-
-@[simp]
-lemma tapeOfList_ofNat (xs : List Symbol) (n : ℕ) : tapeOfList xs n = xs[n]? := rfl
-
-@[simp]
-lemma tapeOfList_negSucc (xs : List Symbol) (n : ℕ) :
-    tapeOfList xs (.negSucc n) = none := rfl
-
-/-- Appending one symbol writes precisely the cell after the existing word. -/
-lemma tapeOfList_append_single (xs : List Symbol) (x : Symbol) :
-    tapeOfList (xs ++ [x]) = Function.update (tapeOfList xs) (xs.length : ℤ) (some x) := by
-  funext z
-  cases z with
-  | negSucc n => simp [tapeOfList]
-  | ofNat n => grind [tapeOfList]
-
-/-- The blank tape holds the empty word. -/
-@[simp]
-lemma tapeOfList_nil : tapeOfList ([] : List Symbol) = fun _ => none := by
-  funext z
-  cases z <;> simp
-
-/-- The cell at position `0` holds the first symbol of the word. -/
-lemma tapeOfList_zero (xs : List Symbol) : tapeOfList xs 0 = xs.head? := by
-  have h : (0 : ℤ) = ((0 : ℕ) : ℤ) := rfl
-  rw [h, tapeOfList_ofNat]
-  cases xs <;> rfl
-
-/-- The configuration whose work tape `i` holds exactly the word `ws i` with its head at the
-start, whose input head is at the start of the input, in state `q` with output `out`. -/
-@[simps]
-def wordsCfg (input : List Symbol) (q : Option State)
-    (ws : Fin k → List Symbol) (out : List Symbol) : Cfg k Symbol State input :=
-  ⟨q, 1, fun i => tapeOfList (ws i), fun _ => 0, out⟩
-
-/-- Remapping the state of a `wordsCfg` remaps its state and leaves the words alone. -/
-@[simp]
-lemma mapState_wordsCfg {State' : Type*} (φ : Option State → Option State')
-    (input : List Symbol) (q : Option State) (ws : Fin k → List Symbol) (out : List Symbol) :
-    (wordsCfg input q ws out).mapState φ = wordsCfg input (φ q) ws out := rfl
-
-/-- The initial configuration is the word configuration with blank tapes and no output. -/
-lemma Cfg.init_eq_wordsCfg (q₀ : State) (input : List Symbol) :
-    Cfg.init (k := k) q₀ input = wordsCfg input (some q₀) (fun _ => []) [] := by
-  refine Cfg.ext rfl rfl ?_ rfl rfl
-  funext i
-  simp [Cfg.init, wordsCfg]
-
 /--
 The effect of an action on a configuration: move the input head, write and move on the work tapes,
 append the emitted symbol to the output tape, and go to the successor state. This is the part of a
 step that does not depend on how the action was chosen.
 -/
-@[simp]
+@[simps -fullyApplied]
 def Action.apply (action : Action k Symbol State) (cfg : Cfg k Symbol State input) :
     Cfg k Symbol State input where
   state := action.state

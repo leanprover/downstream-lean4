@@ -24328,20 +24328,24 @@ function abort(reason) {
 function assert(condition, message) {
   if (!condition) abort(message);
 }
-function getInput2(name) {
-  return getInput(name, { required: true });
+
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
 }
-function getInputOpt(name) {
+function getInputOpt(name, parser) {
   const value = getInput(name, { required: false });
-  return value === "" ? null : value;
+  if (value === "") return null;
+  return parser ? parser(value) : value;
 }
 
 // actions/render-report/main.ts
 var buildReportPath = getInput2("build-report-path");
 var statusReportPath = getInputOpt("status-report-path");
-var reportType = parseReportType(getInput2("report-type"));
-var reportStyle = parseReportStyle(getInput2("report-style"));
-var limitedTo = parseLimitedTo(getInputOpt("limited-to"));
+var reportType = getInput2("report-type", parseReportType);
+var reportStyle = getInput2("report-style", parseReportStyle);
+var limitedTo = getInputOpt("limited-to", parseLimitedTo);
 var runId = getInputOpt("run-id") ?? String(context2.runId);
 var runAttempt = getInputOpt("run-attempt") ?? String(context2.runAttempt);
 var outputPath = getInputOpt("output-path");
@@ -24362,11 +24366,18 @@ function parseLimitedTo(value) {
     value.split(",").map((name) => name.trim()).filter((name) => name.length > 0)
   );
 }
-function status(phase) {
+function renderDuration(duration) {
+  duration = Math.round(duration);
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration - minutes * 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+function status(phase, blockedBy = []) {
+  if (blockedBy.length > 0) return `\u{1F6D1} by ${blockedBy.join(", ")}`;
   if (phase.success === null) return "\u23ED\uFE0F";
   const icon = phase.success ? "\u2705" : "\u{1F7E5}";
   if (phase.duration === null) return icon;
-  return `${icon} in ${Math.round(phase.duration)}s`;
+  return `${icon} in ${renderDuration(phase.duration)}`;
 }
 function renderTable(repos) {
   const lines = [
@@ -24375,7 +24386,7 @@ function renderTable(repos) {
   ];
   for (const repo of repos) {
     const critical = repo.critical ? "\u2705" : "";
-    const build = status(repo.build);
+    const build = status(repo.build, repo.blocked_by);
     const test = status(repo.test);
     const lint = status(repo.lint);
     lines.push(`| ${repo.name} | ${critical} | ${build} | ${test} | ${lint} |`);
