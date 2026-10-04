@@ -1,45 +1,64 @@
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
 import * as github from "@actions/github";
 
 import { RequestError } from "@octokit/request-error";
+import { getInput, parseRepo } from "../lib/input";
 import { postOrUpdateStatus } from "../lib/status-message";
 import {
   abort,
   addAndCommit,
-  getInput,
+  captureIn,
   getPr,
+  isAncestor,
   type ListPr,
-  parseRepo,
   type Pr,
+  Repo,
+  runIn,
   sleep,
   upstreamPrNumberFor,
 } from "../lib/util";
 
 const appToken = getInput("app-token");
 const appSlug = getInput("app-slug");
-const upstreamRepo = parseRepo(getInput("upstream-repo"));
+const upstreamRepo = getInput("upstream-repo", parseRepo);
 const upstreamRev = getInput("upstream-rev");
-const downstreamRepo = github.context.repo;
+const downstreamRepo = new Repo(github.context.repo);
 const downstreamClone = getInput("downstream-clone");
 const downstreamLabel = getInput("downstream-label");
 const downstreamLabelMerge = getInput("downstream-label-merge");
 const octo = github.getOctokit(appToken);
 
-async function dRun(
-  cmd: string,
-  args: string[],
-  options?: exec.ExecOptions,
-): Promise<number> {
-  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
+const dRun = runIn(downstreamClone);
+const dCapture = captureIn(downstreamClone);
+
+async function tell(aPr: ListPr, body: string): Promise<void> {
+  await postOrUpdateStatus({
+    octo,
+    appSlug,
+    repo: downstreamRepo,
+    issueNumber: aPr.number,
+    body,
+  });
 }
 
-async function dCapture(cmd: string, args: string[]): Promise<string> {
-  let stdout = "";
-  await dRun(cmd, args, {
-    listeners: { stdout: (data) => (stdout += data.toString()) },
-  });
-  return stdout.trim();
+async function tellMerging(aPr: ListPr): Promise<void> {
+  const body =
+    "The upstream PR has landed. This adaptation PR is being merged.";
+  await tell(aPr, body);
+}
+
+async function tellClosing(aPr: ListPr): Promise<void> {
+  const body =
+    "The upstream PR has landed. " +
+    "This adaptation PR is being closed because it has no changes.";
+  await tell(aPr, body);
+}
+
+async function tellAuthorToMerge(uPr: Pr, aPr: ListPr): Promise<void> {
+  const body =
+    "The automatic merge failed. " +
+    `@${uPr.user.login}, please fix any merge conflicts and merge this PR manually.`;
+  await tell(aPr, body);
 }
 
 async function switchToAdaptationBranch(aBranchName: string): Promise<void> {
@@ -48,21 +67,14 @@ async function switchToAdaptationBranch(aBranchName: string): Promise<void> {
 
 // Undo the overrides applied by the create action's `applyOverridesAndCommit`,
 // by resetting them to the merge base state.
-async function undoOverridesAndCommit(aPr: ListPr): Promise<void> {
-  const aBranchName = aPr.head.ref;
-  const baseBranchName = aPr.base.ref;
-  const mergeBase = await dCapture("git", [
-    "merge-base",
-    `origin/${baseBranchName}`,
-    `origin/${aBranchName}`,
-  ]);
-
+async function undoOverridesAndCommit(mergeBase: string): Promise<void> {
   // Undo overrideToolchain
   await dRun("git", ["checkout", mergeBase, "--", "lean-toolchain"]);
 
+  // https://docs.github.com/en/actions/how-tos/manage-workflow-runs/skip-workflow-runs
   const committed = await addAndCommit(
     downstreamClone,
-    "downstream: undo overrides",
+    "downstream: undo overrides\n\nskip-checks: true",
   );
   if (!committed) return;
 
@@ -72,6 +84,22 @@ async function undoOverridesAndCommit(aPr: ListPr): Promise<void> {
 
 async function pushAdaptationBranch(aBranchName: string): Promise<void> {
   await dRun("git", ["push", "-u", "origin", aBranchName]);
+}
+
+async function hasChanges(mergeBase: string): Promise<boolean> {
+  const returnCode = await dRun("git", ["diff", "--quiet", mergeBase, "HEAD"], {
+    ignoreReturnCode: true,
+  });
+  return returnCode !== 0;
+}
+
+async function closeEmptyAdaptationPr(aPr: ListPr): Promise<void> {
+  await octo.rest.pulls.update({
+    ...downstreamRepo,
+    pull_number: aPr.number,
+    state: "closed",
+  });
+  core.info(`Closed empty adaptation PR #${aPr.number}`);
 }
 
 // After pushing to the adaptation branch, GitHub resets the PR's `mergeable`
@@ -112,21 +140,6 @@ async function squashMergeAdaptationPr(aPr: ListPr): Promise<boolean> {
   }
 }
 
-async function tellAuthorToMerge(uPr: Pr, aPr: ListPr): Promise<void> {
-  const body =
-    `The automatic merge failed. ` +
-    `@${uPr.user.login}, please fix any merge conflicts ` +
-    `and merge this PR manually.`;
-
-  await postOrUpdateStatus({
-    octo,
-    appSlug,
-    repo: downstreamRepo,
-    issueNumber: aPr.number,
-    body,
-  });
-}
-
 async function addMergeLabel(aPr: ListPr): Promise<void> {
   core.info(
     `Adding label "${downstreamLabelMerge}" to adaptation PR #${aPr.number}...`,
@@ -156,14 +169,11 @@ async function findAdaptationPrMergeCandidates(): Promise<ListPr[]> {
 
 async function isReachableFromRev(uPr: Pr): Promise<boolean> {
   if (!uPr.merged || uPr.merge_commit_sha === null) return false;
-  const { data } = await octo.rest.repos.compareCommitsWithBasehead({
-    ...upstreamRepo,
-    basehead: `${uPr.merge_commit_sha}...${upstreamRev}`,
-  });
-  return data.status === "ahead" || data.status === "identical";
+  return isAncestor(octo, upstreamRepo, uPr.merge_commit_sha, upstreamRev);
 }
 
-async function mergeForPr(aPr: ListPr): Promise<void> {
+// Returns `false` iff the adaptation PR needs manual attention.
+async function mergeForPr(aPr: ListPr): Promise<boolean> {
   core.info(
     `Checking whether adaptation PR #${aPr.number} should be merged...`,
   );
@@ -174,7 +184,7 @@ async function mergeForPr(aPr: ListPr): Promise<void> {
     core.warning(
       `Adaptation PR #${aPr.number} has invalid branch name "${aPr.head.ref}", skipping...`,
     );
-    return;
+    return true;
   }
   const uPr = await getPr(octo, upstreamRepo, uPrNumber);
 
@@ -183,33 +193,59 @@ async function mergeForPr(aPr: ListPr): Promise<void> {
     core.info(
       `Upstream PR #${uPr.number} is not reachable from rev "${upstreamRev}", skipping...`,
     );
-    return;
+    return true;
   }
+
+  const mergeBase = await dCapture("git", [
+    "merge-base",
+    `origin/${aPr.base.ref}`,
+    `origin/${aPr.head.ref}`,
+  ]);
 
   // Attempt to merge the adaptation PR using the GitHub API
   await switchToAdaptationBranch(aPr.head.ref);
-  await undoOverridesAndCommit(aPr);
+  await undoOverridesAndCommit(mergeBase);
+
+  // Merging an adaptation PR without changes results in an empty commit and
+  // unnecessary wait time for CI. Instead, we just close the PR with a message.
+  if (!(await hasChanges(mergeBase))) {
+    await tellClosing(aPr);
+    await closeEmptyAdaptationPr(aPr);
+    return true;
+  }
+
+  await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
   await waitForMergeability(aPr.number);
-  if (await squashMergeAdaptationPr(aPr)) return;
+  if (await squashMergeAdaptationPr(aPr)) return true;
 
   // We failed, so tell the upstream PR author
   await tellAuthorToMerge(uPr, aPr);
   await addMergeLabel(aPr);
+  return false;
+}
+
+function renderZulipReport(unmergedPrs: ListPr[]): string {
+  return unmergedPrs
+    .map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`)
+    .join("\n");
 }
 
 async function run(): Promise<void> {
   const aPrs = await findAdaptationPrMergeCandidates();
   core.info(`Found ${aPrs.length} candidate adaptation PR(s)`);
 
+  const unmergedPrs: ListPr[] = [];
   for (const aPr of aPrs) {
     try {
-      await mergeForPr(aPr);
+      if (!(await mergeForPr(aPr))) unmergedPrs.push(aPr);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       core.warning(`Failed to merge adaptation PR #${aPr.number}: ${errorMsg}`);
     }
   }
+
+  core.setOutput("report-zulip", renderZulipReport(unmergedPrs));
 }
 
 run().catch((error) => {

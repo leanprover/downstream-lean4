@@ -4,26 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
-import SubVerso.Highlighting.Code
+module
+public meta import Verso.Doc.Elab.Monad
+import Verso.Doc.Elab.Monad
 
-open scoped Lean.Doc.Syntax
+public section
+
+open Lean.Doc (CodeView)
 
 open Verso Doc Elab
 open Lean Elab
-open Verso.Genre.Manual InlineLean Scopes
 open Verso.SyntaxUtils
 open SubVerso.Highlighting
 
 @[role]
-def «namespace» : RoleExpanderOf Unit
+meta def «namespace» : RoleExpanderOf Unit
   | (), #[arg] => do
-    let `(inline|code($s)) := arg
+    let some { content := s, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code"
     -- TODO validate that namespace exists? Or is that too strict?
     -- TODO namespace domain for documentation
-    ``(Inline.code $(quote s.getString))
+    ``(Inline.code $(quote s.getVersoCode))
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Expected code literal with the namespace"

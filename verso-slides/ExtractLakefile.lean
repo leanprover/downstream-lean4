@@ -3,11 +3,20 @@ Copyright (c) 2026 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-import Lean
-import Lake.DSL
-import SubVerso.Compat
-import SubVerso.Highlighting.Code
+
+module
+
+import Lean.Elab.Frontend
+import Std.Do.Triple.SpecLemmas
 import SubVerso.Module
+
+/-
+This import initializes Lake builtins AND, in combination with 
+the with `supportInterpreter := true`, option, includes Lake's
+symbols in the symbol table. This lets the executable use Lake's
+symbols when elaborating `lakefiles`.
+-/
+import Lake -- shake: keep
 
 open SubVerso
 
@@ -55,7 +64,7 @@ def processArgs (args : List String) : IO Args := do
 where
   fail {α} (msg : String) : IO α := throw <| .userError msg
 
-unsafe def main (args : List String) : IO UInt32 := do
+public unsafe def main (args : List String) : IO UInt32 := do
   let { lakefile, jsonFile, pkgDir } ← processArgs args
 
   let pkgDir : String := Id.run do
@@ -70,16 +79,12 @@ unsafe def main (args : List String) : IO UInt32 := do
 
   enableInitializersExecution
 
-  -- Load Lake as a plugin so its builtin_initialize functions (DSL macros, etc.) run.
-  -- This is the same approach the language server uses for lakefile.lean.
-  let lakePlugin := lakeSharedLib sysroot
-
   let contents ← IO.FS.readFile lakefile
   let ictx := Parser.mkInputContext contents lakefile
   let (headerStx, parserState, msgs) ← Parser.parseHeader ictx
   let imports := headerToImports headerStx
 
-  let env ← importModules imports {}  (plugins := #[lakePlugin]) (trustLevel := 1024) (loadExts := true)
+  let env ← importModules imports {} (trustLevel := 1024) (loadExts := true)
   let pctx : Elab.Frontend.Context := {inputCtx := ictx}
 
   let commandState : Command.State := { env, maxRecDepth := defaultMaxRecDepth, messages := msgs }

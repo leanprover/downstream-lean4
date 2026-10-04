@@ -77,10 +77,7 @@ variable [HasFresh Var] [DecidableEq Var]
 
 /-- The right side of a reduction is locally closed. -/
 @[scoped grind →]
-lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := by
-  induction step
-  case abs => constructor; assumption
-  all_goals grind
+lemma step_lc_r (step : M ⭢βᶠ M') : LC M' := Xi.step_lc_r (by grind) step
 
 lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M') ∨ M = M' := by
   grind
@@ -89,8 +86,12 @@ lemma steps_lc_or_rfl {M M' : Term Var} (redex : M ↠βᶠ M') : (LC M ∧ LC M
 lemma redex_subst_cong_lc (s s' t : Term Var) (x : Var) (step : s ⭢βᶠ s') (h_lc : LC t) :
     s[x := t] ⭢βᶠ s'[x := t] := by
   induction step with
-  | base beta => cases beta; grind [subst_open]
-  | abs  => grind [Xi.abs <| free_union Var]
+  | base beta => grind [subst_open]
+  | abs =>
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+    this goal now needs more E-matching rounds. -/
+    grind (ematch := 7) [Xi.abs <| free_union Var]
   | _ => grind
 
 /-- Substitution respects a single reduction step of a free variable. -/
@@ -149,15 +150,21 @@ lemma invert_steps_abs {s t : Term Var} (step : s.abs ↠βᶠ t) :
 
 /- `λ s ↠βᶠ λ s'` implies `s ^ t ↠βᶠ s' ^ t'` -/
 lemma steps_open_cong_l_abs
-  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_s : LC s.abs) (lc_t : LC t) :
+  (s s' t : Term Var) (steps : s.abs ↠βᶠ s'.abs) (lc_t : LC t) :
     (s ^ t) ↠βᶠ (s' ^ t) := by
   generalize eq : s.abs = s_abs at steps
   generalize eq' : s'.abs = s'_abs at steps
   induction steps generalizing s s' with
   | refl => grind
-  | tail _ step ih =>
+  | @tail b c steps' step ih =>
     specialize ih s
-    cases step with grind [invert_steps_abs, step_open_cong_l (L := free_union Var)]
+    #adaptation_note
+    /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+    `invert_steps_abs` is never instantiated as a hint any more, because the pattern derived
+    for it also requires an `Exists` term that the new goal normalization no longer creates.
+    Inverting by hand instead. -/
+    obtain ⟨m, _, rfl⟩ := invert_steps_abs (eq ▸ steps')
+    cases step with grind [step_open_cong_l (L := free_union Var)]
 
 /- `t ↠βᶠ t'` implies `s[x := t] ↠βᶠ s[x := t']`.
    There is no single step lemma in this case because x

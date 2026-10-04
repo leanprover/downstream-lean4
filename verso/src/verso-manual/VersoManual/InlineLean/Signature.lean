@@ -87,7 +87,7 @@ meta def signature : CodeBlockExpanderOf SignatureConfig
       try
         let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
         setInfoState st'.infoState
-        pure (Highlighted.seq hls)
+        pure hls
       catch e =>
         let fmt ← PrettyPrinter.ppSignature (TSyntax.mk name.raw[0]).getId
         Suggestion.saveSuggestion str (fmt.fmt.pretty 60) (fmt.fmt.pretty 30 ++ "\n")
@@ -99,6 +99,6 @@ meta def signature : CodeBlockExpanderOf SignatureConfig
       else hls
 
     if «show» then
-      `(Block.other {Block.signature with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])
+      `(Block.other {Block.signature with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getVersoCodeBlock)])
     else
       ``(Block.concat #[])

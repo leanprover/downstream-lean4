@@ -4,24 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.Elab
 
-import Verso.Code.Highlighted
-import Verso.Doc.Elab
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import SubVerso.Examples.Messages
-import VersoManual
+public meta import Manual.Meta.Basic
+public import Verso.Log
+public meta import VersoManual.InlineLean.Outputs
+import VersoManual.InlineLean
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 open Verso.Doc.Elab
 open Verso.ArgParse
 open Verso.Log
 open Lean
+open Lean.Doc (CodeBlockView RoleView VersoCode VersoCodeBlock mkVersoCodeBlockFrom)
 
 namespace Manual
 
@@ -35,14 +32,14 @@ section
 
 variable [Monad m] [MonadError m]
 
-instance : FromArgs ModuleConfig m where
+meta instance : FromArgs ModuleConfig m where
   fromArgs := ModuleConfig.mk <$> .named' `name true <*> .named' `moduleName true <*> .flag `error false <*> .flag `show true
 
 end
 
 section
 open SubVerso.Highlighting
-partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
+meta partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
   let ((), _, out) := go hl (0, #[])
   out
 where
@@ -59,7 +56,7 @@ where
     | .point sev contents =>
       modify fun (l, msgs) => (l, msgs.push (l, ⟨sev, contents⟩))
 
-def dropBlanks (hl : Highlighted) : Highlighted :=
+meta def dropBlanks (hl : Highlighted) : Highlighted :=
   match hl with
   | .text s => .text s.trimAsciiStart.copy
   | .seq xs => Id.run do
@@ -71,6 +68,8 @@ def dropBlanks (hl : Highlighted) : Highlighted :=
   | _ => hl
 
 end
+
+meta section
 
 def logBuild [Monad m] [MonadRef m] [MonadOptions m] [MonadLog m] [AddMessageContext m] (command : String) (out : IO.Process.Output) (blame : Option Syntax := none) : m Unit := do
   let blame ←
@@ -93,7 +92,7 @@ def lineStx [Monad m] [MonadFileMap m] (l : Nat) : m Syntax := do
 def leanModule : CodeBlockExpanderOf ModuleConfig
   | { name, moduleName, error, «show» }, str => do
     let line := (← getFileMap).utf8PosToLspPos str.raw.getPos! |>.line
-    let leanCode := line.fold (fun _ _ s => s.push '\n') "" ++ str.getString ++ "\n"
+    let leanCode := line.fold (fun _ _ s => s.push '\n') "" ++ str.getVersoCodeBlock ++ "\n"
     let hl ← IO.FS.withTempDir fun dirname => do
       let u := toString (← IO.monoMsNow)
       let dirname := dirname / u
@@ -159,21 +158,23 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
     else
       ``(Verso.Doc.Block.empty)
 
+end
+
 structure IdentRefConfig where
   name : Ident
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs IdentRefConfig m where
+meta instance : FromArgs IdentRefConfig m where
   fromArgs := IdentRefConfig.mk <$> .positional' `name
 end
 
 @[code_block]
-def identRef : CodeBlockExpanderOf IdentRefConfig
+meta def identRef : CodeBlockExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 @[role identRef]
-def identRefRole : RoleExpanderOf IdentRefConfig
+meta def identRefRole : RoleExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 structure ModulesConfig where
@@ -183,26 +184,30 @@ structure ModulesConfig where
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs ModulesConfig m where
+meta instance : FromArgs ModulesConfig m where
   fromArgs := ModulesConfig.mk <$> .flag `server true <*> .many (.named' `moduleRoot false) <*> .flag `error false
 end
 
-open Lean.Doc.Syntax in
-partial def getBlocks (block : Syntax) : StateT (NameMap (ModuleConfig × StrLit × Syntax)) DocElabM Syntax := do
-  if block.getKind == ``Lean.Doc.Syntax.codeblock then
-    if let `(Lean.Doc.Syntax.codeblock|```$x:ident $args* | $s:str ```) := block then
-      try
-        let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
-        if x' == ``leanModule then
-          let n ← mkFreshUserName `code
-          let blame := mkNullNode <| #[x] ++ args
-          let argVals ← parseArgs args
-          let cfg ← fromArgs.run argVals
-          modify (·.insert n (cfg, s, blame))
-          let x := mkIdentFrom block n
-          return ← `(Lean.Doc.Syntax.codeblock|```identRef $x:ident | $(quote "") ```)
-      catch
-      | _ => pure ()
+meta section
+
+partial def getBlocks (block : Syntax) :
+    StateT (NameMap (ModuleConfig × VersoCodeBlock × Syntax)) DocElabM Syntax := do
+  if let some { openFence, name? := some x, args, content := s, closeFence, .. } :=
+      CodeBlockView.of ⟨block⟩ then
+    try
+      let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
+      if x' == ``leanModule then
+        let n ← mkFreshUserName `code
+        let blame := mkNullNode <| #[x.raw] ++ args.map (·.raw)
+        let argVals ← parseArgs args
+        let cfg ← fromArgs.run argVals
+        modify (·.insert n (cfg, s, blame))
+        let x := mkIdentFrom block n
+        return ← `(Lean.Doc.Parser.Block.codeblock|
+          $openFence:codeBlockFence identRef $x:ident
+          $(mkVersoCodeBlockFrom s ""):versoCodeBlock $closeFence:codeBlockFence)
+    catch
+    | _ => pure ()
 
   match block with
   | .node i k xs => do
@@ -210,23 +215,22 @@ partial def getBlocks (block : Syntax) : StateT (NameMap (ModuleConfig × StrLit
     return Syntax.node i k args
   | _ => return block
 
-open Lean.Doc.Syntax in
-partial def getQuotes (stx : Syntax) : StateT (NameMap StrLit) DocElabM Syntax := do
-  if stx.getKind == ``Lean.Doc.Syntax.role then
-    if let `(Lean.Doc.Syntax.role|role{$x:ident $args*}[$inls*]) := stx then
-      try
-        let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
-        if x' == ``Verso.Genre.Manual.InlineLean.name then
-          unless args.isEmpty do logErrorAt (mkNullNode args) m!"No arguments expected here"
-          let some code ← oneCodeStr? inls
-            | return ((← `(.empty)) : Syntax)
+partial def getQuotes (stx : Syntax) : StateT (NameMap VersoCode) DocElabM Syntax := do
+  if let some { name := x, args, content := inls, .. } := RoleView.of ⟨stx⟩ then
+    try
+      let x' ← Elab.realizeGlobalConstNoOverloadWithInfo x
+      if x' == ``Verso.Genre.Manual.InlineLean.name then
+        unless args.isEmpty do
+          logErrorAt (mkNullNode (args.map (·.raw))) m!"No arguments expected here"
+        let some code ← oneCodeStr? inls
+          | return ((← `(.empty)) : Syntax)
 
-          let n ← mkFreshUserName `name
-          modify (·.insert n code)
-          let x := mkIdentFrom stx n
-          return ((← `(Lean.Doc.Syntax.role|role{identRef $x:ident}[])) : Syntax)
-      catch
-      | _ => pure ()
+        let n ← mkFreshUserName `name
+        modify (·.insert n code)
+        let x := mkIdentFrom stx n
+        return ((← `(Lean.Doc.Parser.Inline.role|{identRef $x:ident}[])) : Syntax)
+    catch
+    | _ => pure ()
 
   match stx with
   | .node i k xs => do
@@ -240,14 +244,17 @@ def getRoot (mods : NameMap (ModuleConfig × α)) : Option Name :=
     | none, _, ({ moduleName, .. }, _) => moduleName.map (·.getId)
     | some y, _, ({moduleName := some x, ..}, _) => prefix? y x.getId
     | some y, _, ({moduleName := none, ..}, _) => some y
+
 where
   prefix? x y :=
     if x.isPrefixOf y then some x
     else if y.isPrefixOf x then some y
     else none
 
+end
+
 @[directive]
-def leanModules : DirectiveExpanderOf ModulesConfig
+meta def leanModules : DirectiveExpanderOf ModulesConfig
   | { server, moduleRoots, error }, blocks => do
     let (blocks, codeBlocks) ← blocks.mapM getBlocks {}
     let moduleRoots ←
@@ -299,7 +306,12 @@ def leanModules : DirectiveExpanderOf ModulesConfig
         IO.FS.writeFile (dirname / leanFileName) <|
           mkImports root <| mods.map fun (x, _, _, _) => x
 
-      let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
+      let out ← IO.Process.output {
+        cmd := "lake", args := #["build"], cwd := some dirname
+        -- `subverso-extract-mod` reads `.olean` files from the build directory, which the local artifact
+        -- cache leaves empty unless artifacts are restored
+        env := #[("LAKE_RESTORE_ARTIFACTS", "true")]
+      }
       if !error && out.exitCode != 0 then
         throwError
           m!"When running 'lake build' in {dirname}, the exit code was {out.exitCode}\n" ++
@@ -367,13 +379,13 @@ def leanModules : DirectiveExpanderOf ModulesConfig
 
       let (blocks, quotes) ← blocks.mapM getQuotes |>.run {}
       for (x, q) in quotes do
-        if let some tok := allHl.matchingName? q.getString then
+        if let some tok := allHl.matchingName? q.getVersoCode then
           addLets := addLets >=> fun stx => do
             let hl : SubVerso.Highlighting.Highlighted := .token tok
             let hl : Term := quote hl
-            let name ← `(Verso.Doc.Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl} #[Verso.Doc.Inline.code $(quote q.getString)])
+            let name ← `(Verso.Doc.Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl} #[Verso.Doc.Inline.code $(quote q.getVersoCode)])
             `(let $(mkIdent x) := $name; $stx)
-        else logErrorAt q m!"Not found: {q.getString.quote}"
+        else logErrorAt q m!"Not found: {q.getVersoCode.quote}"
       let body ← blocks.mapM (elabBlock <| ⟨·⟩)
       let body ← `(Verso.Doc.Block.concat #[$body,*])
       addLets body

@@ -472,13 +472,11 @@ For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is 
 Module initializers will automatically initialize any imported modules.
 They are also idempotent (when run with the same `builtin` flag), but not thread-safe.
 
-*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.IO.Process.getProcessTitle` and {name}`Std.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling `lean_initialize()` or `lean_initialize_runtime_module()`.
+*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.IO.Process.getProcessTitle` and {name}`Std.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling any module initializer.
 This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.
 
-Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
+Putting everything together, code like the following should be run exactly once before accessing any Lean declarations:
 ```C
-void lean_initialize_runtime_module();
-void lean_initialize();
 char ** lean_setup_args(int argc, char ** argv);
 
 lean_object * initialize_A_B(uint8_t builtin);
@@ -486,9 +484,6 @@ lean_object * initialize_C(uint8_t builtin);
 ...
 
 argv = lean_setup_args(argc, argv); // if using process-related functionality
-lean_initialize_runtime_module();
-// necessary (and replaces `lean_initialize_runtime_module`) for code that (indirectly) accesses the `Lean` package:
-//lean_initialize();
 
 lean_object * res;
 // use same default as for Lean executables
@@ -524,6 +519,8 @@ The Lean interpreter can run Lean declarations for which symbols are available i
 To run this code (e.g. with {keywordOf Lean.Parser.Command.eval}`#eval`), the following steps are necessary:
   1. The module containing the declaration and its dependencies must be compiled into a shared library
   1. This shared library should be provided to `lean --load-dynlib=` to run code that imports the module.
+
+The `precompileModules` {ref "lake-config"}[configuration option] instructs Lake to do the above automatically.
 
 It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each {attr}`extern` declaration.
 Thus it is not possible to interpret an {attr}`extern` declaration in the same file.

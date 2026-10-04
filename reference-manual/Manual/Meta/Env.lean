@@ -4,26 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
-
-import Verso
+module
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+import VersoManual.Index
 
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
+public section
 
 
-open Lean.Doc.Syntax
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open SubVerso.Highlighting Highlighted
 open Lean Elab
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -33,14 +27,14 @@ def Inline.envVar : Inline where
 
 
 @[role_expander envVar]
-def envVar : RoleExpander
+meta def envVar : RoleExpander
   | args, inlines => do
     let isDef ← parseOpts.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $varName:str )) := arg
+    let some { content := varName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the environment variable"
-    let v := varName.getString
+    let v := varName.getVersoCode
 
     pure #[← `(.other {Manual.Inline.envVar with data := Json.arr #[.str $(quote v), .bool $(quote isDef)] } #[Inline.code $(quote v)])]
   where
@@ -49,7 +43,7 @@ def envVar : RoleExpander
 def envVarDomain := `Manual.envVar
 
 open Verso.Search in
-def envVarDomainMapper : DomainMapper :=
+private def envVarDomainMapper : DomainMapper :=
   DomainMapper.withDefaultJs envVarDomain "Environment Variable" "env-var-domain" |>.setFont { family := .code }
 
 @[inline_extension envVar]

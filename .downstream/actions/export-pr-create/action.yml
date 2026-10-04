@@ -1,0 +1,173 @@
+name: Create an export PR
+
+description: >
+  Export the current state of a subrepo from the downstream monorepo back to the
+  original repo, either by directly pushing to the original repo or by creating
+  an export pull request.
+
+inputs:
+  subrepo:
+    description: >
+      Name of the subrepo to export, as it appears in `repos.toml`.
+    required: true
+
+  build-report-path:
+    description: >
+      Path to the JSON build report produced by `build.py --report`.
+    required: true
+
+  clone-path:
+    description: >
+      Path to an empty or nonexistent directory to clone repos into.
+    default: downstream-clone
+
+  tracking-branch:
+    description: >
+      Branch that tracks the last successfully exported commit in the downstream
+      repository, to prevent outdated exports. Defaults to `export/<subrepo>`.
+
+  method:
+    description: >
+      Method used for the export process. Available options:
+
+      `same-branch`: Create the export commit(s) on top of the source branch.
+
+      `target-branch`: First merge the source branch into the target branch,
+      then create the export commit(s) on top of that.
+    required: true
+
+  ###################
+  # Downstream repo #
+  ###################
+
+  downstream-repo:
+    description: >
+      The downstream repository to export from, in "owner/repo" format. Defaults
+      to the current repo.
+    default: ${{ github.repository }}
+
+  downstream-token:
+    description: >
+      GitHub token used to interact with the downstream repository. Defaults to
+      GITHUB_TOKEN.
+    default: ${{ github.token }}
+
+  ###############
+  # Source repo #
+  ###############
+
+  source-repo:
+    description: >
+      The upstream repository where the subrepo originates from, in "owner/repo"
+      format. This should match the URL from `repos.toml`.
+    required: true
+
+  source-token:
+    description: >
+      GitHub token used to interact with the source repository.
+    required: true
+
+  ###############
+  # Target repo #
+  ###############
+
+  target-repo:
+    description: >
+      The upstream repository to push the export commit(s) to or open the export
+      PR against, in "owner/repo" format. Defaults to `<source-repo>`.
+
+  target-branch:
+    description: >
+      The branch in the target repository to open the export PR against. If
+      `method` is set to `same-branch`, this should usually match the source
+      branch from `repos.toml`.
+    required: true
+
+  target-token:
+    description: >
+      GitHub token used to interact with the target repository. Defaults to
+      `<source-token>`.
+
+  ##############
+  # Export PRs #
+  ##############
+
+  pr:
+    description: >
+      Whether to create an export PR. If set to false, the export commit(s) will
+      be pushed directly to the target branch.
+    default: false
+
+  pr-repo:
+    description: >
+      The upstream repository to push the export commit(s) to and open the
+      export PR from, in "owner/repo" format. Defaults to the target repository.
+      Only used if `pr` is true.
+    required: false
+
+  pr-branch:
+    description: >
+      The branch in the PR repository to push the export commits to and open the
+      export PR from. Defaults to `<downstream-repo-name>-export`. Only used if
+      `pr` is true.
+    required: false
+
+  pr-token:
+    description: >
+      GitHub token used to push the export commit(s) to the PR repository. Note
+      that the `target-token` is used to open the PR itself. Defaults to
+      `target-token`. Only used if `pr` is true.
+    required: false
+
+  pr-title:
+    description: >
+      Title for the export PR. Defaults to "chore: adaptations from
+      <downstream-repo-name>". Only used if `pr` is true.
+
+  pr-body:
+    description: >
+      Body for the export PR. Only used if `pr` is true. Defaults to a message
+      linking to the commit the export was based on.
+
+  pr-explanation:
+    description: >
+      Explanation for the export PR (comes after the body). Only used if `pr` is
+      true.
+    default: >
+      If any dependencies have open export PRs themselves, you may need to merge
+      them first and then run `lake update` in this PR. If this PR becomes
+      outdated, just close it and a new one will be opened soon. No new export
+      PRs will be opened while one is already open.
+
+  ##################
+  # Export options #
+  ##################
+
+  update-toolchains:
+    description: >
+      Set all `lean-toolchain` files matching the root `lean-toolchain` of the
+      target to the downstream repo's toolchain.
+    default: false
+
+  lakefile-edits:
+    description: >
+      Regex replacements to apply to all lakefiles, one per line, of the form
+      `pattern -> replacement`.
+
+  update-manifests:
+    description: >
+      Run `lake update` for all manifests after applying the other options.
+    default: false
+
+outputs:
+  pr-created:
+    description: >
+      Whether a new export PR was created by this run.
+
+  pr-number:
+    description: >
+      The export PR number, if one exists or was created.
+
+runs:
+  using: node24
+  main: dist/index.js

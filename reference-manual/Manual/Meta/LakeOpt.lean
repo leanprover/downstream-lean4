@@ -4,20 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Lean.Doc.Syntax
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean Elab
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -31,7 +28,7 @@ def LakeOptKind.ns : LakeOptKind → String
   | .option => "lake-option"
 
 open LakeOptKind in
-instance : Quote LakeOptKind where
+meta instance : Quote LakeOptKind where
   quote
     | .flag => Syntax.mkCApp ``LakeOptKind.flag #[]
     | .option => Syntax.mkCApp ``LakeOptKind.option #[]
@@ -49,7 +46,7 @@ def lakeOptDomain := `Manual.lakeOpt
 structure LakeOptDefOpts where
   kind : LakeOptKind
 
-def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
+meta def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
   LakeOptDefOpts.mk <$> .positional `kind optKind
 where
   optKind : ValDesc m LakeOptKind := {
@@ -76,14 +73,14 @@ r#"
 "#
 
 @[role_expander lakeOptDef]
-def lakeOptDef : RoleExpander
+meta def lakeOptDef : RoleExpander
   | args, inlines => do
     let {kind} ← LakeOptDefOpts.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let origName := name.getString
+    let origName := name.getVersoCode
     let name := origName.takeWhile fun c => c == '-' || c.isAlphanum
     let name := name.copy
     let valMeta := origName.drop name.length |>.dropWhile fun (c : Char) => !c.isAlphanum
@@ -135,17 +132,17 @@ def lakeOptDef.descr : InlineDescr where
 
 
 @[role_expander lakeOpt]
-def lakeOpt : RoleExpander
+meta def lakeOpt : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let optName := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
+    let optName := name.getVersoCode.takeWhile fun c => c == '-' || c.isAlphanum
     let optName := optName.copy
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getString)) #[Inline.code $(quote name.getString)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getVersoCode)) #[Inline.code $(quote name.getVersoCode)])]
 
 @[inline_extension lakeOpt]
 def lakeOpt.descr : InlineDescr where

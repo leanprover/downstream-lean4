@@ -7,7 +7,7 @@ import VersoWeb.Components.Icon
 import Lean.Elab
 
 open Lean Elab Term
-open Lean.Doc.Syntax
+open Lean.Doc (DescListView DescItemView ImageView TextView)
 open Verso Genre Blog ArgParse Doc Elab
 open Output Html Traverse
 
@@ -76,31 +76,28 @@ block_component galleryItem (name url title : String) where
 /--
 Translates an item of a description list into a gallery item component.
 -/
-private def getItem (name : String) : Syntax → DocElabM (TSyntax `term)
-  | `(desc_item|: $dts* => $dds*) => do
-    let #[img] := dts.filter fun
-        | `(inline|$s:str) => s.getString.any (fun c : Char => !c.isWhitespace)
-        | _ => true
-      | throwErrorAt (mkNullNode dts.raw) "Expected a single image, got {dts}"
-    let `(inline|image($title)$dest) := img
-      | throwErrorAt img "Expected an image, got {img}"
-    let title := title.getString
-    let `(link_target|( $url:str )) := dest
-      | throwErrorAt dest "Expected URL, got {dest}"
+private def getItem (name : String) (item : DescItemView) : DocElabM (TSyntax `term) := do
+  let terms := mkNullNode (item.term.map (·.raw))
+  let #[img] := item.term.filter fun inl =>
+      match TextView.of inl with
+      | some t => t.getVersoText.any (fun c : Char => !c.isWhitespace)
+      | none => true
+    | throwErrorAt terms m!"Expected a single image, got {terms}"
+  let some image := ImageView.of img
+    | throwErrorAt img m!"Expected an image, got {img}"
+  let .url (url := url) .. := image.target
+    | throwErrorAt img m!"Expected an image with a URL, got {img}"
 
-    ``(galleryItem $(quote name) $(quote url.getString) $(quote title) #[$[$(← dds.mapM elabBlock)],*])
-
-  | other => throwErrorAt other "Failed to parse description list item"
+  ``(galleryItem $(quote name) $(quote url.getVersoLinkUrl) $(quote image.getAlt) #[$[$(← item.desc.mapM elabBlock)],*])
 
 @[directive_expander gallery, inherit_doc gallery]
 def galleryDir : DirectiveExpander
   | args, #[block] => do
     let name ← ArgParse.run (.positional `name .string) args
-    match block with
-    | `(block|dl{$item*})=>
-      let items ← item.mapM (getItem name)
-      pure #[← ``(gallery #[$items,*])]
-    | other => throwErrorAt other "Expected a description list"
+    let some { items, .. } := DescListView.of block
+      | throwErrorAt block "Expected a description list"
+    let items ← items.mapM (getItem name)
+    pure #[← ``(gallery #[$items,*])]
   | _, more => do
     if h : more.size > 1 then
       throwErrorAt more[1] "Expected only a single block"

@@ -1,12 +1,23 @@
+// on:
+//   pull_request_target:
+//     types:
+//       - labeled
+//       - closed
+//       - reopened
+//       - converted_to_draft
+//       - ready_for_review
+//       - synchronize
+//       - edited
+
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
 import * as github from "@actions/github";
 import { RequestError } from "@octokit/request-error";
 import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
 
+import { getInput, getInputOpt, parseBool, parseRepo } from "../lib/input";
 import { postOrUpdateStatus } from "../lib/status-message";
 import {
   abort,
@@ -15,27 +26,27 @@ import {
   assert,
   exit,
   findPrFor,
-  getInput,
-  getInputOpt,
   getPr,
+  isAncestor,
+  Repo,
+  runIn,
   type ListPr,
   type Octokit,
-  parseBool,
-  parseRepo,
   type Pr,
-  type Repo,
 } from "../lib/util";
 
 type Branch = Response<Octokit["rest"]["repos"]["getBranch"]>;
 
 const appToken = getInput("app-token");
 const appSlug = getInput("app-slug");
-const upstreamRepo = github.context.repo;
-const upstreamPr = parseInt(getInput("upstream-pr"), 10);
-const upstreamCiGreen = parseBool(getInput("upstream-ci-green"));
+const upstreamRepo = new Repo(github.context.repo);
+const upstreamPr = getInput("upstream-pr", (v) => parseInt(v, 10));
+const upstreamCiGreen = getInput("upstream-ci-green", parseBool);
+const upstreamCiGreenMsg = getInput("upstream-ci-green-msg");
 const upstreamBranch = getInput("upstream-branch");
 const upstreamLabel = getInput("upstream-label");
-const downstreamRepo = parseRepo(getInput("downstream-repo"));
+const upstreamLabelForce = getInputOpt("upstream-label-force");
+const downstreamRepo = getInput("downstream-repo", parseRepo);
 const downstreamClone = getInput("downstream-clone");
 const downstreamBranch = getInput("downstream-branch");
 const downstreamLabel = getInput("downstream-label");
@@ -43,35 +54,15 @@ const downstreamLabelMerge = getInput("downstream-label-merge");
 const overrideToolchain = getInputOpt("override-toolchain");
 const octo = github.getOctokit(appToken);
 
-async function dRun(
-  cmd: string,
-  args: string[],
-  options?: exec.ExecOptions,
-): Promise<number> {
-  return await exec.exec(cmd, args, { ...options, cwd: downstreamClone });
-}
+const dRun = runIn(downstreamClone);
 
 function ensurePrIsUnmerged(pr: Pr): void {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   core.info("PR is unmerged, continuing...");
 }
 
-function ensurePrTargetsDefaultBranch(pr: Pr): void {
-  const defaultBranch = pr.base.repo.default_branch;
-  if (pr.base.ref === defaultBranch) {
-    core.info(`PR is targeting "${defaultBranch}", continuing...`);
-    return;
-  }
-  exit(`PR is not targeting "${defaultBranch}", exiting...`);
-}
-
-function ensurePrIsLabeled(pr: Pr, label: string): void {
-  const labeled = pr.labels.some((l) => l.name === label);
-  if (labeled) {
-    core.info(`PR is labeled "${label}", continuing...`);
-    return;
-  }
-  exit(`PR is not labeled "${label}", exiting...`);
+function adaptationPrTitleFor(uPr: Pr): string {
+  return `[#${uPr.number}] ${uPr.title}`;
 }
 
 function statusPrefix(aPr: number | undefined): string {
@@ -93,6 +84,7 @@ async function updateStatus(
     issueNumber: uPr.number,
     body: message,
     final: final,
+    repost: true,
   });
 }
 
@@ -114,13 +106,11 @@ async function getBranch(
   }
 }
 
-async function ensureCorrectMergeBase(prefix: string, uPr: Pr): Promise<void> {
-  const uBranch = await getBranch(upstreamRepo, upstreamBranch);
-  assert(
-    uBranch !== undefined,
-    `Upstream branch "${upstreamBranch}" not found`,
-  );
-
+async function ensureCorrectMergeBase(
+  prefix: string,
+  uPr: Pr,
+  uBranch: Branch,
+): Promise<void> {
   const { data: mergeBase } = await octo.rest.repos.compareCommits({
     ...upstreamRepo,
     base: uPr.base.sha,
@@ -145,10 +135,7 @@ async function ensureCorrectMergeBase(prefix: string, uPr: Pr): Promise<void> {
 
 async function ensureUpstreamCiGreen(prefix: string, uPr: Pr): Promise<void> {
   if (upstreamCiGreen) return;
-  await updateStatus(
-    uPr,
-    prefix + "The adaptation PR will be created or updated once CI is green.",
-  );
+  await updateStatus(uPr, prefix + upstreamCiGreenMsg);
   exit("upstream CI is not green");
 }
 
@@ -166,6 +153,52 @@ async function switchToAdaptationBranch(
       `origin/${downstreamBranch}`,
     ]);
   }
+}
+
+async function isDownstreamGreenReachable(
+  uPr: Pr,
+  uBranch: Branch,
+): Promise<boolean> {
+  return isAncestor(octo, upstreamRepo, uBranch.commit.sha, uPr.head.sha);
+}
+
+async function isGreenReachableFromAdaptationBranch(): Promise<boolean> {
+  const returnCode = await dRun(
+    "git",
+    ["merge-base", "--is-ancestor", `origin/${downstreamBranch}`, "HEAD"],
+    { ignoreReturnCode: true },
+  );
+  return returnCode === 0;
+}
+
+// If the upstream PR has caught up to `upstreamBranch` (downstream-green) but
+// the adaptation branch hasn't caught up to `downstreamBranch` (green) yet,
+// merge the latter in. Conflicts are resolved in favor of `downstreamBranch`,
+// since it reflects the latest state the downstream repo has already settled
+// on; if that's not possible automatically, ask a human to sort it out.
+async function mergeGreenIntoAdaptationBranch(
+  prefix: string,
+  uPr: Pr,
+): Promise<void> {
+  await dRun("git", ["fetch", "origin", downstreamBranch]);
+  if (await isGreenReachableFromAdaptationBranch()) return;
+
+  core.info(`Merging "${downstreamBranch}" into adaptation branch...`);
+  const returnCode = await dRun(
+    "git",
+    ["merge", "-X", "theirs", "--no-edit", `origin/${downstreamBranch}`],
+    { ignoreReturnCode: true },
+  );
+  if (returnCode === 0) return;
+
+  await dRun("git", ["merge", "--abort"]);
+  await updateStatus(
+    uPr,
+    prefix +
+      `Merging \`${downstreamBranch}\` into the adaptation branch failed due to ` +
+      "conflicts that could not be resolved automatically. Please resolve them manually.",
+  );
+  exit(`failed to merge "${downstreamBranch}" into adaptation branch`);
 }
 
 async function applyOverridesAndCommit(): Promise<void> {
@@ -194,6 +227,18 @@ async function getDownstreamDefaultBranch(): Promise<string> {
   const { data } = await octo.rest.repos.get({ ...downstreamRepo });
   core.info(`Downstream default branch is "${data.default_branch}"`);
   return data.default_branch;
+}
+
+async function syncTitle(uPr: Pr, aPr: ListPr): Promise<void> {
+  const expectedTitle = adaptationPrTitleFor(uPr);
+  if (aPr.title === expectedTitle) return;
+
+  core.info(`Updating title of adaptation PR #${aPr.number}...`);
+  await octo.rest.pulls.update({
+    ...downstreamRepo,
+    pull_number: aPr.number,
+    title: expectedTitle,
+  });
 }
 
 async function syncState(uPr: Pr, aPr: ListPr): Promise<void> {
@@ -252,7 +297,7 @@ async function createAdaptationPrFor(
     ...downstreamRepo,
     base: defaultBranch,
     head: aBranchName,
-    title: `[#${uPr.number}] ${uPr.title}`,
+    title: adaptationPrTitleFor(uPr),
     body: `This is the adaptation PR for ${uPrRef}.`,
     draft: uPr.draft,
   });
@@ -272,10 +317,14 @@ async function run(): Promise<void> {
   const uPr = await getPr(octo, upstreamRepo, upstreamPr);
 
   ensurePrIsUnmerged(uPr);
-  ensurePrIsLabeled(uPr, upstreamLabel);
-  ensurePrTargetsDefaultBranch(uPr);
 
-  const aBranchName = adaptationBranchNameFor(uPr);
+  const uPrLabels = new Set(uPr.labels.map((l) => l.name));
+  const hasForceLabel =
+    upstreamLabelForce !== null && uPrLabels.has(upstreamLabelForce);
+  const hasLabel = hasForceLabel || uPrLabels.has(upstreamLabel);
+  if (!hasLabel) exit("PR is not labeled, exiting...");
+
+  const aBranchName = adaptationBranchNameFor(uPr.number);
   const aBranch = await getBranch(downstreamRepo, aBranchName);
 
   // If there's no adaptation branch, then there can't be any open adaptation
@@ -287,8 +336,12 @@ async function run(): Promise<void> {
       : await findPrFor(octo, downstreamRepo, aBranchName);
 
   const prefix = statusPrefix(aPr?.number);
+  if (aPr !== undefined) core.setOutput("number", String(aPr.number));
 
-  if (aPr !== undefined) await syncState(uPr, aPr);
+  if (aPr !== undefined) {
+    await syncTitle(uPr, aPr);
+    await syncState(uPr, aPr);
+  }
   if (uPr.state !== "open") exit("PR is closed, exiting...");
 
   if (aBranch === undefined)
@@ -306,13 +359,22 @@ async function run(): Promise<void> {
     exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
   }
 
-  // We want to check the merge base before checking the CI status so users
-  // don't wait for green CI only to then be told to rebase, which they could've
-  // done all along. Also, if we eventually support automatic rebase, we don't
-  // want to delay it by waiting for CI.
-  if (aBranch === undefined) await ensureCorrectMergeBase(prefix, uPr);
+  const uBranch = await getBranch(upstreamRepo, upstreamBranch);
+  assert(
+    uBranch !== undefined,
+    `Upstream branch "${upstreamBranch}" not found`,
+  );
 
-  await ensureUpstreamCiGreen(prefix, uPr);
+  if (!hasForceLabel) {
+    // We want to check the merge base before checking the CI status so users
+    // don't wait for green CI only to then be told to rebase, which they could've
+    // done all along. Also, if we eventually support automatic rebase, we don't
+    // want to delay it by waiting for CI.
+    if (aBranch === undefined)
+      await ensureCorrectMergeBase(prefix, uPr, uBranch);
+
+    await ensureUpstreamCiGreen(prefix, uPr);
+  }
 
   // This check should occur only after the CI check because before that, our
   // users might not have sufficient information to provide usable overrides.
@@ -323,11 +385,16 @@ async function run(): Promise<void> {
   // of downstreamBranch.
   await switchToAdaptationBranch(aBranchName, aBranch !== undefined);
 
+  if (await isDownstreamGreenReachable(uPr, uBranch)) {
+    await mergeGreenIntoAdaptationBranch(prefix, uPr);
+  }
+
   await applyOverridesAndCommit();
   await pushAdaptationBranch(aBranchName);
 
   if (aPr === undefined) {
     const aPrNumber = await createAdaptationPrFor(uPr, aBranchName);
+    core.setOutput("number", String(aPrNumber));
     await updateStatus(uPr, statusPrefix(aPrNumber));
   } else {
     await updateStatus(uPr, prefix);

@@ -16,6 +16,9 @@ open Lean Elab
 open Verso ArgParse Doc Elab
 open Verso.SyntaxUtils (parseStrLitAsCategory)
 
+open Illuminate
+open Lean.Doc
+
 namespace Verso.ArgParse.ValDesc
 
 /--
@@ -68,25 +71,25 @@ the actual rendered SVG.
 public def svgPadding : Float := 5
 
 /-- Renders a diagram to SVG using the local `svgPadding`. -/
-public def renderSvg (d : Illuminate.Diagram Illuminate.SVG) : String :=
+public def renderSvg (d : Diagram SVG) : String :=
   d.renderDiagram (padding := svgPadding)
 
 /--
 Computes the view box width (in diagram units) of the SVG produced by `renderSvg`. Returns 0
 for empty diagrams.
 -/
-public def viewBoxWidth (d : Illuminate.Diagram Illuminate.SVG) : Float :=
+public def viewBoxWidth (d : Diagram SVG) : Float :=
   match d.getEnvelope with
   | .empty => 0
-  | .nonempty env => env Illuminate.Vec2.west + env Illuminate.Vec2.east + 2 * svgPadding
+  | .nonempty env => env Vec2.west + env Vec2.east + 2 * svgPadding
 
 section
 
 open Lean Widget Elab Term Meta Illuminate
 
-private meta unsafe def evalDiagramUnsafe (str : StrLit) (stx : Syntax) :
+private meta unsafe def evalDiagramUnsafe (str : Syntax) (stx : Syntax) :
     TermElabM (String × Float) := do
-  let diaTy ← Meta.mkAppM ``Illuminate.Diagram #[.const ``Illuminate.SVG []]
+  let diaTy ← Meta.mkAppM ``Diagram #[.const ``SVG []]
   let e ← Elab.Term.elabTerm stx (some diaTy)
   Term.synthesizeSyntheticMVarsNoPostponing
   let e ← instantiateMVars e
@@ -106,11 +109,11 @@ private meta unsafe def evalDiagramUnsafe (str : StrLit) (stx : Syntax) :
   -- Store diagram for widget RPC re-evaluation.
   let env ← getEnv
   let opts ← getOptions
-  let id ← Illuminate.nextDiagramId.modifyGet fun n => (n, n + 1)
-  let sd : Illuminate.StoredDiagram := {
+  let id ← nextDiagramId.modifyGet fun n => (n, n + 1)
+  let sd : StoredDiagram := {
     env, opts, expr := e, gadgets := #[], regions := {}, returnsDwi := false
   }
-  Illuminate.diagramStore.modify (·.push (id, sd))
+  diagramStore.modify (·.push (id, sd))
 
   -- Attach widget with CSS variable defaults for the infoview context.
   let widgetSvg :=
@@ -122,12 +125,12 @@ private meta unsafe def evalDiagramUnsafe (str : StrLit) (stx : Syntax) :
     ("exprId", toJson id),
     ("initialSvg", .str widgetSvg),
     ("parameters", .arr #[])]
-  savePanelWidgetInfo Illuminate.diagramWidget.javascriptHash.val (pure props) str
+  savePanelWidgetInfo diagramWidget.javascriptHash.val (pure props) str
 
   pure (svgStr, diagramWidth)
 
 @[implemented_by evalDiagramUnsafe]
-private opaque evalDiagramImpl (str : StrLit) (stx : Syntax) :
+private opaque evalDiagramImpl (str : Syntax) (stx : Syntax) :
     TermElabM (String × Float)
 
 end
@@ -143,10 +146,10 @@ section variables for the Manual genre). It defaults to the identity.
 Genre-specific code-block expanders call this to do the shared evaluation work and then emit
 their own `GenreDiagram.diagramBlock` term.
 -/
-public def elabAndStoreDiagram (str : StrLit)
+public def elabAndStoreDiagram [Verso.Literal k] (str : TSyntax k)
     (scope : {α : Type} → TermElabM α → TermElabM α := fun act => act) :
     DocElabM (String × Float) := do
   let stx ← parseStrLitAsCategory `term str
   if stx.isMissing then
     return ("", 0)
-  scope (evalDiagramImpl str stx)
+  scope (evalDiagramImpl str.raw stx)

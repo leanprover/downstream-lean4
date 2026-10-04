@@ -11,6 +11,7 @@ require verso from git "https://github.com/leanprover/verso.git"@"main"
 
 package «verso-slides» where
   version := v!"0.1.0"
+  requiresModuleSystem := true
 
 input_dir vendorAssets where
   path := "vendor"
@@ -29,7 +30,9 @@ lean_lib Demo where
 
 @[default_target] lean_exe «demo-slides» where root := `Main
 
-lean_exe «extract-lakefile» where root := `ExtractLakefile
+lean_exe «extract-lakefile» where
+  root := `ExtractLakefile
+  supportInterpreter := true
 
 @[test_driver]
 lean_exe «verso-slides-test» where root := `TestMain
@@ -41,8 +44,6 @@ lean_exe «test-fixtures-build» where
 
 lean_lib TestElab where
   needs := #[`@verso/+Verso.Code.External:highlighted]
-
-lean_lib Tests
 
 lean_exe «test-fragmentize» where
   root := `Tests.Fragmentize

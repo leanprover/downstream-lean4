@@ -231,7 +231,7 @@ Instead, floating-point literals are resolved via the appropriate instances of t
 
 The term
 ```leanTerm
-(-2.523 : Float)
+(-2.2523 : Float)
 ```
 is syntactic sugar for
 ```leanTerm
@@ -359,7 +359,7 @@ Floating-point numbers fall into one of three categories:
 ### Inequalities
 
 The decision procedures for inequalities are opaque constants in the logic.
-They can only be used via the {name}`Lean.ofReduceBool` axiom, e.g. via the {tactic}`native_decide` tactic.
+They can only be used via native evaluation, e.g. via the {tactic}`native_decide` tactic.
 
 {docstring Float.le}
 

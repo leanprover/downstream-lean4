@@ -5,14 +5,12 @@ on:
     workflows: [Build subrepos]
     types: [completed]
 
-concurrency:
-  group: build-post-${{ github.event.workflow_run.head_branch }}
-  cancel-in-progress: false
-
 jobs:
   upload-cache:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
-    runs-on: ubuntu-slim
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' }}
+    runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
       actions: read
       contents: read
@@ -20,30 +18,32 @@ jobs:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_CONFIG: ${{ github.workspace }}/.meta/lake-config.toml
     steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: built-commit
 
       - name: Install elan
         run: |
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Set cache directory
-        run: echo "LAKE_CACHE_DIR=$RUNNER_TEMP/cache" >> "$GITHUB_ENV"
-
-      - name: Download build mappings
+      - name: Download staged cache
         uses: actions/download-artifact@v8
         with:
-          name: build-mappings
-          path: ${{ runner.temp }}/mappings
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Download build cache
-        uses: actions/download-artifact@v8
-        with:
-          name: build-cache
-          path: ${{ runner.temp }}/cache
+          name: build-staging
+          path: ${{ runner.temp }}/staging
           github-token: ${{ github.token }}
           run-id: ${{ github.event.workflow_run.id }}
 
@@ -51,14 +51,38 @@ jobs:
         env:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
         run: |
-          .downstream/list.py . | while IFS= read -r repo; do
-            echo "::group::cache put $repo"
-            ( cd "$repo" && lake cache put --scope "$repo" "$RUNNER_TEMP/mappings/$repo.jsonl" ) || true
+          REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
+          TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
+          .downstream/list.py built-commit | while IFS= read -r repo; do
+            echo "::group::cache put-staged $repo"
+            pushd "built-commit/$repo"
+            lake cache put-staged "$RUNNER_TEMP/staging/$repo" --rev "$REV" --scope "$TOOLCHAIN/$repo" || true
+            popd
             echo "::endgroup::"
           done
 
+      - name: Find original PR
+        id: original-pr
+        if:
+          ${{ github.event.workflow_run.event == 'push' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        continue-on-error: true # May not belong to a PR
+        uses: ./.downstream/actions/find-original-pr
+
+      - name: Add cache-available label to PR
+        if:
+          ${{ steps.original-pr.outcome == 'success' &&
+          steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh pr edit "${{ steps.original-pr.outputs.number }}" \
+            --repo "${{ github.repository }}" --add-label cache-available
+
   update-statuses:
-    if: ${{ github.event.workflow_run.conclusion != 'cancelled' }}
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-slim
     permissions:
       actions: read
@@ -79,12 +103,13 @@ jobs:
       - name: Update commit statuses
         uses: ./.downstream/actions/statuses-add
         with:
-          report-path: ${{ runner.temp }}/report/build-report.json
+          build-report-path: ${{ runner.temp }}/report/build-report.json
           target-url: ${{ github.event.workflow_run.html_url }}
 
   post-report-pr:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch != 'master' }}
     runs-on: ubuntu-slim
@@ -106,9 +131,11 @@ jobs:
 
       - name: Find original PR
         id: original-pr
+        continue-on-error: true # May not belong to a PR
         uses: ./.downstream/actions/find-original-pr
 
       - name: Download build report
+        if: ${{ steps.original-pr.outcome == 'success' }}
         uses: actions/download-artifact@v8
         with:
           name: build-report
@@ -118,6 +145,7 @@ jobs:
 
       - name: Determine merge base
         id: merge-base
+        if: ${{ steps.original-pr.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -130,12 +158,14 @@ jobs:
           fi
 
       - name: Get statuses at merge base
+        if: ${{ steps.original-pr.outcome == 'success' }}
         uses: ./.downstream/actions/statuses-get
         with:
           commit-sha: ${{ steps.merge-base.outputs.sha }}
           output-path: ${{ runner.temp }}/report/status-report.json
 
       - name: Render report
+        if: ${{ steps.original-pr.outcome == 'success' }}
         uses: ./.downstream/actions/render-report
         with:
           build-report-path: ${{ runner.temp }}/report/build-report.json
@@ -146,6 +176,7 @@ jobs:
           run-attempt: ${{ github.event.workflow_run.run_attempt }}
 
       - name: Post report to PR
+        if: ${{ steps.original-pr.outcome == 'success' }}
         uses: ./.downstream/actions/status-message
         with:
           app-token: ${{ steps.app-token.outputs.token }}
@@ -153,10 +184,12 @@ jobs:
           issue: ${{ steps.original-pr.outputs.number }}
           body-path: ${{ runner.temp }}/report/report.md
           marker: build-report
+          repost: true
 
   post-report-zulip:
-    if:
-      ${{ github.event.workflow_run.conclusion != 'cancelled' &&
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.run_attempt == 1 }}
@@ -286,8 +319,9 @@ jobs:
           content: ${{ steps.breakage-report-cslib.outputs.report }}
 
   update-branches:
-    if:
-      ${{ github.event.workflow_run.conclusion == 'success' &&
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' }}
     runs-on: ubuntu-slim
     steps:
@@ -302,10 +336,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Checkout built commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          path: built-commit
+
       - name: Determine nightly name
         id: nightly
         run: |
-          if NIGHTLY="$(grep -P '(?<=leanprover/lean4:)nightly-.*' lean-toolchain -o)"; then
+          if NIGHTLY="$(grep -P '(?<=leanprover/lean4:)nightly-.*' built-commit/lean-toolchain -o)"; then
             echo "::notice::Found nightly $NIGHTLY in lean-toolchain"
             echo "nightly=$NIGHTLY" >> "$GITHUB_OUTPUT"
           else
@@ -319,7 +359,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green-${{ steps.nightly.outputs.nightly }}
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Update green branch
         uses: ./.github/actions/update-branch
@@ -327,7 +367,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           branch: green
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Determine current date
         id: current-date
@@ -339,7 +379,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           repo: ${{ github.repository }}
           tag: first-green-${{ steps.current-date.outputs.day }}
-          sha: ${{ github.sha }}
+          sha: ${{ github.event.workflow_run.head_sha }}
 
       - name: Determine lean4 nightly sha
         id: lean4-nightly

@@ -10,17 +10,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from downstream.updater import Updater
-from downstream.util import Subrepo, run
+from downstream.util import Subrepo, fprint, group, run
 
 
 @dataclass(frozen=True)
 class Phase:
     success: bool | None = None  # None == skipped
     duration: float | None = None
-
-
-def fprint(*args, **kwargs) -> None:
-    print(*args, **kwargs, flush=True)
 
 
 def check_cmd(subrepo: Subrepo, command: str) -> bool:
@@ -41,25 +37,25 @@ def print_banner(text: str) -> None:
 
 def do_subrepo(subrepo: Subrepo, command: str, args: list[str] | None = None) -> Phase:
     args = args or []
-    fprint(f"::group::{command} {subrepo.name}")
-    start = time.time()
+    with group(f"{command} {subrepo.name}"):
+        start = time.time()
 
-    if not check_cmd(subrepo, command):
-        success = None
-    elif run_cmd(subrepo, command, *args):
-        success = True
-    else:
-        success = False
+        if not check_cmd(subrepo, command):
+            success = None
+        elif run_cmd(subrepo, command, *args):
+            success = True
+        else:
+            success = False
 
-    end = time.time()
-    fprint(f"Took {end - start:.2f}s")
-    fprint("::endgroup::")
-    return Phase(success=success, duration=end - start)
+        end = time.time()
+        fprint(f"Took {end - start:.2f}s")
+        return Phase(success=success, duration=end - start)
 
 
 def do_build(
     subrepos: list[Subrepo],
     report: defaultdict[str, Phase],
+    blocked_by: dict[str, list[str]],
     graph: dict[str, set[str]],
     mappings_dir: Path | None,
 ) -> None:
@@ -70,12 +66,15 @@ def do_build(
         deps = graph.get(subrepo.name, set())
         failed = {dep for dep in deps if not report[dep].success}
         if failed:
+            blocked_by[subrepo.name] = sorted(failed)
             fprint(f"{subrepo.name}: skipped, no build for {', '.join(sorted(failed))}")
             continue
 
         args = []
+        args.extend(subrepo.build_targets)
         if mappings_dir is not None:
-            args = ["-o", str(mappings_dir / f"{subrepo.name}.jsonl")]
+            args.extend(["-o", str(mappings_dir / f"{subrepo.name}.jsonl")])
+        args.extend(subrepo.build_options)
 
         report[subrepo.name] = do_subrepo(subrepo, "build", args=args)
 
@@ -92,7 +91,12 @@ def do_test(
             fprint(f"{subrepo.name}: skipped, no build")
             continue
 
-        args = ["--", *subrepo.test_args] if subrepo.test_args else []
+        args = []
+        args.extend(subrepo.test_options)
+        if subrepo.test_args:
+            args.append("--")
+            args.extend(subrepo.test_args)
+
         report[subrepo.name] = do_subrepo(subrepo, "test", args=args)
 
 
@@ -108,7 +112,12 @@ def do_lint(
             fprint(f"{subrepo.name}: skipped, no build")
             continue
 
-        args = ["--", *subrepo.lint_args] if subrepo.lint_args else []
+        args = []
+        args.extend(subrepo.lint_options)
+        if subrepo.lint_args:
+            args.append("--")
+            args.extend(subrepo.lint_args)
+
         report[subrepo.name] = do_subrepo(subrepo, "lint", args=args)
 
 
@@ -166,11 +175,12 @@ def main() -> None:
 
     run("lake", "--version")
 
+    blocked_by: dict[str, list[str]] = {}
     report_build = defaultdict(Phase)
     report_test = defaultdict(Phase)
     report_lint = defaultdict(Phase)
     if not args.no_build:
-        do_build(subrepos, report_build, graph, mappings_dir)
+        do_build(subrepos, report_build, blocked_by, graph, mappings_dir)
     if args.test:
         do_test(subrepos, report_test, report_build)
     if args.lint:
@@ -203,6 +213,7 @@ def main() -> None:
                 "name": sub.name,
                 "critical": sub.critical,
                 "green": sub.name in green_repos,
+                "blocked_by": blocked_by.get(sub.name, []),
                 "build": dataclasses.asdict(report_build[sub.name]),
                 "test": dataclasses.asdict(report_test[sub.name]),
                 "lint": dataclasses.asdict(report_lint[sub.name]),

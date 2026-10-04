@@ -1,0 +1,54 @@
+/-
+Copyright (c) 2026 Lean FRO. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mac Malone
+-/
+module
+public import Nerodia.Data.Addr
+public import Nerodia.Data.Context
+public import Nerodia.Data.TypeExpr
+
+namespace Nerodia.Internal
+
+/-- A fixed enumeration of builtin base types. -/
+-- A very simple model, it could be made more dynamic in the future.
+public inductive Py.Kind
+| type
+| baseException
+| str
+| bytes
+| int
+| module
+| other
+deriving Nonempty, DecidableEq
+
+/--
+The computable portion of the logical Python object model.
+
+Decidably equal by address equality.
+-/
+public structure Py.InnerModel where
+  addr : Addr
+  env : PyEnvironment
+  kind : Py.Kind := .other
+  deriving Nonempty
+
+/--
+The logical model of a Python object.
+
+Includes static typing information not derivable from the data model
+(i.e., {lean}`InnerModel`).
+-/
+public structure Py.Model extends InnerModel where
+  hint : TypeExpr
+  deriving Nonempty
+
+/--
+A Python object. A [{lit}`PyObject`][1] pointer managed by Lean.
+
+[1]: https://docs.python.org/3/c-api/structures.html#c.PyObject
+-/
+public structure Py.Raw where
+  ofModel ::
+    toModel : Py.Model
+    deriving Nonempty

@@ -18,6 +18,7 @@ public import Std.Data.HashSet
 
 public import VersoManual.Basic
 public import VersoManual.HighlightedCode
+public import VersoManual.Html.Hoist
 public import VersoManual.Index
 public import VersoManual.Markdown
 public meta import VersoManual.Markdown
@@ -55,7 +56,8 @@ open Verso.Doc.Elab.PartElabM
 open Verso.Code
 open Verso.ArgParse
 open Verso.Code.Highlighted.WebAssets
-open Lean.Doc.Syntax
+open Verso.Genre.Manual.Html
+open Lean.Doc (CodeView)
 
 open SubVerso.Highlighting
 
@@ -89,7 +91,7 @@ meta def ValDesc.documentableName : ValDesc m (Ident × Name) where
             m!"Set option 'verso.docstring.allowDeprecated' to '{true}' to allow documentation for deprecated names."
       else
         -- Defer to default Lean deprecation warnings and settings if it's not a hard error
-        Lean.Linter.checkDeprecated x
+        Lean.Linter.checkDeprecated x false
       pure (n, x)
     | other => throwError "Expected identifier, got {other}"
 
@@ -341,7 +343,7 @@ def internalSignature (name : Highlighted) (signature : Option Highlighted) : Bl
   name := `Verso.Genre.Manual.Block.internalSignature
   data := ToJson.toJson (name, signature)
 
-open Docstring in
+open Block.Docstring in
 def fieldSignature (visibility : Visibility) (name : Highlighted) (signature : Highlighted) (inheritedFrom : Option Nat) (inheritance : Array Highlighted) : Block where
   name := `Verso.Genre.Manual.Block.fieldSignature
   data := ToJson.toJson (visibility, name, signature, inheritedFrom, inheritance)
@@ -613,7 +615,7 @@ def internalSignature.descr : BlockDescr where
       if let some sig := signature then
         pure \TeX{ " : " \Lean{ (← sig.toTeX) } }
       else pure .empty
-    pure \TeX{\par " " \Lean{← name.toTeX} \Lean{signatureTeX} \Lean{.seq (← contents.mapM goB)}}
+    pure \TeX{\par\noindent " " \Lean{← name.toTeX} \Lean{signatureTeX} \Lean{.seq (← contents.mapM goB)}}
   toHtml := some fun _goI goB _id info contents =>
     open Verso.Doc.Html HtmlT in
     open Verso.Output Html in do
@@ -675,7 +677,7 @@ def fieldSignature.descr : BlockDescr where
       | .public => .empty
       | .private => \TeX{ \textbf{"private"} }
       | .protected => .empty
-    let desc := \TeX{ \par " " \Lean{visibility} \Lean{← name.toTeX} " : " \Lean{← signature.toTeX} \par " " \Lean{.seq (← contents.mapM goB)}}
+    let desc := \TeX{ \par\noindent " " \Lean{visibility} \Lean{← name.toTeX} " : " \Lean{← signature.toTeX} \par " " \Lean{.seq (← contents.mapM goB)}}
     let parentsTeX := (← parents.toList.mapM (·.toTeX)).intersperse (.raw ", ")
     let inheritedExtra : Output.TeX := match inheritedFrom with
     | .none => ""
@@ -788,6 +790,21 @@ def docSuggestionMapper : DomainMapper := {
 }.setFont { family := .code }
 
 open Verso.Genre.Manual.Markdown in
+open Verso.Output Html in
+/--
+Renders a documentation box with a permalink, a label, a signature, and body text. The box is a
+barrier for margin content, which is placed before it.
+-/
+def namedocsBox (id : InternalId) (xref : TraverseState) (label sig text : Html) : Html :=
+  Hoist.barrier "margin" true {{
+    <div class="namedocs" {{xref.htmlId id}}>
+      {{permalink id xref false}}
+      <span class="label">{{label}}</span>
+      <pre class="signature hl lean block">{{sig}}</pre>
+      <div class="text">{{text}}</div>
+    </div>
+  }}
+
 @[block_extension Block.docstring]
 def docstring.descr : BlockDescr := withHighlighting {
   init st := st
@@ -856,24 +873,12 @@ def docstring.descr : BlockDescr := withHighlighting {
         | do reportError "Failed to deserialize docstring data while generating HTML"; pure .empty
       let sig : Html ← signature.toHtml
 
-      let xref ← state
-      let idAttr := xref.htmlId id
-
       let label := customLabel.getD declType.label
 
       if label == "" then
         reportError s!"Missing label for '{name}': supply one with 'label := \"LABEL\"'"
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">{{label}}</span>
-          <pre class="signature hl lean block">{{sig}}</pre>
-          <div class="text">
-            {{← contents.mapM goB}}
-          </div>
-        </div>
-      }}
+      return namedocsBox id (← state) label sig (← contents.mapM goB)
 
   localContentItem := fun _id info _contents => open Verso.Output.Html in do
     let  (name, _declType, _signature, _customLabel, _altNames) ←
@@ -889,7 +894,8 @@ def docstring.descr : BlockDescr := withHighlighting {
       let label := customLabel.getD declType.label
       if label == "" then
         reportError s!"Missing label for '{name}': supply one with 'label := \"LABEL\"'"
-      pure \TeX{\begin{docstringBox}{\Lean{label}} \Lean{← signature.toTeX} \tcblower " " \Lean{← contents.mapM goB} \end{docstringBox}}
+      pure \TeX{\begin{docstringBox}{\Lean{label}} \Lean{← signature.toTeX} \tcblower " "
+                \Lean{← contents.mapM (fun b => do pure <| seq #[← goB b, .paragraphBreak])} \end{docstringBox}}
 
   extraCss := [docstringStyle]
 }
@@ -1620,21 +1626,11 @@ def optionDocs.descr : BlockDescr := withHighlighting {
     open Verso.Output Html in do
       let .ok (name, defaultValue) := FromJson.fromJson? (α := Name × Highlighted) info
         | do reportError "Failed to deserialize docstring data while generating HTML for an option"; pure .empty
-      let x : Html := Html.text true <| Name.toString name
+      let x : Html := Html.text <| Name.toString name
 
-      let xref ← HtmlT.state
-      let idAttr := xref.htmlId id
-
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"option"</span>
-          <pre class="signature hl lean block">{{x}}</pre>
-          <div class="text">
-            <p>"Default value: " <code class="hl lean inline">{{← defaultValue.toHtml (g := Manual)}}</code></p>
-            {{← contents.mapM goB}}
-          </div>
-        </div>
+      return namedocsBox id (← HtmlT.state) "option" x {{
+        <p>"Default value: " <code class="hl lean inline">{{← defaultValue.toHtml (g := Manual)}}</code></p>
+        {{← contents.mapM goB}}
       }}
   localContentItem := fun _id info _contents => open Verso.Output.Html in do
     let (name, _defaultValue) ← FromJson.fromJson? (α := Name × Highlighted) info
@@ -1793,19 +1789,7 @@ def tactic.descr : BlockDescr := withHighlighting {
         | do reportError "Failed to deserialize tactic data while generating HTML for a tactic"; pure .empty
       let x : Highlighted := .token ⟨.keyword tactic.internalName none tactic.docString, show.getD tactic.userName⟩
 
-      let xref ← HtmlT.state
-      let idAttr := xref.htmlId id
-
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"tactic"</span>
-          <pre class="signature hl lean block">{{← x.toHtml (g := Manual)}}</pre>
-          <div class="text">
-            {{← contents.mapM goB}}
-          </div>
-        </div>
-      }}
+      return namedocsBox id (← HtmlT.state) "tactic" (← x.toHtml (g := Manual)) (← contents.mapM goB)
   localContentItem := fun _id info _contents => open Verso.Output.Html in do
     let (tactic, «show») ← FromJson.fromJson? (α := TacticDoc × Option String) info
     let str := show.getD tactic.userName
@@ -1832,10 +1816,10 @@ meta def tacticInline : RoleExpanderOf TacticInlineOptions
   | {«show»}, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $tac:str )) := arg
+    let some { content := tac, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the tactic name"
-    let tacTok := tac.getString
-    let tacName := tac.getString.toName
+    let tacTok := tac.getVersoCode
+    let tacName := tac.getVersoCode.toName
     let some tacticDoc := (← getTactic? (.inl tacTok)) <|> (← getTactic? (.inr tacName))
       | throwErrorAt tac "Didn't find tactic named {tac}"
 
@@ -1945,19 +1929,7 @@ def conv.descr : BlockDescr := withHighlighting {
         | do reportError "Failed to deserialize conv tactic data"; pure .empty
       let x : Highlighted := .token ⟨.keyword (some name) none docs?, «show»⟩
 
-      let xref ← HtmlT.state
-      let idAttr := xref.htmlId id
-
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"conv tactic"</span>
-          <pre class="signature hl lean block">{{← x.toHtml (g := Manual)}}</pre>
-          <div class="text">
-            {{← contents.mapM goB}}
-          </div>
-        </div>
-      }}
+      return namedocsBox id (← HtmlT.state) "conv tactic" (← x.toHtml (g := Manual)) (← contents.mapM goB)
   localContentItem := fun _id info _contents => open Verso.Output.Html in do
     let (_name, «show», _docs?) ← FromJson.fromJson? (α := Name × String × Option String) info
     pure #[(«show», {{<code class="tactic-name">{{«show»}}</code>}})]
@@ -1989,14 +1961,14 @@ meta def convInline : RoleExpander
   | _args, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $convTac:str )) := arg
+    let some { content := convTac, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the conv tactic name"
-    let convTacName := convTac.getString.toName
+    let convTacName := convTac.getVersoCode.toName
     let convTacDoc ← getConvTactic (.inr (mkIdent convTacName)) none
 
-    let hl : Highlighted := convToken convTacDoc convTac.getString
+    let hl : Highlighted := convToken convTacDoc convTac.getVersoCode
 
-    return #[← `(Verso.Doc.Inline.other (Inline.conv $(quote hl)) #[Verso.Doc.Inline.code $(quote convTac.getString)])]
+    return #[← `(Verso.Doc.Inline.other (Inline.conv $(quote hl)) #[Verso.Doc.Inline.code $(quote convTac.getVersoCode)])]
 where
   convToken (t : ConvTacticDoc) (showStr : String) : Highlighted :=
     .token ⟨.keyword (some t.name) none t.docs?, showStr⟩

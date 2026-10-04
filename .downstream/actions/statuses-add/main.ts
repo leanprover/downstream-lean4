@@ -3,15 +3,16 @@ import * as fs from "node:fs/promises";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { getInput, getInputOpt } from "../lib/input";
 import type {
   BuildReport,
   BuildReportPhase,
   BuildReportRepo,
 } from "../lib/reports";
-import { abort, getInput, getInputOpt } from "../lib/util";
+import { abort } from "../lib/util";
 
 const token = getInput("token");
-const reportPath = getInput("report-path");
+const buildReportPath = getInput("build-report-path");
 const targetUrl = getInputOpt("target-url");
 
 const octo = github.getOctokit(token);
@@ -52,7 +53,7 @@ async function updateStatus(
 }
 
 async function run(): Promise<void> {
-  const raw = await fs.readFile(reportPath, "utf8");
+  const raw = await fs.readFile(buildReportPath, "utf8");
   const buildReport = JSON.parse(raw) as BuildReport;
 
   let ok = true;

@@ -31,7 +31,9 @@ button to get to the "Build subrepos" workflow summary.
 
 Regardless of whether CI is green or red, the build results are uploaded into a
 public artifact cache. To download cached artifacts, execute the
-`.meta/get-cache.sh` script.
+`.meta/get-cache.sh` script. You can limit the script to a set of repos and
+their transitive dependencies by passing the repo names (without trailing `/`!),
+e.g. `.meta/get-cache.sh mathlib4 repl`.
 
 For every toolchain, a branch `green-nightly-YYYY-MM-DD` points to the latest
 green commit on `master` using said toolchain. In addition, the branch `green`
@@ -40,12 +42,16 @@ Lean repository, a corresponding branch `downstream-green` points to the commit
 the toolchain used by `green` is based on.
 
 It is recommended to set the following environment variables while working in
-this repository to benefit from cross-project caching:
+this repository to benefit from cross-project caching and match the CI behavior:
 
 - `LAKE_ARTIFACT_CACHE=1` to enable global lake artifact caching.
 - `LAKE_RESTORE_ARTIFACTS=1` to force lake to populate the `.lake` directories
   with artifacts from the global cache. Some repositories don't support the
   global artifact cache yet and may fail to build, test, or lint without this.
+- `LEAN_ABORT_ON_PANIC=1` to make Lean panics abort the build process (as CI
+  does) instead of only printing a message.
+
+An `.envrc` file for use with [direnv](https://direnv.net/) is provided.
 
 ## I'm a Lean developer and want to use this repo.
 
@@ -57,6 +63,12 @@ before the adaptation PR can be created; the bot will tell you what to do.
 The adaptation PR will have its toolchain automatically updated to the Lean PR's
 latest successful CI run. In here, you can fix any packages that your original
 PR breaks, or try out new features you added in your PR.
+
+If merge conflicts prevent CI from running in your Lean PR, causing the
+adaptation PR not to be created either, then temporarily change its target from
+`master` to the `downstream-green` branch. You may also need to rebase your PR
+onto the `downstream-green` branch, or merge it into your PR. Make sure to
+switch back to `master` before merging your PR!
 
 If you have a long-running PR, don't update it by merging `master`. Instead,
 merge the `downstream-green` branch into your Lean PR, and at the same time,

@@ -13,7 +13,11 @@ open Verso.Genre.Manual.InlineLean
 
 open Verso.Output.Html in
 def plausible := {{
-    <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
+    <script>{{.raw r#"
+      window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+      plausible.init()
+    "#}}</script>
   }}
 
 open Verso.Output.Html in
@@ -56,6 +60,7 @@ where
         (`Verso.Genre.Manual.doc.tactic.conv, 60),
         (`Verso.Genre.Manual.doc.option,      60),
         (`Verso.Genre.Manual.example,         60),
+        (`Manual.examples,                    60),
       ]
     },
   }

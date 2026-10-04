@@ -7,6 +7,7 @@ module
 public import VersoLiterateCode
 public import VersoSearch.DomainSearch
 public import Verso.Code.Highlighted.WebAssets
+public import Verso.Output.Html.CssVars
 
 public section
 
@@ -43,8 +44,9 @@ private def headContents : Html := {{
 
   <script src="popper.js"></script>
   <script src="tippy.js"></script>
-  <script>{{Html.text false highlightingJs}}</script>
-  <style>{{Html.text false highlightingStyle}}</style>
+  <script>{{Html.raw highlightingJs}}</script>
+  <style>{{Html.raw highlightingStyle}}</style>
+  <link rel="stylesheet" href="verso-vars.css"/>
   <link rel="stylesheet" href="tippy-border.css"/>
   <link rel="stylesheet" href="code.css"/>
 
@@ -93,7 +95,7 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod) : EmitM Unit :
 
   IO.FS.createDirAll outFile
 
-  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ contents.asString
+  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ contents.render
 
 def emitDir (outDir : System.FilePath) (dir : Dir) : EmitM Unit := do
   let root := dir
@@ -139,7 +141,7 @@ def emitSearchResultsPage (outDir : System.FilePath) : IO Unit := do
     </html>
   }}
   IO.FS.createDirAll (outDir / "search")
-  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
 
 def main (args : List String) : IO UInt32 := do
   let config ←
@@ -152,6 +154,7 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
     IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
     IO.FS.writeFile (config.outputDir / "code.css") code.css
+    IO.FS.writeFile (config.outputDir / "verso-vars.css") «verso-vars.css»
     emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
     let dir ← loadDir config.inputDir
     let dir := dir.sort

@@ -8,6 +8,7 @@ module
 
 public import Cslib.Computability.Languages.Language
 public import Cslib.Foundations.Data.OmegaSequence.Flatten
+public import Cslib.Foundations.Data.OmegaSequence.Topology
 public import Mathlib.Computability.Language
 public import Mathlib.Order.CompleteBooleanAlgebra
 public import Mathlib.Order.Filter.AtTopBot.Defs
@@ -28,6 +29,8 @@ denote languages (namely, sets of finite sequences of type `List α`).
   universe sets), and the subset relation are denoted using lattice-theoretic
   notations (`p ∪ q`, `p ∩ q`, `pᶜ`, `⊥`, `⊤`, and `≤`) and terminologies in
   definition and theorem names ("inf", "sup", "compl", "bot", "top", "le").
+* `p.closure`: the topological closure of `p`, where `ωLanguage α` inherits the
+  product topology of `TopologicalSpace (ωSequence α)`
 * `l * p`: ω-language of `x ++ω y` where `x ∈ l` and `y ∈ p`; referred to as
   "hmul" in definition and theorem names.
 * `l^ω`: ω-language of infinite sequences each of which is the concatenation of
@@ -43,11 +46,11 @@ denote languages (namely, sets of finite sequences of type `List α`).
 ## Main theorems
 
 * Many algebraic properties of the above operations.
-* omegaPow_seq_prop: an alternative characterization of `l^ω`.
-* omegaPow_coind: a "coinductive" rule for proving `p` is a subset of `l^ω`.
-* hmul_omegaPow_eq_omegaPow: `l * l^ω = l^ω`.
-* kstar_omegaPow_eq_omegaPow: `(l∗)^ω = l^ω`.
-* kstar_hmul_omegaPow_eq_omegaPow: `l∗ * l^ω = l^ω`.
+* `omegaPow_seq_prop`: an alternative characterization of `l^ω`.
+* `omegaPow_coind`: a "coinductive" rule for proving `p` is a subset of `l^ω`.
+* `hmul_omegaPow_eq_omegaPow`: `l * l^ω = l^ω`.
+* `kstar_omegaPow_eq_omegaPow`: `(l∗)^ω = l^ω`.
+* `kstar_hmul_omegaPow_eq_omegaPow`: `l∗ * l^ω = l^ω`.
 
 ## TODO
 
@@ -136,6 +139,10 @@ lemma iSup_def {ι : Sort v} {p : ι → ωLanguage α} : ⨆ i, p i = ⟨⋃ i,
 lemma iInf_def {ι : Sort v} {p : ι → ωLanguage α} : ⨅ i, p i = ⟨⋂ i, (p i).toSet⟩ := by
   ext
   simp [iInf, sInf_def]
+
+/-- The topological closure of an ω-language. -/
+def closure (p : ωLanguage α) : ωLanguage α :=
+  _root_.closure p.toSet
 
 /-- The concatenation of a language l and an ω-language `p` is the ω-language made of
 infinite sequences `x ++ω y` where `x ∈ l` and `y ∈ p`. -/
@@ -311,7 +318,7 @@ theorem le_hmul_congr {l1 l2 : Language α} {p1 p2 : ωLanguage α} (hl : l1 ≤
     l1 * p1 ≤ l2 * p2 := by
   simp only [le_def]
   intros _
-  simp_all only [hmul_def, mem_image2]
+  simp only [hmul_def, mem_image2]
   tauto
 
 theorem le_omegaPow_congr [Inhabited α] {l1 l2 : Language α} (h : l1 ≤ l2) : l1^ω ≤ l2^ω := by
@@ -373,7 +380,7 @@ theorem omegaPow_seq_prop [Inhabited α] :
     · apply strictMono_flatten hm h0
     · intro m
       change s.extract (f m) (f (m + 1)) ∈ l - 1
-      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, ge_iff_le, not_le, true_and]
+      simp only [he, Language.mem_sub_one, ne_eq, extract_eq_nil_iff, not_le, true_and]
       apply hm; omega
 
 open scoped Classical in
@@ -395,7 +402,9 @@ theorem omegaPow_coind' [Inhabited α] (h_nn : [] ∉ l) (h_le : p ≤ l * p) : 
     induction n <;> grind [iter_helper]
   rw [omegaPow_seq_prop]
   use f
-  grind [strictMono_nat_of_lt_succ, iter_helper]
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-09-29 (changes from lean#15378) -/
+  exact ⟨strictMono_nat_of_lt_succ fun n ↦ (h_f n).1, rfl, fun m ↦ (h_f m).2.1⟩
 
 /-- A "coinductive" rule for proving `p` is a subset of `l^ω`. -/
 theorem omegaPow_coind [Inhabited α] (h_le : p ≤ (l - 1) * p) : p ≤ l^ω := by

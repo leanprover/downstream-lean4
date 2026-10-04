@@ -1,0 +1,234 @@
+name: Post-build export
+
+on:
+  workflow_run:
+    workflows: [Build subrepos]
+    types: [completed]
+
+jobs:
+  batteries:
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/batteries
+      cancel-in-progress: false
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token (leanprover organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: downstream-lean4
+
+      - name: Create GitHub App token (leanprover-community organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover-community
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          owner: leanprover-community
+          repositories: batteries
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token-leanprover.outputs.app-slug }}[bot]
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Create export PR
+        id: export-pr
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          subrepo: batteries
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          clone-path: ${{ runner.temp }}/downstream
+          method: same-branch
+          downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
+          source-repo: leanprover-community/batteries
+          source-token:
+            ${{ steps.app-token-leanprover-community.outputs.token }}
+          target-branch: nightly-testing
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+
+  mathlib4:
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/mathlib4
+      cancel-in-progress: false
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token (leanprover organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: downstream-lean4,downstream-lean4-fork-mathlib4
+
+      - name: Create GitHub App token (leanprover-community organization)
+        uses: actions/create-github-app-token@v3
+        id: app-token-leanprover-community
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          owner: leanprover-community
+          repositories: mathlib4-nightly-testing
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token-leanprover.outputs.app-slug }}[bot]
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Create export PR
+        id: export-pr
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          subrepo: mathlib4
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          clone-path: ${{ runner.temp }}/downstream
+          method: same-branch
+          downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
+          source-repo: leanprover-community/mathlib4-nightly-testing
+          source-token:
+            ${{ steps.app-token-leanprover-community.outputs.token }}
+          target-branch: nightly-testing
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+
+  cslib:
+    if: |
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'master' }}
+    concurrency:
+      group: build-post-export/cslib
+      cancel-in-progress: false
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Create GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+          repositories: downstream-lean4,cslib
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure git
+        uses: ./.downstream/actions/configure-git
+        with:
+          name: ${{ steps.app-token.outputs.app-slug }}[bot]
+
+      - name: Download build report
+        uses: actions/download-artifact@v8
+        with:
+          name: build-report
+          path: ${{ runner.temp }}/report
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Determine toolchain
+        id: toolchain
+        run: |
+          TOOLCHAIN=$(jq .toolchain "${{ runner.temp }}/report/build-report.json" -r)
+          TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
+          echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
+
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Create export PR
+        id: export-pr
+        uses: ./.downstream/actions/export-pr-create
+        with:
+          subrepo: cslib
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          clone-path: ${{ runner.temp }}/downstream
+          method: target-branch
+          downstream-token: ${{ steps.app-token.outputs.token }}
+          source-repo: leanprover/cslib
+          source-token: ${{ steps.app-token.outputs.token }}
+          target-branch: bump/v4.36.0
+          pr: true
+          pr-title: |-
+            chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+          update-toolchains: true
+          update-manifests: true
+          lakefile-edits: |
+            ^name = "mathlib"\nscope = "leanprover-community"\nrev = ".*"$ -> name = "mathlib"\ngit = "https://github.com/leanprover-community/mathlib4-nightly-testing"\nrev = "nightly-testing"
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.pr-created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-cslib
+          topic: downstream-lean4 PRs
+          content: >
+            PR cslib#${{ steps.export-pr.outputs.pr-number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.

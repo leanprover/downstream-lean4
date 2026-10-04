@@ -49,13 +49,13 @@ def htmlOutputSetup (config : SiteBaseContext) (tacticInfo : Array (Process.Tact
   FS.createDirAll <| declarationsBasePath config.buildDir
 
   -- All the doc-gen static stuff
-  let indexHtml := ReaderT.run index config |>.toString
-  let notFoundHtml := ReaderT.run notFound config |>.toString
-  let foundationalTypesHtml := ReaderT.run foundationalTypes config |>.toString
-  let navbarHtml := ReaderT.run navbar config |>.toString
-  let searchHtml := ReaderT.run search config |>.toString
-  let referencesHtml := ReaderT.run (references (← collectBackrefs config.buildDir)) config |>.toString
-  let tacticsHtml := ReaderT.run (tactics tacticInfo) config |>.toString
+  let indexHtml := ReaderT.run index config |>.render
+  let notFoundHtml := ReaderT.run notFound config |>.render
+  let foundationalTypesHtml := ReaderT.run foundationalTypes config |>.render
+  let navbarHtml := ReaderT.run navbar config |>.render
+  let searchHtml := ReaderT.run search config |>.render
+  let referencesHtml := ReaderT.run (references (← collectBackrefs config.buildDir)) config |>.render
+  let tacticsHtml := ReaderT.run (tactics tacticInfo) config |>.render
   let docGenStatic := #[
     ("style.css", styleCss),
     ("favicon.svg", faviconSvg),
@@ -78,15 +78,15 @@ def htmlOutputSetup (config : SiteBaseContext) (tacticInfo : Array (Process.Tact
     ("tactics.html", tacticsHtml),
   ]
   for (fileName, content) in docGenStatic do
-    FS.writeFile (basePath config.buildDir / fileName) content
+    writeFileAtomic (basePath config.buildDir / fileName) content
 
-  let findHtml := ReaderT.run find { config with depthToRoot := 1 } |>.toString
+  let findHtml := ReaderT.run find { config with depthToRoot := 1 } |>.render
   let findStatic := #[
     ("index.html", findHtml),
     ("find.js", findJs)
   ]
   for (fileName, content) in findStatic do
-    FS.writeFile (findBasePath config.buildDir / fileName) content
+    writeFileAtomic (findBasePath config.buildDir / fileName) content
 
 /-- Custom source linker type: given an optional source URL and module name, returns a function from declaration range to URL -/
 abbrev SourceLinkerFn := Option String → Name → Option DeclarationRange → String
@@ -147,15 +147,15 @@ def htmlOutputResultsParallel (baseConfig : SiteBaseContext) (dbPath : System.Fi
         let filePath := baseConfig.buildDir / relFilePath
         if let .some d := filePath.parent then
           FS.createDirAll d
-        FS.writeFile filePath moduleHtml.toString
+        writeFileAtomic filePath moduleHtml.render
 
         -- Write backrefs JSON
-        FS.writeFile (declarationsBasePath baseConfig.buildDir / s!"backrefs-{module.name}.json")
+        writeFileAtomic (declarationsBasePath baseConfig.buildDir / s!"backrefs-{module.name}.json")
           (toString (toJson cfg.backrefs))
 
         -- Generate declaration data JSON for search
         let (jsonModule, _) := moduleToJsonModule module |>.run {} config baseConfig
-        FS.writeFile (declarationsBasePath baseConfig.buildDir / s!"declaration-data-{module.name}.bmp")
+        writeFileAtomic (declarationsBasePath baseConfig.buildDir / s!"declaration-data-{module.name}.bmp")
           (ToJson.toJson jsonModule).compress
 
         results := results.push (relFilePath, jsonModule)
@@ -229,7 +229,7 @@ def htmlOutputIndex (baseConfig : SiteBaseContext) (modules : Array JsonModule) 
   -- The root JSON for find
   let declarationDir := basePath  baseConfig.buildDir / "declarations"
   FS.createDirAll declarationDir
-  FS.writeFile (declarationDir / "declaration-data.bmp") finalJson.compress
+  writeFileAtomic (declarationDir / "declaration-data.bmp") finalJson.compress
 
 def headerDataOutput (buildDir : System.FilePath) : IO Unit := do
   let mut headerIndex : JsonHeaderIndex := {}
@@ -250,7 +250,7 @@ def headerDataOutput (buildDir : System.FilePath) : IO Unit := do
   let finalHeaderJson := toJson headerIndex
   let declarationDir := basePath buildDir / "declarations"
   FS.createDirAll declarationDir
-  FS.writeFile (declarationDir / "header-data.bmp") finalHeaderJson.compress
+  writeFileAtomic (declarationDir / "header-data.bmp") finalHeaderJson.compress
 
 /-- Converts an HTML file path to a module name: `doc/A/B/C.html` -> `A.B.C`. -/
 def htmlPathToModuleName (docDir : System.FilePath) (htmlPath : System.FilePath) : Option Name :=
@@ -335,7 +335,7 @@ def updateNavbarFromDisk (buildDir : System.FilePath) : IO Unit := do
     refs := refs
   }
   -- Regenerate navbar
-  let navbarHtml := ReaderT.run navbar baseConfig |>.toString
-  FS.writeFile (docDir / "navbar.html") navbarHtml
+  let navbarHtml := ReaderT.run navbar baseConfig |>.render
+  writeFileAtomic (docDir / "navbar.html") navbarHtml
 
 end DocGen4

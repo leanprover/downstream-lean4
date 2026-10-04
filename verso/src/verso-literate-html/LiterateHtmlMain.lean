@@ -7,6 +7,7 @@ module
 public import VersoLiterateCode
 public import VersoSearch.DomainSearch
 public import Verso.Code.Highlighted.WebAssets
+import Verso.Output.Html.CssVars
 import Verso.Output.Html.KaTeX
 
 public section
@@ -193,8 +194,8 @@ private def mkHeadContents (litConfig : LiterateConfig) (includeCodeAssets : Boo
     <script src="popper.js"></script>
     <script src="tippy.js"></script>
     <script src="marked.js"></script>
-    <script>{{Html.text false highlightingJs}}</script>
-    <style>{{Html.text false highlightingStyle}}</style>
+    <script>{{Html.raw highlightingJs}}</script>
+    <style>{{Html.raw highlightingStyle}}</style>
     <link rel="stylesheet" href="tippy-border.css"/>
   }} else .empty
   let copyButtonTag : Html := if includeCodeAssets then {{
@@ -205,6 +206,7 @@ private def mkHeadContents (litConfig : LiterateConfig) (includeCodeAssets : Boo
     {{ descTag }}
     {{ katexAssets }}
     {{ codeAssets }}
+    <link rel="stylesheet" href="verso-vars.css"/>
     <link rel="stylesheet" href="literate.css"/>
     {{ themeCssTag }}
     {{ copyButtonTag }}
@@ -360,7 +362,7 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod)
 
   IO.FS.createDirAll outFile
 
-  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
 
 def emitDir (outDir : System.FilePath) (dir : Dir)
     (srcDirs : Lean.NameMap System.FilePath := {}) : EmitM Unit := do
@@ -397,7 +399,7 @@ partial def emitLandingPage (outDir : System.FilePath) (dir : Dir) (litConfig : 
       </body>
     </html>
   }}
-  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.asString
+  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.render
 where
   buildToc (dir : Dir) : Html :=
     if dir.children.isEmpty then .empty
@@ -447,7 +449,7 @@ def emitSearchResultsPage (outDir : System.FilePath) (litConfig : LiterateConfig
     </html>
   }}
   IO.FS.createDirAll (outDir / "search")
-  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.asString
+  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.render
 
 open Verso Output Doc Html in
 /--
@@ -477,7 +479,7 @@ def emitLandingFromModule (outDir : System.FilePath) (root : Dir) (modName : Nam
     | some siteTitle => s!"{modLabel} — {siteTitle}"
     | none => modLabel
   let pageHtml := page landingPageTitle siteRoot headContents mod.name root htmlId? body (pageToc := tocHtml) (litConfig := litConfig)
-  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
   return hlState
 
 def main (args : List String) : IO UInt32 := do
@@ -491,6 +493,7 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
     IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
     IO.FS.writeFile (config.outputDir / "marked.js") Verso.Code.Highlighted.WebAssets.marked
+    IO.FS.writeFile (config.outputDir / "verso-vars.css") Verso.Output.Html.«verso-vars.css»
     IO.FS.writeFile (config.outputDir / "literate.css") literate.css
     -- Copy KaTeX dependencies
     IO.FS.createDirAll (config.outputDir / "katex")

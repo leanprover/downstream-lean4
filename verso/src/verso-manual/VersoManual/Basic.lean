@@ -29,7 +29,7 @@ set_option doc.verso true
 
 public section
 
-open Lean (Name Json NameMap ToJson FromJson)
+open Lean (Name Json NameMap ToJson FromJson Html)
 open Std (HashSet HashMap TreeSet)
 open Verso.Doc
 open Verso.Multi
@@ -220,13 +220,25 @@ structure PartMetadata where
   authorshipNote : Option String := none
   /-- The publication date -/
   date : Option String := none
-  /-- The main tag for the part, used for cross-references. -/
-  tag : Option Tag := none
+  /--
+  This part's canonical name.
+
+  The canonical name is used for stable cross references. It also serves as the basis
+  for the section's HTML ID.
+  -/
+  tag : Option String := none
+  /--
+  This part's cross-referencing tag.
+
+  This field is set during traversal, which derives a unique external tag from the part's
+  canonical name.
+  -/
+  xrefTag : Option Tag := none
   /-- If this part ends up as the root of a file, use this name for it -/
   file : Option String := none
   /-- The internal unique ID, which is automatically assigned during traversal. -/
   id : Option InternalId := none
-  /-- Should this section be numbered? If {name}`false`, then it's like `\section*` in LaTeX -/
+  /-- Should this section be numbered? If {name}`false`, then it's like {lit}`\section*` in LaTeX -/
   number : Bool := true
   /-- If {name}`true`, the part is only rendered in draft mode. -/
   draft : Bool := false
@@ -329,7 +341,7 @@ structure TraverseState extends HtmlAssets where
   ids : TreeSet InternalId := {}
   quickJump : DomainMappers := {}
   /--
-  TeX `\usepackage{…}` lines contributed by block and inline extensions whose blocks actually
+  TeX {lit}`\usepackage{…}` lines contributed by block and inline extensions whose blocks actually
   occur in the document. Populated during traversal at each block/inline occurrence so unused
   extensions don't pollute the preamble.
   -/
@@ -484,10 +496,10 @@ def getDomainObject? (state : TraverseState) (domain : Name) (canonicalName : St
   state.domains.get? domain >>= fun d => d.get? canonicalName
 
 def setDomainTitle (state : TraverseState) (domain : Name) (title : String) : TraverseState :=
-  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with title := some title}}
+  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with title := some title} }
 
 def setDomainDescription (state : TraverseState) (domain : Name) (description : String) : TraverseState :=
-  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with description := some description}}
+  {state with domains := state.domains.insert! domain {state.domains.get? domain |>.getD {} with description := some description} }
 
 open Verso.Search in
 def addQuickJumpMapper (state : TraverseState) (domain : Name) (domainMapper : DomainMapper) : TraverseState :=
@@ -653,9 +665,9 @@ abbrev BlockTraversal genre :=
   ReaderT TraverseContext (StateT TraverseState (BuildLogT IO)) (Option (Doc.Block genre))
 
 abbrev BlockToHtml (genre : Genre) (m) :=
-  (Doc.Inline genre → Html.HtmlT genre m Output.Html) →
-  (Doc.Block genre → Html.HtmlT genre m Output.Html) →
-  InternalId → Json → Array (Doc.Block genre) → Html.HtmlT genre m Output.Html
+  (Doc.Inline genre → Html.HtmlT genre m Html) →
+  (Doc.Block genre → Html.HtmlT genre m Html) →
+  InternalId → Json → Array (Doc.Block genre) → Html.HtmlT genre m Html
 
 abbrev BlockToTeX (genre : Genre) (m) :=
   (Doc.Inline genre → TeX.TeXT genre m Output.TeX) →
@@ -667,8 +679,8 @@ abbrev InlineTraversal genre :=
   ReaderT TraverseContext (StateT TraverseState (BuildLogT IO)) (Option (Doc.Inline genre))
 
 abbrev InlineToHtml (genre : Genre) (m) :=
-  (Doc.Inline genre → Html.HtmlT genre m Output.Html) →
-    InternalId → Json → Array (Doc.Inline genre) → Html.HtmlT genre m Output.Html
+  (Doc.Inline genre → Html.HtmlT genre m Html) →
+    InternalId → Json → Array (Doc.Inline genre) → Html.HtmlT genre m Html
 
 abbrev InlineToTeX (genre : Genre) (m) :=
   (Doc.Inline genre → TeX.TeXT genre m Output.TeX) →
@@ -771,7 +783,7 @@ structure InlineDescr extends HtmlAssets where
 
   The empty array means that the inline should not be included.
   -/
-  localContentItem : InternalId → Json → Array (Doc.Inline Manual) → Except String (Array (String × Verso.Output.Html)) :=
+  localContentItem : InternalId → Json → Array (Doc.Inline Manual) → Except String (Array (String × Html)) :=
     fun _ _ _ => pure #[]
 
   /--
@@ -779,7 +791,7 @@ structure InlineDescr extends HtmlAssets where
   will fail.
   -/
   toTeX : Option (InlineToTeX Manual (ReaderT ExtensionImpls (BuildLogT IO)))
-  /-- Required TeX `\usepackage` lines -/
+  /-- Required TeX {lit}`\usepackage` lines -/
   usePackages : List String := {}
   /-- Required items in the TeX preamble -/
   preamble : List String := {}
@@ -815,7 +827,7 @@ structure BlockDescr extends HtmlAssets where
 
   The empty array means that the block should not be included.
   -/
-  localContentItem : InternalId → Json → Array (Doc.Block Manual) → Except String (Array (String × Verso.Output.Html)) :=
+  localContentItem : InternalId → Json → Array (Doc.Block Manual) → Except String (Array (String × Html)) :=
     fun _ _ _ => pure #[]
 
   /--
@@ -823,7 +835,7 @@ structure BlockDescr extends HtmlAssets where
   will fail.
   -/
   toTeX : Option (BlockToTeX Manual (ReaderT ExtensionImpls (BuildLogT IO)))
-  /-- Required TeX `\usepackage` lines -/
+  /-- Required TeX {lit}`\usepackage` lines -/
   usePackages : List String := {}
   /-- Required items in the TeX preamble -/
   preamble : List String := {}
@@ -1054,6 +1066,34 @@ def externalTag [Monad m] [MonadState TraverseState m] (id : InternalId) (path :
       externalTags := st.externalTags.insert id { path, htmlId := attempt }
     }
     pure t'
+
+/--
+Assigns a tag that a user chose to the element with the given internal ID.
+
+User-chosen tags become the element's external tag exactly as written, once sluggified. Any other
+element already holding that tag makes this an error, whether a user chose it or
+{name}`externalTag` assigned it, since both draw on one set of names. {name}`none` is returned in
+that case, leaving this element without an external tag.
+
+Providing the same tag to the same element again is not an error.
+-/
+def providedTag [Monad m] [MonadState TraverseState m] [MonadBuildLog m]
+    (id : InternalId) (path : Path) (name : String) : m (Option Tag) := do
+  let slug := name.sluggify
+  let tag := Tag.external slug
+  if let some id' := (← get).tags[tag]? then
+    if id' != id then
+      -- Another element holds this tag, so this one is left without an external tag.
+      if slug.toString == name then
+        reportError s!"Duplicate tag '{name}'"
+      else
+        reportError s!"Duplicate tag '{name}': its slug '{slug.toString}' is already in use"
+      return none
+  modify fun st => { st with
+    tags := st.tags.insert tag id,
+    externalTags := st.externalTags.insert id { path, htmlId := slug }
+  }
+  return some tag
 
 def TraverseState.resolveId (st : TraverseState) (id : InternalId) : Option Link :=
   if let some x := st.externalTags[id]? then
@@ -1351,7 +1391,7 @@ def ancestorSearchPriority (headers : Array PartHeader) : Int :=
     let p : Int := (h.metadata.map (·.searchPriority.val) |>.getD 50 : Nat)
     acc + (p - 50)
 
-def savePartXref (slug : Slug) (id : InternalId) (part : Part Manual) : TraverseM Unit := do
+def savePartXref (name : String) (id : InternalId) (part : Part Manual) : TraverseM Unit := do
   let jsonMetadata :=
     Json.arr ((← read).inPart part |>.headers.map (fun h => json%{
       "title": $h.titleString,
@@ -1367,7 +1407,7 @@ def savePartXref (slug : Slug) (id : InternalId) (part : Part Manual) : Traverse
     ((← read).inPart part |>.headers[1:]).toArray.map (fun (h : PartHeader) => h.metadata.bind (·.assignedNumber))
       |>.mapM _root_.id |>.map sectionNumberString
   let searchPriority := ancestorSearchPriority ((← read).inPart part |>.headers)
-  modify fun (st : TraverseState) => st.saveDomainObject sectionDomain slug.toString id |>.saveDomainObjectData sectionDomain slug.toString (json%{
+  modify fun (st : TraverseState) => st.saveDomainObject sectionDomain name id |>.saveDomainObjectData sectionDomain name (json%{
     "context": $jsonMetadata,
     "title": $title,
     "shortTitle": $shortTitle,
@@ -1378,25 +1418,26 @@ def savePartXref (slug : Slug) (id : InternalId) (part : Part Manual) : Traverse
 /--
 Assigns a tag to a part during traversal.
 
-This operation is careful to preserve and prioritize user-selected tags. In the first round, the
+This operation is careful to preserve and prioritize user-chosen names. In the first round, the
 following may occur:
 
- * If there's no tag at all, then an internal tag is applied.
+ * If the part has a name (from {name}`getName`), its provided tag is converted to a unique
+   external tag whose slug becomes the part's HTML id.
 
- * If there's a provided tag, it is converted to an external tag and added as an xref target.
+ * If the part has no name at all, then an internal tag is applied.
 
 In subsequent rounds, the internal tags are converted to external tags. At this point, the
-user-provided tags have already been made external. It also ensures that auto-generated tags are
-never added as xref targets.
+tags based on the user's {name (full := PartMetadata.tag)}`tag` field have already been made
+external.
 -/
 def tagPart
     (part : Lean.Doc.Part Manual.Inline Manual.Block m) (metadata : m)
-    (getId : m → Option InternalId) (getTag : m → Option Tag)
-    (saveXref : Slug → InternalId → Lean.Doc.Part Manual.Inline Manual.Block m → TraverseM Unit) :
+    (getId : m → Option InternalId) (getTag : m → Option Tag) (getName : m → Option String)
+    (saveXref : String → InternalId → Lean.Doc.Part Manual.Inline Manual.Block m → TraverseM Unit) :
     TraverseM Tag := do
   let some id := getId metadata
     | reportError "No internal ID assigned while tagging part"; return default
-  match getTag metadata with
+  match getTag metadata <|> (getName metadata).map .provided with
   | none =>
     -- Assign an internal tag - the next round will make it external. This is done in two rounds to
     -- give priority to user-provided tags that might otherwise anticipate the name-mangling scheme
@@ -1407,33 +1448,22 @@ def tagPart
     -- Ensure uniqueness
     if let some id' := (← get).tags[t]? then
       if id != id' then
-        reportError s!"Duplicate tag '{t}'"
+        unless t matches Tag.provided _ do
+          reportError s!"Duplicate tag '{t}'"
     else
       modify fun st => {st with tags := st.tags.insert t id}
     let path := (← readThe TraverseContext).path
     match t with
     | Tag.external name =>
-      saveXref name id { part with metadata := some metadata }
+      saveXref ((getName metadata).getD name.toString) id { part with metadata := some metadata }
       -- These are the actual IDs to use in generated HTML and links and such
       modify fun st : TraverseState => { st with externalTags := st.externalTags.insert id { path, htmlId := name } }
       return t
     | Tag.internal name =>
       return (← externalTag id path name)
     | Tag.provided n =>
-      let slug := n.sluggify
       -- Convert to an external tag, and fail if we can't (users should control their link IDs)
-      let external := Tag.external slug
-
-      let t ← if let some id' := (← get).tags[external]? then
-        if id != id' then reportError s!"Duplicate tag '{t}'"
-          pure t
-        else
-          modify fun st => { st with
-              tags := st.tags.insert external id,
-              externalTags := st.externalTags.insert id { path, htmlId := slug }
-            }
-          pure external
-      return t
+      return (← providedTag id path n).getD t
 
 
 instance : Traverse Manual TraverseM where
@@ -1449,7 +1479,7 @@ instance : Traverse Manual TraverseM where
     «meta» := { «meta» with id := some id }
 
     -- Next, assign a tag, prioritizing user-chosen external IDs
-    «meta» := { «meta» with tag := ← tagPart part «meta» (·.id) (·.tag) savePartXref }
+    «meta» := { «meta» with xrefTag := ← tagPart part «meta» (·.id) (·.xrefTag) (·.tag) savePartXref }
 
     -- Assign section numbers to subsections
     let mut i := 1
@@ -1545,7 +1575,7 @@ def sectionHtml (ctxt : TraverseContext) : Html :=
   match sectionString ctxt with
   | none => .empty
    -- Non-breaking space because section numbers shouldn't end up on a line alone
-  | some s => .text true (s ++ " ")
+  | some s => .text (s ++ " ")
 
 open Html in
 /--
@@ -1568,6 +1598,9 @@ def permalink (id : InternalId) (st : TraverseState) (inline : Bool := true) : H
     -- If there's multiple, select one arbitrarily.
     let (domain, canonicalName) := candidates[0]
     let classes := "permalink-widget " ++ if inline then "inline" else "block"
+    -- The names may contain characters with meaning in URLs, such as spaces or ampersands.
+    let domain := System.Uri.escapeUri (toString domain)
+    let canonicalName := System.Uri.escapeUri canonicalName
     {{<span class={{classes}}>
         <a href=s!"/find/?domain={domain}&name={canonicalName}" title="Permalink">"🔗"</a>
       </span>
@@ -1585,7 +1618,7 @@ instance : Html.GenreHtml Manual (ReaderT AllRemotes (ReaderT ExtensionImpls (Bu
       if let some id := m.id then permalink id st
       else .empty
     let mkHeader lvl content :=
-      .tag s!"h{lvl}" attrs (sectionNumber ++ content ++ permalink? «meta»)
+      .element s!"h{lvl}" attrs (sectionNumber ++ content ++ permalink? «meta»)
     go txt mkHeader
 
   block goI goB b content := do

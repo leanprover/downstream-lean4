@@ -9,6 +9,7 @@ import VersoWeb.Components.ArchiveEntry
 import VersoWeb.Components.Aside
 
 open Verso Genre Blog Template Output Html
+open Lean (Html)
 open Verso.Web Components Util Multi
 
 namespace Verso.Web.Theme
@@ -31,7 +32,7 @@ def articleContent (title : Html) (content : Html) (metadata : Option Post.PartM
         | none => Html.empty
         | some md => {{
             <div class="metadata">
-              {{(md : Post.PartMetadata).authors.map ({{<div class="author">{{Html.text true ·}}</div>}}) |>.toArray}}
+              {{(md : Post.PartMetadata).authors.map ({{<div class="author">{{Html.text ·}}</div>}}) |>.toArray}}
               <div class="date">
                 {{md.date.toIso8601String}}
               </div>

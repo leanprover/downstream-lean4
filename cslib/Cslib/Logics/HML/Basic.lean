@@ -7,6 +7,9 @@ Authors: Fabrizio Montesi, Marco Peressotti, Alexandre Rademaker
 module
 
 public import Cslib.Foundations.Semantics.LTS.Bisimulation
+public import Cslib.Foundations.Semantics.Frame.LTS
+public import Cslib.Logics.Modal.Semantics
+public import Cslib.Logics.Modal.Unary.Basic
 
 /-! # Hennessy-Milner Logic (HML)
 
@@ -16,9 +19,8 @@ concurrent systems.
 ## Implementation notes
 There are two main versions of HML. The original [Hennessy1985], which includes a negation
 connective, and a variation without negation, for example as in [Aceto1999].
-We follow the latter, which is used in many recent papers. Negation is recovered as usual, by having
-a `false` atomic proposition and a function that, given any proposition, returns its negated form
-(see `Proposition.neg`).
+We follow the former and focus on a minimal set of connectives, recovering the others as derived
+constructs.
 
 ## Main definitions
 
@@ -46,221 +48,146 @@ distinguishing proposition that one state satisfies and the other does not.
 
 @[expose] public section
 
-namespace Cslib.Logic.HML
+namespace Cslib.Logic.Modal
+
+open PFunctor
+
+namespace HML
 
 /-- Propositions. -/
-inductive Proposition (Label : Type u) : Type u where
-  | true
-  | false
-  | and (φ₁ φ₂ : Proposition Label)
-  | or (φ₁ φ₂ : Proposition Label)
-  | diamond (μ : Label) (φ : Proposition Label)
-  | box (μ : Label) (φ : Proposition Label)
+abbrev Proposition (Label Atom : Type*) := Modal.Proposition (mkUnary Label) Atom
 
-/-- Negation of a proposition. -/
-@[simp, scoped grind =]
-def Proposition.neg (a : Proposition Label) : Proposition Label :=
-  match a with
-  | .true => .false
-  | .false => .true
-  | and a b => or a.neg b.neg
-  | or a b => and a.neg b.neg
-  | diamond μ a => box μ a.neg
-  | box μ a => diamond μ a.neg
+/-- An HML model consists of an LTS and a valuation for its states. -/
+structure Model State Label Atom where
+  /-- The labelled transition system. -/
+  lts : LTS State Label
+  /-- Valuation of atoms at states. -/
+  v : State → Atom → Prop
 
-/-- Finite conjunction of propositions. -/
-@[simp, scoped grind =]
-def Proposition.finiteAnd (as : List (Proposition Label)) : Proposition Label :=
-  List.foldr .and .true as
+/-- Converts an HML into a unary modal model. -/
+def Model.toModal (m : Model State Label Atom) := Modal.Model.mk m.lts.toFrame m.v
 
-/-- Finite disjunction of propositions. -/
-@[simp, scoped grind =]
-def Proposition.finiteOr (as : List (Proposition Label)) : Proposition Label :=
-  List.foldr .or .false as
+@[simp, scoped grind =, modal =]
+theorem Model.toModal_toFrame (m : Model State Label Atom) :
+    m.toModal.toFrame = m.lts.toFrame := rfl
 
-/-- Satisfaction relation. `Satisfies lts s a` means that, in the LTS `lts`, the state `s` satisfies
-the proposition `a`. -/
-@[scoped grind]
-inductive Satisfies (lts : LTS State Label) : State → Proposition Label → Prop where
-  | true {s : State} : Satisfies lts s .true
-  | and {s : State} {a b : Proposition Label} :
-    Satisfies lts s a → Satisfies lts s b →
-    Satisfies lts s (.and a b)
-  | or₁ {s : State} {a b : Proposition Label} :
-    Satisfies lts s a → Satisfies lts s (.or a b)
-  | or₂ {s : State} {a b : Proposition Label} :
-    Satisfies lts s b → Satisfies lts s (.or a b)
-  | diamond {s s' : State} {μ : Label} {a : Proposition Label}
-    (htr : lts.Tr s μ s') (hs : Satisfies lts s' a) : Satisfies lts s (.diamond μ a)
-  | box {s : State} {μ : Label} {a : Proposition Label}
-    (h : ∀ s', lts.Tr s μ s' → Satisfies lts s' a) :
-    Satisfies lts s (.box μ a)
+/-- Shortcut for `Modal[HML.Model.toModal m,s ⊨ φ]`. -/
+scoped notation "HML[" m "," s " ⊨ " φ "]" => Modal[HML.Model.toModal m,s ⊨ φ]
 
-/-- Denotation of a proposition. -/
-@[simp, scoped grind =]
-def Proposition.denotation (a : Proposition Label) (lts : LTS State Label)
-    : Set State :=
-  match a with
-  | .true => Set.univ
-  | .false => ∅
-  | .and a b => a.denotation lts ∩ b.denotation lts
-  | .or a b => a.denotation lts ∪ b.denotation lts
-  | .diamond μ a => {s | ∃ s', lts.Tr s μ s' ∧ s' ∈ a.denotation lts}
-  | .box μ a => {s | ∀ s', lts.Tr s μ s' → s' ∈ a.denotation lts}
+end HML
 
-/-- The theory of a state is the set of all propositions that it satisfies. -/
-abbrev theory (lts : LTS State Label) (s : State) : Set (Proposition Label) :=
-  {a | Satisfies lts s a}
+open Model HML LTS
+open scoped HML.Model Modal.Proposition InferenceSystem Satisfies Frame LTS
 
-/-- Two states are theory-equivalent (for a specific LTS) if they have the same theory. -/
-abbrev TheoryEq (lts : LTS State Label) (s1 s2 : State) :=
-  theory lts s1 = theory lts s2
+variable {m : HML.Model State Label Atom}
 
-open Proposition LTS
+@[scoped grind =, modal =]
+theorem Satisfies.hml_atom_iff {p : Atom} : ⇓HML[m,s ⊨ p] ↔ m.v s p := by rfl
 
-/-- Characterisation theorem for the denotational semantics. -/
-@[scoped grind =]
-theorem satisfies_mem_denotation {lts : LTS State Label} :
-    Satisfies lts s a ↔ s ∈ a.denotation lts := by
-  induction a generalizing s <;> grind
+theorem Satisfies.hml_dynDiamond_iff_exists :
+    ⇓HML[m,s ⊨ d⟨μ⟩φ] ↔ ∃ s', m.lts.Tr s μ s' ∧ ⇓HML[m,s' ⊨ φ] := by
+  rw [Satisfies.dynDiamond_iff_exists]
+  simp [HML.Model.toModal]
 
-/-- A state satisfies a proposition iff it does not satisfy the negation of the proposition. -/
-@[simp, scoped grind =]
-theorem neg_satisfies {lts : LTS State Label} :
-    ¬Satisfies lts s a.neg ↔ Satisfies lts s a := by
-  induction a generalizing s <;> grind
+theorem Satisfies.hml_dynBox_iff_forall :
+    ⇓HML[m,s ⊨ d[μ]φ] ↔ ∀ s', m.lts.Tr s μ s' → ⇓HML[m,s' ⊨ φ] := by
+  rw [Satisfies.dynBox_iff_forall]
+  simp [HML.Model.toModal]
 
-/-- A state is in the denotation of a proposition iff it is not in the denotation of the negation
-of the proposition. -/
-@[scoped grind =]
-theorem neg_denotation {lts : LTS State Label} (a : Proposition Label) :
-    s ∉ a.neg.denotation lts ↔ s ∈ a.denotation lts := by
-  grind [_=_ satisfies_mem_denotation]
+@[modal ⇒]
+theorem Satisfies.hml_dynDiamond_intro (htr : m.lts.Tr s μ s')
+    (h : ⇓HML[m,s' ⊨ φ]) : ⇓HML[m,s ⊨ d⟨μ⟩φ] := by grind [modal]
 
-/-- A state satisfies a finite conjunction iff it satisfies all conjuncts. -/
-@[scoped grind =]
-theorem satisfies_finiteAnd {lts : LTS State Label} {s : State}
-    {as : List (Proposition Label)} :
-    Satisfies lts s (Proposition.finiteAnd as) ↔ ∀ a ∈ as, Satisfies lts s a := by
-  induction as <;> grind
-
-/-- A state satisfies a finite disjunction iff it satisfies some disjunct. -/
-@[scoped grind =]
-theorem satisfies_finiteOr {lts : LTS State Label} {s : State}
-    {as : List (Proposition Label)} :
-    Satisfies lts s (Proposition.finiteOr as) ↔ ∃ a ∈ as, Satisfies lts s a := by
-  induction as <;> grind
-
-@[scoped grind →]
-theorem satisfies_theory (h : Satisfies lts s a) : a ∈ theory lts s := by
-  grind
-
-/-- Two states are theory-equivalent iff they are denotationally equivalent. -/
-theorem theoryEq_denotation_eq {lts : LTS State Label} :
-    TheoryEq lts s1 s2 ↔
-    (∀ a : Proposition Label, s1 ∈ a.denotation lts ↔ s2 ∈ a.denotation lts) := by
-  grind [_=_ satisfies_mem_denotation]
-
-/-- If two states are not theory equivalent, there exists a distinguishing proposition. -/
-lemma not_theoryEq_satisfies (h : ¬ TheoryEq lts s1 s2) :
-    ∃ a, (Satisfies lts s1 a ∧ ¬Satisfies lts s2 a) := by
-  grind [=_ neg_satisfies]
-
-/-- If two states are theory equivalent and the former satisfies a proposition, the latter does as
-well. -/
-theorem theoryEq_satisfies {lts : LTS State Label} (h : TheoryEq lts s1 s2)
-    (hs : Satisfies lts s1 a) : Satisfies lts s2 a := by
-  unfold TheoryEq theory at h
-  rw [Set.ext_iff] at h
-  exact (h a).mp hs
+@[modal ⇒]
+theorem Satisfies.hml_dynBox_elim (hbox : ⇓HML[m,s ⊨ d[μ]φ])
+    (htr : m.lts.Tr s μ s') : ⇓HML[m,s' ⊨ φ] := by grind [modal]
 
 section ImageToPropositions
 
-variable {lts : LTS State Label} (stateMap : lts.image s μ → Proposition Label)
-variable [finImage : Fintype (lts.image s μ)]
+variable {s : State} {μ : Label} {m : HML.Model State Label Atom}
+  (stateMap : m.lts.image s μ → HML.Proposition Label Atom)
+  [finImage : Fintype (m.lts.image s μ)]
 
 /-- The list of propositions over finite μ-derivatives. -/
-noncomputable def propositions : List (Proposition Label) :=
+noncomputable def propositions : List (HML.Proposition Label Atom) :=
   finImage.elems.toList.map stateMap
 
-theorem propositions_complete (s' : lts.image s μ) : stateMap s' ∈ propositions stateMap := by
+theorem propositions_complete (s' : m.lts.image s μ) : stateMap s' ∈ propositions stateMap := by
   apply List.mem_map.mpr
   use s', Finset.mem_toList.mpr (Fintype.complete s')
 
-theorem propositions_satisfies_conjunction (htr : lts.Tr s1 μ s1')
-    (hdist_spec : ∀ s2', Satisfies lts s1' (stateMap s2')) :
-    Satisfies lts s1 (.diamond μ <| Proposition.finiteAnd (propositions stateMap)) := by
-  apply Satisfies.diamond htr
-  rw [satisfies_finiteAnd]
-  intro a ha_mem
-  grind [List.mem_map.mp ha_mem]
+theorem propositions_satisfies_conjunction (htr : m.lts.Tr s1 μ s1')
+    (hdist_spec : ∀ s2', ⇓HML[m,s1' ⊨ (stateMap s2')]) :
+    ⇓HML[m,s1 ⊨ d⟨μ⟩(⋀(propositions stateMap))] := by
+  rw [Satisfies.dynDiamond_iff_exists]
+  use s1', htr
+  rw [Satisfies.finiteAnd_iff_forall]
+  intro φ hφ_mem
+  grind [List.mem_map.mp hφ_mem]
 
 end ImageToPropositions
 
 /-- Theory equivalence is a bisimulation. -/
-@[scoped grind ⇒]
-theorem theoryEq_isBisimulation (lts : LTS State Label)
-    [image_finite : ∀ s μ, Finite (lts.image s μ)] :
-    lts.IsHomBisimulation (TheoryEq lts) := by
+theorem theoryEq_isBisimulation
+    [image_finite : ∀ s μ, Finite (m.lts.image s μ)] :
+    m.lts.IsHomBisimulation (TheoryEq m.toModal) := by
   intro s1 s2 h μ
-  let (s : State) := @Fintype.ofFinite (lts.image s μ) (image_finite s μ)
+  let (s : State) := @Fintype.ofFinite (m.lts.image s μ) (image_finite s μ)
   constructor
   case left =>
     intro s1' htr
     by_contra
-    have hdist : ∀ s2' : lts.image s2 μ, ∃ a, Satisfies lts s1' a ∧ ¬Satisfies lts s2'.val a := by
+    have hdist : ∀ s2' : m.lts.image s2 μ, ∃ φ, ⇓HML[m,s1' ⊨ φ] ∧
+        ¬⇓HML[m,s2'.val ⊨ φ] := by
       intro ⟨s2', hs2'⟩
       apply not_theoryEq_satisfies
       grind
     choose dist_formula hdist_spec using hdist
-    let conjunction := Proposition.finiteAnd (propositions dist_formula)
-    have hs1_diamond : Satisfies lts s1 (.diamond μ conjunction) := by
+    let conjunction := ⋀(propositions dist_formula)
+    have hs1_diamond : ⇓HML[m,s1 ⊨ d⟨μ⟩conjunction] := by
       grind [propositions_satisfies_conjunction]
-    cases (theoryEq_satisfies h hs1_diamond) with | @diamond _ s2'' _ _ htr2 hsat =>
+    obtain ⟨s2'', htr2, hsat⟩ := Satisfies.dynDiamond_iff_exists.mp
+      (theoryEq_satisfies h hs1_diamond)
     grind [propositions_complete dist_formula ⟨s2'', htr2⟩]
   case right =>
     -- Symmetric to left case
     intro s2' htr
     by_contra
-    have hdist : ∀ s1' : lts.image s1 μ, ∃ a, Satisfies lts s2' a ∧ ¬Satisfies lts s1'.val a := by
+    have hdist : ∀ s1' : m.lts.image s1 μ, ∃ a, ⇓HML[m, s2' ⊨ a] ∧
+        ¬⇓HML[m, s1'.val ⊨ a] := by
       intro ⟨s1', hs1'⟩
       apply not_theoryEq_satisfies
       grind
     choose dist_formula hdist_spec using hdist
-    let conjunction := Proposition.finiteAnd (propositions dist_formula)
-    have hs2_diamond : Satisfies lts s2 (.diamond μ conjunction) := by
+    let conjunction := ⋀(propositions dist_formula)
+    have hs2_diamond : ⇓HML[m,s2 ⊨ d⟨μ⟩conjunction] := by
       grind [propositions_satisfies_conjunction]
-    cases (theoryEq_satisfies h.symm hs2_diamond) with | @diamond _ s1'' _ _ htr1 hsat =>
+    obtain ⟨s1'', htr1, hsat⟩ :=
+      Satisfies.dynDiamond_iff_exists.mp (theoryEq_satisfies h.symm hs2_diamond)
     grind [propositions_complete dist_formula ⟨s1'', htr1⟩]
 
-/-- If two states are in a bisimulation and the former satisfies a proposition, the latter does as
-well. -/
-@[scoped grind ⇒]
-lemma bisimulation_satisfies {lts : LTS State Label}
-    {hrb : lts.IsHomBisimulation r}
-    (hr : r s1 s2) (a : Proposition Label) (hs : Satisfies lts s1 a) :
-    Satisfies lts s2 a := by
-  induction a generalizing s1 s2 with
-  | diamond => cases hs with | diamond htr _ => grind [hrb.follow_fst hr htr]
-  | _ => grind [IsBisimulation]
+/-- If two states are in a bisimulation, one satisfies a proposition iff the other does. -/
+lemma bisimulation_satisfies {hrb : m.lts.IsHomBisimulation r}
+    (hv : ∀ {s1 s2}, r s1 s2 → ∀ p, m.v s1 p ↔ m.v s2 p) (hr : r s1 s2)
+    (φ : HML.Proposition Label Atom) : ⇓HML[m,s1 ⊨ φ] ↔ ⇓HML[m,s2 ⊨ φ] := by
+  induction φ generalizing s1 s2 with
+  | triangle =>
+    rw [Proposition.triangle_def, Proposition.unary_triangle_eq_dynDiamond]
+    grind only [IsBisimulation, Satisfies.hml_dynDiamond_iff_exists]
+  | _ => grind
 
-lemma bisimulation_TheoryEq {lts : LTS State Label}
-    {hrb : lts.IsHomBisimulation r}
-    (hr : r s1 s2) :
-    TheoryEq lts s1 s2 := by
-  have : s2 ~[lts] s1 := by grind [Bisimilarity.symm]
-  grind
+lemma bisimulation_theoryEq {hrb : m.lts.IsHomBisimulation r}
+    (hv : ∀ {s1 s2}, r s1 s2 → ∀ p, m.v s1 p ↔ m.v s2 p) (hr : r s1 s2) :
+    TheoryEq m.toModal s1 s2 := by grind [bisimulation_satisfies]
 
 /-- Theory equivalence and bisimilarity coincide for image-finite LTSs. -/
-theorem theoryEq_eq_bisimilarity (lts : LTS State Label)
-    [image_finite : ∀ s μ, Finite (lts.image s μ)] :
-    TheoryEq lts = HomBisimilarity lts := by
+theorem theoryEq_eq_bisimilarity
+    [image_finite : ∀ s μ, Finite (m.lts.image s μ)]
+    (hv : ∀ {s1 s2}, s1 ~[m.lts] s2 → ∀ p, m.v s1 p ↔ m.v s2 p := by grind) :
+    TheoryEq m.toModal = HomBisimilarity m.lts := by
   ext s1 s2
   apply Iff.intro <;> intro h
-  · exists TheoryEq lts
-    grind
-  · obtain ⟨r, hr, hrb⟩ := h
-    apply bisimulation_TheoryEq hr
-    exact hrb
+  · exact ⟨TheoryEq m.toModal, h, theoryEq_isBisimulation⟩
+  · grind [bisimulation_satisfies]
 
-end Cslib.Logic.HML
+end Cslib.Logic.Modal

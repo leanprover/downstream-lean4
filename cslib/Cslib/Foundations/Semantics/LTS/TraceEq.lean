@@ -37,54 +37,6 @@ namespace Cslib.LTS
 
 open Deterministic
 
-/-- The traces of a state `s` is the set of all lists of labels `μs` such that there is a multi-step
-transition labelled by `μs` originating from `s`. -/
-def traces (lts : LTS State Label) (s : State) := { μs : List Label | ∃ s', lts.MTr s μs s' }
-
-/-- Definition of `LTS.traces` for general label sequences, ... -/
-theorem mem_traces_iff {lts : LTS State Label} (μs : List Label) :
-  μs ∈ lts.traces s ↔ ∃ s', lts.MTr s μs s' := Iff.rfl
-
-/-- ... singleton sequences, ... -/
-theorem mem_traces_singleton_iff {lts : LTS State Label} (μ : Label) :
-    [μ] ∈ lts.traces s ↔ ∃ s', lts.Tr s μ s' := by
-  simp_rw [mem_traces_iff, MTr.singleton_iff lts s μ]
-
-/-- ... and sequences extended with a single transition. -/
-theorem mem_traces_cons_iff {lts : LTS State Label} (μ : Label) (μs : List Label) :
-    (μ :: μs) ∈ lts.traces s ↔ ∃ s', lts.Tr s μ s' ∧ μs ∈ lts.traces s' := by
-  simp_rw [mem_traces_iff, MTr.cons_iff]
-  grind
-
-/-- If there is a multi-step transition from `s` labelled by `μs`, then `μs` is in the traces of
-`s`. -/
-theorem traces_in {lts : LTS State Label} (h : lts.MTr s μs s') : μs ∈ lts.traces s := by exists s'
-
-/-- In a deterministic lts, a state's traces are determined by any of its predecessors. -/
-theorem Deterministic.traces_of_tr {lts : LTS State Label} [lts.Deterministic]
-    (h : lts.Tr s μ s') : lts.traces s' = {μs | μ :: μs ∈ lts.traces s} := by
-  ext μs
-  constructor
-  · intro ⟨s'', hmtr⟩
-    use s'', MTr.stepL h hmtr
-  · intro ⟨s'', hmtr⟩
-    rcases hmtr with (_ | ⟨htr, hmtr⟩)
-    rw [←deterministic _ _ _ _ h htr] at hmtr
-    exact ⟨s'', hmtr⟩
-
-/-- In a deterministic lts, a state's traces are determined by any of its multi-step predecessors.
--/
-theorem Deterministic.traces_of_mTr {lts : LTS State Label} [lts.Deterministic]
-    (h : lts.MTr s μs s') : lts.traces s' = {μs' | μs ++ μs' ∈ lts.traces s} := by
-  ext μs'
-  constructor
-  · intro ⟨s'', hmtr⟩
-    use s'', h.comp _ hmtr
-  · intro ⟨s'', hmtr⟩
-    obtain ⟨smid, hmid, hmid'⟩ := hmtr.split
-    rw [Deterministic.eq_of_mTr h hmid]
-    use s'', hmid'
-
 /-- If `s₁` is simulated by `s₂` all of `s₁`'s traces are also traces of `s₂`. -/
 theorem IsSimulation.traces_subset (hr : IsSimulation lts₁ lts₂ r) (hrel : r s₁ s₂) :
     lts₁.traces s₁ ⊆ lts₂.traces s₂ := by
@@ -115,7 +67,6 @@ scoped notation s:max " ~tr[" lts "] " s':max => HomTraceEq lts s s'
 @[refl] theorem HomTraceEq.refl (s : State) : s ~tr[lts] s := rfl
 
 @[simp] theorem TraceEq.flip_eq : flip (TraceEq lts₁ lts₂) = TraceEq lts₂ lts₁ := by
-  ext s₁ s₂
   grind [flip, TraceEq]
 
 /-- Trace equivalence is symmetric. -/
@@ -136,19 +87,19 @@ theorem HomTraceEq.eqv : Equivalence (· ~tr[lts] ·) where
 instance : Trans (TraceEq lts₁ lts₂) (TraceEq lts₂ lts₃) (TraceEq lts₁ lts₃) where
   trans := TraceEq.trans
 
-/-- For trace-equivalent states, any multistep transition of one can be mimiced by the other. -/
+/-- For trace-equivalent states, any multistep transition of one can be mimicked by the other. -/
 theorem TraceEq.exists_mTr_of_mTr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.MTr s₁ μs s₁') : ∃ s₂', lts₂.MTr s₂ μs s₂' := by
   rw [←mem_traces_iff, ←h]
   exact ⟨s₁', htr⟩
 
-/-- For trace-equivalent states, any single-step transition of one can be mimiced by the other. -/
+/-- For trace-equivalent states, any single-step transition of one can be mimicked by the other. -/
 theorem TraceEq.exists_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.Tr s₁ μ s₁') : ∃ s₂', lts₂.Tr s₂ μ s₂' := by
   rw [←mem_traces_singleton_iff, ←h, mem_traces_singleton_iff]
   exact ⟨s₁', htr⟩
 
-/-- For deterministic lts's, trace equivalence is preseved by respective transitions with the same
+/-- For deterministic lts's, trace equivalence is preserved by respective transitions with the same
 label. -/
 theorem TraceEq.traceEq_of_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
     [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic] (h : s₁ ~tr[lts₁,lts₂] s₂)

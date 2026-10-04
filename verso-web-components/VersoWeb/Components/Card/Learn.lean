@@ -45,7 +45,7 @@ def learnCard [MonadStateOf Component.State m] [Monad m]  (card : Card) : m Html
           {{
             if card.tags.isEmpty then .empty else
               {{<div class="tags">
-                {{ card.tags.map fun tag => {{ <span class="item-tag">{{ .text true tag }}</span> }} }}
+                {{ card.tags.map fun tag => {{ <span class="item-tag">{{ .text tag }}</span> }} }}
                 </div>
               }}
           }}

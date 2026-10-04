@@ -6,6 +6,8 @@ Author: David Thrane Christiansen
 /-
   Tests for rendering-related HTML output.
 -/
+module
+
 import SubVerso.Highlighting.Highlighted
 import VersoSlides.Render
 import VersoSlides.SlideCode
@@ -18,6 +20,7 @@ open SubVerso.Highlighting Highlighted
 open Verso.Code (HighlightHtmlM)
 open Verso.Code.Hover (State)
 open Verso Output Html
+open Lean (Html)
 open VersoSlides
 
 
@@ -46,7 +49,7 @@ def runHighlightHtml (act : HighlightHtmlM Slides Html) : Html :=
 
 /-- Renders a `SlideCode` to an HTML string. -/
 def renderStr (sc : SlideCode) : String :=
-  (runHighlightHtml (sc.toHtml (g := Slides))).asString
+  (runHighlightHtml (sc.toHtml (g := Slides))).render
 
 
 structure TestState where
@@ -99,7 +102,7 @@ def testHtmlHas (name : String) (html needle : String) : TestM Unit := do
     }
 
 
-def main : IO UInt32 := do
+public def main : IO UInt32 := do
   let ((), s) ← tests.run {}
   s.report
 where
@@ -224,5 +227,5 @@ where
       { extraHead := #[{{ <script type="module" src={{blueprintRuntime}}></script> }}] }
       "Deck" (.seq #[])
     testHtmlHas "extraHead renders module script"
-      fullHtml.asString
+      fullHtml.render
       s!"<script type=\"module\" src=\"{blueprintRuntime}\"></script>"

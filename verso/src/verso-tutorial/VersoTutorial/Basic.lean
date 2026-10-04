@@ -30,12 +30,21 @@ open Lean
 open Verso.Doc (Genre)
 open Verso.Multi
 
+/--
+The default toolchain to be used for example code when no other toolchain is specified.
+
+This default toolchain is the current toolchain version.
+-/
 @[expose] def defaultToolchain :=
   if Lean.versionString.find? "nightly" |>.isSome then
     "leanprover/lean4:nightly" ++ (Lean.versionString.split "nightly" |>.toArray[1]!).copy
   else
     "leanprover/lean4:" ++ Lean.versionString
 
+/--
+The default toolchain to be used for links to `live.lean-lang.org`, which is the toolchain that
+corresponds to the current Lean version.
+-/
 @[expose] def defaultLive := "lean-v" ++ Lean.versionString
 
 /-- A style by which example code in a tutorial should be made runnable. -/
@@ -49,8 +58,20 @@ deriving BEq, Hashable, DecidableEq, Inhabited, Repr, ToJson, FromJson
 open Manual (Tag InternalId) in
 /-- Metadata on tutorials. -/
 structure Tutorial.PartMetadata where
-  /-- The main tag for the part, used for cross-references. -/
-  tag : Option Tag := none
+  /--
+  This part's canonical name.
+
+  The canonical name is used for stable cross references. It also serves as the basis
+  for the section's HTML ID.
+  -/
+  tag : Option String := none
+  /--
+  This part's cross-referencing tag.
+
+  This field is set during traversal, which derives a unique external tag from the part's
+  canonical name.
+  -/
+  xrefTag : Option Tag := none
   /-- Use this filename component in the URL. -/
   slug : String
   /-- The internal unique ID, which is automatically assigned during traversal. -/
@@ -133,7 +154,7 @@ instance : TraverseBlock Tutorial where
 /--
 Saves a cross-reference to a part to the section domain.
 -/
-def savePartXref (slug : Slug) (id : InternalId) (part : Part Tutorial) : Manual.TraverseM Unit := do
+def savePartXref (name : String) (id : InternalId) (part : Part Tutorial) : Manual.TraverseM Unit := do
   let jsonMetadata :=
     Json.arr (TraversePart.inPart part (← read) |>.headers.map (fun h => json%{
       "title": $h.titleString
@@ -141,8 +162,8 @@ def savePartXref (slug : Slug) (id : InternalId) (part : Part Tutorial) : Manual
   let title := TraversePart.inPart part (← read) |>.headers |>.back? |>.map (·.titleString)
 
   modify fun (st : Manual.TraverseState) =>
-    st.saveDomainObject Manual.sectionDomain slug.toString id
-      |>.saveDomainObjectData Manual.sectionDomain slug.toString (json%{
+    st.saveDomainObject Manual.sectionDomain name id
+      |>.saveDomainObjectData Manual.sectionDomain name (json%{
         "context": $jsonMetadata,
         "title": $title,
         "shortTitle": null,
@@ -194,7 +215,7 @@ instance : Traverse Tutorial TraverseM where
     «meta» := { «meta» with id := some id }
 
     -- Next, assign a tag, prioritizing user-chosen external IDs.
-    «meta» := { «meta» with tag := ← tagPart part «meta» (·.id) (·.tag) savePartXref }
+    «meta» := { «meta» with xrefTag := ← tagPart part «meta» (·.id) (·.xrefTag) (·.tag) savePartXref }
 
     -- Traverse the metadata's description
     «meta» := { «meta» with summary := ← withReader (TraversePart.inPart part) <| Genre.traverseInline Manual «meta».summary }

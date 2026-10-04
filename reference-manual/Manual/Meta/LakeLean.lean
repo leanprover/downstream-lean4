@@ -4,18 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-
+module
+public import Manual.Meta.ModuleExample
+import VersoManual.InlineLean -- shake: keep
+public meta import Manual.Meta.ExpectString
 import SubVerso.Module
 
-import Manual.Meta.Basic
-import Manual.Meta.ExpectString
-import Manual.Meta.ModuleExample
+public section
 
 /-!
 The `lakeLean` directive, the Lean-format counterpart to `lakeToml`.
@@ -31,7 +26,6 @@ SubVerso highlighting of the source (for display).
 open Verso ArgParse Doc Elab Genre.Manual
 open Verso.Log
 open Lean Elab
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -39,7 +33,7 @@ structure LakeLeanOpts where
   /-- Whether to display the highlighted configuration, or only validate it. -/
   «show» : Bool
 
-def LakeLeanOpts.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] :
+meta def LakeLeanOpts.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] :
     ArgParse m LakeLeanOpts :=
   LakeLeanOpts.mk <$> ((·.getD true) <$> .named `show .bool true)
 
@@ -52,22 +46,18 @@ executable. The configuration is elaborated, the result is checked against the `
 (unless `show` is `false`) the highlighted configuration is displayed.
 -/
 @[directive_expander lakeLean]
-def lakeLean : DirectiveExpander
+meta def lakeLean : DirectiveExpander
   | args, contents => do
     let opts ← LakeLeanOpts.parse.run args
-    let (expected, contents) := contents.partition fun
-      | `(block| ``` expected | $_ ```) => true
-      | _ => false
-    let leanBlocks := contents.filterMap fun
-      | `(block| ``` lean $_* | $leanStr ```) => some leanStr
-      | _ => none
+    let (expected, contents) := contents.partition (namedCodeBlock `expected · |>.isSome)
+    let leanBlocks := contents.filterMap (namedCodeBlock `lean ·)
 
     if h : expected.size ≠ 1 then
       throwError "Expected exactly 1 'expected' code block, got {expected.size}"
     else if h : leanBlocks.size ≠ 1 then
       throwError "Expected exactly 1 'lean' code block, got {leanBlocks.size}"
     else
-      let `(block| ```expected | $expectedStr ```) := expected[0]
+      let some expectedStr := namedCodeBlock `expected expected[0]
         | throwErrorAt expected[0] "Expected an 'expected' code block with no arguments"
       let leanStr := leanBlocks[0]
 

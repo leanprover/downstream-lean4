@@ -27,11 +27,14 @@ codomain's
 codomains
 combinator
 combinators
+connectionless
 constructorless
 conv
 cumulative
 cumulativity
 cutsat
+datagram
+datagrams
 decide_cbv
 deallocate
 deallocated
@@ -58,6 +61,10 @@ desugaring
 desugaring
 desugarings
 desugars
+disambiguator
+disambiguators
+discharger
+dischargers
 discriminant
 discriminant's
 disequality
@@ -84,6 +91,8 @@ functors
 guillemet
 guillemets
 hoc
+idempotent
+idempotence
 impredicative
 impredicativity
 indexable
@@ -100,6 +109,7 @@ invalidField
 iterator
 iterator's
 iterators
+Landlock
 letterlike
 linearization
 linearize
@@ -127,6 +137,7 @@ monomorphic
 monomorphism
 morphism
 morphisms
+multicast
 multipattern
 multipatterns
 multiset
@@ -169,12 +180,17 @@ quotiented
 recursor
 recursor's
 recursors
+reinvoke
+reinvoked
 Repr
 sandboxed
 satisfiability
 scrutinee
 scrutinees
 se
+selectable
+selectables
+selectable's
 semigroup
 semireducible
 semiring
@@ -189,6 +205,7 @@ simps
 subcommand
 subcommand's
 subcommands
+subcomputation
 subarray
 subarrays
 subexpression
@@ -226,6 +243,9 @@ unfoldings
 uninstantiated
 unknownIdentifier
 unparenthesized
+unregister
+unregisters
+unregistering
 uploader
 upvote
 VC
