@@ -40,6 +40,14 @@ namespace Nerodia.Compiler
   throwError m!"Cannot add attribute `[{attrName}]`: \
     A Python module must first be configured with `py_module`."
 
+/--
+Registers a Lean definition as a Python module initializer.
+The definition must have type {name (scope := "Nerodia.Data.ExportTypes")}`PyModuleInit`.
+Module initializers are run during module initialization in the order they
+appear in the Lean module.
+-/
+syntax (name := py_module_init) "py_module_init" : attr
+
 initialize
   let attrName := `py_module_init
   let typeName := `Nerodia.PyModuleInit
@@ -49,7 +57,8 @@ initialize
     descr := "mark a definition as the Python module initializer"
     applicationTime := .afterCompilation
     add := fun declName stx kind => do
-      Attribute.Builtin.ensureNoArgs stx
+      let `(attr|py_module_init) := stx
+        | throwError "ill-formed [py_module_init] attribute syntax"
       unless kind == AttributeKind.global do
         throwAttrMustBeGlobal attrName kind
       let env ← getEnv
@@ -66,15 +75,36 @@ initialize
       modifyModuleConfig fun cfg => {cfg with inits := cfg.inits.push sym}
   }
 
+/--
+Exports a Lean definition as a Python module function.
+
+A different name can be specified for the Python definition via
+`@[py_module_fn "name"]`. A common use case for this is to change casing.
+Lean names are usually camel case and Python names snake case.
+
+If the Lean definition has a docstring, it will be used as the {lit}`__doc__`
+attribute of the Python function (and usually show up when the function is
+hovered in a Python editor).
+-/
 syntax (name := py_module_fn) "py_module_fn" (ppSpace str)?
   (ppSpace atomic("(" &"sig") " := " str ")")? : attr
+
+@[inline] partial def evalTypeExpr (x : Expr) : MetaM String := do
+  go x
+where go x := do
+  let x ← withTransparency .default <| whnf x
+  if let some (lhs, rhs) := x.app2? `Nerodia.TypeExpr.union then
+    return s!"{← go lhs} | {← go rhs}"
+  else if let some x := x.app1? `Nerodia.TypeExpr.optional then
+    return s!"{← go x} | None"
+  else
+    let x := mkApp (mkConst `Nerodia.TypeExpr.toString) x
+    withTransparency .all <| reduceEval x
 
 def mkHint (p : Expr) : MetaM (Option String) := do
   let inst? ← trySynthInstance (mkApp (mkConst `Nerodia.ToTypeExpr) p)
   if let .some inst := inst? then
-    let hintExpr := mkApp2 (mkConst `Nerodia.ToTypeExpr.toTypeExpr) p inst
-    let hintExpr := mkApp (mkConst `Nerodia.TypeExpr.toString) hintExpr
-    return some (← withTransparency .all <| reduceEval hintExpr)
+    evalTypeExpr <| mkApp2 (mkConst `Nerodia.ToTypeExpr.toTypeExpr) p inst
   else
     return none
 
@@ -91,10 +121,10 @@ def mkPyResultCore
   return (x, hint?)
 
 @[inline] def mkPyResult (ty : Expr) (x : Expr) : MetaM (Expr × Option String) :=
-  mkPyResultCore `Nerodia.MkPyResult `Nerodia.Internal.mkPyResult ty x
+  mkPyResultCore `Nerodia.Internal.MkPyResult `Nerodia.Internal.mkPyResult ty x
 
 @[inline] def mkCPyResult (ty : Expr) (x : Expr) : MetaM (Expr × Option String) :=
-  mkPyResultCore `Nerodia.MkCPyResult `Nerodia.Internal.mkCPyResult ty x
+  mkPyResultCore `Nerodia.Internal.MkCPyResult `Nerodia.Internal.mkCPyResult ty x
 
 def mkArgCore
   (fnName : Name)
@@ -102,7 +132,7 @@ def mkArgCore
 : MetaM (Expr × Option String) := do
   let predTy := mkConst `Nerodia.Typing
   let predExpr ← mkFreshExprMVar (some predTy)
-  let inst ← synthInstance (mkApp2 (mkConst `Nerodia.OfPyArg) ty predExpr)
+  let inst ← synthInstance (mkApp2 (mkConst `Nerodia.Internal.OfPyArg) ty predExpr)
   let x := mkApp6 (mkConst fnName) ty predExpr inst fn i arg
   let hint? ← mkHint predExpr
   return (x, hint?)
@@ -110,7 +140,7 @@ def mkArgCore
 @[inline] def mkArg
   (fn : Expr) (i : Nat) (ty : Expr) (arg : Expr)
 : MetaM (Expr × Option String) := do
-  mkArgCore `Nerodia.OfPyArg.ofPyArg fn (toExpr (i+1)) ty arg
+  mkArgCore `Nerodia.Internal.OfPyArg.ofPyArg fn (toExpr (i+1)) ty arg
 
 @[inline] def mkCArg
   (fn : Expr) (i : USize) (ty : Expr) (args : Expr)
@@ -275,6 +305,17 @@ initialize
       modifyModuleConfig fun cfg => {cfg with methods := cfg.methods.push df}
   }
 
+/--
+Exports a Lean definition as a Python module attribute.
+The value of the attribute is computed upon first import.
+
+A different name can be specified for the Python definition via
+`@[py_module_attr "name"]`. A common use case for this is to change casing.
+Lean names are usually camel case and Python names snake case.
+
+If the Lean definition has a docstring, it will be attached to the Python
+attribute (and usually show up when it is hovered in a Python editor).
+-/
 syntax (name := py_module_attr) "py_module_attr" (ppSpace str)?
   (ppSpace atomic("(" &"ty") " := " str ")")? : attr
 

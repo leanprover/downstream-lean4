@@ -140,7 +140,7 @@ def head (siteName : String) (rootTitle : String) (config : HeadConfig) (variabl
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oranienbaum&display=swap" />
 
-      <style> {{ .text false (variables.toCSS) }} </style>
+      <style> {{ .raw (variables.toCSS) }} </style>
 
       <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
 

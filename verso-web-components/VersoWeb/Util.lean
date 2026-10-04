@@ -11,7 +11,8 @@ import Std.Data.HashSet
 
 namespace Verso.Web.Util
 
-open Verso.Output Html
+open Verso
+open Lean (Html)
 open Verso Genre Blog Template ArgParse
 
 /--
@@ -70,7 +71,7 @@ Sets an attribute on an HTML element only if the value is defined.
 -/
 def setAttributeOption (attr : String) (value : Option String) (html : Html) : Html :=
   if let some value := value
-    then setAttribute attr value html
+    then Html.setAttribute attr value html
     else html
 
 /--
@@ -85,8 +86,8 @@ Extract text content from HTML, removing all tags.
 -/
  def extractText (html : Html) : String :=
   match html with
-  | Html.text _ content => content
-  | Html.tag _ _ contents => extractText contents
+  | Html.text content | Html.raw content => content
+  | Html.element _ _ contents => extractText contents
   | Html.seq contents =>
     contents.foldl (fun acc h => acc ++ extractText h) ""
 
@@ -116,14 +117,14 @@ Truncate HTML text content to a maximum length, adding "..." if truncated.
             else acc ++ "..."
         else buildResult newAcc rest
     let truncatedText := buildResult "" words
-    Html.text false truncatedText
+    Html.raw truncatedText
 
 /--
 Remove HTML wrapper and extract text content.
 -/
 partial def removeWrapper : Html → String
-  | .text _ s => s
-  | .tag _ _ h => removeWrapper h
+  | .text s | .raw s => s
+  | .element _ _ h => removeWrapper h
   | .seq hs => String.intercalate " " (hs.toList.map removeWrapper)
 
 /--
@@ -140,8 +141,9 @@ no leading slash) so that the permalink href resolves correctly against the Vers
 -/
 partial def addSlug (page : String) : Html → Html
   | .seq h => .seq (h.map (addSlug page))
-  | .text s e => .text s e
-  | .tag t a h =>
+  | .text s => .text s
+  | .raw s => .raw s
+  | .element t a h =>
     let findId (attrs : Array (String × String)) := (attrs.find? (·.1 == "id")).map (·.2)
     let theresId (attrs : Array (String × String)) := attrs.any (·.1 == "id")
 
@@ -149,19 +151,19 @@ partial def addSlug (page : String) : Html → Html
     | "h1" =>
       let slug := findId a |>.getD (createSlug (removeWrapper h))
       let finalAttrs := if theresId a then a else a.push ("id", slug)
-      .tag "h1" finalAttrs h
+      .element "h1" finalAttrs h
     | "h2" | "h3" | "h4" =>
       let slug := findId a |>.getD (createSlug (removeWrapper h))
       let finalAttrs := if theresId a then a else a.push ("id", slug)
       let hasNoPermalink := a.any (fun (k, v) => k == "class" && v.splitOn.any (· == "no-permalink"))
       if hasNoPermalink then
-        .tag t finalAttrs h
+        .element t finalAttrs h
       else
-        let anchor := Html.tag "a" #[("href", s!"{page}#{slug}"), ("title", "Permalink")] #[Html.text false "🔗"]
-        let widget := Html.tag "span" #[("class", "permalink-widget inline")] #[anchor]
-        .tag t finalAttrs (.seq #[h, widget])
+        let anchor := Html.element "a" #[("href", s!"{page}#{slug}"), ("title", "Permalink")] #[Html.raw "🔗"]
+        let widget := Html.element "span" #[("class", "permalink-widget inline")] #[anchor]
+        .element t finalAttrs (.seq #[h, widget])
     | _ =>
-      .tag t a (addSlug page h)
+      .element t a (addSlug page h)
 
 /--
 Collect H1-H4 headings and build a table of contents.
@@ -170,7 +172,7 @@ partial def collectH1 (html : Html) (page : String) : Option Html :=
     let res := (collect [] html |>.reverse)
     if ¬ res.isEmpty then
       let (html, _) := compact 2 res
-      Html.tag "ol" #[] #[Html.seq (html.toArray |>.map (Html.tag "li" #[]))]
+      Html.element "ol" #[] #[Html.seq (html.toArray |>.map (Html.element "li" #[]))]
     else
       none
   where
@@ -182,8 +184,8 @@ partial def collectH1 (html : Html) (page : String) : Option Html :=
       | _ => 0
 
     collect (col : List (Nat × String)) : Html → List (Nat × String)
-      | .text _ _ => col
-      | .tag t _ h =>
+      | .text _ | .raw _ => col
+      | .element t _ h =>
         match t with
         | "h1" | "h2" | "h3" | "h4" => (getLevel t, removeWrapper h) :: col
         | _ => collect col h
@@ -193,10 +195,10 @@ partial def collectH1 (html : Html) (page : String) : Option Html :=
       | (level, str) :: xs =>
         if level = current then
           let slug := createSlug str
-          let headingLink := Html.tag "a" #[("href", s!"{page}#{slug}")] #[Html.text false str]
+          let headingLink := Html.element "a" #[("href", s!"{page}#{slug}")] #[Html.raw str]
 
           let (children, remaining) := compactChildren (level + 1) xs
-          let item := if children.isEmpty then headingLink else Html.seq #[headingLink, Html.tag "ol" #[] (Html.seq children.toArray)]
+          let item := if children.isEmpty then headingLink else Html.seq #[headingLink, Html.element "ol" #[] (Html.seq children.toArray)]
           let (siblings, final) := compact level remaining
 
           (item :: siblings, final)
@@ -211,7 +213,7 @@ partial def collectH1 (html : Html) (page : String) : Option Html :=
         if level >= minLevel then
           let (item, remaining) := compact level ((level, str) :: xs)
           let (siblings, final) := compactChildren minLevel remaining
-          (item.map (Html.tag "li" #[]) ++ siblings, final)
+          (item.map (Html.element "li" #[]) ++ siblings, final)
         else
           ([], (level, str) :: xs)
       | [] => ([], [])
@@ -219,8 +221,8 @@ partial def collectH1 (html : Html) (page : String) : Option Html :=
 defmethod Html.classNames (html : Html) : Array  String :=
   let rec go (h : Html) (acc : Std.HashSet String) : Std.HashSet String :=
     match h with
-    | .text _ _ => acc
-    | .tag _ attrs contents =>
+    | .text _ | .raw _ => acc
+    | .element _ attrs contents =>
       let classAcc := attrs.foldl (fun acc (k, v) =>
         if k == "class" then
           -- Split class string by whitespace and add each class

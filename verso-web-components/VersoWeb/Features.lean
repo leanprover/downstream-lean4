@@ -13,7 +13,7 @@ open Verso Doc Elab
 open Lean Elab
 open Lean.Doc (CodeBlockView CodeView TextView)
 open Verso.ArgParse
-open Verso.Output (Html)
+open Lean (Html)
 
 private def codeblockContents (stx : TSyntax ``Lean.Doc.Parser.block) : Option String :=
   match CodeBlockView.of stx with
@@ -117,7 +117,7 @@ partial def toml : CodeBlockExpander
 where
   infoHtml : SourceInfo → Html → Html
     | .original leading _ trailing _, html =>
-      .text false leading.toString ++ html ++ .text false trailing.toString
+      .raw leading.toString ++ html ++ .raw trailing.toString
     | _, html => html
 
   hl (cls : String) (html : Html) : Html := {{<span class={{cls}}>{{html}}</span>}}
@@ -157,7 +157,7 @@ where
     | .node info ``Lake.Toml.decInt elts => infoHtml info <| hl "num" <| elts.map highlightToml
     | .node info ``Lake.Toml.array elts => infoHtml info <| elts.map highlightToml
     | .node info ``Lake.Toml.inlineTable elts => infoHtml info <| elts.map highlightToml
-    | .atom info str => infoHtml info (.text true str)
+    | .atom info str => infoHtml info (.text str)
     | other => {{ "Failed to highlight TOML (probably highlightToml in Lang.Features needs another pattern case): " {{toString other}} }}
 
 
@@ -169,14 +169,14 @@ def collapsedDetails : DirectiveExpander
   | args, contents => do
     let summary ← ArgParse.run (.positional `summary .string) args
     let blocks ← contents.mapM elabBlock
-    let summary ← ``(Block.other (BlockExt.blob (Html.tag "summary" #[] #[Html.text true $(quote summary)])) #[])
+    let summary ← ``(Block.other (BlockExt.blob (Html.element "summary" #[] #[Html.text $(quote summary)])) #[])
     pure #[← ``(Block.other (BlockExt.htmlWrapper "details" #[]) #[$summary, $blocks,*])]
 
 @[directive_expander TODO]
 def TODO : DirectiveExpander
   | _, contents => do
     let blocks ← contents.mapM elabBlock
-    let header ← ``(Block.other (BlockExt.blob (Html.tag "h3" #[] #[Html.text true "TODO"])) #[])
+    let header ← ``(Block.other (BlockExt.blob (Html.element "h3" #[] #[Html.text "TODO"])) #[])
     pure #[← ``(Block.other (BlockExt.htmlWrapper "div" #[("class", "TODO")]) #[$header, $blocks,*])]
 
 @[role_expander TODO]

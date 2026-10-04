@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella
 -/
 
-import VersoManual
-import Manual.Meta
-import Manual.Meta.ErrorExplanation.Example
-import Manual.Meta.ErrorExplanation.Header
+module
+import VersoManual.Html.SoftHyphenate
+public import Manual.Meta.ErrorExplanation.Example
+public import Manual.Meta.ErrorExplanation.Header
+
+public section
 
 open Lean
 open Verso.Doc
@@ -28,6 +30,6 @@ def getBreakableSuffix (name : Name) : Option String := do
   htmlText breakableHtml
 where
   htmlText : Verso.Output.Html → String
-    | .text _ txt => txt
+    | .text txt | .raw txt => txt
     | .seq elts => elts.foldl (· ++ htmlText ·) ""
-    | .tag _nm _attrs children => htmlText children
+    | .element _nm _attrs children => htmlText children

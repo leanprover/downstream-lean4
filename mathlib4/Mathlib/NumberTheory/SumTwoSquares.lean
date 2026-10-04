@@ -5,9 +5,9 @@ Authors: Chris Hughes, Michael Stoll
 -/
 module
 
-public import Mathlib.Data.Nat.Squarefree
+import Mathlib.Data.Nat.Squarefree
 public import Mathlib.NumberTheory.Zsqrtd.QuadraticReciprocity
-public import Mathlib.NumberTheory.Padics.PadicVal.Basic
+import Mathlib.NumberTheory.Padics.PadicVal.Basic
 
 /-!
 # Sums of two squares
@@ -216,8 +216,15 @@ theorem Nat.eq_sq_add_sq_iff {n : ℕ} :
   refine eq_sq_add_sq_iff_eq_sq_mul.trans ⟨fun ⟨a, b, h₁, h₂⟩ q hq h ↦ ?_, fun H ↦ ?_⟩
   · have : Fact q.Prime := ⟨prime_of_mem_primeFactors hq⟩
     have : q ∣ b → q ∈ b.primeFactors := by grind
+    #adaptation_note /-- Before nightly-2026-09-25 this was:
+    ```lean
     grind (splits := 10) [padicValNat.mul, padicValNat.pow,
       padicValNat.eq_zero_of_not_dvd, mod_four_ne_three_of_mem_primeFactors_of_isSquare_neg_one]
+    ```
+    -/
+    have : ¬q ∣ b := by grind only [mod_four_ne_three_of_mem_primeFactors_of_isSquare_neg_one]
+    rw [h₁, padicValNat.mul (by lia) (by lia)]
+    simp [padicValNat.eq_zero_of_not_dvd this]
   · obtain ⟨b, a, hb₀, ha₀, hab, hb⟩ := sq_mul_squarefree_of_pos hn₀
     refine ⟨a, b, hab.symm, ZMod.isSquare_neg_one_iff_forall_mem_primeFactors_mod_four_ne_three hb
       |>.mpr fun q hq hq4 ↦ ?_⟩

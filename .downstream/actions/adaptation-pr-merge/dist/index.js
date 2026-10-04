@@ -25018,6 +25018,88 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
+// actions/lib/util.ts
+function sleep(ms) {
+  return new Promise((resolve2) => setTimeout(resolve2, ms));
+}
+function abort(reason) {
+  setFailed(reason);
+  process.exit(1);
+}
+function assert(condition, message) {
+  if (!condition) abort(message);
+}
+function runIn(cwd) {
+  return async function(cmd, args, options) {
+    return await exec(cmd, args, { ...options, cwd });
+  };
+}
+function captureIn(cwd) {
+  const run2 = runIn(cwd);
+  return async function(cmd, args) {
+    let stdout = "";
+    await run2(cmd, args, {
+      listeners: { stdout: (data) => stdout += data.toString() }
+    });
+    return stdout.trim();
+  };
+}
+var Repo = class {
+  owner;
+  repo;
+  constructor(fst, repo) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo;
+    }
+  }
+  get fullName() {
+    return `${this.owner}/${this.repo}`;
+  }
+};
+async function getPr(octo2, repo, n) {
+  const { data } = await octo2.rest.pulls.get({
+    ...repo,
+    pull_number: n
+  });
+  return data;
+}
+async function isAncestor(octo2, repo, ancestorSha, descendantSha) {
+  const { data } = await octo2.rest.repos.compareCommitsWithBasehead({
+    ...repo,
+    basehead: `${ancestorSha}...${descendantSha}`
+  });
+  return data.status === "ahead" || data.status === "identical";
+}
+function upstreamPrNumberFor(branchName) {
+  const match = /^adaptation-(\d+)$/.exec(branchName);
+  return match === null ? void 0 : parseInt(match[1], 10);
+}
+async function addAndCommit(cwd, message) {
+  await exec("git", ["add", "."], { cwd });
+  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
+    cwd,
+    ignoreReturnCode: true
+  });
+  if (returnCode === 0) return false;
+  await exec("git", ["commit", "-m", message], { cwd });
+  return true;
+}
+
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
+}
+function parseRepo(input) {
+  const match = /^([^/]+)\/([^/]+)$/.exec(input);
+  assert(match !== null, `Expected "owner/repo", not "${input}"`);
+  return new Repo(match[1], match[2]);
+}
+
 // actions/lib/status-message.ts
 var MARKER = "ybVeuCO3cIRWlSWmC/cEvg2Na4yzOwEa";
 async function postOrUpdateStatus(options) {
@@ -25069,74 +25151,18 @@ async function postOrUpdateStatus(options) {
   }
 }
 
-// actions/lib/util.ts
-function sleep(ms) {
-  return new Promise((resolve2) => setTimeout(resolve2, ms));
-}
-function abort(reason) {
-  setFailed(reason);
-  process.exit(1);
-}
-function assert(condition, message) {
-  if (!condition) abort(message);
-}
-function getInput2(name) {
-  return getInput(name, { required: true });
-}
-function parseRepo(input) {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
-}
-async function getPr(octo2, repo, n) {
-  const { data } = await octo2.rest.pulls.get({
-    ...repo,
-    pull_number: n
-  });
-  return data;
-}
-async function isAncestor(octo2, repo, ancestorSha, descendantSha) {
-  const { data } = await octo2.rest.repos.compareCommitsWithBasehead({
-    ...repo,
-    basehead: `${ancestorSha}...${descendantSha}`
-  });
-  return data.status === "ahead" || data.status === "identical";
-}
-function upstreamPrNumberFor(branchName) {
-  const match = /^adaptation-(\d+)$/.exec(branchName);
-  return match === null ? void 0 : parseInt(match[1], 10);
-}
-async function addAndCommit(cwd, message) {
-  await exec("git", ["add", "."], { cwd });
-  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
-    cwd,
-    ignoreReturnCode: true
-  });
-  if (returnCode === 0) return false;
-  await exec("git", ["commit", "-m", message], { cwd });
-  return true;
-}
-
 // actions/adaptation-pr-merge/main.ts
 var appToken = getInput2("app-token");
 var appSlug = getInput2("app-slug");
-var upstreamRepo = parseRepo(getInput2("upstream-repo"));
+var upstreamRepo = getInput2("upstream-repo", parseRepo);
 var upstreamRev = getInput2("upstream-rev");
-var downstreamRepo = context2.repo;
+var downstreamRepo = new Repo(context2.repo);
 var downstreamClone = getInput2("downstream-clone");
 var downstreamLabel = getInput2("downstream-label");
 var downstreamLabelMerge = getInput2("downstream-label-merge");
 var octo = getOctokit(appToken);
-async function dRun(cmd, args, options) {
-  return await exec(cmd, args, { ...options, cwd: downstreamClone });
-}
-async function dCapture(cmd, args) {
-  let stdout = "";
-  await dRun(cmd, args, {
-    listeners: { stdout: (data) => stdout += data.toString() }
-  });
-  return stdout.trim();
-}
+var dRun = runIn(downstreamClone);
+var dCapture = captureIn(downstreamClone);
 async function tell(aPr, body) {
   await postOrUpdateStatus({
     octo,

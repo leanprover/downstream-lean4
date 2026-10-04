@@ -32,7 +32,8 @@ inputs:
   repost:
     description: >
       If `true`, delete the previous status message and post the new one as a
-      fresh comment instead of editing it in place. Defaults to `false`.
+      fresh comment instead of editing it in place.
+    default: false
 
 runs:
   using: node24

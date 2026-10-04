@@ -22,7 +22,7 @@ critical = false
 
 [cslib]
 url = "https://github.com/leanprover/cslib"
-rev = "nightly-testing"
+rev = "main"
 critical = false
 build_options = ["--wfail", "--iofail"]
 test_options = ["--wfail", "--iofail"]

@@ -3,6 +3,8 @@ import CslibTests.BooleanCircuits
 import CslibTests.CCS
 import CslibTests.CCS.VendingMachine
 import CslibTests.CLL
+import CslibTests.CircuitComplexity
+import CslibTests.CircuitComposition
 import CslibTests.CircuitCounting
 import CslibTests.Circuits
 import CslibTests.Commitment
@@ -23,8 +25,12 @@ import CslibTests.MLL
 import CslibTests.Modal
 import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
+import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
 import CslibTests.PACLearning
+import CslibTests.PFunctor
+import CslibTests.PFunctorFree
+import CslibTests.PRG
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis
