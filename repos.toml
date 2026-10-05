@@ -41,6 +41,21 @@ critical = false
 build_options = ["--wfail"]
 test_options = ["--wfail"]
 
+# Generated from kim-em/hex-dev; adaptations must be ported there before release.
+[hex-basic]
+source_url = "https://github.com/leanprover/hex-basic"
+source_rev = "main"
+critical = true
+build_targets = ["HexBasic", "HexBasicTests"]
+build_options = ["--wfail"]
+
+[hex-perm-group]
+source_url = "https://github.com/leanprover/hex-perm-group"
+source_rev = "main"
+critical = true
+build_targets = ["HexPermGroup", "HexPermGroupTests"]
+build_options = ["--wfail"]
+
 [import-graph]
 source_url = "https://github.com/leanprover-community/import-graph"
 source_rev = "main"
