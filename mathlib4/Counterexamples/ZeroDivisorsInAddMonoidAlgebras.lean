@@ -5,6 +5,7 @@ Authors: Damiano Testa
 -/
 module
 
+public import Batteries.Tactic.OpenPrivate
 public import Mathlib.Algebra.Group.UniqueProds.Basic
 public import Mathlib.Algebra.MonoidAlgebra.Defs
 public import Mathlib.Algebra.Ring.GeomSum

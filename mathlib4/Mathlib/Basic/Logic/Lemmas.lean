@@ -5,6 +5,7 @@ Authors: Yaël Dillies
 -/
 module
 
+import Batteries.Tactic.Alias
 import Mathlib.Basic.Logic.Basic
 import Mathlib.Tactic.SplitIfs
 public import Mathlib.Tactic.Tauto

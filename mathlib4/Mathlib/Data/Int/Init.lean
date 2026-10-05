@@ -6,6 +6,7 @@ Authors: Jeremy Avigad
 module
 
 import Batteries.Logic
+import Batteries.Tactic.Alias
 public import Mathlib.Data.Int.Notation
 public import Mathlib.Data.Nat.Notation
 public import Mathlib.Tactic.DepRewrite
