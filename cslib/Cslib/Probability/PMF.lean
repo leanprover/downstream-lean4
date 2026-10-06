@@ -8,7 +8,7 @@ module
 
 public import Cslib.Init
 public import Mathlib.Probability.ProbabilityMassFunction.Monad
-public import Mathlib.Probability.Distributions.Uniform
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!
 # PMF Utilities
@@ -26,6 +26,8 @@ the Mathlib module instead.
 
 - `Cslib.Probability.PMF.bind_pair_apply`: the "pairing" bind at `(a, b)` equals `p a * f a b`
 - `Cslib.Probability.PMF.bind_pair_tsum_fst`: marginalizing over the first component
+- `Cslib.Probability.PMF.uniformOfFinset`, `Cslib.Probability.PMF.uniformOfFintype`:
+  the uniform distributions on a nonempty finset resp. fintype
 - `Cslib.Probability.PMF.uniformOfFintype_map_equiv`:
   a uniform distribution is invariant under equivalence
 - `Cslib.Probability.PMF.posteriorDist`: the posterior as a `PMF`
@@ -59,10 +61,48 @@ theorem bind_pair_tsum_fst (p : PMF α) (f : α → PMF β) (b : β) :
       (p.bind f) b := by
   simp_rw [bind_pair_apply, PMF.bind_apply]
 
+/-! ### Uniform distributions
+
+`PMF.uniformOfFinset` and `PMF.uniformOfFintype` used to live in
+`Mathlib.Probability.Distributions.Uniform`. mathlib4#42909 replaced them by the measure
+`MeasureTheory.Measure.uniformOfFinset`, and nothing in mathlib supplies a uniform `PMF` any
+more. Everything in `Cslib.Crypto` is phrased with `PMF`s, so the two `PMF` versions are kept
+here, with the rest of this temporary module, until they are upstreamed. -/
+
+/-- Uniform distribution taking the same non-zero probability on the nonempty finset `s`. -/
+noncomputable def uniformOfFinset (s : Finset α) (hs : s.Nonempty) : PMF α := by
+  classical
+  refine PMF.ofFinset (fun a => if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0) s ?_ ?_
+  · simp only [Finset.sum_ite_mem, Finset.inter_self, Finset.sum_const, nsmul_eq_mul]
+    have : (s.card : ℝ≥0∞) ≠ 0 := by
+      simpa only [Ne, Nat.cast_eq_zero, Finset.card_eq_zero] using
+        Finset.nonempty_iff_ne_empty.1 hs
+    exact ENNReal.mul_inv_cancel this <| ENNReal.natCast_ne_top s.card
+  · exact fun x hx => by simp only [hx, ite_false]
+
+open scoped Classical in
+@[simp]
+theorem uniformOfFinset_apply {s : Finset α} (hs : s.Nonempty) (a : α) :
+    uniformOfFinset s hs a = if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0 := rfl
+
+theorem mem_support_uniformOfFinset_iff {s : Finset α} (hs : s.Nonempty) (a : α) :
+    a ∈ (uniformOfFinset s hs).support ↔ a ∈ s := by
+  simp [PMF.mem_support_iff]
+
+/-- The uniform `PMF` taking the same value on all of the nonempty fintype `α`. -/
+noncomputable def uniformOfFintype (α : Type*) [Fintype α] [Nonempty α] : PMF α :=
+  PMF.ofFintype (fun _ => (Fintype.card α : ℝ≥0∞)⁻¹) <| by
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
+    exact ENNReal.mul_inv_cancel (by simp) <| ENNReal.natCast_ne_top _
+
+@[simp]
+theorem uniformOfFintype_apply [Fintype α] [Nonempty α] (a : α) :
+    uniformOfFintype α a = (Fintype.card α : ℝ≥0∞)⁻¹ := rfl
+
 /-- A uniform distribution on a finite type is invariant under any equivalence. -/
 theorem uniformOfFintype_map_equiv {γ : Type v} [Fintype α] [Fintype γ] [Nonempty α] [Nonempty γ]
     (e : α ≃ γ) :
-    (PMF.uniformOfFintype α).map e = PMF.uniformOfFintype γ := by
+    (uniformOfFintype α).map e = uniformOfFintype γ := by
   ext c
   rw [PMF.map_apply, tsum_eq_single (e.symm c)]
   · simp [Fintype.card_congr e]
