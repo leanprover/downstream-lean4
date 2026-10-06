@@ -34,14 +34,9 @@ source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 
-[illuminate]
-source_url = "https://github.com/leanprover/illuminate"
-source_rev = "main"
-critical = false
-build_options = ["--wfail"]
-test_options = ["--wfail"]
-
-# Generated from kim-em/hex-dev; adaptations must be ported there before release.
+# These Hex mirrors are generated from kim-em/hex-dev and published together.
+# Port adaptations there before the next shared Hex release.
+# Never push adaptation exports directly to either mirror main branch.
 [hex-basic]
 source_url = "https://github.com/leanprover/hex-basic"
 source_rev = "main"
@@ -55,6 +50,13 @@ source_rev = "main"
 critical = true
 build_targets = ["HexPermGroup", "HexPermGroupTests"]
 build_options = ["--wfail"]
+
+[illuminate]
+source_url = "https://github.com/leanprover/illuminate"
+source_rev = "main"
+critical = false
+build_options = ["--wfail"]
+test_options = ["--wfail"]
 
 [import-graph]
 source_url = "https://github.com/leanprover-community/import-graph"
