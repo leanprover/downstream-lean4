@@ -445,7 +445,8 @@ public meta def anchorTermBlockExp : CodeBlockExpander
       throwError "Expected a positional argument first (the anchor name)"
 
 section
-variable {m} [Monad m] [MonadResolveName m] [MonadEnv m] [MonadOptions m] [MonadLog m] [AddMessageContext m]
+public variable {m} [Monad m] [MonadResolveName m] [MonadEnv m] [MonadOptions m] [MonadLog m]
+  [AddMessageContext m]
 
 private meta def severityName : MessageSeverity → m String
   | .error => unresolveNameGlobal ``MessageSeverity.error <&> (·.toString)

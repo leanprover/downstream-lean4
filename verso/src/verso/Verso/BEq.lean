@@ -9,7 +9,7 @@ set_option doc.verso true
 
 namespace Verso.BEq
 
-variable {α : Type u}
+public variable {α : Type u}
 
 /--
 Compares two values via pointer equality, falling back to the provided predicate.

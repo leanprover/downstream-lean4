@@ -155,7 +155,7 @@ public def NameMap (α : Type) : Type :=
   TreeMap PublicName α PublicName.quickCmp
 
 namespace NameMap
-variable {α : Type}
+public variable {α : Type}
 
 public instance [Repr α] : Repr (NameMap α) := inferInstanceAs (Repr (Std.TreeMap PublicName α PublicName.quickCmp))
 
@@ -260,7 +260,7 @@ public def filter (f : Name → α → Bool) (m : NameMap α) : NameMap α :=
 
 
 section
-variable [ToJson α] [FromJson α]
+public variable [ToJson α] [FromJson α]
 
 public instance : ToJson (NameMap α) where
   toJson v := private

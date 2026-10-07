@@ -819,7 +819,7 @@ public class Indexable (genre : Verso.Doc.Genre) where
   inline : genre.Inline → Option ((Verso.Doc.Inline genre → IndexM genre String) → Array (Verso.Doc.Inline genre) → IndexM genre IndexDoc)
 
 section
-variable [idx : Indexable g] [traversePart : Verso.Doc.TraversePart g]
+public variable [idx : Indexable g] [traversePart : Verso.Doc.TraversePart g]
 
 /--
 Adds a header to the current context and updates the traversal context.

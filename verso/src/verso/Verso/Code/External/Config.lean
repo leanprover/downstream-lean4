@@ -37,7 +37,7 @@ public structure CodeConfig where
 deriving DecidableEq, Ord, Repr, Quote, ToExpr, ToJson, FromJson
 
 
-variable [Monad m] [MonadOptions m] [MonadError m] [MonadLiftT CoreM m]
+public variable [Monad m] [MonadOptions m] [MonadError m] [MonadLiftT CoreM m]
 
 private def defaultProject : m String := do
   if let some p := verso.exampleProject.get? (← getOptions) then pure p else throwError "No default project specified"

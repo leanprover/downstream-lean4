@@ -52,7 +52,7 @@ public def texContext [Monad m] : TeXT g m TeXContext := do
   pure ctx
 
 section
-variable [Monad m] [MonadBuildLog (TeXT g m)]
+public variable [Monad m] [MonadBuildLog (TeXT g m)]
 
 private def mkHeader (opts : Options g)
     (level : Option (Fin opts.headerLevels.size)) (name : TeX) (label : Option String) : TeXT g m TeX := do
@@ -184,7 +184,7 @@ public def makeLink (url : String) (content : TeX) : TeX :=
   \TeX{\href{\Lean{.raw (escapeForTexHref url)}}{\Lean{content}}}
 
 section
-variable [Monad m] [MonadBuildLog (TeXT g m)] [GenreTeX g m]
+public variable [Monad m] [MonadBuildLog (TeXT g m)] [GenreTeX g m]
 
 public partial defmethod Inline.toTeX : Inline g → TeXT g m TeX
   | .text str => pure <| .text str

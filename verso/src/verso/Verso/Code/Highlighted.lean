@@ -91,7 +91,7 @@ public structure Dedup (α) extends BEq α, Hashable α where
   contentId : HashMap Nat α := {}
   idContent : HashMap α Nat := {}
 
-variable {α}
+public variable {α}
 
 public def Dedup.empty [BEq α] [Hashable α] : Dedup α := {}
 

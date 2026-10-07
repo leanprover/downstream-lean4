@@ -811,9 +811,9 @@ public class Traverse (g : Genre) (m : outParam (Type → Type)) where
   genreInline [MonadReader g.TraverseContext m] [MonadState g.TraverseState m] : g.Inline → Array (Inline g) → m (Option (Inline g))
 
 section
-variable (g : Genre) [Traverse g m] [TraversePart g] [TraverseBlock g] [Monad m]
-variable [MonadReader g.TraverseContext m] [MonadWithReader g.TraverseContext m]
-variable [MonadState g.TraverseState m]
+public variable (g : Genre) [Traverse g m] [TraversePart g] [TraverseBlock g] [Monad m]
+public variable [MonadReader g.TraverseContext m] [MonadWithReader g.TraverseContext m]
+public variable [MonadState g.TraverseState m]
 
 
 public partial def Genre.traverseInline (i : Doc.Inline g) : m (Doc.Inline g) := do

@@ -30,7 +30,7 @@ public structure TechArgs extends DefTechArgs where
   remote : Option String
 
 section
-variable [Monad m] [Lean.MonadError m] [MonadLiftT Lean.CoreM m]
+public variable [Monad m] [Lean.MonadError m] [MonadLiftT Lean.CoreM m]
 
 meta def DefTechArgs.parse : ArgParse m DefTechArgs :=
   DefTechArgs.mk <$> .named `key .string true <*> .flag `normalize true

@@ -316,7 +316,7 @@ end DEFLATE
 
 section
 
-variable [Monad m] [MonadState ByteArray m]
+public variable [Monad m] [MonadState ByteArray m]
 
 def writeUInt16LE (val : UInt16) : m Unit := do
   modify fun bytes =>
