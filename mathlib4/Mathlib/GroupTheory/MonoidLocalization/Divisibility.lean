@@ -16,7 +16,8 @@ import Mathlib.Algebra.Divisibility.Units
 
 namespace Submonoid.LocalizationMap
 
-variable {M N : Type*} [CommMonoid M] {S : Submonoid M} [CommMonoid N] (f : LocalizationMap S N)
+public variable {M N : Type*} [CommMonoid M] {S : Submonoid M} [CommMonoid N]
+  (f : LocalizationMap S N)
 
 public theorem map_isUnit_iff {m : M} : IsUnit (f m) ↔ ∃ s ∈ S, m ∣ s := by
   refine ⟨fun h ↦ ?_, fun ⟨m, hm, dvd⟩ ↦ isUnit_of_dvd_unit (map_dvd _ dvd) (f.map_units ⟨m, hm⟩)⟩

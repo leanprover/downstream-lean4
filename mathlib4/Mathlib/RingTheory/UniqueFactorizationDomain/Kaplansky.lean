@@ -23,7 +23,7 @@ ideal contains a prime element.
 
 -/
 
-variable {R : Type*}
+public variable {R : Type*}
 
 namespace UniqueFactorizationMonoid
 
@@ -34,7 +34,7 @@ def kaplanskySet [Semiring R] (S : Subsemigroup R) := {I : Ideal R | Disjoint (I
 
 section semiring
 
-variable [Semiring R] {S : Subsemigroup R} {P : Ideal R}
+public variable [Semiring R] {S : Subsemigroup R} {P : Ideal R}
 
 theorem mem_kaplanskySet_iff : P ∈ kaplanskySet S ↔ (P : Set R) ∩ S = ∅ :=
   disjoint_iff_inter_eq_empty
@@ -61,7 +61,7 @@ end semiring
 
 section IsDomain
 
-variable [CommSemiring R] [IsDomain R]
+public variable [CommSemiring R] [IsDomain R]
 
 theorem span_notMem_kaplanskySet {a : R} (ha : a ≠ 0)
       (H : ∀ I ≠ (⊥ : Ideal R), I.IsPrime → ∃ x ∈ I, Prime x) :

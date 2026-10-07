@@ -23,7 +23,7 @@ We prove the following facts:
 open scoped Topology
 open Set
 
-variable {𝕜 α β : Type*} [Semiring 𝕜] [PartialOrder 𝕜] [PartialOrder β]
+public variable {𝕜 α β : Type*} [Semiring 𝕜] [PartialOrder 𝕜] [PartialOrder β]
     [TopologicalSpace β] [OrderClosedTopology β]
     [AddCommMonoid α] [AddCommMonoid β]
     [SMul 𝕜 α] [SMul 𝕜 β]

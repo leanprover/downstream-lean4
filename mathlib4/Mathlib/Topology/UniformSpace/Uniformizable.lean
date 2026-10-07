@@ -32,14 +32,14 @@ Urysohn's lemma is reused in the proof of `UniformSpace.completelyRegularSpace`.
 * <https://www.math.wm.edu/~vinroot/PadicGroups/519probset1.pdf>
 -/
 
-variable {X : Type*}
+public variable {X : Type*}
 
 open Filter Set UniformSpace SetRel
 
 open scoped Uniformity
 
 section UniformSpace
-variable [UniformSpace X]
+public variable [UniformSpace X]
 
 /-- To construct a real-valued function separating a point `x` from a closed set in a uniform
 space, we recursively construct pairs of a closed set `c` contained in an open set `u`
@@ -98,7 +98,7 @@ public instance UniformSpace.toCompletelyRegularSpace : CompletelyRegularSpace X
 end UniformSpace
 
 section TopologicalSpace
-variable [t : TopologicalSpace X]
+public variable [t : TopologicalSpace X]
 
 public theorem CompletelyRegularSpace.of_exists_uniformSpace
     (h : ∃ u : UniformSpace X, u.toTopologicalSpace = t) :

@@ -42,9 +42,9 @@ open CategoryTheory Limits
 
 namespace Cardinal
 
-variable {κ₁ κ₂ : Cardinal.{w}} [Fact κ₁.IsRegular] [Fact κ₂.IsRegular]
+public variable {κ₁ κ₂ : Cardinal.{w}} [Fact κ₁.IsRegular] [Fact κ₂.IsRegular]
 
-variable (κ₁ κ₂) in
+public variable (κ₁ κ₂) in
 /-- If `κ₁ < κ₂` are two regular cardinals, we say that `κ₁` is sharply
 smaller than `κ₂` if the category `CardinalDirectedPoset κ₁`
 is `κ₂`-accessible. There are other characterizations (TODO @joelriou),
@@ -110,7 +110,7 @@ lemma `exists_isCardinalFiltered_set_of_exists_cofinal` below,
 which is the implication (iii) → (iv) in the characterizations
 of `SharplyLT κ₁ κ₂` which appear in the docstring of this file. -/
 
-variable (h₀ : κ₁ < κ₂)
+public variable (h₀ : κ₁ < κ₂)
   {X : Type w} [PartialOrder X]
   -- The variables `Y`, `hY` and `hY'` below can be obtained by applying
   -- the `choose` tactic to an assumption of the form
@@ -267,12 +267,12 @@ end
 
 section
 
-variable (hκ : κ₁ < κ₂)
+public variable (hκ : κ₁ < κ₂)
   (hκ' : ∀ {X : Type w} [PartialOrder X] [IsCardinalFiltered X κ₁]
     (A : Set X) (_ : HasCardinalLT A κ₂),
     ∃ (B : Set X), A ⊆ B ∧ IsCardinalFiltered B κ₁ ∧ HasCardinalLT B κ₂)
 
-variable (κ₁ κ₂) in
+public variable (κ₁ κ₂) in
 /-- Given a partially ordered type `J`, this is the property
 of subsets of `J` that are `κ₁`-directed and of cardinality `< κ₂`. -/
 @[implicit_reducible, expose]
@@ -282,11 +282,11 @@ public def IsCardinalFilteredAndHasCardinalLT
 
 namespace IsCardinalFilteredAndHasCardinalLT
 
-variable (κ₁ κ₂) {C : Type u} [Category.{v} C] {X : C}
+public variable (κ₁ κ₂) {C : Type u} [Category.{v} C] {X : C}
   {J : Type w} [PartialOrder J]
   (p : (isCardinalPresentable C κ₁).ColimitOfShape J X)
 
-variable [IsCardinalAccessibleCategory C κ₁]
+public variable [IsCardinalAccessibleCategory C κ₁]
 
 public instance (A : Subtype (IsCardinalFilteredAndHasCardinalLT κ₁ κ₂ J)) :
     HasColimit (A.val.mono_coe.functor ⋙ p.diag) := by
@@ -414,7 +414,7 @@ public noncomputable def cocone : Cocone (functor κ₁ κ₂ p) where
 
 namespace isColimit
 
-variable {κ₁ κ₂ p} (s : Cocone (functor κ₁ κ₂ p))
+public variable {κ₁ κ₂ p} (s : Cocone (functor κ₁ κ₂ p))
 
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition for `isColimit`. -/
@@ -459,7 +459,7 @@ public noncomputable def isColimit : IsColimit (cocone κ₁ κ₂ p) where
   fac s A := fac' s A
   uniq s m hm := p.isColimit.hom_ext (fun j ↦ by simp [fac s j, ← hm])
 
-variable {κ₁ κ₂} in
+public variable {κ₁ κ₂} in
 include hκ' in
 public lemma isCardinalFiltered_subtype [IsCardinalFiltered J κ₁] :
     IsCardinalFiltered (Subtype (IsCardinalFilteredAndHasCardinalLT κ₁ κ₂ J)) κ₂ :=
@@ -471,9 +471,9 @@ public lemma isCardinalFiltered_subtype [IsCardinalFiltered J κ₁] :
 
 end IsCardinalFilteredAndHasCardinalLT
 
-variable (C : Type u) [Category.{v} C]
+public variable (C : Type u) [Category.{v} C]
 
-variable (κ₁ κ₂) in
+public variable (κ₁ κ₂) in
 /-- This is the closure of `κ₁`-presentable objects in the category `C` with respect
 to colimits indexed by categories `J` such that `Arrow J` is of cardinality < `κ₂`.
 When `C` is `κ₁`-accessible and `κ₁` is sharply smaller than `κ₂`, then any

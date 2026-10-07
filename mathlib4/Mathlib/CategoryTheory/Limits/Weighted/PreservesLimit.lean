@@ -23,7 +23,7 @@ namespace CategoryTheory
 
 open Limits Opposite
 
-variable {J : Type u} [Category.{v} J] {C : Type u'} [Category.{v'} C]
+public variable {J : Type u} [Category.{v} J] {C : Type u'} [Category.{v'} C]
   {K : Type*} [Category* K]
 
 namespace Functor
@@ -32,7 +32,7 @@ namespace weightedLimFlipObj'
 
 namespace preservesLimit'
 
-variable [HasColimitsOfShape K (Type w)]
+public variable [HasColimitsOfShape K (Type w)]
   {F : J ⥤ C} {G : K ⥤ (hasWeightedLimit.{w} F).FullSubcategory}
   {c : Cocone G} (hc : IsColimit ((hasWeightedLimit.{w} F).ι.mapCocone c))
   (s : Cone (G.op ⋙ weightedLimFlipObj'.{w} F))
@@ -94,12 +94,12 @@ end weightedLimFlipObj'
 
 namespace weightedLimObj
 
-variable (W : J ⥤ Type w) [HasWeightedLimObj.{w} W C] [HasLimitsOfShape K C]
+public variable (W : J ⥤ Type w) [HasWeightedLimObj.{w} W C] [HasLimitsOfShape K C]
   {G : K ⥤ J ⥤ C} {c : Cone G} (hc : IsLimit c)
 
 namespace preservesLimit
 
-variable (s : Cone (G ⋙ W.weightedLimObj))
+public variable (s : Cone (G ⋙ W.weightedLimObj))
 
 /-- Auxiliary definition for `Functor.weightedLimObj.preservesLimit`. -/
 noncomputable def coneEval ⦃j : J⦄ (x : W.obj j) :

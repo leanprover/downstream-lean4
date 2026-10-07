@@ -67,7 +67,7 @@ statement that it depends only the 1-jet of `σ` at `x`. This will be proved in 
 open Bundle NormedSpace
 open scoped Manifold ContDiff Topology
 
-variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+public variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
 
 @[expose] public noncomputable section
 

@@ -23,7 +23,7 @@ The proof follows [ConradLinearChar] Keith Conrad, *Linear Independence of Chara
 
 -/
 
-variable (K L : Type*) [Field K] [Field L] [Algebra K L]
+public variable (K L : Type*) [Field K] [Field L] [Algebra K L]
 
 set_option backward.isDefEq.respectTransparency false in
 open Polynomial FiniteField Module Submodule LinearMap in
@@ -56,7 +56,7 @@ theorem exists_linearIndependent_algEquiv_apply_of_finite [Finite L] :
   rw [toSpanSingleton_apply, AEval'.X_pow_smul_of, End.smul_def, End.coe_pow]
   rfl
 
-variable [FiniteDimensional K L]
+public variable [FiniteDimensional K L]
 
 -- [ConradLinearChar] Theorem 3.6.
 theorem exists_linearIndependent_algEquiv_apply_of_infinite [Infinite K] :
@@ -114,7 +114,7 @@ public theorem exists_linearIndependent_algEquiv_apply :
 
 namespace IsGalois
 
-variable [IsGalois K L]
+public variable [IsGalois K L]
 
 /-- Given a finite Galois extension `L/K`, `normalBasis K L` is a basis of `L` over `K`
 that is an orbit under the Galois group action. -/
@@ -123,7 +123,7 @@ public noncomputable def normalBasis : Module.Basis Gal(L/K) K L :=
     (exists_linearIndependent_algEquiv_apply K L).choose_spec
     (Fintype.card_eq_nat_card.trans <| card_aut_eq_finrank K L)
 
-variable {K L}
+public variable {K L}
 
 public theorem normalBasis_apply (e : Gal(L/K)) : normalBasis K L e = e (normalBasis K L 1) := by
   rw [normalBasis, coe_basisOfLinearIndependentOfCardEqFinrank, AlgEquiv.one_apply]

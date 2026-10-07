@@ -24,7 +24,7 @@ namespace CategoryTheory.Functor
 
 open Limits Pretriangulated
 
-variable {C D H : Type*} [Category* C] [Category* D] [Category* H]
+public variable {C D H : Type*} [Category* C] [Category* D] [Category* H]
   (F' : H ⥤ D) {F : C ⥤ D} {L : C ⥤ H}
   [HasShift C ℤ] [HasShift D ℤ] [HasShift H ℤ]
   [HasZeroObject C] [HasZeroObject D] [HasZeroObject H]

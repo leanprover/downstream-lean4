@@ -14,7 +14,7 @@ public import Mathlib.FieldTheory.RatFunc.AsPolynomial
 Results relating `IntermediateField` and `RatFunc`.
 -/
 
-variable {K : Type*} [Field K]
+public variable {K : Type*} [Field K]
 
 namespace RatFunc
 

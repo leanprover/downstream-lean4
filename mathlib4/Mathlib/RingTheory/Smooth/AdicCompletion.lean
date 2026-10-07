@@ -22,12 +22,12 @@ universe u v
 
 namespace Algebra.FormallySmooth
 
-variable {R A : Type*} [CommRing R] [CommRing A] [Algebra R A]
+public variable {R A : Type*} [CommRing R] [CommRing A] [Algebra R A]
   {S : Type*} [CommRing S] [Algebra R S] (I : Ideal S) (f : A →ₐ[R] S ⧸ I)
 
 open RingHom
 
-variable [FormallySmooth R A]
+public variable [FormallySmooth R A]
 
 /--
 (Implementation): Lift `A →ₐ[R] S ⧸ I` inductively to `A →ₐ[R] S ⧸ I ^ m` using formal

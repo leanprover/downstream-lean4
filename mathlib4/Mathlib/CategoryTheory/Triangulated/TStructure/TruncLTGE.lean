@@ -36,14 +36,14 @@ namespace CategoryTheory
 
 open Limits Pretriangulated ZeroObject
 
-variable {C : Type u} [Category.{v} C] [Preadditive C] [HasZeroObject C] [HasShift C ℤ]
+public variable {C : Type u} [Category.{v} C] [Preadditive C] [HasZeroObject C] [HasShift C ℤ]
   [∀ (n : ℤ), (shiftFunctor C n).Additive] [Pretriangulated C]
 
 namespace Triangulated
 
 namespace TStructure
 
-variable (t : TStructure C)
+public variable (t : TStructure C)
 
 set_option backward.isDefEq.respectTransparency false in
 /-- Two morphisms `T ⟶ T'` between distinguished triangles must coincide when
@@ -98,7 +98,7 @@ namespace TruncAux
 implementation of the truncation functors `truncLT`, `truncGE` and the
 distinguished triangles they fit in. -/
 
-variable (n : ℤ) (X : C)
+public variable (n : ℤ) (X : C)
 
 /-- Given a t-structure `t` on `C`, `X : C` and `n : ℤ`, this is a distinguished
 triangle `obj₁ ⟶ X ⟶ obj₃ ⟶ obj₁⟦1⟧` where `obj₁` is `< n` and `obj₃` is `≥ n`.
@@ -126,7 +126,7 @@ instance triangle_obj₃_isGE :
     t.IsGE (triangle t n X).obj₃ n :=
   ⟨(t.exists_triangle X (n - 1) n (by lia)).choose_spec.choose_spec.choose_spec.choose⟩
 
-variable {X} {Y : C} (φ : X ⟶ Y)
+public variable {X} {Y : C} (φ : X ⟶ Y)
 
 /-- Version of `TStructure.triangle_map_ext` that is specialized for the auxiliary
 definition `TruncAux.triangle`. -/
@@ -157,7 +157,7 @@ noncomputable def triangleFunctor : C ⥤ Triangle C where
   obj := triangle t n
   map φ := triangleMap t n φ
 
-variable (A)
+public variable (A)
 
 lemma triangleFunctor_obj_distinguished :
     (triangleFunctor t n).obj A ∈ distTriang C :=

@@ -109,7 +109,7 @@ private lemma coeffSubmodule_mapRingHom_comp (e : InductionObj R n) (f : R →�
   simp [coeffSubmodule, Submodule.map_span, Set.image_iUnion, ← Set.range_comp,
     coeff_map_eq_comp]
 
-variable {e T : InductionObj R n}
+private variable {e T : InductionObj R n}
 
 set_option backward.privateInPublic true in
 private lemma coeff_mem_coeffSubmodule {i : Fin n} {d : ℕ} :

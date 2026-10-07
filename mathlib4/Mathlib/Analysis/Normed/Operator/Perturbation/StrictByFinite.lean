@@ -58,10 +58,10 @@ with Bourbaki's proof.
 
 open Topology Set Submodule Function ContinuousLinearMap
 
-variable {𝕜 : Type*}
+public variable {𝕜 : Type*}
   [NontriviallyNormedField 𝕜] [CompleteSpace 𝕜]
 
-variable {E F : Type*}
+public variable {E F : Type*}
   [AddCommGroup E] [Module 𝕜 E] [AddCommGroup F] [Module 𝕜 F]
   [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul 𝕜 E]
   [TopologicalSpace F] [IsTopologicalAddGroup F] [ContinuousSMul 𝕜 F]

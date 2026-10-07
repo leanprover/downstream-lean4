@@ -19,7 +19,7 @@ We also provide `foldCurrFileDecls` which loops through the declarations of the 
 without any parallelism.
 -/
 
-variable {α : Type}
+public variable {α : Type}
 
 open Lean
 

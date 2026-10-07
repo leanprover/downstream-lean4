@@ -206,8 +206,9 @@ private lemma mkSelfProdFib_map_π (t : F.obj X) : F.map (Pi.π _ t) (mkSelfProd
   rw [← piComparison_comp_π]
   simp [← PreservesProduct.iso_hom, mkSelfProdFib]
 
-variable {X} {A : C} (u : A ⟶ selfProd F X)
-  (a : F.obj A) (h : F.map u a = mkSelfProdFib F X) {F}
+variable {X} {A : C}
+private variable (u : A ⟶ selfProd F X) (a : F.obj A) (h : F.map u a = mkSelfProdFib F X)
+variable {F}
 include h
 
 set_option backward.privateInPublic true in

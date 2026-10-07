@@ -21,7 +21,7 @@ namespace AddChar
 
 section Field
 
-variable (F : Type*) [Field F] [Finite F]
+public variable (F : Type*) [Field F] [Finite F]
 
 lemma ringChar_ne : ringChar ℂ ≠ ringChar F := by
   simpa only [ringChar.eq_zero] using (CharP.ringChar_ne_zero_of_finite F).symm

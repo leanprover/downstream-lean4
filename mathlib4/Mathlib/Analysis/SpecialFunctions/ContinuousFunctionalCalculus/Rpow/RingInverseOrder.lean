@@ -30,7 +30,7 @@ namespace CStarAlgebra
 
 open CFC Set
 
-variable {A : Type*} [CStarAlgebra A] [PartialOrder A] [StarOrderedRing A]
+public variable {A : Type*} [CStarAlgebra A] [PartialOrder A] [StarOrderedRing A]
 
 open Ring in
 public lemma convexOn_ringInverse :

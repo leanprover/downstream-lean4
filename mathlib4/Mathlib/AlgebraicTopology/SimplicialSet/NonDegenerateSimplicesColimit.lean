@@ -26,7 +26,7 @@ open CategoryTheory Limits Simplicial Opposite
 
 namespace SSet
 
-variable (X : SSet.{u})
+public variable (X : SSet.{u})
 
 /-- If `X : SSet`, this is the functor `X.N ⥤ SSet` which sends a
 nondegenerate simplex of `X` to the subcomplex of `X` that it generates. -/
@@ -54,7 +54,7 @@ lemma multicoequalizerDiagram :
     exact ⟨N.mk x hx, Subcomplex.mem_ofSimplex_obj _⟩
   eq_inf _ _ := rfl
 
-variable {X}
+public variable {X}
 
 set_option backward.isDefEq.respectTransparency false in
 set_option backward.defeqAttrib.useBackward true in

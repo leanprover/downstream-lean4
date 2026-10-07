@@ -20,7 +20,7 @@ import Mathlib.RingTheory.Spectrum.Prime.FreeLocus
 This file proves that a finite stably free module `M` is free if it is invertible.
 -/
 
-variable {R : Type*} [CommRing R] {M N : Type*} [AddCommGroup M] [Module R M]
+public variable {R : Type*} [CommRing R] {M N : Type*} [AddCommGroup M] [Module R M]
   [AddCommGroup N] [Module R N] {n : ℕ}
 
 /-- The map linear in the first argument and alternating in the remaining arguments that
@@ -42,7 +42,7 @@ lemma exteriorPower.cofactorToLeft_ιMulti_cons (bN : Module.Basis (Fin n) R N) 
   simp [cofactorToLeft, cofactorLinear, AlternatingMap.alternatizeUncurryFin_apply,
     Fin.sum_univ_succ, Module.Basis.det_self]
 
-variable (R M) in
+public variable (R M) in
 /-- Let `R` be a commutative ring, `M` be a finite stably free `R`-module.
   Then `M` is free if it is invertible. -/
 public theorem Module.free_of_isStablyFree_of_invertible

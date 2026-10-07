@@ -32,11 +32,11 @@ open Category MonoidalCategory MonoidalOpposite Opposite
 
 universe v u
 
-variable (C : Type u) [Category.{v} C] [MonoidalCategory C]
+public variable (C : Type u) [Category.{v} C] [MonoidalCategory C]
 
 section LeftRigid
 
-variable [LeftRigidCategory C]
+public variable [LeftRigidCategory C]
 
 /-- The left dual functor from `C` to `(Cᵒᵖ)ᴹᵒᵖ`. -/
 @[simps obj map, expose]
@@ -50,7 +50,7 @@ end LeftRigid
 
 section RightRigid
 
-variable [RightRigidCategory C]
+public variable [RightRigidCategory C]
 
 /-- The right dual functor from `C` to `(Cᵒᵖ)ᴹᵒᵖ`. -/
 @[simps obj map, expose]

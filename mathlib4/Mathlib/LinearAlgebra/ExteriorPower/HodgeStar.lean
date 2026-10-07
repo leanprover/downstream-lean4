@@ -37,7 +37,7 @@ namespace exteriorPower
 
 open Function Module
 
-variable {R M : Type*}
+public variable {R M : Type*}
   [CommRing R] [AddCommGroup M] [Module R M] [Module.Finite R M] [Module.Free R M]
   (B : LinearMap.BilinForm R M) (hB : Bijective B)
   (vol : ⋀[R]^(finrank R M) M ≃ₗ[R] R)

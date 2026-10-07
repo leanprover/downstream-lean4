@@ -37,11 +37,11 @@ distinct, and the count is bounded by the number of strings of each length.
 
 namespace InformationTheory
 
-variable {α : Type*}
+public variable {α : Type*}
 
 section concatFn
 
-variable {S : Finset (List α)} {r : ℕ}
+public variable {S : Finset (List α)} {r : ℕ}
 
 private def concatFn (w : Fin r → S) : List α :=
   (List.ofFn (fun i => (w i).val)).flatten

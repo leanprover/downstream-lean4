@@ -17,7 +17,7 @@ import Mathlib.Topology.Category.LightProfinite.Injective
 open CategoryTheory Category Functor LightProfinite OnePoint LightCondensed
   MonoidalCategory CartesianMonoidalCategory CompHausLike
 
-variable (R : Type) [CommRing R]
+public variable (R : Type) [CommRing R]
 -- `R` is in `Type` because `ℕ∪∞` currently only exists in `LightProfinite.{0}`.
 -- TODO: make a universe polymorphic `ℕ∪∞` and generalize this result.
 
@@ -25,7 +25,7 @@ namespace InternalProjectivityProof
 
 section
 
-variable {X Y : LightProfinite} (y : Y) (f : X ⟶ Y)
+public variable {X Y : LightProfinite} (y : Y) (f : X ⟶ Y)
 
 def LightProfinite.fibre : LightProfinite :=
   haveI : CompactSpace (f ⁻¹' {y}) :=
@@ -38,7 +38,7 @@ end
 
 section
 
-variable {S T X : Type*}
+public variable {S T X : Type*}
 
 /-- Given a map `π : T → S ⨯ Option X` and maps `σ : Option X → S → T`,
 `fibres` gives the set containing union of the images of `σ (Some x)`

@@ -44,7 +44,7 @@ metric `g` if and only if the differentiated metric tensor `∇ g` (defined by
 open Bundle NormedSpace
 open scoped Manifold ContDiff
 
-variable
+public variable
   -- Let `M` be a real manifold modeled on `(E, H)`
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
@@ -65,14 +65,14 @@ In our definition, we ask for this identity to hold at each `x : M`, whenever `X
 differentiable at `x`.
 -/
 
-variable {σ σ' τ : Π x : M, V x}
+public variable {σ σ' τ : Π x : M, V x}
 
 local notation "⟪" σ ", " τ "⟫" => fun x ↦ inner ℝ (σ x) (τ x)
 
 namespace CovariantDerivative
 
 -- Let `cov` be a covariant derivative on `V`.
-variable (cov : CovariantDerivative I F V)
+public variable (cov : CovariantDerivative I F V)
 
 /-- Local notation for a covariant derivative on a vector bundle acting on a vector field and a
 section. -/
@@ -92,7 +92,7 @@ lemma derivMetricTensorAux_apply (σ τ : Π x : M, V x) {x : M} (X₀ : Tangent
   rfl
 
 -- From now on, assume `V` is a vector bundle endowed with a `C¹` Riemannian metric.
-variable [VectorBundle ℝ F V] [IsContMDiffRiemannianBundle I 1 F V] {x : M}
+public variable [VectorBundle ℝ F V] [IsContMDiffRiemannianBundle I 1 F V] {x : M}
 
 theorem tensorial_derivMetricTensorAux₁ (τ : Π x, V x) (hτ : MDiffAt (T% τ) x) :
     TensorialAt I F (derivMetricTensorAux I cov · τ x) x where
@@ -120,7 +120,7 @@ theorem tensorial_derivMetricTensorAux₂ (σ : Π x, V x) (hσ : MDiffAt (T% σ
       cov.isCovariantDerivativeOn.add hτ hτ', inner_add_right]
     abel
 
-variable {I} [ContMDiffVectorBundle 1 F V I] in
+public variable {I} [ContMDiffVectorBundle 1 F V I] in
 /-- The tensor `(X, σ, τ) ↦ X g(σ, τ) - g(∇_X σ, τ) - g(σ, ∇_X τ)` defining when a connection
 `∇` on a Riemannian bundle `(M, V)` is compatible with the metric `g`. -/
 public noncomputable def derivMetricTensor [FiniteDimensional ℝ F] (x : M) :
@@ -128,9 +128,9 @@ public noncomputable def derivMetricTensor [FiniteDimensional ℝ F] (x : M) :
   TensorialAt.mkHom₂ (derivMetricTensorAux I cov · · x) _
     (tensorial_derivMetricTensorAux₁ I cov) (tensorial_derivMetricTensorAux₂ I cov)
 
-variable {X : Π x : M, TangentSpace I x}
+public variable {X : Π x : M, TangentSpace I x}
 
-variable {I} [ContMDiffVectorBundle 1 F V I] in
+public variable {I} [ContMDiffVectorBundle 1 F V I] in
 public theorem derivMetricTensor_apply [FiniteDimensional ℝ F] (x : M)
     (hσ : MDiffAt (T% σ) x) (hτ : MDiffAt (T% τ) x) :
     cov.derivMetricTensor x (σ x) (τ x) (X x) =
@@ -138,7 +138,7 @@ public theorem derivMetricTensor_apply [FiniteDimensional ℝ F] (x : M)
   unfold derivMetricTensor
   rw [TensorialAt.mkHom₂_apply _ _ hσ hτ, derivMetricTensorAux_apply]
 
-variable {I} [ContMDiffVectorBundle 1 F V I] in
+public variable {I} [ContMDiffVectorBundle 1 F V I] in
 public theorem derivMetricTensor_apply_eq_extend [FiniteDimensional ℝ F]
     (X₀ : TangentSpace I x) (σ₀ τ₀ : V x) :
     cov.derivMetricTensor x σ₀ τ₀ X₀ =
@@ -147,15 +147,15 @@ public theorem derivMetricTensor_apply_eq_extend [FiniteDimensional ℝ F]
         - inner ℝ σ₀ (cov (FiberBundle.extend F τ₀) x X₀) := by
   simp [derivMetricTensor, TensorialAt.mkHom₂_apply_eq_extend]
 
-variable {I} [ContMDiffVectorBundle 1 F V I] in
+public variable {I} [ContMDiffVectorBundle 1 F V I] in
 /-- Predicate saying that a connection `∇` on a Riemannian bundle `(V, g)` is compatible with the
 ambient metric, i.e. for all differentiable vector fields `X` on `M` and sections `σ` and `τ` of
 `V`, we have `X ⟨σ, τ⟩ = ⟨∇_X σ, τ⟩ + ⟨σ, ∇_X τ⟩`. -/
 public def IsMetricCompatible [FiniteDimensional ℝ F] : Prop := derivMetricTensor cov = 0
 
-variable {I} [ContMDiffVectorBundle 1 F V I]
+public variable {I} [ContMDiffVectorBundle 1 F V I]
 
-variable {cov} in
+public variable {cov} in
 public lemma IsMetricCompatible.mvfderiv_inner_eq [FiniteDimensional ℝ F]
     (hcov : cov.IsMetricCompatible) {x : M} (X : Π x, TangentSpace I x) {σ τ : (x : M) → V x}
     (hσ : MDiffAt (T% σ) x) (hτ : MDiffAt (T% τ) x) :
@@ -164,7 +164,7 @@ public lemma IsMetricCompatible.mvfderiv_inner_eq [FiniteDimensional ℝ F]
   simp [derivMetricTensor_apply _ _ hσ hτ] at H
   linear_combination H
 
-variable [IsManifold I 1 M]
+public variable [IsManifold I 1 M]
 
 public lemma isMetricCompatible_iff [FiniteDimensional ℝ F] :
     cov.IsMetricCompatible ↔ ∀ {x : M} {X : Π x, TangentSpace I x} {σ τ : (x : M) → V x},

@@ -100,7 +100,8 @@ end Definitions
 section Constructions
 
 variable {X : Type u} {Y : Type v} [MetricSpace X] [MetricSpace Y]
-  {f : ProdSpaceFun X Y} {x y z t : X ⊕ Y}
+private variable {f : ProdSpaceFun X Y}
+variable {x y z t : X ⊕ Y}
 
 attribute [local instance 10] Classical.inhabited_of_nonempty'
 

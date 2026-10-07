@@ -49,7 +49,8 @@ theorem isLittleO_sub_sub_fderiv
     (fun z hz => (df' z hz).mono seg) (fun z hz => (cf' z hz).le)
     (convex_segment ..) (left_mem_segment ..) (right_mem_segment ..)
 
-variable {𝕜 E₁ E₂ F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E₁] [NormedSpace 𝕜 E₁]
+public variable {𝕜 E₁ E₂ F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E₁]
+  [NormedSpace 𝕜 E₁]
   [NormedAddCommGroup E₂] [NormedSpace 𝕜 E₂] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 
 set_option backward.defeqAttrib.useBackward true in

@@ -20,7 +20,7 @@ open NormedSpace
 
 open scoped Real NNReal RealInnerProductSpace
 
-variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+public variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
 namespace InnerProductGeometry
 
@@ -42,8 +42,8 @@ lemma inner_normalize_ortho (x y : V) : ⟪y, normalize (ortho y x)⟫ = 0 := by
   right; rw [ortho, real_inner_comm, Submodule.starProjection_inner_eq_zero]
   exact Submodule.mem_span_singleton_self y
 
-variable {x y z : V}
-variable (hx : ‖x‖ = 1) (hy : ‖y‖ = 1) (hz : ‖z‖ = 1)
+public variable {x y z : V}
+public variable (hx : ‖x‖ = 1) (hy : ‖y‖ = 1) (hz : ‖z‖ = 1)
 
 include hx hy
 lemma inner_normalized_ortho_sq_add_inner_sq_eq_one :
@@ -279,7 +279,7 @@ end InnerProductGeometry
 
 namespace EuclideanGeometry
 
-variable {V P : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [MetricSpace P]
+public variable {V P : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [MetricSpace P]
   [NormedAddTorsor V P]
 
 /-- **Triangle inequality** for angles in Euclidean geometry. -/

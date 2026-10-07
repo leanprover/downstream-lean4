@@ -52,11 +52,11 @@ lemma `cm5a_cof`.
 
 open CategoryTheory Limits Opposite Abelian HomologicalComplex Pretriangulated
 
-variable {C : Type*} [Category* C] [Abelian C]
+public variable {C : Type*} [Category* C] [Abelian C]
 
 namespace CochainComplex.Plus.modelCategoryQuillen
 
-variable {K L : CochainComplex C ℤ} (f : K ⟶ L)
+public variable {K L : CochainComplex C ℤ} (f : K ⟶ L)
 
 namespace cm5a_cof
 
@@ -69,13 +69,13 @@ def cofFib : ObjectProperty (Factorisation f) :=
 instance (F : (cofFib f).FullSubcategory) : Mono F.obj.ι :=
   F.property.1
 
-variable {f} in
+public variable {f} in
 /-- The property that the first morphism of a factorisation is
 a quasi-isomorphisms in degrees `≤ n`. -/
 def quasiIsoLE (n : ℤ) : ObjectProperty (cofFib f).FullSubcategory :=
   fun F ↦ ∀ i ≤ n, QuasiIsoAt F.obj.ι i
 
-variable {f} in
+public variable {f} in
 /-- The property that the second morphism of a factorisation is
 an isomorphism in degrees `≤ n`. -/
 def isIsoLE (n : ℤ) : ObjectProperty (cofFib f).FullSubcategory :=
@@ -83,7 +83,7 @@ def isIsoLE (n : ℤ) : ObjectProperty (cofFib f).FullSubcategory :=
 
 namespace step₁
 
-variable [EnoughInjectives C]
+public variable [EnoughInjectives C]
 
 /-!
 This section provides the material in order to prove the lemma `step₁` below.
@@ -98,19 +98,19 @@ induces a monomorphism in homology in degree `n₀`,
 and that `π K L n₁` is an isomorphism in degrees `≤ n₀` that is
 also a degreewise epimorphism with an injective kernel. -/
 
-variable (n₀ n₁ : ℤ) (hn₁ : n₀ + 1 = n₁)
+public variable (n₀ n₁ : ℤ) (hn₁ : n₀ + 1 = n₁)
 
-variable (K) in
+public variable (K) in
 /-- The single complex in degree `n₁` that is given by an injective
 object containing `K.opcycles n₁`. -/
 noncomputable abbrev S : CochainComplex C ℤ :=
     ((single C _ n₁).obj (Injective.under (K.opcycles n₁)))
 
-variable (K L) in
+public variable (K L) in
 /-- The intermediate object in the factorization. -/
 noncomputable abbrev mid := S K n₁ ⊞ L
 
-variable (K) in
+public variable (K) in
 /-- The morphim `K ⟶ S K n₁` which in degree `n₁` corresponds to
 the composition `K.X n₁ ⟶ K.opcycles n₁ ⟶ Injective.under (K.opcycles n₁)`. -/
 noncomputable def i : K ⟶ S K n₁ := mkHomToSingle (K.pOpcycles n₁ ≫ Injective.ι _) (by simp)
@@ -118,11 +118,11 @@ noncomputable def i : K ⟶ S K n₁ := mkHomToSingle (K.pOpcycles n₁ ≫ Inje
 /-- The first morphism in the factorization. -/
 noncomputable abbrev ι : K ⟶ mid K L n₁ := biprod.lift (i K n₁) f
 
-variable (K L) in
+public variable (K L) in
 /-- The second morphism in the factorization. -/
 noncomputable abbrev π : mid K L n₁ ⟶ L := biprod.snd
 
-variable (K L) in
+public variable (K L) in
 /-- A section of `π K L n₁` -/
 noncomputable abbrev σ : L ⟶ mid K L n₁ := biprod.inr
 
@@ -131,7 +131,7 @@ lemma ι_π : ι f n₁ ≫ π K L n₁ = f := by simp
 
 instance [Mono f] : Mono (ι f n₁) := mono_of_mono_fac (ι_π f n₁)
 
-variable (K L) in
+public variable (K L) in
 lemma degreewiseEpiWithInjectiveKernel_π :
     degreewiseEpiWithInjectiveKernel (π K L n₁) := by
   intro q
@@ -139,7 +139,7 @@ lemma degreewiseEpiWithInjectiveKernel_π :
   exact ⟨(S K n₁).X q, inferInstance, (biprod.inl : _ ⟶ mid K L n₁).f q, by simp,
     ⟨{ r := (biprod.fst : mid K L n₁ ⟶ _).f q, s := (biprod.inr : _ ⟶ mid K L n₁).f q }⟩⟩
 
-variable (K L) in
+public variable (K L) in
 lemma isIso_π_f (i : ℤ) (hi : i ≠ n₁ := by lia) :
     IsIso ((π K L n₁).f i) := by
   refine ⟨(biprod.inr : _ ⟶ mid K L n₁).f i, ?_, by simp⟩
@@ -149,7 +149,7 @@ lemma isIso_π_f (i : ℤ) (hi : i ≠ n₁ := by lia) :
   · simp
 
 include hn₁ in
-variable (K L) in
+public variable (K L) in
 lemma quasiIsoAt_π (i : ℤ) (hi : i ≤ n₀ := by lia) :
     QuasiIsoAt (π K L n₁) i := by
   obtain (hi | rfl) := hi.lt_or_eq
@@ -167,7 +167,7 @@ lemma quasiIsoAt_π (i : ℤ) (hi : i ≤ n₀ := by lia) :
     · simp [← homologyMap_id, ← biprod.total, homologyMap_comp, this]
     · simp [← homologyMap_comp, homologyMap_id]
 
-variable (hf : ∀ i ≤ n₀, QuasiIsoAt f i)
+public variable (hf : ∀ i ≤ n₀, QuasiIsoAt f i)
 
 include hn₁ hf in
 lemma quasiIsoAt_ι (i : ℤ) (hi : i ≤ n₀) :
@@ -223,7 +223,7 @@ which also induces isomorphisms in degrees `≤ n`.
 
 open HomComplex
 
-variable [EnoughInjectives C] (n : ℤ)
+public variable [EnoughInjectives C] (n : ℤ)
 
 /-- Given a morphism `f : K ⟶ L`, this is the single cochain complex in degree `n`
 which is given an injective object which contains `((cokernel f).truncGE n).X n`,
@@ -345,7 +345,7 @@ lemma exact_homologyShortComplex [Mono f] :
   rw [← ShortComplex.exact_iff_of_epi_of_isIso_of_mono φ]
   exact (shortExact f).homology_exact₂ n
 
-variable (hf : ∀ i < n, QuasiIsoAt f i)
+public variable (hf : ∀ i < n, QuasiIsoAt f i)
 
 include hf
 
@@ -421,7 +421,7 @@ lemma step [EnoughInjectives C] [Mono f] (n₀ n₁ : ℤ)
 in degrees `≤ n` followed by a degreewise epimorphism with an injective kernel. -/
 abbrev CofFibFactorizationQuasiIsoLE (n : ℤ) := (quasiIsoLE (f := f) n).FullSubcategory
 
-variable [EnoughInjectives C]
+public variable [EnoughInjectives C]
 
 namespace CofFibFactorizationQuasiIsoLE
 
@@ -440,7 +440,7 @@ def zero [Mono f] (n : ℤ) [K.IsStrictlyGE (n + 1)] [L.IsStrictlyGE (n + 1)] :
       · rw [← exactAt_iff_isZero_homology]
         exact exactAt_of_isGE _ (n + 1) i)
 
-variable {f} in
+public variable {f} in
 lemma exists_next {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n₀)
     (n₁ : ℤ) (hn₁ : n₀ + 1 = n₁) :
     ∃ (F' : CofFibFactorizationQuasiIsoLE f n₁) (g : F'.1 ⟶ F.1),
@@ -451,7 +451,7 @@ lemma exists_next {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n₀)
       MorphismProperty.comp_mem _ _ _ F₁₂.property.2 F.obj.property.2⟩) h₁,
       ObjectProperty.homMk { h := F₁₂.obj.π }, h₂⟩
 
-variable {f} in
+public variable {f} in
 /-- Given `F : CofFibFactorizationQuasiIsoLE f n₀`, this is term in
 `CofFibFactorizationQuasiIsoLE f n₁` with `n₀ + 1 = n₁` that is given
 by the lemma `exists_next`. -/
@@ -460,7 +460,7 @@ noncomputable def next {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n₀)
     CofFibFactorizationQuasiIsoLE f n₁ :=
   (F.exists_next n₁ hn₁).choose
 
-variable {f} in
+public variable {f} in
 /-- Given `F : CofFibFactorizationQuasiIsoLE f n₀`, this is the morphism which relates
 the intermediate objects in the factorisations `F.next n₁ _` and `F`. -/
 noncomputable def fromNext {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n₀)
@@ -468,7 +468,7 @@ noncomputable def fromNext {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n�
     (F.next n₁ hn₁).obj ⟶ F.obj :=
   (F.exists_next n₁ hn₁).choose_spec.choose
 
-variable {f} in
+public variable {f} in
 lemma isIso_fromNext_hom_h_f {n₀ : ℤ} (F : CofFibFactorizationQuasiIsoLE f n₀)
     (n₁ : ℤ) (hn₁ : n₀ + 1 = n₁) (i : ℤ) (hi : i ≤ n₀) :
     IsIso ((F.fromNext n₁ hn₁).hom.h.f i) :=
@@ -483,7 +483,7 @@ noncomputable def sequence
   | 0 => zero f n₀
   | q + 1 => (sequence n₀ q).next _ (by lia)
 
-variable [Mono f] (n₀ : ℤ) [K.IsStrictlyGE (n₀ + 1)] [L.IsStrictlyGE (n₀ + 1)]
+public variable [Mono f] (n₀ : ℤ) [K.IsStrictlyGE (n₀ + 1)] [L.IsStrictlyGE (n₀ + 1)]
 
 /-- The morphism `(sequence f n₀ (q + 1)).obj ⟶ (sequence f n₀ q).obj` given by `fromNext`. -/
 noncomputable def toSequenceNext (q : ℕ) :
@@ -492,7 +492,7 @@ noncomputable def toSequenceNext (q : ℕ) :
 
 end CofFibFactorizationQuasiIsoLE
 
-variable [Mono f] (n₀ : ℤ) [K.IsStrictlyGE (n₀ + 1)] [L.IsStrictlyGE (n₀ + 1)]
+public variable [Mono f] (n₀ : ℤ) [K.IsStrictlyGE (n₀ + 1)] [L.IsStrictlyGE (n₀ + 1)]
 
 /-- Given a monomorphism `f : K ⟶ L` between complexes that are strictly `≥ n₀ + 1`,
 this is a projective system in `(cofFib f).FullSubcategory` given by the
@@ -634,7 +634,7 @@ lemma degreewiseEpiWithInjectiveKernel_π : degreewiseEpiWithInjectiveKernel (π
 
 end cm5a_cof
 
-variable [EnoughInjectives C]
+public variable [EnoughInjectives C]
 
 open cm5a_cof in
 public lemma cm5a_cof (n : ℤ) [K.IsStrictlyGE n] [L.IsStrictlyGE n] [Mono f] :
@@ -655,7 +655,7 @@ public lemma cm5a (n : ℤ) [K.IsStrictlyGE (n + 1)] [L.IsStrictlyGE n] :
 
 open ZeroObject
 
-variable (K)
+public variable (K)
 
 public lemma exists_mono_quasiIso_injective (n₀ n₁ : ℤ) (h : n₀ + 1 = n₁ := by lia)
     [K.IsStrictlyGE n₁] :

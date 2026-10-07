@@ -32,7 +32,7 @@ References:
 
 -/
 
-variable {K : Type*} [Field K]
+public variable {K : Type*} [Field K]
 
 open IntermediateField
 
@@ -44,12 +44,12 @@ open algebraAdjoinAdjoin Polynomial
 
 open scoped Polynomial.Bivariate
 
-variable {E : IntermediateField K K⟮X⟯}
+public variable {E : IntermediateField K K⟮X⟯}
 
 -- The proof of Lüroth's theorem begins here. We follow the approach from
 -- [Cohn, Basic Algebra: Groups, Rings and Fields][cohn_2003].
 
-variable (E) in
+public variable (E) in
 /-- The minimal polynomial of `X` with coefficients in `E`. -/
 abbrev φ : E[X] := minpoly E (X : K⟮X⟯)
 
@@ -78,7 +78,7 @@ lemma exists_φ_coeff_not_mem (h : E ≠ ⊥) :
 def generatorIndex (h : E ≠ ⊥) : ℕ :=
   (exists_φ_coeff_not_mem h).choose
 
-variable (E) in
+public variable (E) in
 open scoped Classical in
 /-- A choice of a generator for Lüroth's theorem, see `Luroth.eq_adjoin_generator`. -/
 public def generator : K⟮X⟯ :=
@@ -114,11 +114,11 @@ public lemma generator_ne_zero (h : E ≠ ⊥) : generator E ≠ 0 :=
 public lemma adjoin_generator_le : K⟮generator E⟯ ≤ E :=
   adjoin_simple_le_iff.mpr generator_mem
 
-variable (E) in
+public variable (E) in
 /-- The numerator of the generator. -/
 abbrev f : K[X] := (generator E).num
 
-variable (E) in
+public variable (E) in
 /-- The denominator of the generator. -/
 abbrev g : K[X] := generator E |>.denom
 
@@ -127,7 +127,7 @@ abbrev g : K[X] := generator E |>.denom
 -- we first define `Φ'` as any integer multiple of `φ`, and then set `Φ` to be its
 -- primitive part.
 
-variable (E) in
+public variable (E) in
 /-- The integer normalization of `φ` as a bivariate polynomial. -/
 abbrev Φ' : K[X][Y] :=
   IsLocalization.integerNormalization (nonZeroDivisors K[X]) ((φ E).map (algebraMap E K⟮X⟯))
@@ -135,7 +135,7 @@ abbrev Φ' : K[X][Y] :=
 lemma Φ'_ne_zero (h : E ≠ ⊥) : Φ' E ≠ 0 :=
   IsFractionRing.integerNormalization_eq_zero_iff.not.mpr (map_ne_zero (φ_ne_zero h))
 
-variable (E) in
+public variable (E) in
 /-- A polynomial `b` that satisfies `b * φ = Φ'`. -/
 def b : K[X] :=
   (IsLocalization.integerNormalization_spec (nonZeroDivisors K[X])
@@ -149,7 +149,7 @@ lemma Φ'_map :
     (Φ' E).map (algebraMap K[X] K⟮X⟯) = (b E) • (φ E).map (algebraMap ..) :=
   (IsLocalization.integerNormalization_spec _ ((φ E).map (algebraMap ..))).choose_spec.2
 
-variable (E) in
+public variable (E) in
 open scoped Classical in
 /-- A rational function `c` that satisfies `c * φ = Φ`. This is `ν₀(x)` in Cohn's notation. -/
 abbrev c : K⟮X⟯ :=
@@ -161,7 +161,7 @@ lemma c_ne_zero (h : E ≠ ⊥) : c E ≠ 0 :=
     content_eq_zero_iff.not.mpr (Φ'_ne_zero h),
   (FaithfulSMul.algebraMap_eq_zero_iff _ _).not.mpr b_ne_zero⟩
 
-variable (E) in
+public variable (E) in
 open scoped Classical in
 /-- The primitive part of `Φ'`. -/
 abbrev Φ : K[X][Y] := (Φ' E).primPart
@@ -256,7 +256,7 @@ lemma le_Φ_coeff_natDegree_natDegree (h : E ≠ ⊥) :
   rw [Φ_coeff_φ_natDegree' h]
   exact natDegree_le_of_dvd (generator_denom_dvd_c_num h) (num_ne_zero (c_ne_zero h))
 
-variable (E) in
+public variable (E) in
 /-- The height of `generator E`. -/
 abbrev m : ℕ := max (f E).natDegree (g E).natDegree
 
@@ -288,7 +288,7 @@ lemma φ_dvd_generator_minpolyX :
   rw [← aeval_eq_aeval_map rfl]
   exact (generator E).minpolyX_aeval_X
 
-variable (E) in
+public variable (E) in
 /-- A polynomial `q` that satisfies `φ * q = (generator E).minpolyX`. -/
 abbrev q : E[X] := φ_dvd_generator_minpolyX.choose
 
@@ -307,7 +307,7 @@ lemma q_ne_zero (h : E ≠ ⊥) : q E ≠ 0 := right_ne_zero_of_mul <|
 -- replace it by a univariate polynomial `Q₂`. Finally, we prove that it is also independent
 -- of `x`, hence we replace it by a constant `Q₃`.
 
-variable (E) in
+public variable (E) in
 /-- A polynomial `Q₀` with coefficients in `K⟮X⟯` that satisfies `Q₀ * Φ = θ`. -/
 abbrev Q₀ : K⟮X⟯[X] :=
   Polynomial.C ((algebraMap K[X] K⟮X⟯ (g E)) / c E) * (q E).map (algebraMap E K⟮X⟯)
@@ -317,7 +317,7 @@ lemma Q₀_ne_zero (h : E ≠ ⊥) : Q₀ E ≠ 0 := by
   · exact C_ne_zero.mpr (div_ne_zero (algebraMap_ne_zero (generator E).denom_ne_zero) (c_ne_zero h))
   · exact Polynomial.map_ne_zero (q_ne_zero h)
 
-variable (E) in
+public variable (E) in
 /-- The bivariate polynomial `g(X) * f(Y) - f(X) * g(Y)`, where `f` and `g` are
 the numerator and denominator of `generator`. This is an auxiliary definition
 for the proof of Lüroth's theorem. -/

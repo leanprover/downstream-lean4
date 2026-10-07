@@ -42,7 +42,7 @@ We show the equivalence of the current definition with the existence of chains i
 `isSubnormal_iff`.
 -/
 
-variable {G : Type*} [Group G] {H K : Subgroup G}
+public variable {G : Type*} [Group G] {H K : Subgroup G}
 
 public section
 

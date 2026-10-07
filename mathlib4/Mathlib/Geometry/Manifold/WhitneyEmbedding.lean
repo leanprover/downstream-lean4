@@ -32,7 +32,7 @@ universe uι uE uH uM
 open Function Filter Module Set Topology
 open scoped Manifold ContDiff
 
-variable {ι : Type uι} {E : Type uE} [NormedAddCommGroup E] [NormedSpace ℝ E]
+public variable {ι : Type uι} {E : Type uE} [NormedAddCommGroup E] [NormedSpace ℝ E]
   [FiniteDimensional ℝ E] {H : Type uH} [TopologicalSpace H] {I : ModelWithCorners ℝ E H}
   {M : Type uM} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I ∞ M]
 
@@ -47,7 +47,7 @@ In this section we prove a version of the Whitney embedding theorem: for any com
 `M`, for sufficiently large `n` there exists a smooth embedding `M → ℝ^n`.
 -/
 
-variable [T2Space M] [Fintype ι] {s : Set M} (f : SmoothBumpCovering ι I M s)
+public variable [T2Space M] [Fintype ι] {s : Set M} (f : SmoothBumpCovering ι I M s)
 
 /-- Smooth embedding of `M` into `(E × ℝ) ^ ι`. -/
 def embeddingPiTangent : C^∞⟮I, M; 𝓘(ℝ, ι → E × ℝ), ι → E × ℝ⟯ where

@@ -52,9 +52,9 @@ open Module RCLike
 
 open scoped ComplexConjugate
 
-variable {𝕜 E F G : Type*} [RCLike 𝕜]
-variable [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedAddCommGroup G]
-variable [InnerProductSpace 𝕜 E] [InnerProductSpace 𝕜 F] [InnerProductSpace 𝕜 G]
+public variable {𝕜 E F G : Type*} [RCLike 𝕜]
+public variable [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedAddCommGroup G]
+public variable [InnerProductSpace 𝕜 E] [InnerProductSpace 𝕜 F] [InnerProductSpace 𝕜 G]
 
 local notation "⟪" x ", " y "⟫" => inner 𝕜 x y
 
@@ -65,7 +65,7 @@ open InnerProductSpace
 
 namespace ContinuousLinearMap
 
-variable [CompleteSpace E] [CompleteSpace G]
+public variable [CompleteSpace E] [CompleteSpace G]
 
 /-- The adjoint, as a continuous conjugate-linear map. This is only meant as an auxiliary
 definition for the main definition `adjoint`, where this is bundled as a conjugate-linear isometric
@@ -86,7 +86,7 @@ theorem adjointAux_inner_right (A : E →L[𝕜] F) (x : E) (y : F) :
     ⟪x, adjointAux A y⟫ = ⟪A x, y⟫ := by
   rw [← inner_conj_symm, adjointAux_inner_left, inner_conj_symm]
 
-variable [CompleteSpace F]
+public variable [CompleteSpace F]
 
 theorem adjointAux_adjointAux (A : E →L[𝕜] F) : adjointAux (adjointAux A) = A := by
   ext v

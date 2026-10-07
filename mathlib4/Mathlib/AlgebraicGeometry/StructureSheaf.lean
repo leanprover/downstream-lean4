@@ -51,7 +51,8 @@ universe u
 
 noncomputable section
 
-variable {R M A : Type u} [CommRing R] [AddCommGroup M] [Module R M] [CommRing A] [Algebra R A]
+public variable {R M A : Type u} [CommRing R] [AddCommGroup M] [Module R M] [CommRing A]
+  [Algebra R A]
 
 open TopCat
 
@@ -394,7 +395,7 @@ lemma isUnit_basicOpen_end (f : R) :
   ext a
   simp
 
-variable (R M) in
+public variable (R M) in
 /-- The canonical linear map interpreting `s ∈ M_f` as a section of the structure sheaf
 on the basic open defined by `f ∈ R`. -/
 def toBasicOpenₗ (f : R) :
@@ -539,7 +540,7 @@ end basicOpen
 
 section Stalk
 
-variable (R) in
+public variable (R) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of
 the stalk of `structureSheaf R` at `x`. -/
 @[expose] public def toStalk (x : PrimeSpectrum.Top R) :
@@ -564,7 +565,7 @@ instance (x : PrimeSpectrum.Top R) :
     Module R ↑(TopCat.Presheaf.stalk (moduleStructurePresheaf R M).presheaf x) :=
   .compHom _ (toStalk R x).hom
 
-variable (M) in
+public variable (M) in
 def germₗ (U : Opens (PrimeSpectrum.Top R)) (x : PrimeSpectrum.Top R) (hxU : x ∈ U) :
     Γ(M, U) →ₗ[R] ↑(TopCat.Presheaf.stalk (moduleStructurePresheaf R M).presheaf x) where
   __ := (TopCat.Presheaf.germ (moduleStructurePresheaf R M).presheaf U x hxU).hom
@@ -582,7 +583,7 @@ instance (x : PrimeSpectrum.Top R) :
   .of_algebraMap_smul fun _ _ ↦ rfl
 
 set_option backward.isDefEq.respectTransparency.types false in
-variable (R M) in
+public variable (R M) in
 def modulePresheafStalkIso (x : PrimeSpectrum.Top R) :
     ↑(TopCat.Presheaf.stalk (moduleStructurePresheaf R M).presheaf x) ≃ₗ[R]
       (structurePresheafInModuleCat R M).stalk x where
@@ -621,7 +622,7 @@ lemma toStalk_smul (x : PrimeSpectrum.Top R) (r : R)
   rw [← (modulePresheafStalkIso R M x).eq_symm_apply, map_smul]
   rfl
 
-variable (R M) in
+public variable (R M) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of
 the stalk of `structureSheaf R` at `x`. -/
 def toStalkₗ' (x : PrimeSpectrum.Top R) :
@@ -653,7 +654,7 @@ theorem isUnit_toStalkₗ' (x : PrimeSpectrum.Top R) (f : R) (hf : x ∈ basicOp
   simp only [Module.algebraMap_end_apply]
   rw [toStalk_smul]
 
-variable (R M) in
+public variable (R M) in
 /-- The canonical ring homomorphism from the localization of `R` at `p` to the stalk
 of the structure sheaf at the point `p`. -/
 def localizationtoStalkₗ (x : PrimeSpectrum.Top R) :
@@ -677,7 +678,7 @@ theorem localizationtoStalkₗ_mk (x : PrimeSpectrum.Top R) (f : M) (s) :
   congr 1
   exact const_eq_const_of_smul_eq_smul (H := by simp) ..
 
-variable (R M) in
+public variable (R M) in
 /-- The ring homomorphism that takes a section of the structure sheaf of `R` on the open set `U`,
 implemented as a subtype of dependent functions to localizations at prime ideals, and evaluates
 the section on the point corresponding to a given prime ideal. -/
@@ -689,7 +690,7 @@ def openToLocalizationₗ (U : Opens (PrimeSpectrum.Top R)) (x : PrimeSpectrum.T
     map_smul' _ _ := rfl
     map_add' _ _ := rfl }
 
-variable (R M) in
+public variable (R M) in
 /-- The ring homomorphism from the stalk of the structure sheaf of `R` at a point corresponding to
 a prime ideal `p` to the localization of `R` at `p`,
 formed by gluing the `openToLocalization` maps. -/
@@ -717,7 +718,7 @@ open TopCat.Presheaf
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-variable (R M) in
+public variable (R M) in
 /-- The ring isomorphism between the stalk of the structure sheaf of `R` at a point `p`
 corresponding to a prime ideal in `R` and the localization of `R` at `p`. -/
 @[simps]
@@ -774,7 +775,7 @@ instance (x : PrimeSpectrum.Top R) :
   rfl
 
 set_option backward.isDefEq.respectTransparency false in
-variable (R M) in
+public variable (R M) in
 /-- The canonical ring homomorphism interpreting an element of `R` as an element of
 the stalk of `structureSheaf R` at `x`. -/
 @[expose] public
@@ -809,7 +810,7 @@ instance (x : PrimeSpectrum.Top R) : IsLocalizedModule x.asIdeal.primeCompl (toS
   congrm $this _
 
 set_option backward.isDefEq.respectTransparency.types false in
-variable (R) in
+public variable (R) in
 /-- The stalk of `Spec R` at `x` is isomorphic to the stalk of `R^~` at `x`. -/
 @[expose] public
 def commRingCatStalkEquivModuleStalk (x : PrimeSpectrum.Top R) :
@@ -866,7 +867,7 @@ public instance (x : PrimeSpectrum.Top R) :
   exact (((structurePresheafInCommRingCat R).germ ⊤ x (by simp)).hom.comp
     (algebraMap R Γ(R, _))).map_one.symm
 
-variable (R) in
+public variable (R) in
 /-- The stalk of `Spec R` at `x` is isomorphic to `Rₚ`,
 where `p` is the prime corresponding to `x`. -/
 public abbrev stalkIso (x : PrimeSpectrum R) :

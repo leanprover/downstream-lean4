@@ -231,7 +231,8 @@ private theorem lin_1 (l k r) : a k l * (newBasis K) r =
 
 -- Variable declarations can only reference public items.
 set_option backward.privateInPublic true
-variable [Fintype β] (cardβ : Fintype.card β = q) (hmulvec0 : asiegel K a *ᵥ x = 0)
+variable [Fintype β] (cardβ : Fintype.card β = q)
+private variable (hmulvec0 : asiegel K a *ᵥ x = 0)
 
 include hxl hmulvec0 in
 private theorem ξ_mulVec_eq_0 : a *ᵥ ξ K x = 0 := by
@@ -272,6 +273,7 @@ private theorem c₂_nonneg : 0 ≤ c₂ K :=
   mul_nonneg (le_trans zero_le_one (le_max_left ..)) (supOfBasis_nonneg _)
 
 variable [Fintype α] (cardα : Fintype.card α = p) (Apos : 0 ≤ A)
+private variable
   (hxbound : ‖x‖ ≤ (q * finrank ℚ K * ‖asiegel K a‖) ^ ((p : ℝ) / (q - p)))
 
 include habs Apos in

@@ -24,7 +24,7 @@ universe u v
 
 open Topology
 
-variable (R : Type u) [PartialOrder R] [Ring R] [TopologicalSpace R]
+public variable (R : Type u) [PartialOrder R] [Ring R] [TopologicalSpace R]
 
 namespace Convexity.StdSimplex
 
@@ -75,7 +75,7 @@ lemma continuous_map [IsStrictOrderedRing R] [IsTopologicalRing R]
 
 end topologicalSpaceInduced
 
-variable [IsStrictOrderedRing R] [IsTopologicalRing R]
+public variable [IsStrictOrderedRing R] [IsTopologicalRing R]
 
 attribute [local instance] topologicalSpaceInduced in
 /-- This is the topology on `StdSimplex R M` when `M` is a possibly
@@ -101,7 +101,7 @@ lemma topologicalSpace_eq (M : Type v) [Finite M] :
     rw [map_id']
     rfl
 
-variable {R} in
+public variable {R} in
 public lemma continuous_iff
     {M : Type v} {T : Type*} [TopologicalSpace T] (f : StdSimplex R M → T) :
     Continuous f ↔

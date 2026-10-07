@@ -45,7 +45,7 @@ via its vanishing on `L × ⁅L, L⁆`, semisimplicity via its non-degeneracy.
 * [J. Humphreys, *Introduction to Lie Algebras and ...*](humphreys1972) Chapter II 4.3
 -/
 
-variable {R L M : Type*} [CommRing R] [CharZero R] [IsDomain R] [LieRing L] [LieAlgebra R L]
+public variable {R L M : Type*} [CommRing R] [CharZero R] [IsDomain R] [LieRing L] [LieAlgebra R L]
 
 namespace LieModule
 
@@ -66,7 +66,7 @@ lemma exists_polynomial_eval_sub_aux
   have heq : (⟨a i, ha i⟩ - ⟨a j, ha j⟩ : E) = ⟨a k, ha k⟩ - ⟨a l, ha l⟩ := Subtype.ext hij
   rw [← (algebraMap R K).map_sub, ← (algebraMap R K).map_sub, ← map_sub, ← map_sub, heq]
 
-variable [AddCommGroup M] [LieRingModule L M]
+public variable [AddCommGroup M] [LieRingModule L M]
 attribute [local instance 100] LieRing.ofAssociativeRing
 
 /-- An auxiliary lemma used to prove `LieModule.isNilpotent_derivedSeries_of_traceForm_eq_zero`
@@ -194,7 +194,7 @@ public theorem isNilpotent_derivedSeries_of_traceForm_eq_zero
 
 end LieModule
 
-variable [IsNoetherian R L] [Module.Free R L]
+public variable [IsNoetherian R L] [Module.Free R L]
 
 open LieAlgebra in
 /-- A convenience variation of `LieAlgebra.isSolvable_of_forall_derived_killingForm_eq_zero` for
@@ -239,7 +239,7 @@ public lemma isSolvable_of_killingForm_apply_lie_eq_zero
   apply LieIdeal.isSolvable_of_killingForm_apply_lie_eq_zero
   aesop
 
-variable (R L)
+public variable (R L)
 
 /-- The Killing radical of a finite-dimensional Lie algebra is contained in the solvable radical. -/
 public lemma killingCompl_top_le_radical :

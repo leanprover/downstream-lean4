@@ -69,14 +69,14 @@ namespace Sion
 
 section LinearOrder
 
-variable {E F : Type*} {β : Type*} [LinearOrder β]
+public variable {E F : Type*} {β : Type*} [LinearOrder β]
     (X : Set E) (Y : Set F) (f : E → F → β)
 
 /-- The familywise sublevel sets of `f`, the first variable serving as a parameter -/
 def sublevelLeft (b : β) (z : F) : Set X :=
   (fun x => f x z) ∘ (fun x ↦ ↑x) ⁻¹' Iic b
 
-variable {X Y f}
+public variable {X Y f}
 
 theorem mem_sublevelLeft_iff {b : β} {y : Y} {x : X} :
     x ∈ sublevelLeft X f b y ↔ f x y ≤ b := by simp [sublevelLeft]
@@ -162,18 +162,18 @@ theorem sublevelLeft_subset_or [TopologicalSpace E] [AddCommGroup E]
     (sublevelLeft_subset_union hfx' b y y' z)
   simp [(disjoint_sublevelLeft ha hb).inter_eq]
 
-variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
+public variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
     [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
     (ne_X : X.Nonempty) (kX : IsCompact X)
     (hfy : ∀ y ∈ Y, LowerSemicontinuousOn (fun x : E => f x y) X)
     (hfy' : ∀ y ∈ Y, QuasiconvexOn ℝ X fun x => f x y)
 
-variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
+public variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
     (cY : Convex ℝ Y) (kY : IsCompact Y)
     (hfx : ∀ x ∈ X, UpperSemicontinuousOn (fun y : F => f x y) Y)
     (hfx' : ∀ x ∈ X, QuasiconcaveOn ℝ Y fun y => f x y)
 
-variable (X Y f) in
+public variable (X Y f) in
 /-- The set of parameters `z` in the segment `[y, y']` such that `f b z ≤ f b' y`. -/
 def setOfPred_sublevelLeft_subset (b b' : β) (y y' : Y) : Set (segment ℝ y.val y'.val) :=
     {z | sublevelLeft X f b z ⊆ sublevelLeft X f b' y}
@@ -234,8 +234,8 @@ theorem isClosed_setOfPred_sublevelLeft_subset
 @[deprecated (since := "2026-07-09")]
 alias isClosed_setOf_sublevelLeft_subset := isClosed_setOfPred_sublevelLeft_subset
 
-variable [DenselyOrdered β]
-variable [IsTopologicalAddGroup F] [ContinuousSMul ℝ F]
+public variable [DenselyOrdered β]
+public variable [IsTopologicalAddGroup F] [ContinuousSMul ℝ F]
 
 include ne_X kX hfx hfx' cY hfy hfy' in
 public theorem exists_lt_iInf_of_lt_iInf_of_sup
@@ -291,7 +291,7 @@ public theorem exists_lt_iInf_of_lt_iInf_of_sup
   · refine hJ1J2 ⟨y1, left_mem_segment ℝ (y1 : F) y2⟩ ⟨?_, h2 (Set.mem_univ _)⟩
     grw [mem_J1_iff, monotone_sublevelLeft y1 htt'.le]
 
-variable (cX : Convex ℝ X)
+public variable (cX : Convex ℝ X)
 
 include ne_X cX cY kX hfx hfx' hfy hfy' in
 public theorem exists_lt_iInf_of_lt_iInf_of_finite
@@ -402,7 +402,7 @@ public theorem minimax
   apply lt_of_lt_of_le (ht0 a ha)
   simpa [le_isGLB_iff (hinf_x (y0 hs') (hy0 hs')), mem_lowerBounds]
 
-variable (ne_Y : Y.Nonempty) (kY : IsCompact Y)
+public variable (ne_Y : Y.Nonempty) (kY : IsCompact Y)
 include ne_X ne_Y cX cY kX kY hfx hfx' hfy hfy' in
 /-- The Sion-von Neumann minimax theorem (saddle point form) -/
 public theorem exists_isSaddlePointOn' :
@@ -432,15 +432,15 @@ end LinearOrder
 
 section CompleteLinearOrder
 
-variable {E F β : Type*} [CompleteLinearOrder β] [DenselyOrdered β]
-variable {X : Set E} {Y : Set F} {f : E → F → β}
-variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
+public variable {E F β : Type*} [CompleteLinearOrder β] [DenselyOrdered β]
+public variable {X : Set E} {Y : Set F} {f : E → F → β}
+public variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
     [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
     (ne_X : X.Nonempty) (cX : Convex ℝ X) (kX : IsCompact X)
     (hfy : ∀ y ∈ Y, LowerSemicontinuousOn (fun x : E ↦ f x y) X)
     (hfy' : ∀ y ∈ Y, QuasiconvexOn ℝ X fun x => f x y)
 
-variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
+public variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
   [IsTopologicalAddGroup F] [ContinuousSMul ℝ F]
   (cY : Convex ℝ Y) (ne_Y : Y.Nonempty) (kY : IsCompact Y)
   (hfx : ∀ x ∈ X, UpperSemicontinuousOn (fun y : F => f x y) Y)
@@ -478,16 +478,16 @@ end CompleteLinearOrder
 
 section DedekindMacNeille
 
-variable {E F β γ : Type*} [LinearOrder β]
+public variable {E F β γ : Type*} [LinearOrder β]
 
-variable {X : Set E} {Y : Set F} {f : E → F → β}
-variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
+public variable {X : Set E} {Y : Set F} {f : E → F → β}
+public variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
     [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
     (ne_X : X.Nonempty) (cX : Convex ℝ X) (kX : IsCompact X)
     (hfy : ∀ y ∈ Y, LowerSemicontinuousOn (fun x : E ↦ f x y) X)
     (hfy' : ∀ y ∈ Y, QuasiconvexOn ℝ X fun x => f x y)
 
-variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
+public variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
   [IsTopologicalAddGroup F] [ContinuousSMul ℝ F]
   (cY : Convex ℝ Y) (ne_Y : Y.Nonempty) (kY : IsCompact Y)
   (hfx : ∀ x ∈ X, UpperSemicontinuousOn (fun y : F => f x y) Y)
@@ -495,8 +495,8 @@ variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
 
 /- The following lines essentially assume that `β` has a densely ordered completion.
 (The Dedekind MacNeille completion is not densely ordered unless `β` is.) -/
-variable [TopologicalSpace β] [OrderTopology β]
-variable {γ : Type*} [CompleteLinearOrder γ] [DenselyOrdered γ]
+public variable [TopologicalSpace β] [OrderTopology β]
+public variable {γ : Type*} [CompleteLinearOrder γ] [DenselyOrdered γ]
   [TopologicalSpace γ] [OrderTopology γ]
   {ι : β ↪o γ} (hι : Continuous ι)
 
@@ -526,15 +526,15 @@ end DedekindMacNeille
 
 section Real
 
-variable {E F : Type*}
-variable {X : Set E} {Y : Set F} {f : E → F → ℝ}
-variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
+public variable {E F : Type*}
+public variable {X : Set E} {Y : Set F} {f : E → F → ℝ}
+public variable [TopologicalSpace E] [AddCommGroup E] [Module ℝ E]
     [IsTopologicalAddGroup E] [ContinuousSMul ℝ E]
     (ne_X : X.Nonempty) (cX : Convex ℝ X) (kX : IsCompact X)
     (hfy : ∀ y ∈ Y, LowerSemicontinuousOn (fun x : E ↦ f x y) X)
     (hfy' : ∀ y ∈ Y, QuasiconvexOn ℝ X fun x => f x y)
 
-variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
+public variable [TopologicalSpace F] [AddCommGroup F] [Module ℝ F]
   [IsTopologicalAddGroup F] [ContinuousSMul ℝ F]
   (cY : Convex ℝ Y) (ne_Y : Y.Nonempty) (kY : IsCompact Y)
   (hfx : ∀ x ∈ X, UpperSemicontinuousOn (fun y : F => f x y) Y)

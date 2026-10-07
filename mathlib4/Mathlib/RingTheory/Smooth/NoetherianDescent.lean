@@ -25,10 +25,10 @@ open TensorProduct MvPolynomial
 
 namespace Algebra.Smooth
 
-variable {R : Type*} [CommRing R]
-variable {A : Type u} {B : Type*} [CommRing A] [Algebra R A] [CommRing B] [Algebra A B]
+public variable {R : Type*} [CommRing R]
+public variable {A : Type u} {B : Type*} [CommRing A] [Algebra R A] [CommRing B] [Algebra A B]
 
-variable (A B) in
+public variable (A B) in
 /-- (Implementation detail): If `S` is an `R`-algebra with presentation `P`
 and section `σ` of the projection `R[Xᵢ] ⧸ I^2 → S`, then a
 `DescentAux` structure contains the data necessary to reconstruct `σ`. -/
@@ -49,7 +49,7 @@ namespace DescentAux
 
 variable (D : DescentAux A B)
 
-variable (R)
+public variable (R)
 
 /-- (Implementation detail): The finite type `R`-algebra. -/
 -- Note: `Set` has no computational content, but Lean still attempts to compile it.
@@ -202,7 +202,7 @@ lemma exists_kerSquareLift_comp_eq_id :
 
 end DescentAux
 
-variable (R A B)
+public variable (R A B)
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in

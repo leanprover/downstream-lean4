@@ -19,7 +19,7 @@ This file contains basic definitions and API for the fixed support.
 
 namespace Function
 
-variable {X : Type*} [TopologicalSpace X] {x : X} {f g : X → X}
+public variable {X : Type*} [TopologicalSpace X] {x : X} {f g : X → X}
 
 /-- The fixed support of a self-map `f : X → X` is the closure of the set of non-fixed points, often
 called the support of `f`, but we use the term "fixed support" to disamiguate from other notions. -/
@@ -49,7 +49,7 @@ public theorem HasCompactFixedSupport_iff [R1Space X] :
   refine ⟨fun ⟨K, hK₁, hK₂, hf⟩ ↦ ⟨K, hK₂, hf⟩, fun ⟨K, hK, hf⟩ ↦ ?_⟩
   exact ⟨closure K, isClosed_closure, hK.closure, hf.trans subset_closure⟩
 
-variable (X) in
+public variable (X) in
 public theorem hasCompactFixedSupport_id : HasCompactFixedSupport (id : X → X) := by
   simp [HasCompactFixedSupport, fixedSupport]
 

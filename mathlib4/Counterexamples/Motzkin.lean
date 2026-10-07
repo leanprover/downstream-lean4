@@ -19,7 +19,7 @@ This file contains a proof of the first property (nonnegativity).
 TODO: prove the second property.
 -/
 
-variable {K : Type*} [CommRing K] [LinearOrder K] [IsStrictOrderedRing K]
+public variable {K : Type*} [CommRing K] [LinearOrder K] [IsStrictOrderedRing K]
 
 /-- The **Motzkin polynomial** is nonnegative.
 This bivariate polynomial cannot be written as a sum of squares. -/

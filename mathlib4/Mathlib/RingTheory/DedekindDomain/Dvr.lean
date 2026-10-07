@@ -39,7 +39,7 @@ to add a `(h : ¬ IsField A)` assumption whenever this is explicitly needed.
 dedekind domain, dedekind ring
 -/
 
-variable (A : Type*) [CommRing A]
+public variable (A : Type*) [CommRing A]
 
 open scoped nonZeroDivisors Polynomial
 
@@ -122,7 +122,7 @@ theorem IsLocalization.AtPrime.isDiscreteValuationRing_of_dedekind_domain [IsDed
 
 end
 
-variable {A}
+public variable {A}
 
 /-- An integral domain is a Dedekind domain iff it is Noetherian and
 the localization at every nonzero prime is a discrete valuation ring. -/

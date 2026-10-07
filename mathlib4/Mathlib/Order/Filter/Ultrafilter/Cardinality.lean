@@ -17,11 +17,11 @@ import Mathlib.SetTheory.Cardinal.Arithmetic
 We prove there are `2 ^ 2 ^ #α` ultrafilters on an infinite type `α`.
 -/
 
-variable {α : Type*}
+public variable {α : Type*}
 open Cardinal Filter Set
 
 section Finite
-variable [Finite α]
+public variable [Finite α]
 
 public theorem Cardinal.mk_ultrafilter_of_finite :
     #(Ultrafilter α) = #α := by
@@ -100,7 +100,7 @@ theorem interPairsFilter_pairwiseDisjoint : Set.univ.Pairwise
       (ite_eq_left hx.1 ▸ Filter.mem_principal_self (interPair x)),
       disjoint_compl_left⟩
 
-variable [Infinite α]
+public variable [Infinite α]
 
 public theorem Cardinal.mk_ultrafilter_of_infinite :
     #(Ultrafilter α) = 2 ^ (2 ^ #α : Cardinal) := by

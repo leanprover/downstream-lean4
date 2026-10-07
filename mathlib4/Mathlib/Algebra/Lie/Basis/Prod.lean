@@ -24,11 +24,12 @@ namespace LieAlgebra.Basis
 
 open Function LieSubalgebra Set Submodule
 
-variable {ι₁ ι₂ L₁ L₂ : Type*} [Finite ι₁] [Finite ι₂] (eι : ι₁ ≃ ι₂) [LieRing L₁] [LieRing L₂]
+public variable {ι₁ ι₂ L₁ L₂ : Type*} [Finite ι₁] [Finite ι₂] (eι : ι₁ ≃ ι₂) [LieRing L₁]
+  [LieRing L₂]
 
 section CommRing
 
-variable {R : Type*} [CommRing R]
+public variable {R : Type*} [CommRing R]
   [LieAlgebra R L₁] {H₁ : LieSubalgebra R L₁} (b₁ : Basis ι₁ H₁)
   [LieAlgebra R L₂] {H₂ : LieSubalgebra R L₂} (b₂ : Basis ι₂ H₂)
 
@@ -224,7 +225,7 @@ end CommRing
 
 section Field
 
-variable {K : Type*} [Field K] [CharZero K]
+public variable {K : Type*} [Field K] [CharZero K]
   [LieAlgebra K L₁] [FiniteDimensional K L₁] {H₁ : LieSubalgebra K L₁} (b₁ : Basis ι₁ H₁)
   [LieAlgebra K L₂] [FiniteDimensional K L₂] {H₂ : LieSubalgebra K L₂} (b₂ : Basis ι₂ H₂)
   (hA : b₁.A.reindex eι eι = b₂.A)
@@ -261,7 +262,7 @@ lemma prod_lt_top [Nontrivial L₂] :
   have hg₂ : g (0, x₂) = g (0, 0) := rfl
   aesop
 
-variable [IsSimple K L₁] [IsSimple K L₂]
+public variable [IsSimple K L₁] [IsSimple K L₂]
 
 /-- `LieAlgebra.Basis.prod` is equivalent to its left input algebra. -/
 def prodEquivLeft :

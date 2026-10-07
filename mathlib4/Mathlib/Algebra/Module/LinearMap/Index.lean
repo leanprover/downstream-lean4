@@ -27,18 +27,18 @@ namespace LinearMap
 
 open Function Module
 
-variable {M N : Type*} [AddCommGroup M] [AddCommGroup N]
+public variable {M N : Type*} [AddCommGroup M] [AddCommGroup N]
 
 section Ring
 
-variable {R : Type*} [Ring R] [Module R M] [Module R N] (f : M →ₗ[R] N)
+public variable {R : Type*} [Ring R] [Module R M] [Module R N] (f : M →ₗ[R] N)
 
 /-- The index of a linear map with sign convention `index = dim ker - dim coker`.
 
 In the case that either the kernel or cokernel has infinite rank, the value is junk. -/
 public def index : ℤ := finrank R f.ker - finrank R (N ⧸ f.range)
 
-variable {f}
+public variable {f}
 
 public lemma index_eq_finrank_sub :
     f.index = finrank R f.ker - finrank R (N ⧸ f.range) := by
@@ -61,7 +61,7 @@ public lemma index_of_injective [Nontrivial R] (hf : Injective f) :
     S.subtype.index = - finrank R (M ⧸ S) := by
   rw [index_of_injective S.injective_subtype, S.range_subtype]
 
-variable [StrongRankCondition R]
+public variable [StrongRankCondition R]
 
 public lemma index_of_surjective (hf : Surjective f) :
     f.index = finrank R f.ker := by
@@ -93,7 +93,7 @@ end Ring
 
 section DivisionRing
 
-variable {k : Type*} [DivisionRing k] [Module k M] [Module k N] {f : M →ₗ[k] N}
+public variable {k : Type*} [DivisionRing k] [Module k M] [Module k N] {f : M →ₗ[k] N}
 
 @[simp] public lemma index_neg :
     (-f).index = f.index := by
@@ -136,7 +136,7 @@ end DivisionRing
 
 section Field
 
-variable {k : Type*} [Field k] [Module k M] [Module k N] {f : M →ₗ[k] N}
+public variable {k : Type*} [Field k] [Module k M] [Module k N] {f : M →ₗ[k] N}
 
 public lemma index_smul (t : k) (ht : t ≠ 0) :
     (t • f).index = f.index := by

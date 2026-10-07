@@ -16,7 +16,7 @@ subspace to the entire space.
   `Eₗ →SL[σ₁₂] F`, where `e : E →ₗ[𝕜] Eₗ` is a dense map that is `IsUniformInducing`. -/
 
 namespace ContinuousLinearMap
-variable {𝕜 𝕜₂ E F Eₗ : Type*} [AddCommGroup E] [UniformSpace E] [IsUniformAddGroup E]
+public variable {𝕜 𝕜₂ E F Eₗ : Type*} [AddCommGroup E] [UniformSpace E] [IsUniformAddGroup E]
   [AddCommGroup F] [UniformSpace F] [IsUniformAddGroup F] [T0Space F]
   [AddCommMonoid Eₗ] [UniformSpace Eₗ] [ContinuousAdd Eₗ]
   [Semiring 𝕜] [Semiring 𝕜₂] [Module 𝕜 E] [Module 𝕜₂ F] [Module 𝕜 Eₗ]
@@ -51,7 +51,7 @@ embedding `e : E →L[𝕜] Eₗ`. -/
     cont }
   else 0
 
-variable {e}
+public variable {e}
 
 @[simp] public theorem extend_eq (h_dense : DenseRange e) (h_e : IsUniformInducing e) (x : E) :
     extend f e (e x) = f x := by

@@ -21,7 +21,7 @@ This file defines the typeclass `IsSemisimpleRepresentation` for semisimple mono
 
 namespace Representation
 
-variable {k G V : Type*}
+public variable {k G V : Type*}
 
 public section
 

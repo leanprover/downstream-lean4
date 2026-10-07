@@ -47,11 +47,11 @@ namespace Pseudofunctor
 
 open LocallyDiscreteOpToCat
 
-variable {C : Type u} [Category.{v} C] (F : LocallyDiscrete Cᵒᵖ ⥤ᵖ Cat.{v', u'})
+public variable {C : Type u} [Category.{v} C] (F : LocallyDiscrete Cᵒᵖ ⥤ᵖ Cat.{v', u'})
 
 namespace DescentData
 
-variable {J : GrothendieckTopology C} [F.IsPrestack J]
+public variable {J : GrothendieckTopology C} [F.IsPrestack J]
   {ι : Type t} {S : C} {X : ι → C} {f : ∀ i, X i ⟶ S}
   {ι' : Type t'} {X' : ι' → C} {f' : ∀ j, X' j ⟶ S}
   {α : ι' → ι} {p' : ∀ j, X' j ⟶ X (α j)} (w : ∀ j, p' j ≫ f (α j) = f' j)
@@ -91,11 +91,11 @@ public lemma faithful_pullFunctor :
 
 namespace full_pullFunctor
 
-variable {F} {D₁ D₂ : F.DescentData f}
+public variable {F} {D₁ D₂ : F.DescentData f}
   (φ : (pullFunctor F (p := 𝟙 _) (f' := f') (p' := p') (by cat_disch)).obj D₁ ⟶
     (pullFunctor F (p := 𝟙 _) (f' := f') (p' := p') (by cat_disch)).obj D₂)
 
-variable (f f') in
+public variable (f f') in
 /-- Given two families of morphisms `f i : X i ⟶ S` and `f' j : X' j ⟶ S`,
 this is the sieve on `Over.mk (𝟙 (X i)) : Over (X i)` which corresponds
 to the sieve of `X i` that is obtained by pulling back by `f i` the sieve
@@ -105,7 +105,7 @@ abbrev sieve (i : ι) : Sieve (Over.mk (𝟙 (X i))) :=
     (Sieve.pullback (f i) (Sieve.ofArrows X' f'))
 
 include hf' in
-variable (f) in
+public variable (f) in
 lemma sieve_mem (i : ι) : sieve f f' i ∈ J.over _ _ := by
   simpa only [J.mem_over_iff, OrderIso.apply_symm_apply] using! J.pullback_stable (f i) hf'
 

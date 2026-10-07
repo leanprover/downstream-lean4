@@ -198,7 +198,7 @@ To rewrite only in the `n`-th position, use `nth_grw n`.
 Examples:
 
 ```lean
-variable {a b c d n : ℤ}
+public variable {a b c d n : ℤ}
 
 example (h₁ : a < b) (h₂ : b ≤ c) : a + d ≤ c + d := by
   grw [h₁, h₂]

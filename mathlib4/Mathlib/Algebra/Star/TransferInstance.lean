@@ -13,7 +13,7 @@ public import Mathlib.Algebra.Ring.TransferInstance
 This continues the pattern set in `Mathlib/Algebra/Group/TransferInstance.lean`.
 -/
 
-variable {R S : Type*}
+public variable {R S : Type*}
 
 public section
 

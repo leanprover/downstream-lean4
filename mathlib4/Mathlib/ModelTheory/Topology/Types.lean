@@ -28,7 +28,7 @@ namespace CompleteType
 
 universe u
 
-variable {L : Language} {T : L.Theory} {α : Type*}
+public variable {L : Language} {T : L.Theory} {α : Type*}
 
 public instance : TopologicalSpace (CompleteType T α) :=
   generateFrom (range (T.typesWith))

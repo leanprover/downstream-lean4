@@ -150,8 +150,8 @@ section eisenstein
 
 open NumberField IsCyclotomicExtension.Rat.Three
 
-variable {K : Type*} [Field K]
-variable {ζ : K} (hζ : IsPrimitiveRoot ζ 3)
+public variable {K : Type*} [Field K]
+public variable {ζ : K} (hζ : IsPrimitiveRoot ζ 3)
 
 local notation3 "η" => (IsPrimitiveRoot.isUnit (hζ.toInteger_isPrimitiveRoot) (by decide)).unit
 local notation3 "λ" => hζ.toInteger - 1
@@ -203,12 +203,12 @@ attribute [nolint docBlame] Solution'.u
 structure Solution extends Solution' hζ where
   hab : λ ^ 2 ∣ a + b
 
-variable {hζ}
+public variable {hζ}
 variable (S : Solution hζ) (S' : Solution' hζ)
 
 section IsCyclotomicExtension
 
-variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
+public variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
 
 /-- For any `S' : Solution'`, the multiplicity of `λ` in `S'.c` is finite. -/
 lemma Solution'.multiplicity_lambda_c_finite :
@@ -308,7 +308,7 @@ lemma a_cube_add_b_cube_eq_mul :
   _ = S'.a ^ 3 + S'.b ^ 3 := by rw [eta_sq]; ring
 
 section IsCyclotomicExtension
-variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
+public variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
 
 /-- Given `S' : Solution'`, we have that `λ ^ 2` divides one amongst `S'.a + S'.b`,
 `S'.a + η * S'.b` and `S'.a + η ^ 2 * S'.b`. -/
@@ -391,7 +391,7 @@ lemma lambda_dvd_a_add_eta_sq_mul_b : λ ∣ (S.a + η ^ 2 * S.b) := by
 
 section IsCyclotomicExtension
 
-variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
+public variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
 
 /-- Given `(S : Solution)`, we have that `λ ^ 2` does not divide `S.a + η * S.b`. -/
 lemma lambda_sq_not_dvd_a_add_eta_mul_b : ¬ λ ^ 2 ∣ (S.a + η * S.b) := by
@@ -466,7 +466,7 @@ noncomputable def z := (lambda_dvd_a_add_eta_sq_mul_b S).choose
 lemma z_spec : S.a + η ^ 2 * S.b = λ * S.z :=
   (lambda_dvd_a_add_eta_sq_mul_b S).choose_spec
 
-variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
+public variable [NumberField K] [IsCyclotomicExtension {3} ℚ K]
 
 lemma lambda_not_dvd_y : ¬ λ ∣ S.y := fun h ↦ by
   replace h := mul_dvd_mul_left ((η : 𝓞 K) - 1) h

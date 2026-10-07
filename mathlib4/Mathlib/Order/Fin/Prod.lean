@@ -16,7 +16,7 @@ import Mathlib.Algebra.Order.Group.Nat
 
 namespace Fin
 
-variable {p q : ℕ}
+public variable {p q : ℕ}
 
 public lemma prod_zero_zero_lt_iff (i : Fin (p + 1) × Fin (q + 1)) :
     (0, 0) < i ↔ 0 < i.1.val + i.2.val := by

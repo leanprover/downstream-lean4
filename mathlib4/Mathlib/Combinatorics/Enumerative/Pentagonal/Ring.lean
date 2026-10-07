@@ -33,7 +33,7 @@ namespace Pentagonal
 open Filter
 
 open scoped Topology
-variable {R : Type*} [CommRing R]
+public variable {R : Type*} [CommRing R]
 
 /--
 We define an auxiliary sequence
@@ -62,7 +62,7 @@ theorem aux_sub_aux (k n : ℕ) (x : R) :
   rw [Finset.prod_range_succ', Finset.prod_range_succ]
   ring_nf
 
-variable [TopologicalSpace R] [IsTopologicalRing R] [T2Space R]
+public variable [TopologicalSpace R] [IsTopologicalRing R] [T2Space R]
 
 /-- By summing with telescoping, we get a recurrence formula for $A$
 

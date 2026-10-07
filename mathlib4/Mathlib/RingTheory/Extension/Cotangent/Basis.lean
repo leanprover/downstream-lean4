@@ -27,13 +27,13 @@ open MvPolynomial TensorProduct
 
 namespace Algebra.Generators
 
-variable {R : Type*} {S : Type*} [CommRing R] [CommRing S] [Algebra R S] {σ : Type*}
+public variable {R : Type*} {S : Type*} [CommRing R] [CommRing S] [Algebra R S] {σ : Type*}
 
 noncomputable section
 
 namespace PresentationOfFreeCotangent
 
-variable {ι : Type*} (P : Generators R S ι) {σ : Type*}
+public variable {ι : Type*} (P : Generators R S ι) {σ : Type*}
   (b : Module.Basis σ S P.toExtension.Cotangent)
 
 /-- An auxiliary structure containing the data to construct the presentation in

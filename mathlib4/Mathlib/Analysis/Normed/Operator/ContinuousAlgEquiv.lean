@@ -26,7 +26,7 @@ The proof follows the same idea as the non-continuous version.
 open ContinuousLinearMap ContinuousLinearEquiv
 
 section
-variable {𝕜 V W : Type*} [NontriviallyNormedField 𝕜] [SeminormedAddCommGroup V]
+public variable {𝕜 V W : Type*} [NontriviallyNormedField 𝕜] [SeminormedAddCommGroup V]
   [SeminormedAddCommGroup W] [NormedSpace 𝕜 V] [NormedSpace 𝕜 W] [SeparatingDual 𝕜 V]
   [SeparatingDual 𝕜 W]
 
@@ -86,19 +86,20 @@ public theorem ContinuousAlgEquiv.eq_continuousLinearEquivConjContinuousAlgEquiv
       simp [LinearMap.ext_iff, ← Tₗ.injective.eq_iff, T', this, hT, hd, Tₗ] }
   exact ⟨TL, fun A ↦ (ContinuousLinearMap.ext <| this A).symm⟩
 
-variable (𝕜 V W) in
+public variable (𝕜 V W) in
 public theorem ContinuousLinearEquiv.conjContinuousAlgEquiv_surjective :
     Function.Surjective (conjContinuousAlgEquiv (𝕜 := 𝕜) (G := V) (H := W)) :=
   fun f ↦ f.eq_continuousLinearEquivConjContinuousAlgEquiv.imp fun _ h ↦ h.symm
 
 end
 
-variable {𝕜 V W : Type*} [RCLike 𝕜] [NormedAddCommGroup V] [InnerProductSpace 𝕜 V] [CompleteSpace V]
+public variable {𝕜 V W : Type*} [RCLike 𝕜] [NormedAddCommGroup V] [InnerProductSpace 𝕜 V]
+  [CompleteSpace V]
   [NormedAddCommGroup W] [InnerProductSpace 𝕜 W] [CompleteSpace W]
 
 section auxiliaryDefs
 
-variable (e : V ≃L[𝕜] W) {α α' : 𝕜} (hα : α ≠ 0)
+public variable (e : V ≃L[𝕜] W) {α α' : 𝕜} (hα : α ≠ 0)
   (hα2 : α' * α' = α⁻¹) (he : e.toContinuousLinearMap.adjoint ∘L e = α • .id 𝕜 V)
   (he' : e ∘L e.toContinuousLinearMap.adjoint = α • .id 𝕜 W)
 include hα hα2 he he'

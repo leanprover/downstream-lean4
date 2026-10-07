@@ -26,13 +26,13 @@ open Filter Finset Fintype Real
 
 namespace SimpleGraph
 
-variable {n : ℕ} {G : SimpleGraph (Fin n)} [DecidableRel G.Adj]
+public variable {n : ℕ} {G : SimpleGraph (Fin n)} [DecidableRel G.Adj]
 
 section ErdosStone
 
 namespace ErdosStone
 
-variable {ε : ℝ} {r t t' : ℕ} (K : G.CompleteEquipartiteSubgraph r t')
+public variable {ε : ℝ} {r t t' : ℕ} (K : G.CompleteEquipartiteSubgraph r t')
 
 /-- `ErdosStone.filter` is the set of vertices in the complement of a complete equipartite
 subgraph, in `r` parts each of size `t'`, adjacent to at least `t` vertices in each part of the

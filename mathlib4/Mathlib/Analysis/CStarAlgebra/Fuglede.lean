@@ -59,11 +59,11 @@ but the proof is independent of the Fuglede–Putnam–Rosenblum theorem.
 open NormedSpace selfAdjoint Bornology Complex
 open scoped ComplexStarModule
 
-variable {A : Type*}
+public variable {A : Type*}
 
 section Unital
 
-variable [CStarAlgebra A] {a b x : A} [IsStarNormal a] [IsStarNormal b]
+public variable [CStarAlgebra A] {a b x : A} [IsStarNormal a] [IsStarNormal b]
 
 /-- The map `expMulMulExp : ℂ → A` given by `z ↦ exp (z • star b) * x * exp (z • star (-a))` for
 fixed `a b x : A`. -/
@@ -160,7 +160,7 @@ end Unital
 
 section NonUnital
 
-variable [NonUnitalCStarAlgebra A] {a b x : A}
+public variable [NonUnitalCStarAlgebra A] {a b x : A}
 
 /-- **Fuglede–Putnam–Rosenblum**: If `a` and `b` are normal elements in a C⋆-algebra `A` which
 are interwined by `x`, then `star a` and `star b` are also intertwined by `x`. -/
@@ -217,7 +217,7 @@ end NonUnital
 
 section Unital
 
-variable [CStarAlgebra A]
+public variable [CStarAlgebra A]
 
 open StarAlgebra
 

@@ -54,7 +54,7 @@ def arity (α : Type*) : Constructors α → Nat
   | cand => 2
   | cor => 2
 
-variable {α : Type*}
+public variable {α : Type*}
 
 instance : ∀ c : Unit ⊕ (Unit ⊕ Unit), NeZero (arity α (.inr c))
   | .inl () => ⟨one_ne_zero⟩

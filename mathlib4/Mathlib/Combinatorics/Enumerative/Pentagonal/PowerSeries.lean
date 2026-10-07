@@ -37,7 +37,7 @@ defined using pentagonal numbers. We then show that this series is equal to both
 open Filter PowerSeries WithPiTopology
 
 open scoped Topology
-variable (R : Type*) [CommRing R]
+public variable (R : Type*) [CommRing R]
 
 namespace Pentagonal
 -- private auxiliary lemma
@@ -59,7 +59,7 @@ theorem tendsto_order_neg_X_pow (k : ℕ) :
   simp_rw [order_neg, order_X_pow, add_assoc]
   exact ENat.tendsto_natCast_nhds_top.comp (tendsto_add_atTop_nat _)
 
-variable [TopologicalSpace R]
+public variable [TopologicalSpace R]
 
 theorem summable_pow_mul_prod_one_sub_pow (k : ℕ) :
     Summable

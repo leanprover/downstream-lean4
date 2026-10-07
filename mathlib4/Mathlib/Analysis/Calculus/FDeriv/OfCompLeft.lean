@@ -33,7 +33,7 @@ then specialize it to the cases when `f'` is a linear equivalence and/or `h = id
 open Filter
 open scoped Topology
 
-variable {𝕜 E F G : Type*} [NontriviallyNormedField 𝕜]
+public variable {𝕜 E F G : Type*} [NontriviallyNormedField 𝕜]
   [NormedAddCommGroup E] [NormedSpace 𝕜 E]
   [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   [NormedAddCommGroup G] [NormedSpace 𝕜 G]

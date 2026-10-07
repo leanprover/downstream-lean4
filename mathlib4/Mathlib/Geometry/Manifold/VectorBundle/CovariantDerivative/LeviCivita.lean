@@ -82,7 +82,7 @@ open scoped RealInnerProductSpace
 
 section
 
-variable
+public variable
   {EB : Type*} [NormedAddCommGroup EB] [NormedSpace ℝ EB]
   {HB : Type*} [TopologicalSpace HB] {IB : ModelWithCorners ℝ EB HB}
   {B : Type*} [TopologicalSpace B] [ChartedSpace HB B]
@@ -90,7 +90,7 @@ variable
   {E : B → Type*} [TopologicalSpace (TotalSpace F E)] [∀ x, NormedAddCommGroup (E x)]
   [∀ x, InnerProductSpace ℝ (E x)] [FiberBundle F E]
 
-variable (IB F E) in
+public variable (IB F E) in
 /-- A vector in `E x` is uniquely determined by its scalar product with sections that
 are differentiable at `x` -/
 public lemma injective_inner_mdifferentiableAt_section  (x : B) :
@@ -103,7 +103,7 @@ public lemma injective_inner_mdifferentiableAt_section  (x : B) :
     exact this
   simpa using congr($h _ (mdifferentiableAt_extend _ _ (X₀ - Y₀)))
 
-variable (IB F E) in
+public variable (IB F E) in
 /-- A vector in `E x` is uniquely determined by its scalar product with sections that
 are `C^n` at `x` -/
 public lemma injective_inner_contMDiffAt_section (n : ℕ∞ω) (x : B) :
@@ -121,7 +121,7 @@ end
 section -- and a specialisation to manifolds
 
 -- Let `M` be a `C²` manifold modeled on `(E, H)`, endowed with a Riemannian metric.
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+public variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
   {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 1 M]
   [RiemannianBundle (fun (x : M) ↦ TangentSpace I x)]
@@ -146,21 +146,21 @@ end
 end ext
 
 -- Let `M` be a `C²` manifold modeled on `(E, H)`.
-variable
+public variable
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {H : Type*} [TopologicalSpace H] (I : ModelWithCorners ℝ E H)
 
-variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 2 M]
+public variable {M : Type*} [TopologicalSpace M] [ChartedSpace H M] [IsManifold I 2 M]
 
 -- From now on, `M` is endowed with a Riemannian metric.
-variable
+public variable
   [RiemannianBundle (fun (x : M) ↦ TangentSpace I x)]
   {X X' X'' Y Y' Y'' Z Z' : Π x : M, TangentSpace I x}
 
 open scoped RealInnerProductSpace
 
 -- Let `cov` and `cov'` be covariant derivatives on `TM`.
-variable (cov cov' : CovariantDerivative I E (TangentSpace I : M → Type _))
+public variable (cov cov' : CovariantDerivative I E (TangentSpace I : M → Type _))
 
 /-- Local notation for a covariant derivative on a vector bundle acting on a vector field and a
 section. -/
@@ -170,7 +170,7 @@ local syntax:max "∇'" term:arg term:arg : term
 local macro_rules | `(∇' $X $σ) => `(fun (x : M) ↦ cov' $σ x ($X x))
 
 -- From now on, we assume the Riemannian metric on `M` is `C¹`.
-variable [IsContMDiffRiemannianBundle I 1 E (fun (x : M) ↦ TangentSpace I x)]
+public variable [IsContMDiffRiemannianBundle I 1 E (fun (x : M) ↦ TangentSpace I x)]
 
 -- Local notation for pointwise inner products of vector fields.
 -- Note this does not cause ambiguity with the notation obtained
@@ -181,19 +181,19 @@ local notation "⟪" X ", " Y "⟫" => fun x ↦ inner ℝ (X x) (Y x)
 (Unification sees through type synonyms when checking instances' types).
 They should be removed when that issue will be fully solved. -/
 
-variable {I} in
+public variable {I} in
 @[fun_prop] lemma _root_.MDifferentiable.inner_bundle' {X Y : Π x : M, TangentSpace I x}
     (hX : MDiff (T% X)) (hY : MDiff (T% Y)) : MDiff ⟪X, Y⟫ :=
   MDifferentiable.inner_bundle hX hY
 
-variable {I} in
+public variable {I} in
 @[fun_prop] lemma _root_.MDifferentiableAt.inner_bundle' {x : M} {X Y : Π x : M, TangentSpace I x}
     (hX : MDiffAt (T% X) x) (hY : MDiffAt (T% Y) x) :
     MDiffAt ⟪X, Y⟫ x :=
   MDifferentiableAt.inner_bundle hX hY
 
 namespace CovariantDerivative
-variable {x : M}
+public variable {x : M}
 
 /-- A covariant derivative on the tangent bundle `TM` to a Riemannian manifold is called a
 **Levi-Civita connection** if it is torsion-free and compatible with `g`.
@@ -203,11 +203,11 @@ public structure IsLeviCivitaConnection [FiniteDimensional ℝ E] : Prop where
   isMetricCompatible : cov.IsMetricCompatible (M := M) (V := TangentSpace I)
   torsion : cov.torsion = 0
 
-variable [FiniteDimensional ℝ E]
+public variable [FiniteDimensional ℝ E]
 
 section uniqueness
 
-variable {cov cov'}
+public variable {cov cov'}
 
 /-- The **Koszul formula**, expressing the term `⟨∇ X Y, Z⟩` for all differentiable vector fields
 `X`, `Y` and `Z`, without reference to `∇`.
@@ -264,7 +264,7 @@ end uniqueness
 
 section existence
 
-variable (X Y Z) in
+public variable (X Y Z) in
 /-- Auxiliary quantity for the construction of the Levi-Civita connection:
 If `∇` is the Levi-Civita connection on `TM`, this formula will express `⟨∇ X Y, Z⟩`. -/
 noncomputable def leviCivitaAuxInner (x : M) : ℝ :=
@@ -353,7 +353,7 @@ lemma isCovariantDerivativeOn_leviCivitaAux :
       inner_add_left, inner_add_right, inner_smul_left, inner_smul_right, real_inner_comm]
     ring
 
-variable (M) in
+public variable (M) in
 /-- A choice of Levi-Civita connection on the tangent bundle `TM` of a Riemannian manifold `(M, g)`:
 this is unique up to the value on non-differentiable vector fields.
 If you know the Levi-Civita connection already, you can use `IsLeviCivitaConnection` instead. -/

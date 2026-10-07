@@ -23,7 +23,7 @@ For the continuous versions, see `Mathlib/Analysis/Normed/Operator/ContinuousAlg
 
 open Module LinearMap LinearEquiv
 
-variable {K V W : Type*} [Semifield K] [AddCommMonoid V] [Module K V] [Projective K V]
+public variable {K V W : Type*} [Semifield K] [AddCommMonoid V] [Module K V] [Projective K V]
   [AddCommMonoid W] [Module K W] [Projective K W]
 
 /-- Given an algebra isomorphism `f : End K V ≃ₐ[K] End K W`, there exists a linear isomorphism `T`
@@ -55,7 +55,7 @@ public theorem AlgEquiv.eq_linearEquivConjAlgEquiv (f : End K V ≃ₐ[K] End K 
     simpa [huv.isUnit.smul_left_cancel] using congr($h_smul u)
   exact ⟨.ofBijective T ⟨inj, surj⟩, fun A ↦ (LinearMap.ext <| this A).symm⟩
 
-variable (K V W) in
+public variable (K V W) in
 public theorem LinearEquiv.conjAlgEquiv_surjective :
     Function.Surjective (conjAlgEquiv K (S := K) (M₁ := V) (M₂ := W)) :=
   fun f ↦ f.eq_linearEquivConjAlgEquiv.imp fun _ h ↦ h.symm

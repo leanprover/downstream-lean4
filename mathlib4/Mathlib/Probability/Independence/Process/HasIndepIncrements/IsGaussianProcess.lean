@@ -42,15 +42,15 @@ independent increments, Gaussian process
 
 open MeasureTheory Finset
 
-variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [LinearOrder T]
+public variable {T Ω E : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω} [LinearOrder T]
 
 namespace Finset
 
-variable (I : Finset T)
+public variable (I : Finset T)
 
 section Bot
 
-variable [Bot T]
+public variable [Bot T]
 
 /-- Given a finite set `I : Finset T` of cardinality `n`,
 `I.orderEmbOfFinWithBot : Fin (#I + 1) → T` is the map `(⊥, t₁, ..., tₙ)`,

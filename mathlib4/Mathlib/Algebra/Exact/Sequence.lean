@@ -30,7 +30,7 @@ namespace Module
 
 open Function
 
-variable {k : Type*} [DivisionRing k]
+public variable {k : Type*} [DivisionRing k]
 
 /-- The Euler characteristic of a finite exact sequence is zero. -/
 public lemma sum_neg_one_pow_finrank_eq_zero_of_exact {n : ℕ} (V : Fin (n + 2) → Type*)

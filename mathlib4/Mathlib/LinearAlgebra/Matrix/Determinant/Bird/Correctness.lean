@@ -44,7 +44,7 @@ The theorem names `paper_eq1`, ..., `paper_eq5` follow Bird's numbering.
 namespace BirdDet
 
 open Function
-variable {R : Type*} [CommRing R] {m n : ℕ}
+public variable {R : Type*} [CommRing R] {m n : ℕ}
 
 /-- `sumFrom n lo f` is the sum of `f` over the half-open interval `[lo, n)`. -/
 theorem sumFrom_eq_sum_Ico {lo : ℕ} (f : ℕ → R) :
@@ -81,7 +81,7 @@ theorem birdDet_eq_birdDetSpec (A : Array R) (hA : A.size = n * n) :
   | zero => rw [birdDet_zero, Spec.birdDetSpec_zero]
   | succ k => simp [birdDet_succ, Spec.birdDetSpec_succ, ← iterate_stepEntry_get_eq_spec A hA k]
 
-variable (A : Matrix (Fin n) (Fin n) R) {p : ℕ}
+public variable (A : Matrix (Fin n) (Fin n) R) {p : ℕ}
 
 /-- Bird's bordered minor `f[iα, jα]`. -/
 abbrev bminor (i j : Fin n) (α : Fin p → Fin n) : R :=
@@ -184,7 +184,7 @@ lemma exists_insertNth_mem_S {p : ℕ} {i : Fin n} {α : Fin p → Fin n} {k : F
   · simpa
   · simpa using hα.1
 
-variable (p) in
+public variable (p) in
 /-- Bird's equation (1) : `x^(p)_ij = (-1)^p ∑ { f[iα, jα] | α ∈ S_p(βᵢ) }`. -/
 abbrev Eq1 : Prop :=
   (Spec.stepEntry A)^[p] A = .of fun i j ↦ (-1) ^ p * ∑ α ∈ S p i, bminor A i j α

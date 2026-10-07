@@ -41,7 +41,7 @@ Gaussian random variable
 open MeasureTheory WithLp Complex Finset ContinuousLinearMap InnerProductSpace
 open scoped ENNReal NNReal RealInnerProductSpace
 
-variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
+public variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {P : Measure Ω}
 
 
 section Diagonal
@@ -50,7 +50,7 @@ namespace ContinuousLinearMap
 
 section Pi
 
-variable {ι : Type*} [Fintype ι] [DecidableEq ι]
+public variable {ι : Type*} [Fintype ι] [DecidableEq ι]
   {E : ι → Type*} [∀ i, NormedAddCommGroup (E i)] [∀ i, NormedSpace ℝ (E i)]
   {L : (i : ι) → StrongDual ℝ (E i) →L[ℝ] StrongDual ℝ (E i) →L[ℝ] ℝ}
 
@@ -96,7 +96,7 @@ end Pi
 
 section Prod
 
-variable {E F : Type*}
+public variable {E F : Type*}
   [NormedAddCommGroup E] [NormedSpace ℝ E] [NormedAddCommGroup F] [NormedSpace ℝ F]
   {L₁ : StrongDual ℝ E →L[ℝ] StrongDual ℝ E →L[ℝ] ℝ}
   {L₂ : StrongDual ℝ F →L[ℝ] StrongDual ℝ F →L[ℝ] ℝ}

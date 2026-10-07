@@ -46,7 +46,7 @@ to add a `(h : ¬ IsField A)` assumption whenever this is explicitly needed.
 dedekind domain, dedekind ring
 -/
 
-variable (R A K : Type*) [CommRing R] [CommRing A] [Field K]
+public variable (R A K : Type*) [CommRing R] [CommRing A] [Field K]
 
 open scoped nonZeroDivisors Polynomial
 
@@ -227,9 +227,9 @@ def IsDedekindDomainInv [IsDomain A] : Prop :=
 
 open FractionalIdeal
 
-variable {A K} [Algebra A K] [IsFractionRing A K]
+public variable {A K} [Algebra A K] [IsFractionRing A K]
 
-variable {R} in
+public variable {R} in
 theorem isDedekindDomainInv_iff [IsDomain A] :
     IsDedekindDomainInv A ↔ ∀ I ≠ (⊥ : FractionalIdeal A⁰ K), I * I⁻¹ = 1 := by
   let h : FractionalIdeal A⁰ (FractionRing A) ≃+* FractionalIdeal A⁰ K :=
