@@ -21,7 +21,7 @@ public structure StatsFileRecord extends Stats where
 
 namespace StatsFileRecord
 
-variable [Monad m] [MonadLog m] [MonadParentDecl m] [MonadLiftT CoreM m] in
+public variable [Monad m] [MonadLog m] [MonadParentDecl m] [MonadLiftT CoreM m] in
 public protected def ofStats (aesopStx : Syntax) (goalSolved : Bool) (stats : Stats) :
     m StatsFileRecord := do
   let file ← getFileName
@@ -33,7 +33,7 @@ public protected def ofStats (aesopStx : Syntax) (goalSolved : Bool) (stats : St
 
 end StatsFileRecord
 
-variable [Monad m] [MonadLog m] [MonadOptions m] [MonadParentDecl m] [MonadLiftT IO m] [MonadLiftT CoreM m] in
+public variable [Monad m] [MonadLog m] [MonadOptions m] [MonadParentDecl m] [MonadLiftT IO m] [MonadLiftT CoreM m] in
 public def appendStatsToStatsFileIfEnabled (aesopStx : Syntax) (stats : Stats)
     (allGoalsSolved : Bool) : m Unit := do
   let file := aesop.stats.file.get (← getOptions)
