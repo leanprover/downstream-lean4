@@ -8,7 +8,7 @@ module
 namespace Plausible
 
 universe u v
-variable {α β : Type _}
+public variable {α β : Type _}
 
 /-- Given an example `x : α`, `Shrinkable α` gives us a way to shrink it
 and suggest simpler examples. -/
