@@ -23,7 +23,7 @@ outputs `w` after `w.length + 1` steps, and having no work tapes it uses zero sp
 
 namespace Turing.MultiTapeTM
 
-variable {Symbol : Type*} {input : List Symbol}
+public variable {Symbol : Type*} {input : List Symbol}
 
 /-- The copy machine: a single state and no work tapes. It copies every input symbol to the output
 tape while moving right, and halts on reading the blank at the right end of the input. -/
@@ -84,7 +84,7 @@ theorem computesInTimeAndSpace (input : List Symbol) :
 
 end Copy
 
-variable {α : Type*}
+public variable {α : Type*}
 
 /-- The identity function is computable in one step per input symbol and zero space. -/
 public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :

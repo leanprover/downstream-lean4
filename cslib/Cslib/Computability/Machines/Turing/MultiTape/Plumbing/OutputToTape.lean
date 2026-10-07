@@ -24,7 +24,7 @@ machine mirror the corresponding step and run of `tm`.
 
 namespace Turing.MultiTapeTM
 
-variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
+public variable {k : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- `tm`, with its output writes redirected onto a fresh last work tape, whose head always stands
 at the write frontier. -/

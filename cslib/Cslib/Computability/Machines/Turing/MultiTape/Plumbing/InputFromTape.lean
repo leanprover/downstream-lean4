@@ -32,7 +32,7 @@ and an entire run of the redirected machine mirror the corresponding step and ru
 
 namespace Turing.MultiTapeTM
 
-variable {k : ℕ} {Symbol State : Type*}
+public variable {k : ℕ} {Symbol State : Type*}
 
 /-- The clamped move of the virtual input head: at the left boundary (blank under the virtual
 head, flag marked) left moves are blocked, at the right boundary (blank on both) right moves
@@ -73,7 +73,7 @@ tape carries its mark at `-1` with its head in lockstep, and the ambient input h
 
 section Projections
 
-variable {mark : Symbol} {input : List Symbol} {outerInput : List Symbol}
+public variable {mark : Symbol} {input : List Symbol} {outerInput : List Symbol}
 
 @[simp]
 public lemma inCfg_inputPos (c : Cfg k Symbol State input) :

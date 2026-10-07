@@ -39,7 +39,7 @@ untouched by construction.
 
 namespace Turing.MultiTapeTM
 
-variable {k : ℕ} {Symbol : Type*} {input : List Symbol}
+public variable {k : ℕ} {Symbol : Type*} {input : List Symbol}
 
 /-- The control states of the work-tape-rewinding machine: `start` takes one unconditional step
 left, `scan` walks left towards the start of the word. -/
@@ -65,7 +65,8 @@ public def rewindWork (Symbol : Type*) (write : Option (Option Symbol) := none) 
 
 namespace RewindWork
 
-variable {write : Option (Option Symbol)} {ip : Fin (input.length + 2)} {t : ℤ → Option Symbol}
+public variable {write : Option (Option Symbol)} {ip : Fin (input.length + 2)}
+  {t : ℤ → Option Symbol}
   {out : List Symbol} {p : ℤ}
 
 /-- Moving the head left in state `start`, unconditionally, entering `scan`. -/

@@ -47,7 +47,7 @@ step and run of `tm`.
 
 namespace Turing.MultiTapeTM
 
-variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
+public variable {k k' : ℕ} {Symbol State : Type*} {input : List Symbol}
 
 /-- The computable analogue of `Function.partialInv` for an embedding `e`: `partialInv e l = some j`
 when `e j = l` (such `j` is unique by injectivity), and `none` when `l` lies outside the range of
@@ -186,7 +186,7 @@ end Space
 
 section OneTape
 
-variable {k : ℕ}
+public variable {k : ℕ}
 
 /-- The embedding that places the only work tape of a one-tape machine on tape `i`. -/
 @[expose] public def tapeEmb (i : Fin k) : Fin 1 ↪ Fin k :=
@@ -271,7 +271,7 @@ end OneTape
 
 section NoTapes
 
-variable {k : ℕ}
+public variable {k : ℕ}
 
 /-- The embedding of a machine without work tapes into a machine with `k` of them. -/
 @[expose] public def noTapes (k : ℕ) : Fin 0 ↪ Fin k := ⟨Fin.elim0, fun a => a.elim0⟩

@@ -35,7 +35,7 @@ From position `p` the run halts after `p + 1` steps, or after `2` steps if `p = 
 
 namespace Turing.MultiTapeTM
 
-variable {Symbol : Type*} {input : List Symbol}
+public variable {Symbol : Type*} {input : List Symbol}
 
 /-- The control states of the rewinding machine: `start` takes one unconditional step left,
 `walk` moves left towards the left boundary of the input. -/
@@ -64,7 +64,7 @@ public def rewindInput (Symbol : Type*) : MultiTapeTM 0 Symbol RewindState where
 
 namespace Rewind
 
-variable {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ} {out : List Symbol}
+public variable {tapes : Fin 0 → ℤ → Option Symbol} {heads : Fin 0 → ℤ} {out : List Symbol}
 
 /-- A live step moves the input head and changes the state; nothing else changes. -/
 lemma step_eq {c : Cfg 0 Symbol RewindState input} {q : RewindState} (hc : c.state = some q) :

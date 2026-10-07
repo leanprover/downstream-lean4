@@ -43,7 +43,7 @@ section AlmostConstFun
 The machine `almostConstTM encIn encOut f S out` computes `f`, provided that the encoded output
 of `f` is the fixed Boolean string `out` outside of the finite set `S`. -/
 
-variable {α β : Type*} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β}
+public variable {α β : Type*} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool} {f : α → β}
   {S : Finset α} {out : List Bool}
 
 /-- The prefixes of the encodings of the elements of a finite set `S`, together with the empty list.
@@ -338,7 +338,7 @@ end AlmostConstFun
 
 section Results
 
-variable {α β : Type*} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
+public variable {α β : Type*} {encIn : α ↪ List Bool} {encOut : β ↪ List Bool}
 
 /-- Every function whose encoded output is constant outside of a finite set is computable in time
 `almostConstTime` and zero space. -/
