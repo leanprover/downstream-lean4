@@ -27,7 +27,8 @@ public structure FragmentArgs where
   index : Option Nat := none
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs FragmentArgs m where
   fromArgs :=
@@ -42,7 +43,8 @@ public meta structure InlineFragmentArgs where
   index : Option Nat := none
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs InlineFragmentArgs m where
   fromArgs :=
@@ -56,7 +58,8 @@ public meta structure ClassArgs where
   classes : Array String
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs ClassArgs m where
   fromArgs :=
@@ -68,7 +71,8 @@ public meta structure IdArgs where
   id : String
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs IdArgs m where
   fromArgs :=
@@ -80,7 +84,8 @@ public meta structure AttrArgs where
   attrs : Array (String × String)
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs AttrArgs m where
   fromArgs :=
@@ -388,7 +393,8 @@ public meta structure ImageArgs where
   «class» : Option String := none
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 public meta instance : FromArgs ImageArgs m where
   fromArgs :=
@@ -474,7 +480,8 @@ public meta structure TableArgs where
   cellGap     : Option String := none
 
 section
-variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+public variable [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m]
+  [MonadLiftT CoreM m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 
 -- The second argument to `.flag` is the default value when the flag is absent.
 public meta instance : FromArgs TableArgs m where
