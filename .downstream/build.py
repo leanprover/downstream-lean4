@@ -66,7 +66,9 @@ def do_build(
         deps = graph.get(subrepo.name, set())
         failed = {dep for dep in deps if not report[dep].success}
         if failed:
-            blocked_by[subrepo.name] = sorted(failed)
+            blocked_by[subrepo.name] = sorted(
+                dep for dep in failed if dep not in blocked_by
+            )
             fprint(f"{subrepo.name}: skipped, no build for {', '.join(sorted(failed))}")
             continue
 

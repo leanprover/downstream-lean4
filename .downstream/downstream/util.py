@@ -61,9 +61,11 @@ def normalize_url(url: str) -> str:
 @dataclass
 class Subrepo:
     name: str
-    url: str
-    rev: str
-    aliases: list[str]
+    source_url: str
+    source_rev: str
+    target_url: str
+    target_rev: str
+    alias_urls: list[str]
     critical: bool
     copy: bool
     override_only: bool
@@ -82,11 +84,17 @@ class Subrepo:
 
 def load_subrepos(path: Path) -> Generator[Subrepo]:
     for name, data in tomllib.loads(path.read_text()).items():
+        source_url = normalize_url(data["source_url"])
+        source_rev = data["source_rev"]
+        target_url = normalize_url(data.get("target_url", source_url))
+        target_rev = data.get("target_rev", source_rev)
         yield Subrepo(
             name=name,
-            url=normalize_url(data["url"]),
-            rev=data["rev"],
-            aliases=[normalize_url(url) for url in data.get("aliases", [])],
+            source_url=source_url,
+            source_rev=source_rev,
+            target_url=target_url,
+            target_rev=target_rev,
+            alias_urls=[normalize_url(url) for url in data.get("alias_urls", [])],
             critical=data.get("critical", True),
             copy=data.get("copy", False),
             override_only=data.get("override_only", False),

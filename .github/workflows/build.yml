@@ -8,6 +8,10 @@ on:
       - "!green-nightly-*"
       - "!export/*"
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   main:
     if: >

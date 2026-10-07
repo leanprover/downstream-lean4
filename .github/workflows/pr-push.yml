@@ -4,6 +4,10 @@ on:
   pull_request_target:
     types: [synchronize]
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   remove-cache-available-label:
     runs-on: ubuntu-slim

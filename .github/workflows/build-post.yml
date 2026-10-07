@@ -5,6 +5,10 @@ on:
     workflows: [Build subrepos]
     types: [completed]
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   upload-cache:
     if: |

@@ -5,6 +5,10 @@ on:
     workflows: [Build subrepos]
     types: [completed]
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   batteries:
     if: |
@@ -69,10 +73,8 @@ jobs:
           clone-path: ${{ runner.temp }}/downstream
           method: same-branch
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
-          source-repo: leanprover-community/batteries
           source-token:
             ${{ steps.app-token-leanprover-community.outputs.token }}
-          target-branch: nightly-testing
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
@@ -139,10 +141,8 @@ jobs:
           clone-path: ${{ runner.temp }}/downstream
           method: same-branch
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
-          source-repo: leanprover-community/mathlib4-nightly-testing
           source-token:
             ${{ steps.app-token-leanprover-community.outputs.token }}
-          target-branch: nightly-testing
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
@@ -205,16 +205,14 @@ jobs:
           clone-path: ${{ runner.temp }}/downstream
           method: target-branch
           downstream-token: ${{ steps.app-token.outputs.token }}
-          source-repo: leanprover/cslib
           source-token: ${{ steps.app-token.outputs.token }}
-          target-branch: bump/v4.36.0
           pr: true
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           update-toolchains: true
           update-manifests: true
           lakefile-edits: |
-            ^name = "mathlib"\nscope = "leanprover-community"\nrev = ".*"$ -> name = "mathlib"\ngit = "https://github.com/leanprover-community/mathlib4-nightly-testing"\nrev = "nightly-testing"
+            ^name = "mathlib"\nscope = "leanprover-community"\nrev = ".*"$ -> name = "mathlib"\ngit = "https://github.com/leanprover-community/mathlib4-nightly-testing"\nrev = "<mathlib4 sha>"
 
       - name: Post message to Zulip
         if: ${{ fromJSON(steps.export-pr.outputs.pr-created) }}

@@ -50,13 +50,13 @@ class Updater:
         self.overrides = [r for r in subrepos if r.override_only]
         self.overrides_by_name = {r.name: r for r in self.overrides}
         self.overrides_by_url = {
-            url: r for r in self.overrides for url in (r.url, *r.aliases)
+            url: r for r in self.overrides for url in (r.source_url, *r.alias_urls)
         }
 
         self.subrepos = [r for r in subrepos if not r.override_only]
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {
-            url: r for r in self.subrepos for url in (r.url, *r.aliases)
+            url: r for r in self.subrepos for url in (r.source_url, *r.alias_urls)
         }
 
     def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
@@ -127,8 +127,8 @@ class Updater:
             url = normalize_url(package["url"])
 
             if repo := self.overrides_by_url.get(url):
-                sha, _ = self.fetch_sha_tree(repo.url, repo.rev)
-                package["input_rev"] = repo.rev
+                sha, _ = self.fetch_sha_tree(repo.source_url, repo.source_rev)
+                package["input_rev"] = repo.source_rev
                 package["rev"] = sha
                 packages.append(package)
             elif repo := self.subrepos_by_url.get(url):
@@ -182,8 +182,8 @@ class Updater:
             f"downstream: {msg}",
             "",
             f"downstream-repo: {subrepo.name}",
-            f"downstream-url: {subrepo.url}",
-            f"downstream-rev: {subrepo.rev}",
+            f"downstream-url: {subrepo.source_url}",
+            f"downstream-rev: {subrepo.source_rev}",
             f"downstream-sha: {sha}",
         ])
 
@@ -224,7 +224,9 @@ class Updater:
             self.reset()
 
             if sha is None:
-                rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+                rev_sha, rev_tree = self.fetch_sha_tree(
+                    subrepo.source_url, subrepo.source_rev
+                )
             else:
                 rev_sha, rev_tree = self.local_sha_tree(sha)
             self.restore_tree_to(rev_tree, subrepo.path)
@@ -236,7 +238,9 @@ class Updater:
         with group(f"reset {subrepo.name}"):
             self.reset()
 
-            rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+            rev_sha, rev_tree = self.fetch_sha_tree(
+                subrepo.source_url, subrepo.source_rev
+            )
             self.restore_tree_to(rev_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
                 subrepo, rev_sha, f"reset repo {subrepo.name}"
@@ -268,8 +272,10 @@ class Updater:
             our_tree = self.get_tree_in_head(subrepo.name)
             base_sha = self.find_latest_base_commit(subrepo).sha
             if sha is None:
-                rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
-                _, base_tree = self.fetch_sha_tree(subrepo.url, base_sha)
+                rev_sha, rev_tree = self.fetch_sha_tree(
+                    subrepo.source_url, subrepo.source_rev
+                )
+                _, base_tree = self.fetch_sha_tree(subrepo.source_url, base_sha)
             else:
                 rev_sha, rev_tree = self.local_sha_tree(sha)
                 _, base_tree = self.local_sha_tree(base_sha)
@@ -333,6 +339,15 @@ class Updater:
             text = re.sub(pattern, replacement, text, flags=re.MULTILINE)
         lakefile.write_text(text)
 
+    def resolve_sha_placeholders(self, text: str) -> str:
+        def repl(m: re.Match[str]) -> str:
+            name = m.group(1)
+            if name not in self.subrepos_by_name:
+                raise ValueError(f"unknown repo {name!r} in placeholder {m.group(0)!r}")
+            return self.find_latest_base_commit(self.subrepos_by_name[name]).sha
+
+        return re.sub(r"<([^<>\s]+) sha>", repl, text)
+
     def export(
         self,
         subrepo: Subrepo,
@@ -347,10 +362,16 @@ class Updater:
         our_tree = self.get_tree_in_head(subrepo.name)
         our_toolchain = Path("lean-toolchain").read_text()
 
+        # Must happen while HEAD is still the downstream commit
+        lakefile_edits = [
+            (pattern, self.resolve_sha_placeholders(replacement))
+            for pattern, replacement in (lakefile_edits or [])
+        ]
+
         base_sha = onto
         if base_sha is None:
             base_sha = self.find_latest_base_commit(subrepo).sha
-            self.fetch_sha_tree(subrepo.url, base_sha)
+            self.fetch_sha_tree(subrepo.source_url, base_sha)
 
         run("git", "switch", "--detach", base_sha)
         run("git", "read-tree", "--reset", "-u", our_tree)

@@ -115,7 +115,7 @@ abbrev exclusions : Std.HashSet SyntaxNodeKind := .ofArray #[
     ``Lean.Parser.Tactic.intros,
     ``Lean.Parser.Tactic.injections,
     ``Lean.Parser.Tactic.substVars,
-    `Batteries.Tactic.tacticPick_goal_,
+    `Batteries.Tactic.«tacticPick_goal_»,
     ``Lean.Parser.Tactic.case',
     `«tactic#adaptation_note_»,
     `tacticSleep_heartbeats_

@@ -56,37 +56,20 @@ inputs:
   # Source repo #
   ###############
 
-  source-repo:
-    description: >
-      The upstream repository where the subrepo originates from, in "owner/repo"
-      format. This should match the URL from `repos.toml`.
-    required: true
-
   source-token:
     description: >
-      GitHub token used to interact with the source repository.
+      GitHub token used to interact with the source repository, i.e. the
+      subrepo's `source_url` from `repos.toml`.
     required: true
 
   ###############
   # Target repo #
   ###############
 
-  target-repo:
-    description: >
-      The upstream repository to push the export commit(s) to or open the export
-      PR against, in "owner/repo" format. Defaults to `<source-repo>`.
-
-  target-branch:
-    description: >
-      The branch in the target repository to open the export PR against. If
-      `method` is set to `same-branch`, this should usually match the source
-      branch from `repos.toml`.
-    required: true
-
   target-token:
     description: >
-      GitHub token used to interact with the target repository. Defaults to
-      `<source-token>`.
+      GitHub token used to interact with the target repository, i.e. the
+      subrepo's `target_url` from `repos.toml`. Defaults to `<source-token>`.
 
   ##############
   # Export PRs #
@@ -149,14 +132,37 @@ inputs:
       target to the downstream repo's toolchain.
     default: false
 
+  toolchain-interesting:
+    description: >
+      Whether a toolchain file update alone is interesting enough to warrant an
+      export PR.
+    default: false
+
   lakefile-edits:
     description: >
       Regex replacements to apply to all lakefiles, one per line, of the form
       `pattern -> replacement`.
 
+      Occurrences of `<REPO sha>` in the replacement are replaced by the last
+      known sha of the subrepo `REPO` in the downstream commit the export is
+      based on. Note that these commits may not yet include fixes from the
+      downstream repository.
+
+  lakefile-interesting:
+    description: >
+      Whether a lakefile update alone is interesting enough to warrant an export
+      PR.
+    default: true
+
   update-manifests:
     description: >
       Run `lake update` for all manifests after applying the other options.
+    default: false
+
+  manifest-interesting:
+    description: >
+      Whether a manifest file update alone is interesting enough to warrant an
+      export PR.
     default: false
 
 outputs:

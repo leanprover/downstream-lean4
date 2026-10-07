@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import { getOctokit } from "@actions/github";
+import * as path from "node:path";
 import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
 
 export type Octokit = ReturnType<typeof getOctokit>;
@@ -33,6 +34,12 @@ export function assert(condition: boolean, message: string): asserts condition {
 
 export function unreachable(value: never): never {
   abort(`Unreachable code reached with value: ${JSON.stringify(value)}`);
+}
+
+// Path to a script in the root of this repo. Relative to the bundled
+// actions/<action>/dist/index.js.
+export function scriptPath(name: string): string {
+  return path.resolve(__dirname, "../../..", name);
 }
 
 export function runIn(cwd: string) {

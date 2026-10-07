@@ -73,7 +73,10 @@ def main() -> None:
         nargs=2,
         action="append",
         metavar=("PATTERN", "REPLACEMENT"),
-        help="replace a regex in all lakefiles (can be given multiple times)",
+        help="""
+        replace a regex in all lakefiles (can be given multiple times).
+        '<REPO sha>' in the replacement is replaced by REPO's last known sha
+        """,
     )
     parser.add_argument(
         "-u",

@@ -1068,14 +1068,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path5 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path6 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path5 && path5[0] !== "/") {
-          path5 = `/${path5}`;
+        if (path6 && path6[0] !== "/") {
+          path6 = `/${path6}`;
         }
-        return new URL(`${origin}${path5}`);
+        return new URL(`${origin}${path6}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1526,39 +1526,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method: method2, path: path5, origin }
+          request: { method: method2, path: path6, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method2, origin, path5);
+        debuglog("sending request to %s %s/%s", method2, origin, path6);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method: method2, path: path5, origin },
+          request: { method: method2, path: path6, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method2,
           origin,
-          path5,
+          path6,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method: method2, path: path5, origin }
+          request: { method: method2, path: path6, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method2, origin, path5);
+        debuglog("trailers received from %s %s/%s", method2, origin, path6);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method: method2, path: path5, origin },
+          request: { method: method2, path: path6, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method2,
           origin,
-          path5,
+          path6,
           error2.message
         );
       });
@@ -1607,9 +1607,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method: method2, path: path5, origin }
+            request: { method: method2, path: path6, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method2, origin, path5);
+          debuglog("sending request to %s %s/%s", method2, origin, path6);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1672,7 +1672,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path5,
+        path: path6,
         method: method2,
         body,
         headers,
@@ -1687,11 +1687,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler2) {
-        if (typeof path5 !== "string") {
+        if (typeof path6 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path5[0] !== "/" && !(path5.startsWith("http://") || path5.startsWith("https://")) && method2 !== "CONNECT") {
+        } else if (path6[0] !== "/" && !(path6.startsWith("http://") || path6.startsWith("https://")) && method2 !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path5)) {
+        } else if (invalidPathRegex.test(path6)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method2 !== "string") {
@@ -1757,7 +1757,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path5, query) : path5;
+        this.path = query ? buildURL(path6, query) : path6;
         this.origin = origin;
         this.idempotent = idempotent == null ? method2 === "HEAD" || method2 === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -2090,9 +2090,9 @@ var require_dispatcher_base = __commonJS({
       }
       close(callback) {
         if (callback === void 0) {
-          return new Promise((resolve3, reject) => {
+          return new Promise((resolve4, reject) => {
             this.close((err, data) => {
-              return err ? reject(err) : resolve3(data);
+              return err ? reject(err) : resolve4(data);
             });
           });
         }
@@ -2130,12 +2130,12 @@ var require_dispatcher_base = __commonJS({
           err = null;
         }
         if (callback === void 0) {
-          return new Promise((resolve3, reject) => {
+          return new Promise((resolve4, reject) => {
             this.destroy(err, (err2, data) => {
               return err2 ? (
                 /* istanbul ignore next: should never error */
                 reject(err2)
-              ) : resolve3(data);
+              ) : resolve4(data);
             });
           });
         }
@@ -4402,8 +4402,8 @@ var require_util2 = __commonJS({
     function createDeferredPromise() {
       let res;
       let rej;
-      const promise = new Promise((resolve3, reject) => {
-        res = resolve3;
+      const promise = new Promise((resolve4, reject) => {
+        res = resolve4;
         rej = reject;
       });
       return { promise, resolve: res, reject: rej };
@@ -6386,7 +6386,7 @@ var require_client_h1 = __commonJS({
       return method2 !== "GET" && method2 !== "HEAD" && method2 !== "OPTIONS" && method2 !== "TRACE" && method2 !== "CONNECT";
     }
     function writeH1(client, request2) {
-      const { method: method2, path: path5, host, upgrade, blocking, reset } = request2;
+      const { method: method2, path: path6, host, upgrade, blocking, reset } = request2;
       let { body, headers, contentLength } = request2;
       const expectsPayload = method2 === "PUT" || method2 === "POST" || method2 === "PATCH" || method2 === "QUERY" || method2 === "PROPFIND" || method2 === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6461,7 +6461,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method2} ${path5} HTTP/1.1\r
+      let header = `${method2} ${path6} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6648,12 +6648,12 @@ upgrade: ${upgrade}\r
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve3, reject) => {
+      const waitForDrain = () => new Promise((resolve4, reject) => {
         assert2(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve3;
+          callback = resolve4;
         }
       });
       socket.on("close", onDrain).on("drain", onDrain);
@@ -6987,7 +6987,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request2) {
       const session = client[kHTTP2Session];
-      const { method: method2, path: path5, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
+      const { method: method2, path: path6, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
       let { body } = request2;
       if (upgrade) {
         util.errorRequest(client, request2, new Error("Upgrade not supported for H2"));
@@ -7054,7 +7054,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path5;
+      headers[HTTP2_HEADER_PATH] = path6;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method2 === "PUT" || method2 === "POST" || method2 === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7290,12 +7290,12 @@ var require_client_h2 = __commonJS({
           cb();
         }
       }
-      const waitForDrain = () => new Promise((resolve3, reject) => {
+      const waitForDrain = () => new Promise((resolve4, reject) => {
         assert2(callback === null);
         if (socket[kError]) {
           reject(socket[kError]);
         } else {
-          callback = resolve3;
+          callback = resolve4;
         }
       });
       h2stream.on("close", onDrain).on("drain", onDrain);
@@ -7407,9 +7407,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path5 = search ? `${pathname}${search}` : pathname;
+        const path6 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path5;
+        this.opts.path = path6;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -7773,16 +7773,16 @@ var require_client = __commonJS({
         return this[kNeedDrain] < 2;
       }
       async [kClose]() {
-        return new Promise((resolve3) => {
+        return new Promise((resolve4) => {
           if (this[kSize]) {
-            this[kClosedResolve] = resolve3;
+            this[kClosedResolve] = resolve4;
           } else {
-            resolve3(null);
+            resolve4(null);
           }
         });
       }
       async [kDestroy](err) {
-        return new Promise((resolve3) => {
+        return new Promise((resolve4) => {
           const requests = this[kQueue].splice(this[kPendingIdx]);
           for (let i = 0; i < requests.length; i++) {
             const request2 = requests[i];
@@ -7793,7 +7793,7 @@ var require_client = __commonJS({
               this[kClosedResolve]();
               this[kClosedResolve] = null;
             }
-            resolve3(null);
+            resolve4(null);
           };
           if (this[kHTTPContext]) {
             this[kHTTPContext].destroy(err, callback);
@@ -7844,7 +7844,7 @@ var require_client = __commonJS({
         });
       }
       try {
-        const socket = await new Promise((resolve3, reject) => {
+        const socket = await new Promise((resolve4, reject) => {
           client[kConnector]({
             host,
             hostname,
@@ -7856,7 +7856,7 @@ var require_client = __commonJS({
             if (err) {
               reject(err);
             } else {
-              resolve3(socket2);
+              resolve4(socket2);
             }
           });
         });
@@ -8192,8 +8192,8 @@ var require_pool_base = __commonJS({
         if (this[kQueue].isEmpty()) {
           await Promise.all(this[kClients].map((c) => c.close()));
         } else {
-          await new Promise((resolve3) => {
-            this[kClosedResolve] = resolve3;
+          await new Promise((resolve4) => {
+            this[kClosedResolve] = resolve4;
           });
         }
       }
@@ -8644,10 +8644,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path5 = "/",
+          path: path6 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path5;
+        opts.path = origin + path6;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -9459,7 +9459,7 @@ var require_readable = __commonJS({
         if (this._readableState.closeEmitted) {
           return null;
         }
-        return await new Promise((resolve3, reject) => {
+        return await new Promise((resolve4, reject) => {
           if (this[kContentLength] > limit) {
             this.destroy(new AbortError());
           }
@@ -9472,7 +9472,7 @@ var require_readable = __commonJS({
             if (signal?.aborted) {
               reject(signal.reason ?? new AbortError());
             } else {
-              resolve3(null);
+              resolve4(null);
             }
           }).on("error", noop3).on("data", function(chunk) {
             limit -= chunk.length;
@@ -9491,7 +9491,7 @@ var require_readable = __commonJS({
     }
     async function consume(stream, type) {
       assert2(!stream[kConsume]);
-      return new Promise((resolve3, reject) => {
+      return new Promise((resolve4, reject) => {
         if (isUnusable(stream)) {
           const rState = stream._readableState;
           if (rState.destroyed && rState.closeEmitted === false) {
@@ -9508,7 +9508,7 @@ var require_readable = __commonJS({
             stream[kConsume] = {
               type,
               stream,
-              resolve: resolve3,
+              resolve: resolve4,
               reject,
               length: 0,
               body: []
@@ -9578,18 +9578,18 @@ var require_readable = __commonJS({
       return buffer;
     }
     function consumeEnd(consume2) {
-      const { type, body, resolve: resolve3, stream, length } = consume2;
+      const { type, body, resolve: resolve4, stream, length } = consume2;
       try {
         if (type === "text") {
-          resolve3(chunksDecode(body, length));
+          resolve4(chunksDecode(body, length));
         } else if (type === "json") {
-          resolve3(JSON.parse(chunksDecode(body, length)));
+          resolve4(JSON.parse(chunksDecode(body, length)));
         } else if (type === "arrayBuffer") {
-          resolve3(chunksConcat(body, length).buffer);
+          resolve4(chunksConcat(body, length).buffer);
         } else if (type === "blob") {
-          resolve3(new Blob(body, { type: stream[kContentType] }));
+          resolve4(new Blob(body, { type: stream[kContentType] }));
         } else if (type === "bytes") {
-          resolve3(chunksConcat(body, length));
+          resolve4(chunksConcat(body, length));
         }
         consumeFinish(consume2);
       } catch (err) {
@@ -9846,9 +9846,9 @@ var require_api_request = __commonJS({
     };
     function request2(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           request2.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10071,9 +10071,9 @@ var require_api_stream = __commonJS({
     };
     function stream(opts, factory, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           stream.call(this, opts, factory, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10358,9 +10358,9 @@ var require_api_upgrade = __commonJS({
     };
     function upgrade(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           upgrade.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10452,9 +10452,9 @@ var require_api_connect = __commonJS({
     };
     function connect(opts, callback) {
       if (callback === void 0) {
-        return new Promise((resolve3, reject) => {
+        return new Promise((resolve4, reject) => {
           connect.call(this, opts, (err, data) => {
-            return err ? reject(err) : resolve3(data);
+            return err ? reject(err) : resolve4(data);
           });
         });
       }
@@ -10619,20 +10619,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path5) {
-      if (typeof path5 !== "string") {
-        return path5;
+    function safeUrl(path6) {
+      if (typeof path6 !== "string") {
+        return path6;
       }
-      const pathSegments = path5.split("?");
+      const pathSegments = path6.split("?");
       if (pathSegments.length !== 2) {
-        return path5;
+        return path6;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path5, method: method2, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path5);
+    function matchKey(mockDispatch2, { path: path6, method: method2, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path6);
       const methodMatch = matchValue(mockDispatch2.method, method2);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10654,7 +10654,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path5 }) => matchValue(safeUrl(path5), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path6 }) => matchValue(safeUrl(path6), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10692,9 +10692,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path5, method: method2, body, headers, query } = opts;
+      const { path: path6, method: method2, body, headers, query } = opts;
       return {
-        path: path5,
+        path: path6,
         method: method2,
         body,
         headers,
@@ -11157,10 +11157,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method: method2, path: path5, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method: method2, path: path6, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method2,
             Origin: origin,
-            Path: path5,
+            Path: path6,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -14316,7 +14316,7 @@ var require_fetch = __commonJS({
       function dispatch({ body }) {
         const url = requestCurrentURL(request2);
         const agent = fetchParams.controller.dispatcher;
-        return new Promise((resolve3, reject) => agent.dispatch(
+        return new Promise((resolve4, reject) => agent.dispatch(
           {
             path: url.pathname + url.search,
             origin: url.origin,
@@ -14392,7 +14392,7 @@ var require_fetch = __commonJS({
                 }
               }
               const onError = this.onError.bind(this);
-              resolve3({
+              resolve4({
                 status,
                 statusText,
                 headersList,
@@ -14438,7 +14438,7 @@ var require_fetch = __commonJS({
               for (let i = 0; i < rawHeaders.length; i += 2) {
                 headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
               }
-              resolve3({
+              resolve4({
                 status,
                 statusText: STATUS_CODES[status],
                 headersList,
@@ -16041,9 +16041,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path5) {
-      for (let i = 0; i < path5.length; ++i) {
-        const code = path5.charCodeAt(i);
+    function validateCookiePath(path6) {
+      for (let i = 0; i < path6.length; ++i) {
+        const code = path6.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code > 126 || // exclude DEL and non-ascii
         code === 59) {
@@ -18169,8 +18169,8 @@ var require_util8 = __commonJS({
       return true;
     }
     function delay(ms) {
-      return new Promise((resolve3) => {
-        setTimeout(resolve3, ms).unref();
+      return new Promise((resolve4) => {
+        setTimeout(resolve4, ms).unref();
       });
     }
     module2.exports = {
@@ -18885,11 +18885,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path5 = opts.path;
+          let path6 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path5 = `/${path5}`;
+            path6 = `/${path6}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path5);
+          url = new URL(util.parseOrigin(url).origin + path6);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -19084,11 +19084,11 @@ var require_lib = __commonJS({
     })();
     var __awaiter7 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
-          resolve3(value);
+        return value instanceof P ? value : new P(function(resolve4) {
+          resolve4(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P || (P = Promise))(function(resolve4, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -19104,7 +19104,7 @@ var require_lib = __commonJS({
           }
         }
         function step(result) {
-          result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+          result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
         }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
@@ -19191,26 +19191,26 @@ var require_lib = __commonJS({
       }
       readBody() {
         return __awaiter7(this, void 0, void 0, function* () {
-          return new Promise((resolve3) => __awaiter7(this, void 0, void 0, function* () {
+          return new Promise((resolve4) => __awaiter7(this, void 0, void 0, function* () {
             let output = Buffer.alloc(0);
             this.message.on("data", (chunk) => {
               output = Buffer.concat([output, chunk]);
             });
             this.message.on("end", () => {
-              resolve3(output.toString());
+              resolve4(output.toString());
             });
           }));
         });
       }
       readBodyBuffer() {
         return __awaiter7(this, void 0, void 0, function* () {
-          return new Promise((resolve3) => __awaiter7(this, void 0, void 0, function* () {
+          return new Promise((resolve4) => __awaiter7(this, void 0, void 0, function* () {
             const chunks = [];
             this.message.on("data", (chunk) => {
               chunks.push(chunk);
             });
             this.message.on("end", () => {
-              resolve3(Buffer.concat(chunks));
+              resolve4(Buffer.concat(chunks));
             });
           }));
         });
@@ -19418,14 +19418,14 @@ var require_lib = __commonJS({
        */
       requestRaw(info2, data) {
         return __awaiter7(this, void 0, void 0, function* () {
-          return new Promise((resolve3, reject) => {
+          return new Promise((resolve4, reject) => {
             function callbackForResult(err, res) {
               if (err) {
                 reject(err);
               } else if (!res) {
                 reject(new Error("Unknown error"));
               } else {
-                resolve3(res);
+                resolve4(res);
               }
             }
             this.requestRawWithCallback(info2, data, callbackForResult);
@@ -19669,12 +19669,12 @@ var require_lib = __commonJS({
         return __awaiter7(this, void 0, void 0, function* () {
           retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
           const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-          return new Promise((resolve3) => setTimeout(() => resolve3(), ms));
+          return new Promise((resolve4) => setTimeout(() => resolve4(), ms));
         });
       }
       _processResponse(res, options) {
         return __awaiter7(this, void 0, void 0, function* () {
-          return new Promise((resolve3, reject) => __awaiter7(this, void 0, void 0, function* () {
+          return new Promise((resolve4, reject) => __awaiter7(this, void 0, void 0, function* () {
             const statusCode = res.message.statusCode || 0;
             const response = {
               statusCode,
@@ -19682,7 +19682,7 @@ var require_lib = __commonJS({
               headers: {}
             };
             if (statusCode === HttpCodes2.NotFound) {
-              resolve3(response);
+              resolve4(response);
             }
             function dateTimeDeserializer(key, value) {
               if (typeof value === "string") {
@@ -19721,7 +19721,7 @@ var require_lib = __commonJS({
               err.result = response.result;
               reject(err);
             } else {
-              resolve3(response);
+              resolve4(response);
             }
           }));
         });
@@ -19894,11 +19894,11 @@ var import_os = require("os");
 var import_fs = require("fs");
 var __awaiter = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -19914,7 +19914,7 @@ var __awaiter = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20190,11 +20190,11 @@ var fs2 = __toESM(require("fs"), 1);
 var path = __toESM(require("path"), 1);
 var __awaiter2 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -20210,7 +20210,7 @@ var __awaiter2 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20314,11 +20314,11 @@ function isUnixExecutable(stats) {
 // node_modules/.pnpm/@actions+io@3.0.2/node_modules/@actions/io/lib/io.js
 var __awaiter3 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -20334,7 +20334,7 @@ var __awaiter3 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20408,11 +20408,11 @@ function findInPath(tool) {
 var import_timers = require("timers");
 var __awaiter4 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -20428,7 +20428,7 @@ var __awaiter4 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20647,7 +20647,7 @@ var ToolRunner = class extends events.EventEmitter {
         this.toolPath = path3.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
       }
       this.toolPath = yield which(this.toolPath, true);
-      return new Promise((resolve3, reject) => __awaiter4(this, void 0, void 0, function* () {
+      return new Promise((resolve4, reject) => __awaiter4(this, void 0, void 0, function* () {
         this._debug(`exec tool: ${this.toolPath}`);
         this._debug("arguments:");
         for (const arg of this.args) {
@@ -20730,7 +20730,7 @@ var ToolRunner = class extends events.EventEmitter {
           if (error2) {
             reject(error2);
           } else {
-            resolve3(exitCode);
+            resolve4(exitCode);
           }
         });
         if (this.options.input) {
@@ -20853,11 +20853,11 @@ var ExecState = class _ExecState extends events.EventEmitter {
 // node_modules/.pnpm/@actions+exec@3.0.0/node_modules/@actions/exec/lib/exec.js
 var __awaiter5 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -20873,7 +20873,7 @@ var __awaiter5 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -20953,8 +20953,8 @@ var Context = class {
       if ((0, import_fs2.existsSync)(process.env.GITHUB_EVENT_PATH)) {
         this.payload = JSON.parse((0, import_fs2.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: "utf8" }));
       } else {
-        const path5 = process.env.GITHUB_EVENT_PATH;
-        process.stdout.write(`GITHUB_EVENT_PATH ${path5} does not exist${import_os3.EOL}`);
+        const path6 = process.env.GITHUB_EVENT_PATH;
+        process.stdout.write(`GITHUB_EVENT_PATH ${path6} does not exist${import_os3.EOL}`);
       }
     }
     this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -20995,11 +20995,11 @@ var httpClient = __toESM(require_lib(), 1);
 var import_undici2 = __toESM(require_undici(), 1);
 var __awaiter6 = function(thisArg, _arguments, P, generator) {
   function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve3) {
-      resolve3(value);
+    return value instanceof P ? value : new P(function(resolve4) {
+      resolve4(value);
     });
   }
-  return new (P || (P = Promise))(function(resolve3, reject) {
+  return new (P || (P = Promise))(function(resolve4, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -21015,7 +21015,7 @@ var __awaiter6 = function(thisArg, _arguments, P, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve3(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve4(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
@@ -25025,10 +25025,10 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // actions/export-pr-create/main.ts
-var fs3 = __toESM(require("node:fs/promises"));
-var path4 = __toESM(require("node:path"));
+var fs4 = __toESM(require("node:fs/promises"));
 
 // actions/lib/util.ts
+var path4 = __toESM(require("node:path"));
 function exit(reason, level = "info") {
   if (level === "warning") warning(reason);
   else if (level === "notice") notice(reason);
@@ -25041,6 +25041,9 @@ function abort(reason) {
 }
 function assert(condition, message) {
   if (!condition) abort(message);
+}
+function scriptPath(name) {
+  return path4.resolve(__dirname, "../../..", name);
 }
 function runIn(cwd) {
   return async function(cmd, args, options) {
@@ -25105,6 +25108,50 @@ function parseRepo(input) {
   return new Repo(match[1], match[2]);
 }
 
+// actions/lib/repos.ts
+var fs3 = __toESM(require("node:fs/promises"));
+var os6 = __toESM(require("node:os"));
+var path5 = __toESM(require("node:path"));
+async function loadSubrepos(reposToml) {
+  const result = await captureIn(path5.dirname(reposToml))(
+    scriptPath("internal_subrepos.py"),
+    [path5.resolve(reposToml)]
+  );
+  return JSON.parse(result);
+}
+function findSubrepo(subrepos, name) {
+  const subrepo2 = subrepos.find((s) => s.name === name);
+  assert(subrepo2 !== void 0, `Subrepo ${name} not found in repos.toml`);
+  return subrepo2;
+}
+async function writeTempReposToml(contents) {
+  const dir = await fs3.mkdtemp(path5.join(os6.tmpdir(), "repos-toml-"));
+  const reposToml = path5.join(dir, "repos.toml");
+  await fs3.writeFile(reposToml, contents);
+  return reposToml;
+}
+async function fetchReposTomlFromGithub(octo, repo, sha) {
+  info(`Loading repos.toml at ${sha}...`);
+  const { data } = await octo.rest.repos.getContent({
+    ...repo,
+    path: "repos.toml",
+    ref: sha,
+    mediaType: { format: "raw" }
+  });
+  return await writeTempReposToml(data);
+}
+async function loadSubreposFromGithub(octo, repo, sha) {
+  return await loadSubrepos(await fetchReposTomlFromGithub(octo, repo, sha));
+}
+async function loadSubrepoFromGithub(octo, repo, sha, name) {
+  return findSubrepo(await loadSubreposFromGithub(octo, repo, sha), name);
+}
+function githubRepo(url) {
+  const match = /^https:\/\/github\.com\/([^/]+)\/([^/]+)$/.exec(url);
+  assert(match !== null, `Not a GitHub repo: ${url}`);
+  return new Repo(match[1], match[2]);
+}
+
 // actions/export-pr-create/main.ts
 function parseMethod(input) {
   assert(
@@ -25130,46 +25177,62 @@ var trackingBranch = getInputOpt("tracking-branch") ?? `export/${subrepo}`;
 var method = getInput2("method", parseMethod);
 var downstreamRepo = getInput2("downstream-repo", parseRepo);
 var downstreamToken = getInput2("downstream-token");
-var sourceRepo = getInput2("source-repo", parseRepo);
 var sourceToken = getInput2("source-token");
-var targetRepo = getInputOpt("target-repo", parseRepo) ?? sourceRepo;
-var targetBranch = getInput2("target-branch");
 var targetToken = getInputOpt("target-token") ?? sourceToken;
 var pr = getInput2("pr", parseBool);
-var prRepo = getInputOpt("pr-repo", parseRepo) ?? targetRepo;
-var prBranch = getInputOpt("pr-branch") ?? `${downstreamRepo.repo}-export`;
+var prRepoInput = getInputOpt("pr-repo", parseRepo);
+var prBranchInput = getInputOpt("pr-branch");
 var prToken = getInputOpt("pr-token") ?? targetToken;
 var prTitle = getInputOpt("pr-title") ?? `chore: adaptations from ${downstreamRepo.repo}`;
 var prBody = getInputOpt("pr-body");
 var prExplanation = getInputOpt("pr-explanation");
 var updateToolchains = getInput2("update-toolchains", parseBool);
+var toolchainInteresting = getInput2("toolchain-interesting", parseBool);
 var lakefileEdits = getInputOpt("lakefile-edits", parseLakefileEdits) ?? [];
+var lakefileInteresting = getInput2("lakefile-interesting", parseBool);
 var updateManifests = getInput2("update-manifests", parseBool);
+var manifestInteresting = getInput2("manifest-interesting", parseBool);
 setSecret(downstreamToken);
 setSecret(sourceToken);
 setSecret(targetToken);
 setSecret(prToken);
+var downstreamOcto = getOctokit(downstreamToken);
 var targetOcto = getOctokit(targetToken);
 var cRun = runIn(clonePath);
 var cCapture = captureIn(clonePath);
-function scriptPath(name) {
-  return path4.resolve(__dirname, "../../..", name);
-}
 function authUrl(token, repo) {
   return `https://x-access-token:${token}@github.com/${repo.fullName}.git`;
 }
 async function loadBuildReport() {
-  const raw = await fs3.readFile(buildReportPath, "utf8");
+  const raw = await fs4.readFile(buildReportPath, "utf8");
   return JSON.parse(raw);
+}
+async function loadExportConfigFromGithub(buildReport) {
+  const info2 = await loadSubrepoFromGithub(
+    downstreamOcto,
+    downstreamRepo,
+    buildReport.commit_sha,
+    subrepo
+  );
+  const sourceRepo = githubRepo(info2.source_url);
+  const targetRepo = githubRepo(info2.target_url);
+  return {
+    sourceRepo,
+    sourceRev: info2.source_rev,
+    targetRepo,
+    targetBranch: info2.target_rev,
+    prRepo: prRepoInput ?? targetRepo,
+    prBranch: prBranchInput ?? `${downstreamRepo.repo}-export`
+  };
 }
 function isBuildReportGreen(report) {
   const repoEntry = report.repos.find((r) => r.name === subrepo);
   return repoEntry?.green ?? false;
 }
-async function findExportPr() {
-  return await findPrFor(targetOcto, targetRepo, prBranch, {
+async function findExportPr(config) {
+  return await findPrFor(targetOcto, config.targetRepo, config.prBranch, {
     state: "open",
-    headOwner: prRepo.owner
+    headOwner: config.prRepo.owner
   });
 }
 async function cloneDownstreamRepo() {
@@ -25209,13 +25272,6 @@ async function findBaseCommit() {
   ]);
   return JSON.parse(result);
 }
-async function findSourceRev() {
-  const result = await cCapture(scriptPath("list.py"), [
-    ...[".", subrepo, "--json"]
-  ]);
-  assert(result !== "", `Subrepo ${subrepo} not found in repos.toml`);
-  return JSON.parse(result).rev;
-}
 async function fetchFromRepo(repo, token, revOrSha) {
   info(`Fetching ${revOrSha} from ${repo.fullName}...`);
   await cRun("git", [
@@ -25235,38 +25291,53 @@ async function pushToRepo(repo, token, sha, branch, force = false) {
     `${sha}:refs/heads/${branch}`
   ]);
 }
-function isNonemptyExport(exitCode) {
-  if (exitCode === 10) {
-    return false;
-  } else if (exitCode === 0) {
-    return true;
-  } else {
-    abort(`export.py exited with code ${exitCode}`);
-  }
+function filePathspecs(magic, kinds) {
+  const patterns = [];
+  if (kinds.toolchains) patterns.push("lean-toolchain");
+  if (kinds.lakefiles) patterns.push("lakefile.toml", "lakefile.lean");
+  if (kinds.manifests) patterns.push("lake-manifest.json");
+  return patterns.map((p) => `:(${magic})**/${p}`);
+}
+function boringPathspecs() {
+  return filePathspecs("exclude,glob", {
+    toolchains: !toolchainInteresting,
+    lakefiles: !lakefileInteresting,
+    manifests: !manifestInteresting
+  });
+}
+async function isInterestingExport(onto) {
+  const changed = await cCapture("git", [
+    ...["diff", "--name-only", "-z", onto, "HEAD", "--"],
+    ...boringPathspecs()
+  ]);
+  const changedPaths = changed.split("\0").filter((p) => p !== "");
+  info(`Export changes ${changedPaths.length} interesting file(s).`);
+  return changedPaths.length > 0;
 }
 async function runExport(onto) {
   info(`Exporting ${subrepo} onto ${onto}...`);
-  const exitCode = await cRun(
-    scriptPath("export.py"),
-    [
-      ...[".", subrepo, "--fail-if-empty"],
-      ...["--onto", onto],
-      ...["--message", prTitle],
-      ...updateToolchains ? ["--update-toolchains"] : [],
-      ...lakefileEdits.flatMap(([p, r]) => ["--edit-lakefile", p, r]),
-      ...updateManifests ? ["--update-manifests"] : []
-    ],
-    { ignoreReturnCode: true }
-  );
-  return isNonemptyExport(exitCode);
+  await cRun(scriptPath("export.py"), [
+    ...[".", subrepo],
+    ...["--onto", onto],
+    ...["--message", prTitle],
+    ...updateToolchains ? ["--update-toolchains"] : [],
+    ...lakefileEdits.flatMap(([p, r]) => ["--edit-lakefile", p, r]),
+    ...updateManifests ? ["--update-manifests"] : []
+  ]);
+  return await isInterestingExport(onto);
 }
-async function updateSubrepo(sha) {
+async function updateSubrepo(config, sha) {
   await cRun("git", ["switch", "--detach", sha]);
   const baseCommit = await findBaseCommit();
-  const sourceRev = await findSourceRev();
-  await fetchFromRepo(sourceRepo, sourceToken, baseCommit.sha);
-  const sourceSha = await fetchFromRepo(sourceRepo, sourceToken, sourceRev);
-  info(`Updating subrepo ${subrepo} to ${sourceRev} (${sourceSha})...`);
+  await fetchFromRepo(config.sourceRepo, sourceToken, baseCommit.sha);
+  const sourceSha = await fetchFromRepo(
+    config.sourceRepo,
+    sourceToken,
+    config.sourceRev
+  );
+  info(
+    `Updating subrepo ${subrepo} to ${config.sourceRev} (${sourceSha})...`
+  );
   await cRun(scriptPath("update.py"), [
     ...[".", "--update", subrepo, "--update-to", subrepo, sourceSha]
   ]);
@@ -25276,8 +25347,8 @@ async function updateSubrepo(sha) {
   if (exitCode !== 0) return null;
   return await cCapture("git", ["rev-parse", "HEAD"]);
 }
-async function exportSameBranch(sha) {
-  const updatedSha = await updateSubrepo(sha);
+async function exportSameBranch(config, sha) {
+  const updatedSha = await updateSubrepo(config, sha);
   if (updatedSha === null)
     exit(
       `Subrepo ${subrepo} is outdated (upstream has relevant changes since the last update), stopping.`,
@@ -25285,15 +25356,19 @@ async function exportSameBranch(sha) {
     );
   await cRun("git", ["switch", "--detach", updatedSha]);
   const baseCommit = await findBaseCommit();
-  const baseSha = await fetchFromRepo(sourceRepo, sourceToken, baseCommit.sha);
+  const baseSha = await fetchFromRepo(
+    config.sourceRepo,
+    sourceToken,
+    baseCommit.sha
+  );
   return await runExport(baseSha);
 }
 function excludePathspecs() {
-  const patterns = [];
-  if (updateToolchains) patterns.push("lean-toolchain");
-  if (lakefileEdits.length > 0) patterns.push("lakefile.toml", "lakefile.lean");
-  if (updateManifests) patterns.push("lake-manifest.json");
-  return patterns.map((p) => `:(glob)**/${p}`);
+  return filePathspecs("glob", {
+    toolchains: updateToolchains,
+    lakefiles: lakefileEdits.length > 0,
+    manifests: updateManifests
+  });
 }
 async function mergeSource(sha, message) {
   const pathspecs = excludePathspecs();
@@ -25316,26 +25391,43 @@ async function mergeSource(sha, message) {
   ]);
   await cRun("git", ["commit", "--amend", "--no-edit"]);
 }
-async function exportTargetBranch(sha) {
+async function exportTargetBranch(config, sha) {
   await cRun("git", ["switch", "--detach", sha]);
   const baseCommit = await findBaseCommit();
-  const baseSha = await fetchFromRepo(sourceRepo, sourceToken, baseCommit.sha);
-  const targetSha = await fetchFromRepo(targetRepo, targetToken, targetBranch);
-  info(`Merging ${baseCommit.rev} (${baseSha}) into ${targetBranch}...`);
+  const baseSha = await fetchFromRepo(
+    config.sourceRepo,
+    sourceToken,
+    baseCommit.sha
+  );
+  const targetSha = await fetchFromRepo(
+    config.targetRepo,
+    targetToken,
+    config.targetBranch
+  );
+  info(
+    `Merging ${baseCommit.rev} (${baseSha}) into ${config.targetBranch}...`
+  );
   await cRun("git", ["switch", "--detach", targetSha]);
   await mergeSource(baseSha, `chore: merge '${baseCommit.rev}'`);
   const mergeSha = await cCapture("git", ["rev-parse", "HEAD"]);
   await cRun("git", ["switch", "--detach", sha]);
-  const nonempty = await runExport(mergeSha);
-  if (nonempty && pr) {
-    info(`Pushing merge commit ${mergeSha} to ${targetBranch}...`);
-    await pushToRepo(targetRepo, targetToken, mergeSha, targetBranch);
+  const interesting = await runExport(mergeSha);
+  if (interesting && pr) {
+    info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
+    await pushToRepo(
+      config.targetRepo,
+      targetToken,
+      mergeSha,
+      config.targetBranch
+    );
   }
-  return nonempty;
+  return interesting;
 }
-async function createExportPr(buildReport) {
-  info(`Pushing export commit(s) to ${prRepo.fullName}:${prBranch}...`);
-  await pushToRepo(prRepo, prToken, "HEAD", prBranch, true);
+async function createExportPr(config, buildReport) {
+  info(
+    `Pushing export commit(s) to ${config.prRepo.fullName}:${config.prBranch}...`
+  );
+  await pushToRepo(config.prRepo, prToken, "HEAD", config.prBranch, true);
   let body = prBody;
   if (!body) {
     body = "This PR contains automatically exported adaptations up until ";
@@ -25345,12 +25437,12 @@ async function createExportPr(buildReport) {
 
 ${prExplanation}`;
   info(
-    `Creating export PR against ${targetRepo.fullName}:${targetBranch}...`
+    `Creating export PR against ${config.targetRepo.fullName}:${config.targetBranch}...`
   );
   const { data } = await targetOcto.rest.pulls.create({
-    ...targetRepo,
-    base: targetBranch,
-    head: `${prRepo.owner}:${prBranch}`,
+    ...config.targetRepo,
+    base: config.targetBranch,
+    head: `${config.prRepo.owner}:${config.prBranch}`,
     title: prTitle,
     body
   });
@@ -25362,8 +25454,9 @@ async function run() {
   const buildReport = await loadBuildReport();
   if (!isBuildReportGreen(buildReport))
     exit(`Build report for ${subrepo} is not green, stopping.`, "notice");
+  const config = await loadExportConfigFromGithub(buildReport);
   if (pr) {
-    const existingPr = await findExportPr();
+    const existingPr = await findExportPr(config);
     if (existingPr !== void 0) {
       setOutput("pr-number", existingPr.number);
       exit(
@@ -25381,21 +25474,26 @@ async function run() {
       "notice"
     );
   info(`Exporting using method "${method}"...`);
-  const nonempty = method === "same-branch" ? await exportSameBranch(buildReport.commit_sha) : await exportTargetBranch(buildReport.commit_sha);
-  if (nonempty) {
+  const interesting = method === "same-branch" ? await exportSameBranch(config, buildReport.commit_sha) : await exportTargetBranch(config, buildReport.commit_sha);
+  if (interesting) {
     if (pr) {
-      const prNumber = await createExportPr(buildReport);
+      const prNumber = await createExportPr(config, buildReport);
       setOutput("pr-created", true);
       setOutput("pr-number", prNumber);
     } else {
-      await pushToRepo(targetRepo, targetToken, "HEAD", targetBranch);
+      await pushToRepo(
+        config.targetRepo,
+        targetToken,
+        "HEAD",
+        config.targetBranch
+      );
       notice(
-        `Pushed export directly to ${targetRepo.fullName}:${targetBranch}.`
+        `Pushed export directly to ${config.targetRepo.fullName}:${config.targetBranch}.`
       );
     }
   } else {
     notice(
-      pr ? "Export is empty, not creating an export PR." : "Export is empty, nothing to push."
+      pr ? "Export has no interesting changes, not creating an export PR." : "Export has no interesting changes, nothing to push."
     );
   }
   info(

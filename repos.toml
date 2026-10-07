@@ -1,133 +1,134 @@
 [aesop]
-url = "https://github.com/leanprover-community/aesop"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/aesop"
+source_rev = "nightly-testing"
 critical = true
 build_options = ["--wfail"]
 
 [batteries]
-url = "https://github.com/leanprover-community/batteries"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/batteries"
+source_rev = "nightly-testing"
 critical = true
 build_options = ["--wfail"]
 
 [BibtexQuery]
-url = "https://github.com/dupuisf/BibtexQuery"
-rev = "master"
+source_url = "https://github.com/dupuisf/BibtexQuery"
+source_rev = "master"
 critical = false
 
 [comparator]
-url = "https://github.com/leanprover/comparator"
-rev = "master"
+source_url = "https://github.com/leanprover/comparator"
+source_rev = "master"
 critical = false
 
 [cslib]
-url = "https://github.com/leanprover/cslib"
-rev = "main"
+source_url = "https://github.com/leanprover/cslib"
+source_rev = "main"
+target_rev = "bump/v4.36.0"
 critical = false
 build_options = ["--wfail", "--iofail"]
 test_options = ["--wfail", "--iofail"]
 
 [doc-gen4]
-url = "https://github.com/leanprover/doc-gen4"
-rev = "main"
+source_url = "https://github.com/leanprover/doc-gen4"
+source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 
 [illuminate]
-url = "https://github.com/leanprover/illuminate"
-rev = "main"
+source_url = "https://github.com/leanprover/illuminate"
+source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 test_options = ["--wfail"]
 
 [import-graph]
-url = "https://github.com/leanprover-community/import-graph"
-rev = "main"
+source_url = "https://github.com/leanprover-community/import-graph"
+source_rev = "main"
 critical = true
 
 [lean4-cli]
-url = "https://github.com/leanprover/lean4-cli"
-rev = "main"
+source_url = "https://github.com/leanprover/lean4-cli"
+source_rev = "main"
 critical = true
 
 [lean4-unicode-basic]
-url = "https://github.com/fgdorais/lean4-unicode-basic"
-rev = "main"
+source_url = "https://github.com/fgdorais/lean4-unicode-basic"
+source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 
 [lean4export]
-url = "https://github.com/leanprover/lean4export"
-rev = "master"
+source_url = "https://github.com/leanprover/lean4export"
+source_rev = "master"
 critical = false
 
 [LeanSearchClient]
-url = "https://github.com/leanprover-community/LeanSearchClient"
-rev = "main"
+source_url = "https://github.com/leanprover-community/LeanSearchClient"
+source_rev = "main"
 critical = false
 
 [leansqlite]
-url = "https://github.com/leanprover/leansqlite"
-rev = "main"
+source_url = "https://github.com/leanprover/leansqlite"
+source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 test_options = ["--wfail"]
 
 [mathlib4]
-url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
-aliases = ["https://github.com/leanprover-community/mathlib4"]
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/mathlib4-nightly-testing"
+source_rev = "nightly-testing"
+alias_urls = ["https://github.com/leanprover-community/mathlib4"]
 critical = true
 build_targets = ["Mathlib", "Archive", "Counterexamples", "Wanted", "cache"]
 build_options = ["--wfail"]
 test_options = ["--iofail"]
 
 [nerodia]
-url = "https://github.com/leanprover/nerodia"
-rev = "master"
+source_url = "https://github.com/leanprover/nerodia"
+source_rev = "master"
 critical = false
 
 [plausible]
-url = "https://github.com/leanprover-community/plausible"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/plausible"
+source_rev = "nightly-testing"
 critical = true
 
 [ProofWidgets4]
-url = "https://github.com/leanprover-community/ProofWidgets4"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/ProofWidgets4"
+source_rev = "nightly-testing"
 critical = true
 build_targets = ["ProofWidgets", "ProofWidgets.Demos"]
 build_options = ["--wfail"]
 test_options = ["--wfail"]
 
 [quote4]
-url = "https://github.com/leanprover-community/quote4"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover-community/quote4"
+source_rev = "nightly-testing"
 critical = true
 build_options = ["--wfail"]
 
 [reference-manual]
-url = "https://github.com/leanprover/reference-manual"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover/reference-manual"
+source_rev = "nightly-testing"
 critical = true
 
 [repl]
-url = "https://github.com/leanprover-community/repl"
-rev = "master"
+source_url = "https://github.com/leanprover-community/repl"
+source_rev = "master"
 critical = false
 
 [verso]
-url = "https://github.com/leanprover/verso"
-rev = "nightly-testing"
+source_url = "https://github.com/leanprover/verso"
+source_rev = "nightly-testing"
 critical = false
 
 [verso-slides]
-url = "https://github.com/leanprover/verso-slides"
-rev = "main"
+source_url = "https://github.com/leanprover/verso-slides"
+source_rev = "main"
 critical = false
 test_args = ["--no-playwright"]
 
 [verso-web-components]
-url = "https://github.com/leanprover/verso-web-components"
-rev = "main"
+source_url = "https://github.com/leanprover/verso-web-components"
+source_rev = "main"
 critical = false
