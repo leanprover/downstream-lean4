@@ -61,6 +61,17 @@ meta def loadModuleContent
       "LEAN_GITHASH",
       "ELAN_TOOLCHAIN", "DYLD_LIBRARY_PATH", "LD_LIBRARY_PATH"]
 
+  -- `subverso-extract-mod` imports the module's `.olean`, so it has to exist before the extractor
+  -- runs. SubVerso's `examples` facet used to build it as a side effect of `%example` loading, but
+  -- that mechanism is gone, so build the module here the way `Verso.Code.External` does for
+  -- anchor-based examples.
+  let buildArgs := #["run", "--install", toolchain, "lake", "build", mod]
+  let buildRes ← IO.Process.output {
+    cmd := "elan", args := buildArgs, cwd := projectDir
+    -- Unset Lake's environment variables
+    env := lakeVars.map (·, none)
+  }
+  if buildRes.exitCode != 0 then reportFail projectDir "elan" buildArgs buildRes
 
   IO.FS.withTempFile fun h f => do
     let cmd := "elan"
