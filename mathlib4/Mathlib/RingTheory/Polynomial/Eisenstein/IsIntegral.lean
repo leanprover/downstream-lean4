@@ -74,7 +74,9 @@ theorem cyclotomic_comp_X_add_one_isEisensteinAt [hp : Fact p.Prime] :
     obtain ⟨k, hk⟩ := Int.natCast_dvd_natCast.1 h
     have : 2 ≤ p := Nat.Prime.two_le hp.out
     have : p < p ^ 2 := by nlinarith
-    cases k <;> grind
+    #adaptation_note /-- On nightly-2026-10-07, `cases k <;> grind` fails here with
+    "`grind` internal error, ring term has not been internalized: `↑(p ^ 2)`". -/
+    rcases k with _ | k <;> nlinarith
 
 theorem cyclotomic_prime_pow_comp_X_add_one_isEisensteinAt [hp : Fact p.Prime] (n : ℕ) :
     ((cyclotomic (p ^ (n + 1)) ℤ).comp (X + 1)).IsEisensteinAt 𝓟 := by
@@ -117,7 +119,9 @@ theorem cyclotomic_prime_pow_comp_X_add_one_isEisensteinAt [hp : Fact p.Prime] (
     obtain ⟨k, hk⟩ := Int.natCast_dvd_natCast.1 h
     have : 2 ≤ p := Nat.Prime.two_le hp.out
     have : p < p ^ 2 := by nlinarith
-    cases k <;> grind
+    #adaptation_note /-- On nightly-2026-10-07, `cases k <;> grind` fails here with
+    "`grind` internal error, ring term has not been internalized: `↑(p ^ 2)`". -/
+    rcases k with _ | k <;> nlinarith
 
 end Cyclotomic
 

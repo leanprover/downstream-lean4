@@ -216,7 +216,10 @@ theorem Nat.eq_sq_add_sq_iff {n : ℕ} :
   -- now `0 < n`
   refine eq_sq_add_sq_iff_eq_sq_mul.trans ⟨fun ⟨a, b, h₁, h₂⟩ q hq h ↦ ?_, fun H ↦ ?_⟩
   · have : Fact q.Prime := ⟨prime_of_mem_primeFactors hq⟩
-    have : q ∣ b → q ∈ b.primeFactors := by grind
+    #adaptation_note /-- On nightly-2026-10-07, `grind` fails here with
+    "`grind` internal error, ring term has not been internalized: `↑(a ^ 2)`". -/
+    have : q ∣ b → q ∈ b.primeFactors := fun hd ↦
+      Nat.mem_primeFactors.mpr ⟨Fact.out, hd, by rintro rfl; simp_all⟩
     #adaptation_note /-- Before nightly-2026-09-25 this was:
     ```lean
     grind (splits := 10) [padicValNat.mul, padicValNat.pow,
