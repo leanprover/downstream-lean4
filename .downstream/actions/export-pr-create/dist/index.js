@@ -25314,12 +25314,14 @@ async function isInterestingExport(onto) {
   info(`Export changes ${changedPaths.length} interesting file(s).`);
   return changedPaths.length > 0;
 }
-async function runExport(onto) {
+async function runExport(onto, downstreamSha) {
   info(`Exporting ${subrepo} onto ${onto}...`);
   await cRun(scriptPath("export.py"), [
     ...[".", subrepo],
     ...["--onto", onto],
-    ...["--message", prTitle],
+    ...["--message", `${prTitle}
+
+downstream-sha: ${downstreamSha}`],
     ...updateToolchains ? ["--update-toolchains"] : [],
     ...lakefileEdits.flatMap(([p, r]) => ["--edit-lakefile", p, r]),
     ...updateManifests ? ["--update-manifests"] : []
@@ -25347,8 +25349,8 @@ async function updateSubrepo(config, sha) {
   if (exitCode !== 0) return null;
   return await cCapture("git", ["rev-parse", "HEAD"]);
 }
-async function exportSameBranch(config, sha) {
-  const updatedSha = await updateSubrepo(config, sha);
+async function exportSameBranch(config, downstreamSha) {
+  const updatedSha = await updateSubrepo(config, downstreamSha);
   if (updatedSha === null)
     exit(
       `Subrepo ${subrepo} is outdated (upstream has relevant changes since the last update), stopping.`,
@@ -25361,7 +25363,7 @@ async function exportSameBranch(config, sha) {
     sourceToken,
     baseCommit.sha
   );
-  return await runExport(baseSha);
+  return await runExport(baseSha, downstreamSha);
 }
 function excludePathspecs() {
   return filePathspecs("glob", {
@@ -25411,7 +25413,7 @@ async function exportTargetBranch(config, sha) {
   await mergeSource(baseSha, `chore: merge '${baseCommit.rev}'`);
   const mergeSha = await cCapture("git", ["rev-parse", "HEAD"]);
   await cRun("git", ["switch", "--detach", sha]);
-  const interesting = await runExport(mergeSha);
+  const interesting = await runExport(mergeSha, sha);
   if (interesting && pr) {
     info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
     await pushToRepo(
@@ -25436,6 +25438,9 @@ async function createExportPr(config, buildReport) {
   if (prExplanation) body += `
 
 ${prExplanation}`;
+  body += `
+
+downstream-sha: ${buildReport.commit_sha}`;
   info(
     `Creating export PR against ${config.targetRepo.fullName}:${config.targetBranch}...`
   );

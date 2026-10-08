@@ -195,26 +195,36 @@ class Updater:
         return self.commit(message, allow_empty=base_changed)
 
     def find_latest_base_commit(self, subrepo: Subrepo) -> BaseCommit:
-        message = run(
-            *("git", "log", "-1", "-E"),
+        messages = run(
+            *("git", "log", "-z", "-E"),
             f"--grep=^downstream-repo: {re.escape(subrepo.name)}$",
             "--format=%B",
             capture=True,
         ).stdout
 
-        m_url = re.search(r"^downstream-url: (.+)$", message, re.MULTILINE)
-        m_rev = re.search(r"^downstream-rev: (.+)$", message, re.MULTILINE)
-        m_sha = re.search(r"^downstream-sha: (.+)$", message, re.MULTILINE)
+        # I don't want to rely on the ordering of `downstream-*` tags, so
+        # they're matched here instead of included in the regex above.
+        for message in messages.split("\0"):
+            m_url = re.search(r"^downstream-url: (.+)$", message, re.MULTILINE)
+            m_rev = re.search(r"^downstream-rev: (.+)$", message, re.MULTILINE)
+            m_sha = re.search(r"^downstream-sha: (.+)$", message, re.MULTILINE)
 
-        if not (m_url and m_rev and m_sha):
-            raise ValueError(f"no previous commit found for subrepo {subrepo.name}")
+            if not (m_url and m_rev and m_sha):
+                continue
 
-        return BaseCommit(
-            repo=subrepo.name,
-            url=m_url.group(1).strip(),
-            rev=m_rev.group(1).strip(),
-            sha=m_sha.group(1).strip(),
-        )
+            url = m_url.group(1).strip()
+            rev = m_rev.group(1).strip()
+            if url != subrepo.source_url or rev != subrepo.source_rev:
+                continue
+
+            return BaseCommit(
+                repo=subrepo.name,
+                url=url,
+                rev=rev,
+                sha=m_sha.group(1).strip(),
+            )
+
+        raise ValueError(f"no previous commit found for subrepo {subrepo.name}")
 
     def get_tree_in_head(self, path: str) -> str:
         return run("git", "rev-parse", f"HEAD:{path}", capture=True).stdout.strip()
