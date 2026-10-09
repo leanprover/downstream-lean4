@@ -15,14 +15,6 @@ public meta import Lean.Meta.Hint
 public import Lean.Data.Html
 
 import Verso.Output.Html.Entities
-public import Verso.Output.Html.AttributeName
-public import Verso.Output.Html.Comments
-
-/- Deprecated imports temporarily kept to implement deprecated syntax (2026-09-16). -/
-public meta import Verso.Output.Html.AttributeName
-public meta import Verso.Output.Html.Comments
-public meta import Verso.Output.Html.Tags
-import Verso.Output.Html.Tags
 
 /-! ## Additions to the Lean namespace -/
 
@@ -95,8 +87,6 @@ scoped syntax (name := attrib_val_str) str : attrib_val
 scoped syntax (name := attrib_val_str_interp) "s!" interpolatedStr(term) : attrib_val
 scoped syntax (name := attrib_val_antiquote) "{{" term "}}" : attrib_val
 scoped syntax (name := attrStrNamed) str " = " attrib_val : attrib
-scoped syntax (name := attrRawNamed) attributeName " = " attrib_val : attrib
-scoped syntax (name := attrBool) attributeName : attrib
 scoped syntax (name := attrAntiquoted) "{{" term "}}" : attrib
 
 public meta def _root_.Lean.TSyntax.tagName : TSyntax `tag_name → String
@@ -107,7 +97,6 @@ public meta def _root_.Lean.TSyntax.tagName : TSyntax `tag_name → String
 scoped syntax "{{" term "}}" : html
 scoped syntax "<" tag_name attrib* ">" html* "</" tag_name ">" : html
 scoped syntax "<" tag_name attrib* "/" ">" : html
-scoped syntax (name := comment) "<!--" htmlCommentContents : html
 scoped syntax str : html
 scoped syntax "s!" interpolatedStr(term) : html
 scoped syntax "r!" str : html
@@ -121,14 +110,6 @@ meta def elabAttrs (stxs : Array (TSyntax `attrib)) : TermElabM Expr := do
   let mut attrs : Expr ← mkArrayLit attrType []
   for stx in stxs do
     match stx with
-    | `(attrib| $name:attributeName = $val:str) =>
-      attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getAttributeName, toExpr val.getString]]
-    | `(attrib| $name:attributeName = s!$val:interpolatedStr) =>
-      let val ← withRef val <| elabTermEnsuringType (← ``(s!$val:interpolatedStr)) (some (.const ``String []))
-      attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getAttributeName, val]]
-    | `(attrib| $name:attributeName = {{ $e }} ) =>
-      let val ← withRef e <| elabTermEnsuringType e (some (.const ``String []))
-      attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getAttributeName, val]]
     | `(attrStrNamed| $name:str = $val:str) =>
       attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getString, toExpr val.getString]]
     | `(attrStrNamed| $name:str = s!$val:interpolatedStr) =>
@@ -137,8 +118,6 @@ meta def elabAttrs (stxs : Array (TSyntax `attrib)) : TermElabM Expr := do
     | `(attrStrNamed| $name:str = {{ $e }} ) =>
       let val ← withRef e <| elabTermEnsuringType e (some (.const ``String []))
       attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getString, val]]
-    | `(attrBool| $name ) =>
-      attrs ← mkAppM ``Array.push #[attrs, ← mkAppM ``Prod.mk #[toExpr name.getAttributeName, toExpr ""]]
     | `(attrAntiquoted| {{ $e }}) =>
       let e ← elabTermEnsuringType e (← mkAppM ``Array #[attrType])
       attrs ← mkAppM ``Array.append #[attrs, e]
@@ -147,8 +126,6 @@ meta def elabAttrs (stxs : Array (TSyntax `attrib)) : TermElabM Expr := do
 
 open Lean Elab Term Meta in
 meta partial def elabHtml (stx : TSyntax `html) : TermElabM Expr := withRef stx do
-  if stx.raw.getKind == ``comment then
-    return .const ``Html.empty []
   match stx with
   | `(html| {{ $e:term }} ) =>
     elabTermEnsuringType e (some (.const ``Html []))
@@ -163,14 +140,6 @@ meta partial def elabHtml (stx : TSyntax `html) : TermElabM Expr := withRef stx 
     if tag.tagName != tag'.tagName then
       let hint ← MessageData.hint m!"Replace with opening tag" #[tag.tagName] (ref? := some tag')
       throwErrorAt tag' m!"Mismatched closing tag, expected `{tag.tagName}` but got `{tag'.tagName}`\n{hint}"
-    if tag.tagName ∈ voidTags then
-      let hint ←
-        if let some ⟨start, stop⟩ := mkNullNode #[tk, tk'] |>.getRange? then
-          let src := (← getFileMap).source
-          let noContents := start.extract src (stop.prev src)
-          MessageData.hint m!"Remove contents" #[noContents ++ "/>"]
-        else pure m!""
-      throwErrorAt tag m!"`<{tag.tagName}>` doesn't allow contents{hint}"
     let attrs ← elabAttrs extra
     let children ←
       if h : children.size = 1 then
