@@ -216,7 +216,10 @@ theorem Nat.eq_sq_add_sq_iff {n : ℕ} :
   -- now `0 < n`
   refine eq_sq_add_sq_iff_eq_sq_mul.trans ⟨fun ⟨a, b, h₁, h₂⟩ q hq h ↦ ?_, fun H ↦ ?_⟩
   · have : Fact q.Prime := ⟨prime_of_mem_primeFactors hq⟩
-    have : q ∣ b → q ∈ b.primeFactors := by grind
+    have : q ∣ b → q ∈ b.primeFactors := by
+      intro hqb
+      rw [mem_primeFactors] at hq ⊢
+      simp_all
     #adaptation_note /-- Before nightly-2026-09-25 this was:
     ```lean
     grind (splits := 10) [padicValNat.mul, padicValNat.pow,

@@ -361,6 +361,6 @@ theorem isCyclic_units_iff (n : ℕ) :
   apply iff_of_false
   · rw [← mul_assoc, show 2 * 2 = 4 from rfl, isCyclic_units_four_mul_iff]
     lia
-  grind
+  simp; grind
 
 end ZMod
