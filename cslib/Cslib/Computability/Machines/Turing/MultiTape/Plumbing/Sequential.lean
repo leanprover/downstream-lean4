@@ -41,10 +41,9 @@ variable {k : ℕ} {Symbol State₀ State₁ : Type*} {input : List Symbol}
 /-- The sequential composition of `tm₀` and `tm₁`: it behaves like `tm₀` until `tm₀` would halt,
 at which point it switches to the initial state of `tm₁` and behaves like `tm₁`. The switch is
 folded into the halting transition of `tm₀`, so it costs no step. -/
-def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
-    MultiTapeTM k Symbol (State₀ ⊕ State₁) where
-  q₀ := .inl tm₀.q₀
-  tr q inp work :=
+noncomputable def seq (tm₀ : MultiTapeTM k Symbol State₀) (tm₁ : MultiTapeTM k Symbol State₁) :
+    MultiTapeTM k Symbol (State₀ ⊕ State₁) :=
+  ofTr (.inl tm₀.q₀) fun q inp work =>
     match q with
     | .inl q₀ =>
       let a := tm₀.tr q₀ inp work
@@ -75,7 +74,8 @@ lemma step_leftCfg (cfg : Cfg k Symbol State₀ input) (h : cfg.state ≠ none) 
   obtain ⟨q, hq⟩ := Option.ne_none_iff_exists'.mp h
   have h1 : (leftCfg tm₁ cfg).state = some (Sum.inl q : State₀ ⊕ State₁) := by
     simp [leftCfg, Cfg.mapState, hq]
-  simp only [step, h1, hq]
+  rw [step_of_state h1, step_of_state hq]
+  simp only [seq, tr_ofTr]
   rfl
 
 lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
@@ -83,11 +83,12 @@ lemma step_rightCfg (cfg : Cfg k Symbol State₁ input) :
   cases hq : cfg.state with
   | none =>
     have h1 : (rightCfg (State₀ := State₀) cfg).state = none := by simp [rightCfg, Cfg.mapState, hq]
-    simp only [step, h1, hq]
+    rw [step_of_halt h1, step_of_halt hq]
   | some q =>
     have h1 : (rightCfg (State₀ := State₀) cfg).state = some (Sum.inr q : State₀ ⊕ State₁) := by
       simp [rightCfg, hq]
-    simp only [step, h1, hq]
+    rw [step_of_state h1, step_of_state hq]
+    simp only [seq, tr_ofTr]
     rfl
 
 /-- The second phase of `seq` mirrors the run of `tm₁`. -/
@@ -182,33 +183,37 @@ theorem forgetState_runFrom_seq {P : Cfg k Symbol Unit input → Prop}
 open Sequential in
 /-- **Sequential composition of transformations.** If the postcondition of the first
 transformation implies the precondition of the second, the composed machine performs the two
-transformations one after the other, with the time and space bounds adding. -/
+transformations one after the other, with the time and space bounds adding and the emitted words
+concatenating. -/
 theorem transformsTapes_seq
     {P₀ P₁ : (input : List Symbol) → (Fin k → List Symbol) → Prop}
-    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) → Prop}
+    {Q₀ Q₁ : (input : List Symbol) → (Fin k → List Symbol) → (Fin k → List Symbol) →
+      List Symbol → Prop}
     {t₀ s₀ t₁ s₁ : ℕ}
     (h₀ : TransformsTapes tm₀ P₀ Q₀ t₀ s₀) (h₁ : TransformsTapes tm₁ P₁ Q₁ t₁ s₁)
-    (hmid : ∀ input ws ws', P₀ input ws → Q₀ input ws ws' → P₁ input ws') :
+    (hmid : ∀ input ws ws' e, P₀ input ws → Q₀ input ws ws' e → P₁ input ws') :
     TransformsTapes (tm₀.seq tm₁) P₀
-      (fun input ws ws'' => ∃ ws', Q₀ input ws ws' ∧ Q₁ input ws' ws'')
+      (fun input ws ws'' e => ∃ ws' e₀ e₁, Q₀ input ws ws' e₀ ∧ Q₁ input ws' ws'' e₁ ∧
+        e = e₀ ++ e₁)
       (t₀ + t₁) (s₀ + s₁) := by
   intro input ws out hP₀
-  obtain ⟨ws', hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
-  obtain ⟨ws'', hrun₁, hQ₁, hspace₁⟩ := h₁ input ws' out (hmid input ws ws' hP₀ hQ₀)
+  obtain ⟨ws', e₀, hrun₀, hQ₀, hspace₀⟩ := h₀ input ws out hP₀
+  obtain ⟨ws'', e₁, hrun₁, hQ₁, hspace₁⟩ :=
+    h₁ input ws' (out ++ e₀) (hmid input ws ws' e₀ hP₀ hQ₀)
   have hstart : wordsCfg input (some (tm₀.seq tm₁).q₀) ws out =
       leftCfg tm₁ (wordsCfg input (some tm₀.q₀) ws out) := rfl
   -- the first halting time of `tm₀`, which may be earlier than `t₀`
   obtain ⟨u, hu, hhaltsAt⟩ := exists_haltsAt
     (show (tm₀.runFrom (wordsCfg input (some tm₀.q₀) ws out) t₀).Halted by rw [hrun₀]; rfl)
-  -- from step `u` on, `seq` mirrors `tm₁`
+  -- from step `u` on, `seq` mirrors `tm₁`, started on what `tm₀` left including its output
   have hright (n : ℕ) : (tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
-      (u + n) = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' out) n) := by
+      (u + n) = rightCfg (tm₁.runFrom (wordsCfg input (some tm₁.q₀) ws' (out ++ e₀)) n) := by
     rw [hstart, hhaltsAt.runFrom_seq, ← hhaltsAt.runFrom_eq hu, hrun₀, withState_wordsCfg]
   have hhalt : ((tm₀.seq tm₁).runFrom (wordsCfg input (some (tm₀.seq tm₁).q₀) ws out)
       (u + t₁)).Halted := by
     rw [hright, hrun₁]
     rfl
-  refine ⟨ws'', ?_, ⟨ws', hQ₀, hQ₁⟩, ?_⟩
+  refine ⟨ws'', e₀ ++ e₁, ?_, ⟨ws', e₀, e₁, hQ₀, hQ₁, rfl⟩, ?_⟩
   · exact runFrom_seq hrun₀ rfl (by simpa using hrun₁) rfl
   · rw [spaceUsed_eq_of_halt _ (by omega : u + t₁ ≤ t₀ + t₁) hhalt]
     refine le_trans (spaceUsed_add_le _ _ _) (Nat.add_le_add ?_ ?_)
