@@ -558,7 +558,8 @@ public def getCaseFoldingChar (char : Char) : Char :=
       char
   else
     match lookupCaseFolding char.val with
-    | (fc, _) => Char.ofNat fc.toNat
+    | (some s, _) => Char.ofNat s.toNat
+    | (none, _) => char
 
 /-- Full case folding of a character
 
@@ -575,7 +576,68 @@ public def getCaseFolding (char : Char) : String :=
       char.toString
   else
     match lookupCaseFolding char.val with
-    | (_, fc) => .ofList <| fc.map fun v => Char.ofNat v.toNat
+    | (_, f@(_ :: _)) => f.foldl (fun s v => s.push (Char.ofNat v.toNat)) ""
+    | (some s, []) => (Char.ofNat s.toNat).toString
+    | (none, []) => char.toString
+
+/-- Full case folding of a character as its first code point and the rest -/
+@[inline]
+private def unconsCaseFolding (char : Char) : UInt32 × List UInt32 :=
+  if char.val < 0x80 then
+    if 'A' ≤ char && char ≤ 'Z' then
+      (char.val + 0x20, [])
+    else
+      (char.val, [])
+  else
+    match lookupCaseFolding char.val with
+    | (_, v :: f) => (v, f)
+    | (some s, []) => (s, [])
+    | (none, []) => (char.val, [])
+
+/-- Case-insensitive prefix match
+
+  If `pat` matches a prefix of `s` up to full case folding, returns that prefix
+  and the rest of `s`. Otherwise, returns `none`. For example, `"straße"`
+  matches `"STRASSE"`, but `"ß"` does not match `"S"`, since the full case
+  folding of `"ß"` is `"ss"`.
+
+  This is default caseless matching, as defined in the Unicode Standard; it
+  does not normalize either string.
+
+  Unicode property: `Case_Folding` -/
+public def matchPrefixCaseInsensitive? (pat s : String.Slice) :
+    Option (String.Slice × String.Slice) :=
+  loop s.startPos pat.startPos [] []
+where
+  loop (i : s.Pos) (j : pat.Pos) :
+      List UInt32 → List UInt32 → Option (String.Slice × String.Slice)
+    | a :: as, b :: bs => if a == b then loop i j as bs else none
+    | [], [] =>
+      if hj : j = pat.endPos then
+        some (s.sliceTo i, s.sliceFrom i)
+      else if hi : i = s.endPos then
+        none
+      else
+        match unconsCaseFolding (i.get hi), unconsCaseFolding (j.get hj) with
+        | (a, as), (b, bs) => if a == b then loop (i.next hi) (j.next hj) as bs else none
+    | a :: as, [] =>
+      if hj : j = pat.endPos then
+        none
+      else
+        match unconsCaseFolding (j.get hj) with
+        | (b, bs) => if a == b then loop i (j.next hj) as bs else none
+    | [], b :: bs =>
+      if hi : i = s.endPos then
+        none
+      else
+        match unconsCaseFolding (i.get hi) with
+        | (a, as) => if a == b then loop (i.next hi) j as bs else none
+  termination_by as bs => (i.remainingBytes + j.remainingBytes, as.length + bs.length)
+  decreasing_by
+    all_goals first
+      | apply Prod.Lex.right; grind
+      | apply Prod.Lex.left
+        grind [String.Slice.Pos.lt_iff_remainingBytes_lt, String.Slice.Pos.lt_next]
 
 /-!
   ## Decomposition Type and Mapping ##
@@ -644,9 +706,9 @@ public def isNumeric (char : Char) : Bool :=
   else
     match lookupNumericValue char.val with
     | some _ => true
-    | _ => otherNumeric.elem char.val
+    | _ => otherNumeric.binSearchContains char.val (· < ·)
 where
-  -- CJK ideographs whose numeric values come from the Unihan database
+  -- CJK ideographs whose numeric values come from the Unihan database, sorted for binary search
   otherNumeric := #[
     0x3405, 0x3431, 0x3483, 0x3576, 0x382A, 0x3B4D, 0x4E00, 0x4E03, 0x4E07, 0x4E09,
     0x4E24, 0x4E59, 0x4E5D, 0x4E86, 0x4E8C, 0x4E94, 0x4E96, 0x4EAC, 0x4EBF, 0x4EC0,
