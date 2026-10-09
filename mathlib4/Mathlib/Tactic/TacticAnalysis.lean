@@ -7,6 +7,7 @@ module
 
 public meta import Lean.Util.Heartbeats
 public meta import Lean.Elab.InfoTree.Util
+public meta import Lean.Compiler.Bytecode.Basic
 public meta import Mathlib.Lean.Elab.Tactic.Meta
 public import Lean.Elab.Command
 public import Mathlib.Lean.ContextInfo
@@ -113,7 +114,7 @@ def Entry.import (e : Entry) : ImportM Pass := do
   let cfg ← IO.ofExcept <|
     unsafe env.evalConstCheck Config opts ``Config e.declName
   let mut opt := none
-  if (← getEnv).getModuleIdxFor? e.optionName |>.isSome then
+  if env.getModuleIdxFor? e.optionName |>.isSome then
     -- This next line will cause a crash in the file where the option is declared:
     opt := (unsafe env.evalConst (Lean.Option Bool) opts e.optionName).toOption
   return { cfg with opt }
