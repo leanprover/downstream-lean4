@@ -67,6 +67,7 @@ initialize polynomialExt : PersistentEnvExtension Name (Name × PolynomialExt)
     exportEntriesFn := fun s => s.1.reverse.toArray
   }
 
+open Compiler.Bytecode in
 initialize registerBuiltinAttribute {
   name := `PolyInferBaseAttr
   descr := "adds a polynomial extension that infers the base ring of a polynomial-like type"
@@ -78,7 +79,7 @@ initialize registerBuiltinAttribute {
       let env ← getEnv
       unless (env.getModuleIdxFor? declName).isNone do
         throwError "invalid attribute 'polynomial_infer_base', declaration is in an imported module"
-      if (IR.getSorryDep env declName).isSome then return -- ignore in progress definitions
+      if (getSorryDep env declName).isSome then return -- ignore in progress definitions
       let ext ← mkPolynomialExt declName
       setEnv <| polynomialExt.addEntry env (declName, ext)
     | _ => throwUnsupportedSyntax
