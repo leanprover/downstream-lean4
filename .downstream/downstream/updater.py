@@ -406,7 +406,7 @@ class Updater:
 
         if update_manifests:
             for manifest in Paths().manifests():
-                run("lake", "update", cwd=manifest.parent)
+                run("lake", "update", "--keep-toolchain", cwd=manifest.parent)
 
         run("git", "add", ".")
         return self.commit(message)
