@@ -229,6 +229,7 @@ initialize bareissExt : ScopedEnvExtension Name (Name × BareissExt) (Array (Nam
     addEntry := fun s e => s.push e
   }
 
+open Compiler.Bytecode in
 initialize registerBuiltinAttribute {
   name := `bareiss_ext
   descr := "adds a computation model to the Bareiss elimination"
@@ -239,7 +240,7 @@ initialize registerBuiltinAttribute {
     unless (env.getModuleIdxFor? declName).isNone do
       throwError "invalid attribute 'bareiss_ext', declaration is in an imported module"
     -- this ignores in-progress definitions
-    if (IR.getSorryDep env declName).isSome then return
+    if (getSorryDep env declName).isSome then return
     bareissExt.add (declName, ← mkBareissExt declName) kind
     recordExtraRevUseOfCurrentModule
 }

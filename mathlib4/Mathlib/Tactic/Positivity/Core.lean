@@ -119,6 +119,7 @@ initialize positivityExt : PersistentEnvExtension Entry (Entry × PositivityExt)
     exportEntriesFn := fun s => s.1.reverse.toArray
   }
 
+open Compiler.Bytecode in
 initialize registerBuiltinAttribute {
   name := `positivity
   descr := "adds a positivity extension"
@@ -131,7 +132,7 @@ initialize registerBuiltinAttribute {
       let env ← getEnv
       unless (env.getModuleIdxFor? declName).isNone do
         throwError "invalid attribute 'positivity', declaration is in an imported module"
-      if (IR.getSorryDep env declName).isSome then return -- ignore in progress definitions
+      if (getSorryDep env declName).isSome then return -- ignore in progress definitions
       let ext ← mkPositivityExt declName
       let keys ← MetaM.run' <| es.getElems.mapM fun stx => do
         let e ← TermElabM.run' <| withSaveInfoContext <| withAutoBoundImplicit <|

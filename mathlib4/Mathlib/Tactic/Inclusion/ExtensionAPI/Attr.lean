@@ -15,7 +15,7 @@ This file defines the attributes used to register inclusion and hypothesis exten
 
 public meta section
 
-open Lean Meta Elab Term DiscrTreeExt
+open Lean Meta Elab Term DiscrTreeExt Compiler.Bytecode
 
 namespace Inclusion
 
@@ -37,7 +37,7 @@ def addInclusionParam (declName : Name) (kind : AttributeKind) : AttrM Unit := d
   ensureAttrDeclIsMeta `inclusion_param declName kind
   unless (env.getModuleIdxFor? declName).isNone do
     throwAttrDeclInImportedModule `inclusion_param declName
-  if (IR.getSorryDep env declName).isSome then return
+  if (getSorryDep env declName).isSome then return
   let decl ← mkInclusionParamDecl declName
   MetaM.run' <| validateInclusionParamDecl decl
   let params := inclusionParamExt.getState env
@@ -73,7 +73,7 @@ initialize registerBuiltinAttribute {
       ensureAttrDeclIsMeta `inclusion_ext declName kind
       unless (env.getModuleIdxFor? declName).isNone do
         throwAttrDeclInImportedModule `inclusion_ext declName
-      if (IR.getSorryDep env declName).isSome then return
+      if (getSorryDep env declName).isSome then return
       let keys ← elabExtKeys (es.getElems.map (·.raw))
       addInclusionExt declName keys kind
     | _ => throwUnsupportedSyntax
@@ -101,7 +101,7 @@ initialize registerBuiltinAttribute {
       ensureAttrDeclIsMeta `hypothesis_ext declName kind
       unless (env.getModuleIdxFor? declName).isNone do
         throwAttrDeclInImportedModule `hypothesis_ext declName
-      if (IR.getSorryDep env declName).isSome then return
+      if (getSorryDep env declName).isSome then return
       let keys ← elabExtKeys (es.getElems.map (·.raw))
       addHypothesisExt declName keys kind
     | _ => throwUnsupportedSyntax
@@ -256,7 +256,7 @@ initialize registerBuiltinAttribute {
   applicationTime := .afterCompilation
   add := fun declName stx kind => match stx with
     | `(attr| inclusion_op $familyName:ident $[$_prio:prio]?) => do
-      if (IR.getSorryDep (← getEnv) declName).isSome then return
+      if (getSorryDep (← getEnv) declName).isSome then return
       addInclusionOp declName familyName.getId (← getAttrParamOptPrio stx[2]) kind
     | _ => throwUnsupportedSyntax
   erase := fun _ => throwError "Inclusion operations cannot be erased by declaration"
@@ -318,7 +318,7 @@ initialize registerBuiltinAttribute {
   applicationTime := .afterCompilation
   add := fun declName stx kind => match stx with
     | `(attr| hypothesis_op $familyName:ident $[$_prio:prio]?) => do
-      if (IR.getSorryDep (← getEnv) declName).isSome then return
+      if (getSorryDep (← getEnv) declName).isSome then return
       addHypothesisOp declName familyName.getId (← getAttrParamOptPrio stx[2]) kind
     | _ => throwUnsupportedSyntax
   erase := fun _ => throwError "Hypothesis operations cannot be erased by declaration"

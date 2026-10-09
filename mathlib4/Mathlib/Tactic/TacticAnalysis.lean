@@ -8,7 +8,6 @@ module
 public meta import Lean.Util.Heartbeats
 public meta import Lean.Elab.InfoTree.Util
 public meta import Mathlib.Lean.Elab.Tactic.Meta
-public meta import Lean.Compiler.IR.CompilerM
 public import Lean.Elab.Command
 public import Mathlib.Lean.ContextInfo
 
@@ -113,8 +112,10 @@ def Entry.import (e : Entry) : ImportM Pass := do
   let { env, opts, .. } ← read
   let cfg ← IO.ofExcept <|
     unsafe env.evalConstCheck Config opts ``Config e.declName
-  -- This next line can return `none` in the file where the option is declared:
-  let opt := (unsafe env.evalConst (Lean.Option Bool) opts e.optionName).toOption
+  let mut opt := none
+  if (← getEnv).getModuleIdxFor? e.optionName |>.isSome then
+    -- This next line will cause a crash in the file where the option is declared:
+    opt := (unsafe env.evalConst (Lean.Option Bool) opts e.optionName).toOption
   return { cfg with opt }
 
 instance : Ord Entry where
@@ -137,6 +138,7 @@ initialize tacticAnalysisExt : PersistentEnvExtension Entry (Entry × Pass)
     exportEntriesFn := fun (localEntries, _) => localEntries.reverse.toArray
   }
 
+open Compiler.Bytecode in
 /-- Attribute adding a tactic analysis pass from a `Config` structure. -/
 initialize registerBuiltinAttribute {
   name := `tacticAnalysis
@@ -151,7 +153,7 @@ initialize registerBuiltinAttribute {
       let env ← getEnv
       unless (env.getModuleIdxFor? declName).isNone do
         throwError "invalid attribute 'tacticAnalysis', declaration is in an imported module"
-      if (IR.getSorryDep env declName).isSome then return -- ignore in progress definitions
+      if (getSorryDep env declName).isSome then return -- ignore in progress definitions
       let entry := {
         declName
         optionName := Syntax.getId optionName

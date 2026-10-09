@@ -39,6 +39,7 @@ initialize forwardExt : PersistentEnvExtension Name (Name × ForwardExt)
     exportEntriesFn := fun s => s.1.reverse.toArray
   }
 
+open Compiler.Bytecode
 initialize registerBuiltinAttribute {
   name := `gcongr_forward
   descr := "adds a gcongr_forward extension"
@@ -51,7 +52,7 @@ initialize registerBuiltinAttribute {
       let env ← getEnv
       unless (env.getModuleIdxFor? declName).isNone do
         throwError "invalid attribute 'gcongr_forward', declaration is in an imported module"
-      if (IR.getSorryDep env declName).isSome then return -- ignore in progress definitions
+      if (getSorryDep env declName).isSome then return -- ignore in progress definitions
       let ext ← mkForwardExt declName
       setEnv <| forwardExt.addEntry env (declName, ext)
     | _ => throwUnsupportedSyntax

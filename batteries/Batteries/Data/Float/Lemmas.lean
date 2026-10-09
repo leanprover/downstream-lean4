@@ -76,6 +76,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits) :
       Nat.ne_zero_of_lt spec.he, unpackMantissa_packComponents, ne_eq, false_and, decide_false,
       Bool.false_eq_true, ↓reduceIte, evec]
     unfold pack
+    dsimp -zeta only
     extract_lets mantbits biasedexp
     simp only [BitVec.ofNat_toNat, BitVec.setWidth_eq, mvec]
     rw [ite_eq_right, ite_eq_right]
@@ -93,6 +94,7 @@ theorem pack_unpack {spec : Format} (b : BitVec spec.numBits) :
     simp only [unpackExponent_packComponents, hevec, unpackMantissa_packComponents, ne_eq,
       false_and, decide_false, Bool.false_eq_true, ↓reduceIte, evec]
     unfold pack
+    dsimp -zeta only
     extract_lets mantbits biasedexp
     rw [ite_eq_right, ite_eq_left]
     · congr 1

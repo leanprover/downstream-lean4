@@ -180,6 +180,7 @@ def NormNums.erase {m : Type → Type} [Monad m] [MonadError m] (d : NormNums) (
     throwError "'{declName}' does not have [norm_num] attribute"
   return d.eraseCore declName
 
+open Compiler.Bytecode in
 initialize registerBuiltinAttribute {
   name := `norm_num
   descr := "adds a norm_num extension"
@@ -190,7 +191,7 @@ initialize registerBuiltinAttribute {
       ensureAttrDeclIsMeta `norm_num declName kind
       unless (env.getModuleIdxFor? declName).isNone do
         throwError "invalid attribute 'norm_num', declaration is in an imported module"
-      if (IR.getSorryDep env declName).isSome then return -- ignore in progress definitions
+      if (getSorryDep env declName).isSome then return -- ignore in progress definitions
       let ext ← mkNormNumExt declName
       let keys ← MetaM.run' <| es.getElems.mapM fun stx ↦ do
         let e ← TermElabM.run' <| withSaveInfoContext <| withAutoBoundImplicit <|

@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 module
 
 public import Lean.Server.CodeActions.Basic
-import Lean.Compiler.IR.CompilerM
+import Lean.Compiler.Bytecode.Basic
 
 @[expose] public section
 
@@ -112,6 +112,7 @@ This attribute marks a code action, which is used to suggest new tactics or repl
 -/
 syntax (name := tactic_code_action) "tactic_code_action" ("*" <|> (ppSpace ident)*) : attr
 
+open Compiler.Bytecode
 initialize
   registerBuiltinAttribute {
     name := `tactic_code_action
@@ -122,15 +123,15 @@ initialize
         throwError "invalid attribute 'tactic_code_action', must be global"
       match stx with
       | `(attr| tactic_code_action *) =>
-        if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
+        if (getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
         modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, #[]⟩, ← mkTacticCodeAction decl))
       | `(attr| tactic_code_action $[$args]*) =>
         if args.isEmpty then
-          if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
+          if (getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticSeqCodeActionExt.addEntry · (decl, ← mkTacticSeqCodeAction decl))
         else
           let args ← args.mapM realizeGlobalConstNoOverloadWithInfo
-          if (IR.getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
+          if (getSorryDep (← getEnv) decl).isSome then return -- ignore in progress definitions
           modifyEnv (tacticCodeActionExt.addEntry · (⟨decl, args⟩, ← mkTacticCodeAction decl))
       | _ => pure ()
   }
