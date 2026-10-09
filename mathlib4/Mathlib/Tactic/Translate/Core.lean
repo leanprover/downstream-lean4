@@ -494,7 +494,8 @@ partial def transformDeclRec (t : TranslateData) (cfg : Config) (rootSrc rootTgt
     if isMarkedMeta (← getEnv) src then
       -- We need to mark `tgt` as `meta` before running `compileDecl`
       modifyEnv (markMeta · tgt)
-    compileDecl tgtDecl.toDeclaration! (logErrors := (IR.findEnvDecl (← getEnv) src).isSome)
+    compileDecl tgtDecl.toDeclaration!
+      (logErrors := (← Compiler.LCNF.getImpureSignature? src).isSome)
   if let .defnInfo { hints := .abbrev, .. } := tgtDecl then
     if (← getReducibilityStatus src) == .reducible then
       setReducibilityStatus tgt .reducible
