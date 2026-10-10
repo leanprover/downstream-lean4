@@ -47,6 +47,13 @@ jobs:
             echo "::endgroup::"
           done
 
+      # This is a hacky projet-specific fix and should be removed when possible
+      - name: Build verso's website examples subproject
+        run: |
+          pushd verso/test-projects/website-examples
+          lake build || echo "::warning::Building verso's website examples failed."
+          popd
+
       - name: Build
         run: |
           .downstream/build.py . -tl \
