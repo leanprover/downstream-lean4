@@ -322,6 +322,89 @@ jobs:
           topic: downstream-lean4 breakages
           content: ${{ steps.breakage-report-cslib.outputs.report }}
 
+  report-crash:
+    if: |-
+      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-slim
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Check for build report
+        id: report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          COUNT="$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts?name=build-report" -q .total_count)"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "::warning::Build crashed before producing a report"
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+            echo "short-sha=${HEAD_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Build produced a report, nothing to do"
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub App token
+        if:
+          ${{ steps.report.outputs.missing == 'true' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        if:
+          ${{ steps.report.outputs.missing == 'true' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        uses: actions/checkout@v6
+
+      - name: Find original PR
+        id: original-pr
+        if:
+          ${{ steps.report.outputs.missing == 'true' &&
+          github.event.workflow_run.head_branch != 'master' }}
+        continue-on-error: true # May not belong to a PR
+        uses: ./.downstream/actions/find-original-pr
+
+      - name: Post crash notice to PR
+        if:
+          ${{ steps.original-pr.outcome == 'success' &&
+          steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
+        uses: ./.downstream/actions/status-message
+        with:
+          app-token: ${{ steps.app-token.outputs.token }}
+          app-slug: ${{ steps.app-token.outputs.app-slug }}
+          issue: ${{ steps.original-pr.outputs.number }}
+          marker: build-report
+          repost: true
+          body: |
+            ### ⚠️ Build crashed
+
+            The [build](${{ github.event.workflow_run.html_url }}) of [`${{ steps.report.outputs.short-sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}) crashed before producing a report. See its log for details.
+
+      - name: Post crash notice to Zulip
+        if:
+          ${{ steps.report.outputs.missing == 'true' &&
+          github.event.workflow_run.head_branch == 'master' &&
+          github.event.workflow_run.run_attempt == 1 }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: ecosystem infrastructure
+          topic: downstream-lean4 breakages
+          content: |
+            ⚠️ The [build](${{ github.event.workflow_run.html_url }}) of `master` at [`${{ steps.report.outputs.short-sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}) crashed before producing a report. See its log for details.
+
   update-branches:
     if: |
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
