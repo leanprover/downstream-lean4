@@ -1,0 +1,31 @@
+name: actionlint
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/**
+  pull_request:
+    paths:
+      - .github/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: Lint workflow files
+    runs-on: ubuntu-slim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github
+
+      # Also runs shellcheck over every `run:` block.
+      - name: Run actionlint
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2.2.0
+        with:
+          version: 1.7.12
