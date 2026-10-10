@@ -232,6 +232,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
   Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
   since the presence of `sorry` can lead to runtime instability and crashes.
   This check can be overridden with the `#eval! e` command.
+  The check covers the declarations of the current module and the compiled code of imported
+  declarations, but not the proofs of imported declarations.
   ⏎
   Options:
   * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
@@ -257,6 +259,8 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
   Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
   since the presence of `sorry` can lead to runtime instability and crashes.
   This check can be overridden with the `#eval! e` command.
+  The check covers the declarations of the current module and the compiled code of imported
+  declarations, but not the proofs of imported declarations.
   ⏎
   Options:
   * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
@@ -294,6 +298,8 @@ info: syntax "#eval"... [Lean.Parser.Command.eval]
   Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
   since the presence of `sorry` can lead to runtime instability and crashes.
   This check can be overridden with the `#eval! e` command.
+  The check covers the declarations of the current module and the compiled code of imported
+  declarations, but not the proofs of imported declarations.
   ⏎
   Options:
   * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
@@ -320,6 +326,8 @@ syntax "#eval!"... [Lean.Parser.Command.evalBang]
   Due to unsoundness, `#eval` refuses to evaluate expressions that depend on `sorry`, even indirectly,
   since the presence of `sorry` can lead to runtime instability and crashes.
   This check can be overridden with the `#eval! e` command.
+  The check covers the declarations of the current module and the compiled code of imported
+  declarations, but not the proofs of imported declarations.
   ⏎
   Options:
   * If `eval.pp` is true (default: true) then tries to use `ToExpr` instances to make use of the
