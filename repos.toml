@@ -34,6 +34,23 @@ source_rev = "main"
 critical = false
 build_options = ["--wfail"]
 
+# These Hex mirrors are generated from kim-em/hex-dev and published together.
+# Port adaptations there before the next shared Hex release.
+# Never push adaptation exports directly to either mirror main branch.
+[hex-basic]
+source_url = "https://github.com/leanprover/hex-basic"
+source_rev = "main"
+critical = true
+build_targets = ["HexBasic", "HexBasicTests"]
+build_options = ["--wfail"]
+
+[hex-perm-group]
+source_url = "https://github.com/leanprover/hex-perm-group"
+source_rev = "main"
+critical = true
+build_targets = ["HexPermGroup", "HexPermGroupTests"]
+build_options = ["--wfail"]
+
 [illuminate]
 source_url = "https://github.com/leanprover/illuminate"
 source_rev = "main"
