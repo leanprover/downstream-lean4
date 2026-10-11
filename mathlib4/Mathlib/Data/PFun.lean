@@ -58,6 +58,7 @@ open Function
 
 /-- `PFun α β`, or `α →. β`, is the type of partial functions from
   `α` to `β`. It is defined as `α → Part β`. -/
+@[implicit_reducible]
 def PFun (α β : Type*) :=
   α → Part β
 

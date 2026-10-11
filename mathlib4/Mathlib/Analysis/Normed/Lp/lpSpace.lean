@@ -814,7 +814,7 @@ protected theorem star_apply (f : lp E p) (i : α) : star f i = star (f i) :=
   rfl
 
 instance instInvolutiveStar : InvolutiveStar (lp E p) where
-  star_involutive x := by simp [star]
+  star_involutive x := by simp [star]; rfl
 
 instance instStarAddMonoid : StarAddMonoid (lp E p) where
   star_add _f _g := ext <| star_add (R := ∀ i, E i) _ _

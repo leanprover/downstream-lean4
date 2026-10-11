@@ -1271,7 +1271,9 @@ the type of finitely supported functions from `s`. -/
 @[simp] lemma restrictSupportEquiv_symm_apply_coe (s : Set α) (M : Type*) [AddCommMonoid M]
     [DecidablePred (· ∈ s)] (f : s →₀ M) :
     (restrictSupportEquiv s M).symm f = f.extendDomain := by
-  rw [restrictSupportEquiv, Equiv.coe_fn_symm_mk, Subtype.coe_mk]; congr
+  rw [restrictSupportEquiv, Equiv.coe_fn_symm_mk, Subtype.coe_mk (p := fun f ↦ ↑f.support ⊆ s)]
+  · congr
+  · simp
 
 @[simp] lemma restrictSupportEquiv_symm_single (s : Set α) (M : Type*) [AddCommMonoid M]
     (a : s) (x : M) :
