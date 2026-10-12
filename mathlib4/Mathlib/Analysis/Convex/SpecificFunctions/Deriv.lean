@@ -42,9 +42,8 @@ open scoped NNReal
 /-- `x^n`, `n : ℕ` is strictly convex on `[0, +∞)` for all `n` greater than `2`. -/
 theorem strictConvexOn_pow {n : ℕ} (hn : 2 ≤ n) : StrictConvexOn ℝ (Ici 0) fun x : ℝ => x ^ n := by
   apply StrictMonoOn.strictConvexOn_of_deriv (convex_Ici _) (continuousOn_pow _)
-  simp only [nonempty_Iio, interior_Ici']
   eta_expand
-  simp_rw [deriv_pow_field]
+  simp_rw [deriv_pow_field, interior_Ici]
   exact fun x (hx : 0 < x) y _ hxy => mul_lt_mul_of_pos_left
     (pow_lt_pow_left₀ hxy hx.le <| Nat.sub_ne_zero_of_lt hn) (by positivity)
 

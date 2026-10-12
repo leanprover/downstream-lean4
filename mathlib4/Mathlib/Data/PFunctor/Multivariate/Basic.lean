@@ -40,7 +40,7 @@ open MvFunctor (LiftP LiftR)
 variable {n m : ℕ} (P : MvPFunctor.{u} n)
 
 /-- Applying `P` to an object of `Type` -/
-@[coe, implicit_reducible]
+@[coe]
 def Obj (α : TypeVec.{u} n) : Type u :=
   Σ a : P.A, P.B a ⟹ α
 

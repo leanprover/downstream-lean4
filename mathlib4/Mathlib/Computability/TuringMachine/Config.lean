@@ -255,7 +255,7 @@ theorem exists_code.comp {m n} {f : List.Vector ℕ n →. ℕ} {g : Fin n → L
   · obtain ⟨cf, hf⟩ := hf
     exact
       ⟨cf.comp cg, fun v => by
-        simp [← hf, hg, map_bind]
+        simp [hg, hf, map_bind]
         rfl⟩
   clear hf f
   induction n with

@@ -31,7 +31,6 @@ def Sigma (v : TypeVec.{u} n) : Type u :=
 
 /-- Dependent product of an `n`-ary functor. The sum can range over
 data types like `ℕ` or over `Type.{u-1}` -/
-@[implicit_reducible]
 def Pi (v : TypeVec.{u} n) : Type u :=
   ∀ α : A, F α v
 
@@ -99,9 +98,7 @@ instance : MvQPF (Pi F) where
   repr := @Pi.repr _ _ F _
   abs_repr := by
     rintro α f
-    simp +instances only [Pi.abs, Pi.repr]
-    funext
-    apply abs_repr
+    simp +instances only [Pi.abs, Pi.repr, Sigma.eta, abs_repr]
   abs_map := by rintro α β f ⟨x, g⟩; simp only [Pi.abs, (· <$$> ·), ← abs_map]; rfl
 
 end Pi
