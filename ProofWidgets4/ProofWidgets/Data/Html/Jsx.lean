@@ -67,7 +67,10 @@ scoped syntax proofWidgetsJsxElement : proofWidgetsJsxChild
 
 scoped syntax:max proofWidgetsJsxElement : term
 
-deprecated_syntax term_ "use a jsx%{…} literal instead" (since := "2026-09-18")
+-- Deprecating this syntax has to wait until ProofWidgets' own `nightly-testing` carries
+-- `ProofWidgets.Data.Html.Elab`: until then `mathlib4-nightly-testing` has to keep using it, and
+-- with `--wfail` the warning is a build failure for every consumer that cannot migrate yet.
+-- deprecated_syntax term_ "use a jsx%{…} literal instead" (since := "2026-09-18")
 
 def transformTag (tk : Syntax) (n m : Ident) (vs : Array (TSyntax `proofWidgetsJsxAttr))
     (cs : Array (TSyntax `proofWidgetsJsxChild)) : MacroM Term := do
