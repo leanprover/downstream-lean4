@@ -1,0 +1,14 @@
+self-hosted-runner:
+  labels:
+    - chonk
+
+paths:
+  .github/workflows/**/*.{yml,yaml}:
+    ignore:
+      # actionlint's bundled metadata predates create-github-app-token v3,
+      # which accepts `client-id` in place of `app-id`.
+      - 'missing input "app-id" .* "actions/create-github-app-token@v3"'
+      - 'input "client-id" .* "actions/create-github-app-token@v3"'
+      # Vendored from the downstream repo, so not ours to fix. Only shows up
+      # locally, since CI doesn't check out .downstream.
+      - 'description is required .* "Merge zero or more adaptation PRs"'

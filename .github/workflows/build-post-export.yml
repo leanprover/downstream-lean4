@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   batteries:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -79,7 +79,7 @@ jobs:
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   mathlib4:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -147,7 +147,7 @@ jobs:
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
 
   cslib:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
