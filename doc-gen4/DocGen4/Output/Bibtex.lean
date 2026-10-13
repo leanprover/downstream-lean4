@@ -14,20 +14,20 @@ The main function is `DocGen4.Bibtex.process`.
 -/
 
 open DocGen4 Output BibtexQuery BibtexQuery.Xml
-open Lean
 
 namespace DocGen4.Bibtex
 
 mutual
 
-partial def eToHtml : Element → Html
+partial def eToStringEscaped : Element → String
   | .Element n a c =>
-    .element n (a.foldl (init := #[]) (fun acc k v => acc.push (k, v))) (c.map cToHtml)
+    let attrs := a.foldl (fun s n v => s ++ s!" {n}=\"{Html.escape v}\"") ""
+    s!"<{n}{attrs}>{c.map cToStringEscaped |>.foldl (· ++ ·) ""}</{n}>"
 
-partial def cToHtml : Content → Html
-  | .Element e => eToHtml e
-  | .Comment c => .raw s!"<!--{c}-->"
-  | .Character c => .text c
+partial def cToStringEscaped : Content → String
+  | .Element e => eToStringEscaped e
+  | .Comment c => s!"<!--{c}-->"
+  | .Character c => Html.escape c
 
 end
 
@@ -53,7 +53,7 @@ def process' (contents : String) : Except String (Array BibItem) := do
       {
         citekey := x.name
         tag := x.tag
-        html := .ofArray (html.map cToHtml)
+        html := html.map cToStringEscaped |>.toList |> String.join
         plaintext := html.map cToPlaintext |>.toList |> String.join
       }
   | .error it err =>

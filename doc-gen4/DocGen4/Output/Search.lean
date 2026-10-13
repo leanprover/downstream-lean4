@@ -3,15 +3,16 @@ Copyright (c) 2023 Jeremy Salwen. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Salwen
 -/
+import DocGen4.Output.ToHtmlFormat
 import DocGen4.Output.Template
 
 namespace DocGen4
 namespace Output
 
-open Lean
+open scoped DocGen4.Jsx
 
 def search : BaseHtmlM Html := do templateExtends (baseHtml "Search") <| do
-  pure html%{
+  pure
     <main>
       <h1> Search Results </h1>
       <label for="search_page_query">Query:</label>
@@ -42,7 +43,6 @@ def search : BaseHtmlM Html := do templateExtends (baseHtml "Search") <| do
       <div id="search_results">
       </div>
     </main>
-  }
 
 end Output
 end DocGen4

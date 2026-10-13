@@ -3,7 +3,7 @@ import DocGen4.Output.Base
 namespace DocGen4
 namespace Output
 
-open Lean
+open scoped DocGen4.Jsx
 
 /--
 Render an `Arg` as HTML, adding opacity effects etc. depending on what
@@ -11,11 +11,10 @@ type of binder it has.
 -/
 def argToHtml (arg : Process.Arg) : HtmlM Html := do
   let node ← renderedCodeToHtml arg.binder
-  let inner := html%{<span class="fn">{node}</span>}
-  -- The trailing space separates consecutive argument groups.
-  let html : Html := .element "span" #[("class", "decl_args")] #[inner] ++ .text " "
+  let inner := <span class="fn">[node]</span>
+  let html := Html.element "span" false #[("class", "decl_args")] #[inner]
   if arg.implicit then
-    return html%{<span class="impl_arg">{html}</span>}
+    return <span class="impl_arg">{html}</span>
   else
     return html
 

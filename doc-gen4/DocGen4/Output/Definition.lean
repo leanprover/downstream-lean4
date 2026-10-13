@@ -5,10 +5,11 @@ import DocGen4.Process
 namespace DocGen4
 namespace Output
 
+open scoped DocGen4.Jsx
 open Lean Widget
 
 def equationToHtml (c : RenderedCode) : HtmlM Html := do
-  return html%{<li class="equation">{← renderedCodeToHtml c}</li>}
+  return <li class="equation">[← renderedCodeToHtml c]</li>
 
 /--
 Attempt to render all `simp` equations for this definition. At a size
@@ -22,26 +23,22 @@ def equationsToHtml (i : Process.DefinitionInfo) : HtmlM (Array Html) := do
     let equationsHtml ← eqs.mapM equationToHtml
     if i.equationsWereOmitted then
       return #[
-        html%{
-          <details>
-            <summary>Equations</summary>
-            <ul class="equations">
-              <li class="equation">One or more equations did not get rendered due to their size.</li>
-              {equationsHtml}
-            </ul>
-          </details>
-        }
+        <details>
+          <summary>Equations</summary>
+          <ul class="equations">
+            <li class="equation">One or more equations did not get rendered due to their size.</li>
+            [equationsHtml]
+          </ul>
+        </details>
       ]
     else
       return #[
-        html%{
-          <details>
-            <summary>Equations</summary>
-            <ul class="equations">
-              {equationsHtml}
-            </ul>
-          </details>
-        }
+        <details>
+          <summary>Equations</summary>
+          <ul class="equations">
+            [equationsHtml]
+          </ul>
+        </details>
       ]
   else
     return #[]
