@@ -101,7 +101,7 @@ and `$$...$$` for displayed math.
 
 Example usage:
 ```lean
-jsx%{<MarkdownDisplay contents="$a + b = c$" />}
+<MarkdownDisplay contents={"$a + b = c$"} />
 ``` -/
 @[widget_module]
 def MarkdownDisplay : Component MarkdownDisplay.Props where

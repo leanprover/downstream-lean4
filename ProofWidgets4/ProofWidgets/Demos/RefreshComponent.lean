@@ -9,10 +9,8 @@ This file showcases the `RefreshComponent` using some basic examples.
 We use `dbg_trace` to help see which Lean processes are active at any time.
 -/
 
--- ProofWidgets defines its own Html type.
-open Lean hiding Html
-open Lean.Server
-open ProofWidgets RefreshComponent
+open Lean.Widget ProofWidgets RefreshComponent Jsx Lean Server
+
 
 /-! Example 1: Count from 1 to 10, taking one second for each count. -/
 
@@ -32,10 +30,10 @@ partial def countToTen : CoreM Html := do
 #html countToTen
 
 -- Here, we duplicate the widget using the same underlying computation
--- #html (do let x ← countToTen; return jsx%{<span>{x}<br/>{x}</span>})
+-- #html (do let x ← countToTen; return <span>{x}<br/>{x}</span>)
 
 -- Here, we duplicate the widget and duplicate the underlying computation
--- #html (return jsx%{<span>{← countToTen}<br/>{← countToTen}</span>})
+-- #html (return <span>{← countToTen}<br/>{← countToTen}</span>)
 
 
 
@@ -52,7 +50,7 @@ partial def cycleSelections (props : PanelWidgetProps) : RequestM (RequestTask H
         have : NeZero args.size := ⟨h⟩
         let mut i : Fin args.size := 0
         repeat do
-          token.update jsx%{<InteractiveCode fmt={← args[i].runMetaM Widget.ppExprTagged}/>}
+          token.update <InteractiveCode fmt={← args[i].runMetaM Widget.ppExprTagged}/>
           dbg_trace "cycled through expression {i}"
           IO.sleep 1000
           Core.checkSystem "cycleSelections"
@@ -107,15 +105,15 @@ def FiboState.render (s : FiboState) (t : Option Nat := none) : Html :=
   let header := match t with
     | some t => s!"Finished in {t}ms"
     | none => "Computing Fibonacci numbers ⏳";
-  jsx%{<details open={true}>
+  <details «open»={true}>
     <summary className="mv2 pointer">
       {.text header}
     </summary>
     {Html.element "ul" #[("style", json% { "padding-left" : "30px"})] (s.results.map (·.2))}
-  </details>}
+  </details>
 
 def generateFibo (n : Nat) : Html :=
-  jsx%{<li>{.text s!"the {n}-th Fibonacci number has {(fibo n).log2} binary digits."}</li>}
+  <li>{.text s!"the {n}-th Fibonacci number has {(fibo n).log2} binary digits."}</li>
 
 partial def FiboWidget : CoreM Html := do
   mkRefreshComponentM (.text "loading...") fun token ↦ do

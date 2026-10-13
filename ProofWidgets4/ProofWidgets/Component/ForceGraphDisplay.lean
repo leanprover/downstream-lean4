@@ -5,17 +5,17 @@ public import ProofWidgets.Data.Html
 public meta section
 
 namespace ProofWidgets.ForceGraphDisplay
-open Lean Server
+open Lean Server Jsx
 
 /-- A themed `<circle>` SVG element, with optional extra attributes. -/
 def mkCircle (attrs : Array (String × Json) := #[]) : Html :=
-  jsx%{<circle
+  <circle
     r={5}
     fill="var(--vscode-editor-background)"
     stroke="var(--vscode-editor-foreground)"
     strokeWidth={.num 1.5}
     {...attrs}
-  />}
+  />
 
 /-- A shape containing the vertex label.
 Used to position incident edge endpoints.

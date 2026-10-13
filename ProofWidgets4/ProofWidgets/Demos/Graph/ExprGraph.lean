@@ -6,7 +6,7 @@ public meta import Lean.Util.FoldConsts
 
 public meta section
 
-open ProofWidgets
+open ProofWidgets Jsx
 
 /-- Display the graph of all constants appearing in a given constant. -/
 syntax (name := exprGraphCmd) "#expr_graph" ident : command
@@ -38,7 +38,7 @@ def elabExprGraphCmd : CommandElab := fun
       let newNode : ForceGraphDisplay.Vertex := {
         id := node
         label :=
-          jsx%{<g>
+          <g>
             <ellipse
               fill="var(--vscode-editor-background)"
               stroke="var(--vscode-editorHoverWidget-border)"
@@ -46,22 +46,22 @@ def elabExprGraphCmd : CommandElab := fun
               ry="10"
             />
             <text x={s!"-{rx}"} y="5" className="font-code">{.text node}</text>
-          </g>}
+          </g>
         boundingShape := .rect (rx*4).toFloat 20
         details? :=
           match doc? with
           | some d =>
-            jsx%{<div>
-              <InteractiveCode fmt={e} /> : <InteractiveCode fmt={ee} />
+            <div>
+              <InteractiveCode fmt={e} />{.text " : "}<InteractiveCode fmt={ee} />
               <MarkdownDisplay contents={d} />
-            </div>}
+            </div>
           | none =>
-            jsx%{<span>
-              <InteractiveCode fmt={e} /> : <InteractiveCode fmt={ee} />
-            </span>}
+            <span>
+              <InteractiveCode fmt={e} />{.text " : "}<InteractiveCode fmt={ee} />
+            </span>
       }
       nodesWithInfos := nodesWithInfos.push newNode
-    let html : Html := jsx%{<ForceGraphDisplay
+    let html : Html := <ForceGraphDisplay
       vertices={nodesWithInfos}
       edges={edges.fold (init := #[]) fun acc (a,b) => acc.push {source := a, target := b}}
       forces={#[
@@ -71,7 +71,7 @@ def elabExprGraphCmd : CommandElab := fun
         .y { strength? := some 0.05 }
       ]}
       showDetails={true}
-    />}
+    />
     Widget.savePanelWidgetInfo
       (hash HtmlDisplayPanel.javascript)
       (return json% { html : $(← Server.rpcEncode html) })

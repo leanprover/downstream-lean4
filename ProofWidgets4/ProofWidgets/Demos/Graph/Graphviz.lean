@@ -11,11 +11,11 @@ public import ProofWidgets.Component.HtmlDisplay
 
 public meta section
 
-open Lean ProofWidgets
+open Lean ProofWidgets Jsx
 
 /-! ## Basic usage -/
 
-#html jsx%{
+#html
   <GraphvizDisplay
     dot=r##"
       digraph {
@@ -25,7 +25,6 @@ open Lean ProofWidgets
         subgraph cluster_1 { c [fillcolor="#2ca02c", shape="trapezium"] }
         a -> b, c -> d
       }"## />
-}
 
 /-! ## Interaction
 
@@ -77,11 +76,11 @@ def ClickNodeDemo : Component ClickNodeDemo.Props where
     }
   "#.replace "GRAPHVIZ_DISPLAY_HASH" (toString GraphvizDisplay.javascriptHash)
 
-#html jsx%{<ClickNodeDemo colors={json%{
+#html <ClickNodeDemo colors={json%{
     a: "#d62728",
     b: "#1f77b4",
     c: "#2ca02c",
     selected: "#ffffbf"
-  }} />}
+  }} />
 
 end
