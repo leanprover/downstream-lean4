@@ -47,6 +47,7 @@ theorem not_denotation {m : Model World τ Atom} (φ : Proposition τ Atom) :
 theorem theoryEq_denotation_eq {m : Model World τ Atom} {w₁ w₂ : World} :
     (TheoryEq m w₁ w₂) ↔
     (∀ (φ : Proposition τ Atom), w₁ ∈ (φ.denotation m) ↔ w₂ ∈ (φ.denotation m)) := by
+  rw [TheoryEq.ext_iff]
   apply Iff.intro <;> grind [_=_ satisfies_mem_denotation]
 
 /-- Logically equivalent propositions under a model have the same denotation. -/

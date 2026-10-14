@@ -24,7 +24,8 @@ open scoped Classical in
 by identifying an accepting state of `na1` with an initial state of `na2`. If `na1` accepts the
 empty word, it may also start running `na2` from the beginning. Once it starts running `na2`,
 it cannot go back to `na1`. -/
-def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) : NA (State1 ⊕ State2) Symbol where
+noncomputable def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) :
+    NA (State1 ⊕ State2) Symbol where
     Tr s x t := match s, t with
       | inl s1, inl t1 => na1.Tr s1 x t1
       | inl s1, inr t2 => ∃ t1, na1.Tr s1 x t1 ∧ t1 ∈ na1.accept ∧ t2 ∈ na2.start
@@ -154,7 +155,7 @@ end Buchi
 namespace FinAcc
 
 /-- `finConcat na1 na2` is the concatenation of the "totalized" versions of `na1` and `na2`. -/
-def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
+noncomputable def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
   : NA (Option State1 ⊕ Option State2) Symbol :=
   concat ⟨na1.totalize, some '' na1.accept⟩ na2.totalize
 
