@@ -5,7 +5,7 @@ Authors: Sofia Rodrigues
 -/
 import VersoBlog
 
-open Verso Genre Blog Lean Output Html Template
+open Verso Genre Blog Lean Output.Html Template
 
 namespace Verso.Web.Components
 

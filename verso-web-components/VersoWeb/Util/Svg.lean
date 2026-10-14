@@ -8,7 +8,7 @@ import Verso.Doc.Html
 
 namespace Verso.Web.Util
 
-open Verso.Output Html
+open Verso.Output.Html
 open Lean Elab Term IO Meta PrettyPrinter Delaborator SubExpr
 
 syntax "svg(" str ")" : term

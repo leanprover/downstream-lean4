@@ -6,7 +6,7 @@ Authors: Sofia Rodrigues
 import VersoBlog
 import VersoWeb.Util
 
-open Lean Verso Output Html Genre Blog Template Verso.Web Util
+open Lean Verso Output.Html Genre Blog Template Verso.Web Util
 
 namespace Verso.Web.Components
 

@@ -8,7 +8,8 @@ import VersoBlog
 import VersoWeb.Components.ArchiveEntry
 import VersoWeb.Theme.Css
 
-open Verso Genre Blog Template Output Html
+open Lean (Html)
+open Verso Genre Blog Template Output.Html
 open Verso.Web.Components
 
 namespace Verso.Web.Theme

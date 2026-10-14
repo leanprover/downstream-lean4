@@ -11,7 +11,8 @@ import VersoWeb.Util.Svg
 
 namespace Verso.Web.Components
 
-open Verso Output Html Genre ArgParse
+open Lean (Html)
+open Verso Output.Html Genre ArgParse
 open Verso.Web.Util
 
 /-!

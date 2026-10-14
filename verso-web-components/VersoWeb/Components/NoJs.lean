@@ -9,7 +9,8 @@ import VersoWeb.Util
 
 namespace Verso.Web.Components
 
-open Verso.Output Html
+open Lean (Html)
+open Verso.Output.Html
 open Verso.Genre.Blog Template
 
 /--
