@@ -21,7 +21,7 @@ open Errata
 open Plausible Gen Arbitrary
 
 private def compact (html : Html) : String :=
-  (postprocess html).asString (breakLines := false)
+  (postprocess html).render
 
 private def marker (label : String) : Html :=
   suppressible "margin" html%{<sup>{label}</sup>}

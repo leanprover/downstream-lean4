@@ -396,7 +396,7 @@ public defmethod Highlighted.trimOneTrailingNl : Highlighted → Highlighted
   | .tactics i s e hl => .tactics i s e (trimOneTrailingNl hl)
   | .span i hl => .span i (trimOneTrailingNl hl)
 
-public partial defmethod Highlighted.containsNewline : (t : Highlighted) → Bool
+public defmethod Highlighted.containsNewline : (t : Highlighted) → Bool
   | .text s => s.contains '\n'
   | .unparsed s => s.contains '\n'
   | .seq xs => xs.any containsNewline
