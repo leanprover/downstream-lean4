@@ -364,7 +364,7 @@ noncomputable def Quot.out {r : α → α → Prop} (q : Quot r) : α :=
 /-- Unwrap the VM representation of a quotient to obtain an element of the equivalence class.
   Computable but unsound. -/
 unsafe def Quot.unquot {r : α → α → Prop} : Quot r → α :=
-  cast lcProof
+  Quot.lift (fun x => x) lcProof
 
 @[simp]
 theorem Quot.out_eq {r : α → α → Prop} (q : Quot r) : Quot.mk r q.out = q :=
@@ -464,7 +464,7 @@ def trueSetoid : Setoid α :=
   in effect to `Nonempty α`, but unlike `Nonempty α`, `Trunc α` is data,
   so the VM representation is the same as `α`, and so this can be used to
   maintain computability. -/
-def Trunc.{u} (α : Sort u) : Sort u :=
+def Trunc.{u} (α : Sort u) : Sort (max 1 u) :=
   @Quotient α trueSetoid
 
 namespace Trunc
