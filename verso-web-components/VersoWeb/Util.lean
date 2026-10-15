@@ -11,7 +11,6 @@ import Std.Data.HashSet
 
 namespace Verso.Web.Util
 
-open Verso
 open Lean (Html)
 open Verso Genre Blog Template ArgParse
 

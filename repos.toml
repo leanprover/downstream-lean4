@@ -15,11 +15,6 @@ source_url = "https://github.com/dupuisf/BibtexQuery"
 source_rev = "master"
 critical = false
 
-[comparator]
-source_url = "https://github.com/leanprover/comparator"
-source_rev = "master"
-critical = false
-
 [cslib]
 source_url = "https://github.com/leanprover/cslib"
 source_rev = "main"
@@ -119,7 +114,8 @@ critical = false
 
 [verso]
 source_url = "https://github.com/leanprover/verso"
-source_rev = "nightly-testing"
+source_rev = "main"
+target_rev = "bump/v4.37.0"
 critical = false
 
 [verso-slides]

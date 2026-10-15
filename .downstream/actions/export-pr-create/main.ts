@@ -248,12 +248,15 @@ async function isInterestingExport(onto: string): Promise<boolean> {
   return changedPaths.length > 0;
 }
 
-async function runExport(onto: string): Promise<boolean> {
+async function runExport(
+  onto: string,
+  downstreamSha: string,
+): Promise<boolean> {
   core.info(`Exporting ${subrepo} onto ${onto}...`);
   await cRun(scriptPath("export.py"), [
     ...[".", subrepo],
     ...["--onto", onto],
-    ...["--message", prTitle],
+    ...["--message", `${prTitle}\n\ndownstream-sha: ${downstreamSha}`],
     ...(updateToolchains ? ["--update-toolchains"] : []),
     ...lakefileEdits.flatMap(([p, r]) => ["--edit-lakefile", p, r]),
     ...(updateManifests ? ["--update-manifests"] : []),
@@ -293,12 +296,12 @@ async function updateSubrepo(
 
 async function exportSameBranch(
   config: ExportConfig,
-  sha: string,
+  downstreamSha: string,
 ): Promise<boolean> {
   // Ensure there are no relevant upstream changes since our last update,
   // otherwise we'd sometimes do unnecessary work like opening a new export PR
   // immediately after the last one was merged.
-  const updatedSha = await updateSubrepo(config, sha);
+  const updatedSha = await updateSubrepo(config, downstreamSha);
   if (updatedSha === null)
     exit(
       `Subrepo ${subrepo} is outdated (upstream has relevant changes since the last update), stopping.`,
@@ -312,7 +315,7 @@ async function exportSameBranch(
     sourceToken,
     baseCommit.sha,
   );
-  return await runExport(baseSha);
+  return await runExport(baseSha, downstreamSha);
 }
 
 function excludePathspecs(): string[] {
@@ -380,7 +383,7 @@ async function exportTargetBranch(
 
   // Export downstream changes on top
   await cRun("git", ["switch", "--detach", sha]);
-  const interesting = await runExport(mergeSha);
+  const interesting = await runExport(mergeSha, sha);
 
   // Push merge commit now, to prepare the branch for the export PR
   if (interesting && pr) {
@@ -412,6 +415,7 @@ async function createExportPr(
     body += `https://github.com/${downstreamRepo.fullName}/commit/${buildReport.commit_sha}.`;
   }
   if (prExplanation) body += `\n\n${prExplanation}`;
+  body += `\n\ndownstream-sha: ${buildReport.commit_sha}`;
 
   core.info(
     `Creating export PR against ${config.targetRepo.fullName}:${config.targetBranch}...`,

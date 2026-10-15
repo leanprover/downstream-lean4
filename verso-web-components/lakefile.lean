@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-require verso from git "https://github.com/leanprover/verso" @ "main"
+require verso from git "https://github.com/leanprover/verso" @ "nightly-testing"
 require subverso from git "https://github.com/leanprover/subverso" @ "main"
 
 package versowebcomponents where

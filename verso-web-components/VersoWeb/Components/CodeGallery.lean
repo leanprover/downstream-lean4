@@ -6,7 +6,7 @@ Authors: Sofia Rodrigues
 import VersoWeb.Components.Icon
 
 open Lean Elab Term
-open Verso Output Html
+open Verso Output.Html
 open Verso.Web Components Icon Genre Blog ArgParse Doc Elab Template
 
 namespace Verso.Web.Components

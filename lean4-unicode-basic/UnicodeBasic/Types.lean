@@ -38,7 +38,7 @@ public protected abbrev maxLowSurrogate : UInt32 := 0xDFFF
 @[simp, grind =]
 public protected abbrev minSurrogate : UInt32 := Unicode.minHighSurrogate
 
-/-- Minimum surrogate code point -/
+/-- Maximum surrogate code point -/
 @[simp, grind =]
 public protected abbrev maxSurrogate : UInt32 := Unicode.maxLowSurrogate
 
@@ -47,15 +47,13 @@ public protected abbrev maxSurrogate : UInt32 := Unicode.maxLowSurrogate
   Same as `toHexString` but without the `U+` prefix. -/
 public def toHexStringRaw (code : UInt32) : String := Id.run do
   let hex := #['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
-  let mut code := code
-  let mut dgts := []
-  for _ in [:4] do
-    dgts := hex[(code &&& 0xF).toNat]! :: dgts
-    code := code >>> 4
-  while code != 0 do
-    dgts := hex[(code &&& 0xF).toNat]! :: dgts
-    code := code >>> 4
-  return String.ofList dgts
+  let mut n := 4
+  while n < 8 && code >>> (4 * n).toUInt32 != 0 do
+    n := n + 1
+  let mut str := ""
+  for i in [:n] do
+    str := str.push hex[(code >>> (4 * (n - 1 - i)).toUInt32 &&& 0xF).toNat]!
+  return str
 
 /-- Hexadecimal string representation of a code point
 
@@ -108,6 +106,10 @@ public def ofHexString! (str : String.Slice) : UInt32 :=
 -/
 
 /-- General category (GC)
+
+  A value of this type is a set of general categories. Derived categories
+  (such as `GC.L`) are unions of basic categories (such as `GC.Lu`),
+  `GC.none` is the empty set and `GC.univ` is the set of all categories.
 
   Unicode property: `General_Category` -/
 @[expose]
@@ -459,7 +461,7 @@ public instance : ToString CompatibilityTag where
   | .fraction => "<fraction>"
   | .compat => "<compat>"
 
-/-- Decomposition maping
+/-- Decomposition mapping
 
   Unicode properties: `Decomposition_Type`, `Decomposition_Mapping` -/
 public structure DecompositionMapping where
@@ -485,7 +487,7 @@ public inductive BidiClass
 | public arabicLetter
 /-- (`EN`) ASCII digit or Eastern Arabic-Indic digit -/
 | public europeanNumber
-/-- (`ES`) European separator: plus and-/
+/-- (`ES`) European separator: plus and minus signs -/
 | public europeanSeparator
 /-- (`ET`) European terminator in a numeric format context, includes currency signs -/
 | public europeanTerminator
@@ -497,33 +499,36 @@ public inductive BidiClass
 | public nonspacingMark
 /-- (`BN`) boundary neutral: most format characters, control codes, or noncharacters -/
 | public boundaryNeutral
-/-- (`B`)	paragraph separator, various newline characters -/
+/-- (`B`) paragraph separator, various newline characters -/
 | public paragraphSeparator
-/-- (`S`)	segment separator, various segment-related control codes -/
+/-- (`S`) segment separator, various segment-related control codes -/
 | public segmentSeparator
 /-- (`WS`) white spaces -/
 | public whiteSpace
 /-- (`ON`) other neutral: most other symbols and punctuation marks -/
 | public otherNeutral
-/-- (`LRE`) left to right embedding (U+202A: the LR embedding control) -/
+/-- (`LRE`) left-to-right embedding (U+202A: the LR embedding control) -/
 | public leftToRightEmbedding
-/-- (`LRO`)	Left_To_Right_Override	(U+202D: the LR override control) -/
+/-- (`LRO`) left-to-right override (U+202D: the LR override control) -/
 | public leftToRightOverride
 /-- (`RLE`) right-to-left embedding (U+202B: the RL embedding control) -/
-| public rightToLeftEmbeding
+| public rightToLeftEmbedding
 /-- (`RLO`) right-to-left override (U+202E: the RL override control) -/
 | public rightToLeftOverride
 /-- (`PDF`) pop directional format (U+202C: terminates an embedding or override control) -/
 | public popDirectionalFormat
 /-- (`LRI`) left-to-right isolate (U+2066: the LR isolate control) -/
 | public leftToRightIsolate
-/-- (`RLI`) right-toleft isolate (U+2067: the RL isolate control) -/
+/-- (`RLI`) right-to-left isolate (U+2067: the RL isolate control) -/
 | public rightToLeftIsolate
-/-- (`FSI`)	first strong isolate (U+2068: the first strong isolate control) -/
+/-- (`FSI`) first strong isolate (U+2068: the first strong isolate control) -/
 | public firstStrongIsolate
 /-- (`PDI`) pop directional isolate (U+2069: terminates an isolate control) -/
 | public popDirectionalIsolate
 deriving Inhabited, DecidableEq
+
+@[deprecated BidiClass.rightToLeftEmbedding (since := "2026-10-06"), match_pattern]
+public abbrev BidiClass.rightToLeftEmbeding := BidiClass.rightToLeftEmbedding
 
 /-- Bidi class: strong left-to-right (`L`) -/
 public protected def BidiClass.L := leftToRight
@@ -558,7 +563,7 @@ public protected def BidiClass.LRE := leftToRightEmbedding
 /-- Bidi class: left-to-right override (`LRO`) -/
 public protected def BidiClass.LRO := leftToRightOverride
 /-- Bidi class: right-to-left embedding (`RLE`) -/
-public protected def BidiClass.RLE := rightToLeftEmbeding
+public protected def BidiClass.RLE := rightToLeftEmbedding
 /-- Bidi class: right-to-left override (`RLO`) -/
 public protected def BidiClass.RLO := rightToLeftOverride
 /-- Bidi class: pop directional format (`PDF`) -/
@@ -590,7 +595,7 @@ public def BidiClass.toAbbrev : BidiClass → String
 | otherNeutral => "ON"
 | leftToRightEmbedding => "LRE"
 | leftToRightOverride => "LRO"
-| rightToLeftEmbeding => "RLE"
+| rightToLeftEmbedding => "RLE"
 | rightToLeftOverride  => "RLO"
 | popDirectionalFormat => "PDF"
 | leftToRightIsolate => "LRI"
@@ -617,7 +622,7 @@ public def BidiClass.ofAbbrev? (abbr : String.Slice) : Option BidiClass :=
   | ['O', 'N'] => some otherNeutral
   | ['L', 'R', 'E'] => some leftToRightEmbedding
   | ['L', 'R', 'O'] => some leftToRightOverride
-  | ['R', 'L', 'E'] => some rightToLeftEmbeding
+  | ['R', 'L', 'E'] => some rightToLeftEmbedding
   | ['R', 'L', 'O'] => some rightToLeftOverride
   | ['P', 'D', 'F'] => some popDirectionalFormat
   | ['L', 'R', 'I'] => some leftToRightIsolate
@@ -639,7 +644,10 @@ public instance : Repr BidiClass where
   ## Scripts ##
 -/
 
-/-- Check if valid script identifier -/
+/-- Check if valid script identifier
+
+  A valid script identifier consists of an uppercase letter followed by three
+  lowercase letters. -/
 @[inline]
 public def Script.isValid (c : UInt32) : Bool :=
   let c0 := (c >>> 24).toUInt8
@@ -651,7 +659,11 @@ public def Script.isValid (c : UInt32) : Bool :=
       && (c2 ≤ 'z'.toUInt8 && 'a'.toUInt8 ≤ c2)
         && (c3 ≤ 'z'.toUInt8 && 'a'.toUInt8 ≤ c3)
 
-/-- Script identifier type -/
+/-- Script identifier type
+
+  A script is identified by its four-letter ISO 15924 code, such as `Latn` for
+  Latin. Use `Script.ofAbbrev?` and `Script.toAbbrev` to convert from and to
+  this code. -/
 public structure Script where
   public code : UInt32
   public is_valid : Script.isValid code
@@ -694,3 +706,46 @@ public def ofAbbrev? (abbr : String.Slice) : Option Script :=
 public def ofAbbrev! (abbr : String.Slice) : Script := ofAbbrev? abbr |>.get!
 
 end Script
+
+/-- Check if an array of scripts is strictly sorted by script code -/
+@[expose]
+public def ScriptSet.isSorted (a : Array Script) : Bool :=
+  loop a.toList
+where
+  loop : List Script → Bool
+  | s₁ :: s₂ :: ss => s₁.code < s₂.code && loop (s₂ :: ss)
+  | _ => true
+
+/-- Set of scripts, such as the scripts a character is commonly used with -/
+public structure ScriptSet where
+  /-- Scripts in the set, sorted by script code -/
+  public toArray : Array Script
+  public is_sorted : ScriptSet.isSorted toArray
+deriving BEq
+
+namespace ScriptSet
+
+/-- Default value is the empty set -/
+public instance : Inhabited ScriptSet where
+  default := ⟨#[], rfl⟩
+
+/-- List of the scripts in the set, sorted by script code -/
+@[inline]
+public def toList (s : ScriptSet) : List Script := s.toArray.toList
+
+/-- String of the script abbreviations in the set, separated by spaces -/
+public def toAbbrev (s : ScriptSet) : String :=
+  " ".intercalate <| s.toList.map Script.toAbbrev
+
+/-- Check whether a script is in the set -/
+@[inline]
+public def contains (s : ScriptSet) (sc : Script) : Bool :=
+  s.toArray.contains sc
+
+public instance : Membership Script ScriptSet where
+  mem s sc := s.contains sc
+
+public instance (sc : Script) (s : ScriptSet) : Decidable (sc ∈ s) :=
+  inferInstanceAs (Decidable (_ = true))
+
+end ScriptSet
