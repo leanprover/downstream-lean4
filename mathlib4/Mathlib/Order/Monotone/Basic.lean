@@ -90,6 +90,14 @@ theorem monotone_toDual_comp_iff : Monotone (toDual ∘ f) ↔ Antitone f :=
 theorem antitone_toDual_comp_iff : Antitone (toDual ∘ f) ↔ Monotone f :=
   Iff.rfl
 
+omit [Preorder β] in
+/-- Stability of `σ` for `f` is unchanged by reversing the order on the codomain of `f`, since it
+only uses equality there. -/
+@[simp]
+theorem isStable_toDual_comp_iff (σ : α → α) :
+    IsStable (toDual ∘ f) σ ↔ IsStable f σ :=
+  Iff.rfl
+
 @[simp]
 theorem monotoneOn_comp_ofDual_iff : MonotoneOn (f ∘ ofDual) s ↔ AntitoneOn f s :=
   forall₂_comm
@@ -736,7 +744,7 @@ lemma Nat.stabilises_of_antitone {f : ℕ → ℕ} (hfmono : Antitone f)
       let g (i : ℕ) := f (i + 1)
       #adaptation_note /-- Before nightly-2026-09-29, the proof of
       `Antitone g` was `by grind [Antitone]`; now it fails to find a witness. -/
-      have hg_anti : Antitone g := fun _ _ hab => hfmono (by omega)
+      have hg_anti : Antitone g := fun _ _ hab => hfmono (by lia)
       obtain ⟨p, hp, hp'⟩ := ih (f 1) (by grind) hg_anti (by grind) rfl
       refine ⟨p + 1, by omega, fun m hm => ?_⟩
       specialize hp' (m - 1) (by lia)

@@ -107,7 +107,7 @@ jobs:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
           owner: leanprover-community
-          repositories: mathlib4-nightly-testing
+          repositories: mathlib4
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -132,6 +132,11 @@ jobs:
           TOOLCHAIN=${TOOLCHAIN#leanprover/lean4:}
           echo "toolchain=$TOOLCHAIN" >> "$GITHUB_OUTPUT"
 
+      - name: Install elan
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
       - name: Create export PR
         id: export-pr
         uses: ./.downstream/actions/export-pr-create
@@ -139,12 +144,34 @@ jobs:
           subrepo: mathlib4
           build-report-path: ${{ runner.temp }}/report/build-report.json
           clone-path: ${{ runner.temp }}/downstream
-          method: same-branch
+          method: target-branch
           downstream-token: ${{ steps.app-token-leanprover.outputs.token }}
           source-token:
             ${{ steps.app-token-leanprover-community.outputs.token }}
+          pr: true
+          pr-repo: leanprover/downstream-lean4-fork-mathlib4
+          pr-token: ${{ steps.app-token-leanprover.outputs.token }}
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
+          update-toolchains: true
+          update-manifests: true
+
+      - name: Post message to Zulip
+        if: ${{ fromJSON(steps.export-pr.outputs.pr-created) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-mathlib
+          topic: downstream-lean4 PRs
+          content: >
+            PR #${{ steps.export-pr.outputs.pr-number }} with
+            [downstream-lean4](https://github.com/leanprover/downstream-lean4)
+            adaptations for `${{ steps.toolchain.outputs.toolchain }}` has just
+            been opened. Please review the changes. No new adaptation PRs will
+            be opened while this PR is still open.
 
   cslib:
     if: |
@@ -212,7 +239,7 @@ jobs:
           update-toolchains: true
           update-manifests: true
           lakefile-edits: |
-            ^name = "mathlib"\nscope = "leanprover-community"\nrev = ".*"$ -> name = "mathlib"\ngit = "https://github.com/leanprover-community/mathlib4-nightly-testing"\nrev = "<mathlib4 sha>"
+            ^(name = "mathlib"\nscope = "leanprover-community"\nrev =) ".*"$ -> \1 "<mathlib4 target_rev>"
 
       - name: Post message to Zulip
         if: ${{ fromJSON(steps.export-pr.outputs.pr-created) }}

@@ -360,14 +360,26 @@ class Updater:
             text = re.sub(pattern, replacement, text, flags=re.MULTILINE)
         lakefile.write_text(text)
 
-    def resolve_sha_placeholders(self, text: str) -> str:
+    def resolve_placeholders(self, text: str) -> str:
         def repl(m: re.Match[str]) -> str:
-            name = m.group(1)
+            name, field = m.group(1), m.group(2)
             if name not in self.subrepos_by_name:
                 raise ValueError(f"unknown repo {name!r} in placeholder {m.group(0)!r}")
-            return self.find_latest_base_commit(self.subrepos_by_name[name]).sha
+            subrepo = self.subrepos_by_name[name]
+            match field:
+                case "source_url":
+                    return subrepo.source_url
+                case "source_rev":
+                    return subrepo.source_rev
+                case "target_url":
+                    return subrepo.target_url
+                case "target_rev":
+                    return subrepo.target_rev
+                case _:
+                    return self.find_latest_base_commit(subrepo).sha
 
-        return re.sub(r"<([^<>\s]+) sha>", repl, text)
+        fields = "source_url|source_rev|target_url|target_rev|sha"
+        return re.sub(rf"<([^<>\s]+) ({fields})>", repl, text)
 
     def export(
         self,
@@ -385,7 +397,7 @@ class Updater:
 
         # Must happen while HEAD is still the downstream commit
         lakefile_edits = [
-            (pattern, self.resolve_sha_placeholders(replacement))
+            (pattern, self.resolve_placeholders(replacement))
             for pattern, replacement in (lakefile_edits or [])
         ]
 
