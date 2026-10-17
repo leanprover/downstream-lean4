@@ -170,7 +170,8 @@ lemma lieSpan_range_union_eq_top_of_mem_rootSpace [IsKilling K L] (b : (rootSyst
       simpa only [← (ef_sl2 i).lie_e_f, SetLike.mem_coe] using lie_mem _ (e_mem_S i) (f_mem_S i)
     simpa [H_le]
   suffices h : ∀ α : H.root,
-    rootSpace H α ≤ S.toSubmodule ∧ rootSpace H (-α : Weight K H L) ≤ S.toSubmodule by grind
+    rootSpace H α ≤ S.toSubmodule ∧ rootSpace H (-α : Weight K H L) ≤ S.toSubmodule from
+    fun α ↦ (h α).1
   refine fun α ↦ b.induction_add (p := fun α ↦
     rootSpace H α ≤ S.toSubmodule ∧ rootSpace H (-α : Weight K H L) ≤ S.toSubmodule) α ?_ ?_ ?_
   · rintro β hβ
