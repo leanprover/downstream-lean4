@@ -148,7 +148,13 @@ theorem theoryEq_isBisimulation
       grind [propositions_satisfies_conjunction]
     obtain ⟨s2'', htr2, hsat⟩ := Satisfies.dynDiamond_iff_exists.mp
       (theoryEq_satisfies h hs1_diamond)
-    grind [propositions_complete dist_formula ⟨s2'', htr2⟩]
+    #adaptation_note
+    /-- A `grind` regression moving to nightly-2026-10-18 (changes from lean#15748): `grind`
+    now normalizes a hypothesis quantified over a subtype with `Subtype.forall`, so
+    `hdist_spec` carries its membership side condition explicitly and `grind` can no longer
+    discharge it — the membership holds only up to unfolding `Frame.diagonal` and
+    `LTS.image`. Passing `hdist_spec` already instantiated avoids the side condition. -/
+    grind [propositions_complete dist_formula ⟨s2'', htr2⟩, hdist_spec ⟨s2'', htr2⟩]
   case right =>
     -- Symmetric to left case
     intro s2' htr
@@ -164,7 +170,9 @@ theorem theoryEq_isBisimulation
       grind [propositions_satisfies_conjunction]
     obtain ⟨s1'', htr1, hsat⟩ :=
       Satisfies.dynDiamond_iff_exists.mp (theoryEq_satisfies h.symm hs2_diamond)
-    grind [propositions_complete dist_formula ⟨s1'', htr1⟩]
+    #adaptation_note
+    /-- As in the `left` case above (changes from lean#15748). -/
+    grind [propositions_complete dist_formula ⟨s1'', htr1⟩, hdist_spec ⟨s1'', htr1⟩]
 
 /-- If two states are in a bisimulation, one satisfies a proposition iff the other does. -/
 lemma bisimulation_satisfies {hrb : m.lts.IsHomBisimulation r}
