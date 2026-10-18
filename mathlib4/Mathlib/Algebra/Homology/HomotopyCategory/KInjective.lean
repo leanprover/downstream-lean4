@@ -156,11 +156,17 @@ lemma isKInjective_of_injective (L : CochainComplex C ℤ) (d : ℤ)
     rw [Cochain.ofHom_zero, add_zero]
     ext n
     let k₀ := (n - d + 1).toNat
-    rw [← (sequence φ x₀ k₀).2 n n (add_zero n) (by lia),
-      δ_v (-1) 0 (neg_add_cancel 1) _ n n (by lia) (n - 1) (n + 1) rfl (by lia),
-      δ_v (-1) 0 (neg_add_cancel 1) _ n n (by lia) (n - 1) (n + 1) rfl (by lia),
-      limitSequence_eqUpTo φ hφ x₀ k₀ n (n - 1) (by lia) (by lia),
-      limitSequence_eqUpTo φ hφ x₀ k₀ (n + 1) n (by lia) (by lia)]
+    #adaptation_note /-- nightly-2026-10-18
+    The side goals below are closed by `omega` rather than `lia`:
+    leanprover/lean4#15748 added `Subtype.forall` to `grind`'s normalization set, and
+    rewriting `hφ` with it makes `simp` unfold `Set.Elem`, `Subtype.val` and
+    `Cochain.EqUpTo` down into the `Classical.choose` body of the local `φ`, which
+    exhausts `maxRecDepth` before any arithmetic happens. -/
+    rw [← (sequence φ x₀ k₀).2 n n (add_zero n) (by omega),
+      δ_v (-1) 0 (neg_add_cancel 1) _ n n (by omega) (n - 1) (n + 1) rfl (by omega),
+      δ_v (-1) 0 (neg_add_cancel 1) _ n n (by omega) (n - 1) (n + 1) rfl (by omega),
+      limitSequence_eqUpTo φ hφ x₀ k₀ n (n - 1) (by omega) (by omega),
+      limitSequence_eqUpTo φ hφ x₀ k₀ (n + 1) n (by omega) (by omega)]
 
 instance (K : CochainComplex C ℕ) [∀ n, Injective (K.X n)] :
     IsKInjective (K.extend ComplexShape.embeddingUpNat) :=
