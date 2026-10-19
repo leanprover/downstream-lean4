@@ -11,6 +11,7 @@ import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
 import CslibTests.DFA
+import CslibTests.DiffieHellman
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
 import CslibTests.HML
@@ -31,6 +32,7 @@ import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
+import CslibTests.QueryComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
 import CslibTests.Synthesis

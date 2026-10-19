@@ -7,7 +7,7 @@ import VersoBlog
 
 open Verso Genre Blog ArgParse Doc Elab
 open Verso.Genre Blog Theme Template
-open Verso.Output Html
+open Verso.Output.Html
 
 namespace Verso.Web.Components
 

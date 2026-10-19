@@ -7,6 +7,12 @@ import UnicodeBasic.CharacterDatabase
 import UnicodeBasic.Hangul
 public import UnicodeBasic.Types
 
+/-! # Table lookups
+
+The functions in this module are not part of the public API and may change at
+any time. Use the functions in `UnicodeBasic` instead.
+-/
+
 namespace Unicode
 
 namespace CLib
@@ -39,35 +45,38 @@ private partial def find (c : UInt32) (t : USize → UInt32) (lo hi : USize) : U
     find c t mid hi
 
 /-- Parse a simple table -/
-private def parseTable (s : String) (f : UInt32 → Array String.Slice → α) : Thunk <| Array (UInt32 × α) := Id.run do
-  let mut r := #[]
-  let mut stream := UCDStream.ofString s
-  for record in stream do
-    let start := ofHexString! record[0]!
-    let val := f start record[1:]
-    r := r.push (start, val)
-  return r
+private def parseTable (s : String) (f : UInt32 → Array String.Slice → α) : Thunk <| Array (UInt32 × α) :=
+  .mk fun _ => Id.run do
+    let mut r := #[]
+    let mut stream := UCDStream.ofString s
+    for record in stream do
+      let start := ofHexString! record[0]!
+      let val := f start record[1:]
+      r := r.push (start, val)
+    return r
 
 /-- Parse a range compressed data table -/
-private def parseDataTable (s : String) (f : UInt32 → UInt32 → Array String.Slice → α) : Thunk <| Array (UInt32 × UInt32 × α) := Id.run do
-  let mut r := #[]
-  let mut stream := UCDStream.ofString s
-  for record in stream do
-    let start := ofHexString! record[0]!
-    let stop := if record[1]!.isEmpty then start else ofHexString! record[1]!
-    let val := f start stop record[2:]
-    r := r.push (start, stop, val)
-  return r
+private def parseDataTable (s : String) (f : UInt32 → UInt32 → Array String.Slice → α) : Thunk <| Array (UInt32 × UInt32 × α) :=
+  .mk fun _ => Id.run do
+    let mut r := #[]
+    let mut stream := UCDStream.ofString s
+    for record in stream do
+      let start := ofHexString! record[0]!
+      let stop := if record[1]!.isEmpty then start else ofHexString! record[1]!
+      let val := f start stop record[2:]
+      r := r.push (start, stop, val)
+    return r
 
 /-- Parse a range compressed property table -/
-private def parsePropTable (s : String) : Thunk <| Array (UInt32 × UInt32) := Id.run do
-  let mut r := #[]
-  let mut stream := UCDStream.ofString s
-  for record in stream do
-    let start := ofHexString! record[0]!
-    let stop := if record[1]!.isEmpty then start else ofHexString! record[1]!
-    r := r.push (start, stop)
-  return r
+private def parsePropTable (s : String) : Thunk <| Array (UInt32 × UInt32) :=
+  .mk fun _ => Id.run do
+    let mut r := #[]
+    let mut stream := UCDStream.ofString s
+    for record in stream do
+      let start := ofHexString! record[0]!
+      let stop := if record[1]!.isEmpty then start else ofHexString! record[1]!
+      r := r.push (start, stop)
+    return r
 
 /-- Get bidirectional class using lookup table
 
@@ -119,21 +128,18 @@ where
 
 /-- Get simple and full case foldings of a code point using lookup table
 
+  Returns `(s, f)` where `s` is the simple case folding, or `none` if the code
+  point folds to itself, and `f` is the full case folding, or `[]` if it agrees
+  with the simple case folding.
+
   Unicode properties:
     `Case_Folding`
     `Simple_Case_Folding` -/
-public def lookupCaseFolding (c : UInt32) : UInt32 × List UInt32 :=
+public def lookupCaseFolding (c : UInt32) : Option UInt32 × List UInt32 :=
   let t := table.get
-  if c < t[0]!.1 then (c, [c]) else
+  if c < t[0]!.1 then (none, []) else
     match t[find c (fun i => t[i]!.1) 0 t.size.toUSize]! with
-    | (c', s, f) =>
-      if c == c' then
-        let s := s.getD c
-        if f.isEmpty then
-          (s, [s])
-        else
-          (s, f)
-      else (c, [c])
+    | (c', v) => if c == c' then v else (none, [])
 where
   str : String := include_str "../data/Case_Folding.txt"
   table : Thunk <| Array (UInt32 × Option UInt32 × List UInt32) :=
@@ -148,6 +154,7 @@ where
     `Simple_Lowercase_Mapping`
     `Simple_Uppercase_Mapping`
     `Simple_Titlecase_Mapping` -/
+@[inline]
 public def lookupCaseMapping (c : UInt32) : UInt32 × UInt32 × UInt32 :=
   let v : UInt64 := CLib.lookupCase c
   if v == 0 then (c, c, c) else
@@ -155,6 +162,29 @@ public def lookupCaseMapping (c : UInt32) : UInt32 × UInt32 × UInt32 :=
     let cl : UInt32 := (v >>> 21).toUInt32 &&& 0x001FFFFF
     let ct : UInt32 := (v >>> 42).toUInt32 &&& 0x001FFFFF
     (cu, cl, ct)
+
+/-- Get full case mappings of a code point using lookup table
+
+  Returns `(l, t, u)` where `l` is the full lowercase mapping, or `[]` if it
+  agrees with the simple lowercase mapping, and similarly `t` for titlecase and
+  `u` for uppercase. Only unconditional mappings are included.
+
+  Unicode properties:
+    `Lowercase_Mapping`
+    `Titlecase_Mapping`
+    `Uppercase_Mapping` -/
+public def lookupSpecialCasing (c : UInt32) : List UInt32 × List UInt32 × List UInt32 :=
+  let t := table.get
+  if c < t[0]!.1 then ([], [], []) else
+    match t[find c (fun i => t[i]!.1) 0 t.size.toUSize]! with
+    | (c', v) => if c == c' then v else ([], [], [])
+where
+  str : String := include_str "../data/Special_Casing.txt"
+  table : Thunk <| Array (UInt32 × List UInt32 × List UInt32 × List UInt32) :=
+    parseTable str fun _ x =>
+      let parse (s : String.Slice) : List UInt32 :=
+        if s.isEmpty then [] else s.split " " |>.toList.map ofHexString!
+      (parse x[0]!, parse x[1]!, parse x[2]!)
 
 /-- Get decomposition mapping using lookup table
 
@@ -172,14 +202,10 @@ public def lookupDecompositionMapping? (c : UInt32) : Option DecompositionMappin
     let table := table.get
     if c < table[0]!.1 then none else
       match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-      | (v, t, l) =>
-        if c == v then
-          some <| .mk t (l.map fun c => Char.ofNat c.toNat).toList
-        else
-          none
+      | (v, m) => if c == v then m else none
 where
   str : String := include_str "../data/Decomposition_Mapping.txt"
-  table : Thunk <| Array (UInt32 × Option CompatibilityTag × Array UInt32) :=
+  table : Thunk <| Array (UInt32 × Option DecompositionMapping) :=
     parseTable str fun _ x =>
       let tag :=
         if x[0]! == "" then none
@@ -200,7 +226,7 @@ where
         else if x[0]! == "<fraction>" then some .fraction
         else if x[0]! == "<compat>" then some .compat
         else panic! s!"invalid compatibility tag {x[0]!.copy}"
-      (tag, x[1:].toArray.map ofHexString!)
+      some ⟨tag, x[1:].toArray.toList.map fun s => Char.ofNat (ofHexString! s).toNat⟩
 
 /-- Get general category of a code point using lookup table
 
@@ -218,25 +244,27 @@ public def lookupName (c : UInt32) : String :=
     | (_, v, d) =>
       if c ≤ v then
         if Char.ofUInt8 (d.getUTF8Byte! 0) == '<' then
-          if d == "<Control>" then
+          if d == "<control>" then
             s!"<control-{toHexStringRaw c}>"
-          else if d == "<Private Use>" then
+          else if d == "<private use>" then
             s!"<private-use-{toHexStringRaw c}>"
-          else if d == "<Reserved>" then
-            s!"<reserved-{toHexStringRaw c}>"
-          else if d == "<Surrogate>" then
+          else if d == "<noncharacter>" then
+            s!"<noncharacter-{toHexStringRaw c}>"
+          else if d == "<surrogate>" then
             s!"<surrogate-{toHexStringRaw c}>"
-          else if d == "<CJK Unified Ideograph>" then
+          else if d == "<cjk unified ideograph>" then
             "CJK UNIFIED IDEOGRAPH-" ++ toHexStringRaw c
-          else if d == "<CJK Compatibility Ideograph>" then
+          else if d == "<cjk compatibility ideograph>" then
             "CJK COMPATIBILITY IDEOGRAPH-" ++ toHexStringRaw c
-          else if d == "<Hangul Syllable>" then
+          else if d == "<hangul syllable>" then
             "HANGUL SYLLABLE " ++ (Hangul.getSyllable! c).getShortName
-          else if d == "<Khitan Small Script Character>" then
+          else if d == "<khitan small script character>" then
             "KHITAN SMALL SCRIPT CHARACTER-" ++ toHexStringRaw c
-          else if d == "<Nushu Character>" then
+          else if d == "<egyptian hieroglyph>" then
+            "EGYPTIAN HIEROGLYPH-" ++ toHexStringRaw c
+          else if d == "<nushu character>" then
             "NUSHU CHARACTER-" ++ toHexStringRaw c
-          else if d == "<Tangut Component>" then
+          else if d == "<tangut component>" then
             let i := if c.toNat < 0x18B00 then
                 -- Tangut Component
                 toString <| c.toNat - 0x18800 + 1
@@ -248,11 +276,15 @@ public def lookupName (c : UInt32) : String :=
               else if i.length == 2 then "0" ++ i
               else i
             "TANGUT COMPONENT-" ++ i
-          else if d == "<Tangut Ideograph>" then
+          else if d == "<tangut ideograph>" then
             "TANGUT IDEOGRAPH-" ++ toHexStringRaw c
+          else if d == "<jurchen character>" then
+            "JURCHEN CHARACTER-" ++ toHexStringRaw c
+          else if d == "<seal character>" then
+            "SMALL SEAL CHARACTER-" ++ toHexStringRaw c
           else panic! s!"unknown name range {d.copy}"
         else String.Slice.copy d
-      else s!"<noncharacter-{toHexStringRaw c}>"
+      else s!"<reserved-{toHexStringRaw c}>"
 where
   str : String := include_str "../data/Name.txt"
   table : Thunk <| Array (UInt32 × UInt32 × String.Slice) :=
@@ -375,7 +407,7 @@ public def lookupMath (c : UInt32) : Bool :=
   let m := CLib.oMath ||| GC.Sm.toUInt64
   CLib.lookupProp c &&& m != 0
 
-/-- Check if code point is a noncharcter code point
+/-- Check if code point is a noncharacter code point
 
   Unicode property: `Noncharacter_Code_Point` -/
 @[inline]
@@ -389,7 +421,7 @@ public def lookupNoncharacterCodePoint (c : UInt32) : Bool :=
 public def lookupTitlecase (c : UInt32) : Bool :=
   lookupGC c == GC.Lt
 
-/-- Check if code point is a uppercase letter using lookup table
+/-- Check if code point is an uppercase letter using lookup table
 
   Unicode property: `Uppercase` -/
 @[inline]
@@ -418,11 +450,28 @@ public def lookupScript (c : UInt32) : Script := CLib.lookupScript c
 /-- Get the name of a script
 
   Unicode property: `Script` -/
-public def lookupScriptName (s : Script) : Option String.Slice :=
+public def lookupScriptName (s : Script) : Option String :=
   let table := table.get
   if s.code < table[0]!.1 then none else
     match table[find s.code (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (c, v) => if s.code = c then some v else none
+    | (c, v) => if s.code = c then v else none
 where
   str : String := include_str "../data/Script_Name.txt"
-  table : Thunk <| Array (UInt32 × String.Slice) := parseTable str fun _ n => n[0]!
+  table : Thunk <| Array (UInt32 × Option String) := parseTable str fun _ n => some n[0]!.copy
+
+/-- Get the set of scripts a code point is commonly used with, using lookup table
+
+  Unicode property: `Script_Extensions` -/
+public def lookupScriptSet (c : UInt32) : ScriptSet :=
+  let table := table.get
+  if c < table[0]!.1 then ⟨#[lookupScript c], rfl⟩ else
+    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
+    | (_, c₁, v) => if c ≤ c₁ then v else ⟨#[lookupScript c], rfl⟩
+where
+  str : String := include_str "../data/Script_Extensions.txt"
+  table : Thunk <| Array (UInt32 × UInt32 × ScriptSet) :=
+    parseDataTable str fun _ _ x =>
+      let a := x[0]!.split ' ' |>.toArray.map fun s =>
+        let s := ofHexString! s
+        if h : Script.isValid s then ⟨s, h⟩ else panic! "invalid script code"
+      if h : ScriptSet.isSorted a then ⟨a, h⟩ else panic! "unsorted script set"

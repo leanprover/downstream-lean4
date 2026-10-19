@@ -157,11 +157,6 @@ instance : Inhabited Tag where
 instance : ToString Tag where
   toString := toString ∘ repr
 
-instance : Coe String Tag where
-  coe := .provided
-
-
-
 /-- When rendering multi-page HTML, should splitting pages follow the depth setting? -/
 inductive HtmlSplitMode where
   | /-- Follow the main setting -/ default
@@ -429,7 +424,7 @@ def freshTag [Monad m] [MonadStateOf TraverseState m] (hint : String) (id : Inte
   let mut numPart : Option Nat := none
   repeat
     let attempt := tagStr strPart numPart
-    if (← get).tags.contains  attempt then
+    if (← get).tags.contains (Tag.internal attempt) then
       numPart := some <| numPart.map (· + 1) |>.getD 0
     else break
   let tag := tagStr strPart numPart
@@ -1601,10 +1596,10 @@ def permalink (id : InternalId) (st : TraverseState) (inline : Bool := true) : H
     -- The names may contain characters with meaning in URLs, such as spaces or ampersands.
     let domain := System.Uri.escapeUri (toString domain)
     let canonicalName := System.Uri.escapeUri canonicalName
-    {{<span class={{classes}}>
-        <a href=s!"/find/?domain={domain}&name={canonicalName}" title="Permalink">"🔗"</a>
+    html%{<span class={classes}>
+        <a href={s!"/find/?domain={domain}&name={canonicalName}"} title="Permalink">🔗</a>
       </span>
-    }}
+    }
 
 
 open Verso.Output.Html in
