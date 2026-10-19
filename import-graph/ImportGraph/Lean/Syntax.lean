@@ -6,7 +6,7 @@ Authors: Thomas R. Murrills
 module
 
 public import Lean.Syntax
-
+public import Lean.Fmt.Util.Basic -- for `SourceInfo.getLeading?`
 import all Lean.Syntax -- We use `all` to access `updateLeadingAux`.
 
 public section
@@ -24,11 +24,6 @@ def Syntax.updateLeadingPreservingStart : Syntax → Syntax :=
 exists (instead of setting it to `0`). See the docstring of `updateLeading` for more details. -/
 def TSyntax.updateLeadingPreservingStart {ks} (stx : TSyntax ks) : TSyntax ks :=
   ⟨stx.raw.updateLeadingPreservingStart⟩
-
-/-- Gets the leading whitespace of `.original` `SourceInfo`, or `none` if not `.original`. -/
-def SourceInfo.getLeading? : SourceInfo → Option Substring.Raw
-  | .original (leading := leading) .. => leading
-  | _ => none
 
 /-- Gets the leading whitespace of `.original` `SourceInfo`, or the empty substring if not
 `.original`. -/
