@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   upload-cache:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
@@ -84,7 +84,7 @@ jobs:
             --repo "${{ github.repository }}" --add-label cache-available
 
   update-statuses:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' }}
     runs-on: ubuntu-slim
@@ -111,7 +111,7 @@ jobs:
           target-url: ${{ github.event.workflow_run.html_url }}
 
   post-report-pr:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -191,7 +191,7 @@ jobs:
           repost: true
 
   post-report-zulip:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
@@ -323,7 +323,7 @@ jobs:
           content: ${{ steps.breakage-report-cslib.outputs.report }}
 
   update-branches:
-    if: |
+    if: |-
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' }}
