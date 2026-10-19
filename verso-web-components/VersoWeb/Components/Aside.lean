@@ -7,7 +7,8 @@ import VersoWeb.Components.Icon
 
 namespace Verso.Web.Components
 
-open Verso Output Html Genre Blog
+open Lean (Html)
+open Verso Output.Html Genre Blog
 
 /--
 The `aside` component is used to create a sidebar with a title and content.

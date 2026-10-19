@@ -76,7 +76,7 @@ Field names not used by Lake should not be used to store metadata to be processe
 
 ## Package Configuration
 
-The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
+The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], and compiler flags to be used for all {tech}[targets].
 The only mandatory field is `name`, which declares the package's name.
 
 :::::tomlTableDocs root "Package Configuration" Lake.PackageConfig (skip := backend) (skip := releaseRepo?) (skip := buildArchive?) (skip := manifestFile) (skip := moreServerArgs) (skip := dynlibs) (skip := plugins)
@@ -110,6 +110,7 @@ The code that is run to perform tests and linting is referred to as the test or 
 In Lean configuration files, these can be specified by applying the `@[test_driver]` or `@[lint_driver]` attributes to a {tech}[Lake script] or an executable or library target.
 In both Lean and TOML configuration files, they can also be configured by setting these options.
 A target or script `TGT` from a dependency `PKG` can be specified as a test or lint driver using the string `"PKG/TGT"`
+Setting {tomlField Lake.PackageConfig}`builtinLint` to {lean}`true` causes {lake}`lint` to also run {ref "running-lake-lint"}[Lean's built-in linters], and {tomlField Lake.PackageConfig}`checks` lists the modules that provide {ref "package-code-quality-checks"}[package code quality checks].
 
 :::
 

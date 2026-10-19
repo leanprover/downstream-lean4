@@ -7,7 +7,8 @@ import Verso.Doc.Html
 import VersoBlog
 import VersoWeb.Util
 
-open Verso Genre Blog Template Output Html
+open Lean (Html)
+open Verso Genre Blog Template Output.Html
 
 namespace Verso.Web.Theme
 

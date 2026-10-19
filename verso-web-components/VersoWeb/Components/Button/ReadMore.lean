@@ -9,7 +9,8 @@ import VersoWeb.Components.Icon
 
 namespace Verso.Web.Components
 
-open Verso Output Html Genre Blog Template
+open Lean (Html)
+open Verso Output.Html Genre Blog Template
 
 namespace Button
 

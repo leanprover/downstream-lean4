@@ -75,7 +75,9 @@ def main() -> None:
         metavar=("PATTERN", "REPLACEMENT"),
         help="""
         replace a regex in all lakefiles (can be given multiple times).
-        '<REPO sha>' in the replacement is replaced by REPO's last known sha
+        '<REPO sha>' in the replacement is replaced by REPO's last known sha,
+        '<REPO FIELD>' by FIELD (source_url, source_rev, target_url, target_rev)
+        from REPO's entry in repos.toml
         """,
     )
     parser.add_argument(

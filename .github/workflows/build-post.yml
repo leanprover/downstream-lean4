@@ -373,6 +373,14 @@ jobs:
           branch: green
           sha: ${{ github.event.workflow_run.head_sha }}
 
+      - name: Tag first-green-nightly-YYYY-MM-DD
+        uses: ./.github/actions/create-tag
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          repo: ${{ github.repository }}
+          tag: first-green-${{ steps.nightly.outputs.nightly }}
+          sha: ${{ github.event.workflow_run.head_sha }}
+
       - name: Determine current date
         id: current-date
         run: echo "day=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"

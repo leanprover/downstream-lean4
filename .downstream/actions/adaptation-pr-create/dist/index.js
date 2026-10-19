@@ -25231,7 +25231,8 @@ async function getBranch(repo, branch) {
 async function ensureCorrectMergeBase(prefix, uPr, uBranch) {
   const { data: mergeBase } = await octo.rest.repos.compareCommits({
     ...upstreamRepo,
-    base: uPr.base.sha,
+    // We assume here that uBranch lies on the repo's default branch.
+    base: uPr.base.repo.default_branch,
     head: uPr.head.sha
   });
   const uBranchSha = uBranch.commit.sha;
