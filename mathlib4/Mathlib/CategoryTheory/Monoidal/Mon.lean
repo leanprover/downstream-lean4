@@ -1096,6 +1096,9 @@ def laxMonoidalToMon : LaxMonoidalFunctor (Discrete PUnit.{w + 1}) C ⥤ Mon C w
 def monToLaxMonoidalObj (A : Mon C) :
     Discrete PUnit.{w + 1} ⥤ C := (Functor.const _).obj A.X
 
+attribute [nolint simpNF] monToLaxMonoidalObj_map
+  AddMon.EquivLaxMonoidalFunctorPUnit.addMonToLaxMonoidalObj_map
+
 set_option backward.defeqAttrib.useBackward true in
 @[to_additive]
 instance (A : Mon C) : (monToLaxMonoidalObj A).LaxMonoidal where
@@ -1193,6 +1196,8 @@ def equivLaxMonoidalFunctorPUnit : LaxMonoidalFunctor (Discrete PUnit.{w + 1}) C
   unitIso := unitIso C
   counitIso := counitIso C
 
+attribute [nolint simpNF] equivLaxMonoidalFunctorPUnit_inverse_obj_map
+AddMon.equivLaxMonoidalFunctorPUnit_inverse_obj_map
 end Mon
 
 section
