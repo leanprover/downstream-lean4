@@ -7,8 +7,9 @@ import testmodule
 # TODO: Generate `__all__` automatically from Nerodia and check it
 exports = [x for x in dir(testmodule) if not x.startswith('__')]
 expected = [
-  "addBit", "alwaysRaise", "countbytes", "greet", "greet2",
-  "greetUser", "greeting", "greeting_for", "my_add", "setUser"
+  "addBit", "alwaysRaise", "bnot", "countbytes", "encodeUTF8", "greet", "greet2",
+  "greetUser", "greeting", "greeting_for", "my_add", "optToNat", "setUser",
+  "tripleAdd"
 ]
 assert exports == expected, exports
 
@@ -19,10 +20,19 @@ assert testmodule.my_add.__doc__ == "Add two integers using Lean."
 assert testmodule.my_add(-13, 42) == 29
 
 assert testmodule.addBit.__doc__ is None
-
 assert testmodule.addBit(42, 1) == 43
 
 assert testmodule.countbytes(b'ab') == 2
+assert testmodule.encodeUTF8('ab') == b'ab'
+
+assert testmodule.tripleAdd(1, -1, 1) == 1
+
+assert testmodule.bnot(True) is False
+assert testmodule.bnot(False) is True
+
+assert testmodule.optToNat(None) is None
+assert testmodule.optToNat("1") == 1
+assert testmodule.optToNat("hi") is None
 
 assert testmodule.greet() == "Olá!"
 
@@ -69,6 +79,36 @@ try:
   raise AssertionError('expected ValueError')
 except ValueError as e:
   assert str(e) == "testmodule.addBit() argument 2 must be less than 2, got 3"
+
+try:
+  testmodule.bnot(0) # type: ignore[ty:invalid-argument-type]
+  raise AssertionError('expected TypeError')
+except TypeError as e:
+  assert str(e) == "testmodule.bnot() argument 1 must be bool, got int"
+
+try:
+  testmodule.optToNat(0) # type: ignore[ty:invalid-argument-type]
+  raise AssertionError('expected TypeError')
+except TypeError as e:
+  assert str(e) == "testmodule.optToNat() argument 1 must be str, got int"
+
+try:
+  testmodule.tripleAdd(-1, 1, -1)
+  raise AssertionError('expected ValueError')
+except ValueError as e:
+  assert str(e) == "testmodule.tripleAdd() argument 1 must fit within an 8-bit unsigned integer, got -1"
+
+try:
+  testmodule.tripleAdd(0, -2**32, 0)
+  raise AssertionError('expected ValueError')
+except ValueError as e:
+  assert str(e) == "testmodule.tripleAdd() argument 2 must fit within a 32-bit signed integer, got -4294967296"
+
+try:
+  testmodule.tripleAdd(0, 0, 2**64)
+  raise AssertionError('expected ValueError')
+except ValueError as e:
+  assert str(e) == "testmodule.tripleAdd() argument 3 must fit within an unsigned word, got 18446744073709551616"
 
 try:
   testmodule.countbytes(0) # type: ignore[ty:invalid-argument-type]

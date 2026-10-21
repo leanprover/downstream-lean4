@@ -9,6 +9,10 @@ concurrency:
   group: update-subrepos
   cancel-in-progress: false
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   main:
     runs-on: ubuntu-slim

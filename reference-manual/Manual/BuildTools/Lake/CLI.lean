@@ -196,7 +196,7 @@ The following variables are augmented with additional information:
 Lake itself can be configured with the following environment variables:
 :::table (align := left) -header
 *
-  * {envVar +def}`ELAN_HOME`
+  * {envVar}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
 *
@@ -553,7 +553,7 @@ Module targets may also be specified by their filename, with an optional facet a
 The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
 
-When using the {ref "lake-cache"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
+When using the {ref "lake-cache-local"}[local artifact cache], the {lakeOptDef option}`-o` option saves a {tech}[mappings file] that tracks the inputs and outputs of each step in the build.
 The mappings file describes the targets from one package that are included in the build, restricted to the {tech}[root package] by default.
 Targets that were already up to date are included in the mappings file.
 The {lakeOptDef option}`--package` option causes the named package's targets to be written to the mappings file instead of the root package's targets, which makes it possible to upload build outputs for a dependency.
@@ -756,6 +756,16 @@ OPTIONS:
   --keep-public         Preserve all `public` imports for API stability
   --add-public          Add new imports as `public` if they were in the
                         original public closure
+  --add-downstream <MODULE>
+                        Add the module as an `import` to every checked
+                        module that does not reach it yet, except where
+                        that would create an import cycle
+  --add-public-downstream <MODULE>
+                        Like `--add-downstream`, but add the module as a
+                        `public import` wherever it is not reached through
+                        public imports yet. As these are passed on to
+                        importing modules, this adds far fewer imports.
+                        Only one of these two options can be used, once
   --explain             Show which constants require each import
   --fix                 Apply suggested fixes directly to source files
   --gh-style            Output in GitHub problem matcher format
@@ -817,6 +827,16 @@ The {lakeMeta}`options` may be:
 : `--add-public`
 
   Add new imports as `public` if they were in the original public closure
+
+: `--add-downstream <MODULE>`
+
+  Add the module as an `import` to every checked module that does not reach it yet, except where that would create an import cycle
+
+: `--add-public-downstream <MODULE>`
+
+  Like `--add-downstream`, but add the module as a `public import` wherever it is not reached through public imports yet.
+  As these are passed on to importing modules, this adds far fewer imports.
+  Only one of these two options can be used, once
 
 : `--explain`
 
@@ -894,7 +914,8 @@ CONFIGURATION:
 
   `challenge_module`, `solution_module`, `theorem_names` and
   `permitted_axioms` are required; the rest may be omitted.
-  `definition_names` lists the challenge's definition holes.
+  `definition_names` lists the challenge's definition holes, each of which the
+  challenge has to define as `sorry`.
   `permitted_axioms` is deliberately not defaulted: it is what the verdict
   means, so the challenge author states it. The three above are the ones
   `#print axioms` treats as a clean proof.
@@ -1235,7 +1256,7 @@ Builtin linting builds the targeted modules with the requested linter options en
 It is triggered by {lakeOpt}`--builtin-lint`, {lakeOpt}`--builtin-only`, {lakeOpt}`--linters`, or {lakeOpt}`--lint-only`, as well as by setting `builtinLint` to {name}`true` in the package configuration.
 By contrast, running the lint driver does not automatically trigger a build of anything but the lint driver itself.
 
-The set of environment linters to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
+The set of {tech}[environment linters] to be run on a declaration is determined by the linter options that were in effect when that declaration was built, whether they were set by `set_option` in the source or on the command line.
 Both {lakeOpt}`--linters` and {lakeOpt}`--lint-only` override those options for the lint build.
 
 The {lakeMeta}`options` may be:
@@ -1364,7 +1385,7 @@ Open the output file in Firefox Profiler at https://profiler.firefox.com/from-fi
 
 Builds the executable target {lakeMeta}`exe-target` and runs it under the `samply` profiler.
 The resulting profile is post-processed to resolve addresses and the internal C symbol names generated by the Lean compiler (referred to as {deftech}_mangled_ names), replacing them with their original names in the source code.
-This profile is saved as a FireFox Profiler JSON file, and `samply` serves it using [the Firefox Profiler](https://profiler.firefox.com/from-file/).
+This profile is saved as a Firefox Profiler JSON file, and `samply` serves it using [the Firefox Profiler](https://profiler.firefox.com/from-file/).
 
 See {lake}`build` for the syntax of target specifications.
 
@@ -1376,7 +1397,7 @@ The {lakeMeta}`options` may be:
 
 : {lakeOptDef option}`-o` {lakeMeta}`file`
 
-  Writse the profile to {lakeMeta}`file` instead of `./profile-demangled.json.gz`.
+  Writes the profile to {lakeMeta}`file` instead of `./profile-demangled.json.gz`.
 
 : {lakeOptDef flag}`--raw`
 
@@ -1563,7 +1584,7 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 # Local Caches
 
 {lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
-These commands are *experimental*, and are only useful if the {ref "lake-cache"}[local cache] is enabled.
+These commands are *experimental*, and are only useful if the {ref "lake-cache-local"}[local cache] is enabled.
 
 These commands can be configured to use a {deftech}[cache scope], which is a server-specific identifier for a set of build outputs for a package.
 On Reservoir, scopes are currently identical with GitHub repositories, but may include toolchain and platform information in the future.

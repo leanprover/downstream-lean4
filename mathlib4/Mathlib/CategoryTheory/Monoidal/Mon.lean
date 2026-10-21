@@ -6,9 +6,9 @@ Authors: Kim Morrison
 module
 
 public import Mathlib.Algebra.Group.PUnit
+public import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 public import Mathlib.CategoryTheory.Monoidal.Braided.Basic
 public import Mathlib.CategoryTheory.Monoidal.CoherenceLemmas
-public import Mathlib.CategoryTheory.Limits.Shapes.Terminal
 
 
 /-!
@@ -101,7 +101,7 @@ variable {M X Y : C} [MonObj M]
 @[inherit_doc] scoped notation "η" => MonObj.one
 @[inherit_doc] scoped notation "η[" M "]" => MonObj.one (X := M)
 
-set_option linter.translateOverwrite false in
+set_option linter.translate.overwrite false in
 attribute [to_additive existing (attr := reassoc (attr := simp))] one_mul mul_one mul_assoc
 
 /-- Transfer `MonObj` along an isomorphism. -/
@@ -213,7 +213,7 @@ class IsMonHom (f : M ⟶ N) : Prop where
   one_hom (f) : η ≫ f = η := by cat_disch
   mul_hom (f) : μ ≫ f = (f ⊗ₘ f) ≫ μ := by cat_disch
 
-set_option linter.translateOverwrite false in
+set_option linter.translate.overwrite false in
 attribute [to_additive existing (attr := reassoc (attr := simp))] IsMonHom.one_hom IsMonHom.mul_hom
 
 @[to_additive]
@@ -612,7 +612,7 @@ instance {M N : Mon C} {f : M ⟶ N} [IsIso f] : IsIso f.hom :=
 
 /-- Construct an isomorphism of monoid objects by giving a monoid isomorphism between the underlying
 objects. -/
-@[to_additive (attr := simps)
+@[to_additive (attr := simps, implicit_reducible)
 /-- Construct an isomorphism of additive monoid objects by giving a additive monoid
 isomorphism between the underlying objects. -/]
 def mkIso' {M N : C} [MonObj M] [MonObj N] (e : M ≅ N) [IsMonHom e.hom] : mk M ≅ mk N where
@@ -1096,6 +1096,9 @@ def laxMonoidalToMon : LaxMonoidalFunctor (Discrete PUnit.{w + 1}) C ⥤ Mon C w
 def monToLaxMonoidalObj (A : Mon C) :
     Discrete PUnit.{w + 1} ⥤ C := (Functor.const _).obj A.X
 
+attribute [nolint simpNF] monToLaxMonoidalObj_map
+  AddMon.EquivLaxMonoidalFunctorPUnit.addMonToLaxMonoidalObj_map
+
 set_option backward.defeqAttrib.useBackward true in
 @[to_additive]
 instance (A : Mon C) : (monToLaxMonoidalObj A).LaxMonoidal where
@@ -1193,6 +1196,8 @@ def equivLaxMonoidalFunctorPUnit : LaxMonoidalFunctor (Discrete PUnit.{w + 1}) C
   unitIso := unitIso C
   counitIso := counitIso C
 
+attribute [nolint simpNF] equivLaxMonoidalFunctorPUnit_inverse_obj_map
+AddMon.equivLaxMonoidalFunctorPUnit_inverse_obj_map
 end Mon
 
 section

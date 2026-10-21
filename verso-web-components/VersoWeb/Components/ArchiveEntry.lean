@@ -10,7 +10,8 @@ import VersoWeb.Util
 
 namespace Verso.Web.Components
 
-open Verso.Output Html
+open Lean (Html)
+open Verso.Output.Html
 open Verso.Genre.Blog Template
 
 /--
@@ -19,7 +20,7 @@ Render the metadata section (authors and date)
 private def renderArchiveMetadata (md : Post.PartMetadata) : Html :=
   {{
     <div class="metadata">
-      {{md.authors.map ({{<div class="author">{{Html.text true ·}}</div>}}) |>.toArray}}
+      {{md.authors.map ({{<div class="author">{{Html.text ·}}</div>}}) |>.toArray}}
       <div class="date">
         {{md.date.toIso8601String}}
       </div>

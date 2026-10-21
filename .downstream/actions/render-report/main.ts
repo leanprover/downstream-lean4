@@ -3,19 +3,20 @@ import * as fs from "node:fs/promises";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { getInput, getInputOpt } from "../lib/input";
 import type {
   BuildReport,
   BuildReportPhase,
   BuildReportRepo,
   StatusReport,
 } from "../lib/reports";
-import { abort, assert, getInput, getInputOpt } from "../lib/util";
+import { abort, assert } from "../lib/util";
 
 const buildReportPath = getInput("build-report-path");
 const statusReportPath = getInputOpt("status-report-path");
-const reportType = parseReportType(getInput("report-type"));
-const reportStyle = parseReportStyle(getInput("report-style"));
-const limitedTo = parseLimitedTo(getInputOpt("limited-to"));
+const reportType = getInput("report-type", parseReportType);
+const reportStyle = getInput("report-style", parseReportStyle);
+const limitedTo = getInputOpt("limited-to", parseLimitedTo);
 const runId = getInputOpt("run-id") ?? String(github.context.runId);
 const runAttempt =
   getInputOpt("run-attempt") ?? String(github.context.runAttempt);
@@ -47,11 +48,19 @@ function parseLimitedTo(value: string | null): Set<string> | null {
   );
 }
 
-function status(phase: BuildReportPhase): string {
+function renderDuration(duration: number): string {
+  duration = Math.round(duration);
+  const minutes = Math.floor(duration / 60);
+  const seconds = duration - minutes * 60;
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function status(phase: BuildReportPhase, blockedBy: string[] = []): string {
+  if (blockedBy.length > 0) return `🛑 by ${blockedBy.join(", ")}`;
   if (phase.success === null) return "⏭️";
   const icon = phase.success ? "✅" : "🟥";
   if (phase.duration === null) return icon;
-  return `${icon} in ${Math.round(phase.duration)}s`;
+  return `${icon} in ${renderDuration(phase.duration)}`;
 }
 
 function renderTable(repos: BuildReportRepo[]): string[] {
@@ -62,7 +71,7 @@ function renderTable(repos: BuildReportRepo[]): string[] {
 
   for (const repo of repos) {
     const critical = repo.critical ? "✅" : "";
-    const build = status(repo.build);
+    const build = status(repo.build, repo.blocked_by);
     const test = status(repo.test);
     const lint = status(repo.lint);
     lines.push(`| ${repo.name} | ${critical} | ${build} | ${test} | ${lint} |`);

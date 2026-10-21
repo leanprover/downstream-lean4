@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import { getOctokit } from "@actions/github";
 import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
+import * as path from "node:path";
 
 export type Octokit = ReturnType<typeof getOctokit>;
 export type Pr = Response<Octokit["rest"]["pulls"]["get"]>;
@@ -11,8 +12,14 @@ export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function exit(reason: string): never {
-  core.info(`Exiting: ${reason}`);
+export function exit(
+  reason: string,
+  level: "info" | "notice" | "warning" = "info",
+): never {
+  if (level === "warning") core.warning(reason);
+  else if (level === "notice") core.notice(reason);
+  else core.info(reason);
+
   process.exit(0);
 }
 
@@ -25,28 +32,56 @@ export function assert(condition: boolean, message: string): asserts condition {
   if (!condition) abort(message);
 }
 
-export function getInput(name: string): string {
-  return core.getInput(name, { required: true });
+export function unreachable(value: never): never {
+  abort(`Unreachable code reached with value: ${JSON.stringify(value)}`);
 }
 
-export function getInputOpt(name: string): string | null {
-  const value = core.getInput(name, { required: false });
-  return value === "" ? null : value;
+// Path to a script in the root of this repo. Relative to the bundled
+// actions/<action>/dist/index.js.
+export function scriptPath(name: string): string {
+  return path.resolve(__dirname, "../../..", name);
 }
 
-export function parseBool(input: string): boolean {
-  return input.trim().toLowerCase() === "true";
+export function runIn(cwd: string) {
+  return async function (
+    cmd: string,
+    args: string[],
+    options?: exec.ExecOptions,
+  ): Promise<number> {
+    return await exec.exec(cmd, args, { ...options, cwd });
+  };
 }
 
-export interface Repo {
-  owner: string;
-  repo: string;
+export function captureIn(cwd: string) {
+  const run = runIn(cwd);
+  return async function (cmd: string, args: string[]): Promise<string> {
+    let stdout = "";
+    await run(cmd, args, {
+      listeners: { stdout: (data) => (stdout += data.toString()) },
+    });
+    return stdout.trim();
+  };
 }
 
-export function parseRepo(input: string): Repo {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
+export class Repo {
+  public readonly owner: string;
+  public readonly repo: string;
+
+  constructor(obj: { owner: string; repo: string });
+  constructor(owner: string, repo: string);
+  constructor(fst: { owner: string; repo: string } | string, repo?: string) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo!;
+    }
+  }
+
+  get fullName(): string {
+    return `${this.owner}/${this.repo}`;
+  }
 }
 
 export async function getPr(octo: Octokit, repo: Repo, n: number): Promise<Pr> {
@@ -72,7 +107,7 @@ export async function isAncestor(
 
 export interface FindPrForOptions {
   state?: "open" | "closed" | "all";
-  headOwner?: string;
+  headRepo?: Repo;
 }
 
 export async function findPrFor(
@@ -81,16 +116,20 @@ export async function findPrFor(
   branchName: string,
   options: FindPrForOptions = {},
 ): Promise<ListPr | undefined> {
-  const { state = "all", headOwner = repo.owner } = options;
+  const { state = "all", headRepo = repo } = options;
+  // The head filter only checks the owner, so PRs from other repos of the same
+  // owner (e.g. a fork owned by the same org) may also match. In practice, this
+  // is unlikely to be a problem, but just to make sure, we check the repo name.
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${headOwner}:${branchName}`,
+    head: `${headRepo.owner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
-    per_page: 1,
+    per_page: 100,
   });
-  return data[0];
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr) => pr.head.repo?.full_name.toLowerCase() === fullName);
 }
 
 export function adaptationBranchNameFor(prNumber: number): string {

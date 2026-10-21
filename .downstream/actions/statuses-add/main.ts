@@ -3,12 +3,13 @@ import * as fs from "node:fs/promises";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { getInput, getInputOpt } from "../lib/input";
 import type {
   BuildReport,
   BuildReportPhase,
   BuildReportRepo,
 } from "../lib/reports";
-import { abort, getInput, getInputOpt } from "../lib/util";
+import { abort } from "../lib/util";
 
 const token = getInput("token");
 const buildReportPath = getInput("build-report-path");

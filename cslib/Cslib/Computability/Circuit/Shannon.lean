@@ -43,11 +43,11 @@ open Filter
 universe v u
 variable {σ : Signature.{v}} {U : Type u}
 
-private theorem exists_card_le_exp [Fintype σ.Op] (I : Interpretation σ U)
+private theorem exists_card_le_exp [Finite σ.Op] (I : Interpretation σ U)
     (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ C : ℝ, ∀ n s : ℕ, n + 1 ≤ s →
       ((computableFunctions I n s).card : ℝ) ≤ Real.exp ((s : ℝ) * Real.log s + C * s) := by
-  let q := Fintype.card σ.Op + 1
+  let q := Nat.card σ.Op + 1
   have hq : 1 ≤ q := Nat.succ_le_succ (Nat.zero_le _)
   refine ⟨Real.log (4 * (q : ℝ)) + 5, fun n s hn => ?_⟩
   let a := (computableFunctions I n s).card
@@ -62,7 +62,7 @@ private theorem exists_card_le_exp [Fintype σ.Op] (I : Interpretation σ U)
       s ≤ (n + s + 1) ^ 2 := by nlinarith [Nat.le_mul_self (n + s + 1)]
       _ ≤ q * (n + s + 1) ^ 2 := by
         simpa only [one_mul] using Nat.mul_le_mul_right ((n + s + 1) ^ 2) hq
-  have hlines (g : ℕ) (hg : g ≤ s) : Fintype.card (Line σ n g) ≤ q * (n + s + 1) ^ 2 :=
+  have hlines (g : ℕ) (hg : g ≤ s) : Nat.card (Line σ n g) ≤ q * (n + s + 1) ^ 2 :=
     (Line.card_le n g 2 arity_le).trans (Nat.mul_le_mul (Nat.le_succ _)
       (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
   have hcount : (a : ℝ) * s.factorial ≤
@@ -85,7 +85,7 @@ private theorem exists_card_le_exp [Fintype σ.Op] (I : Interpretation σ U)
   have hlogs := Real.log_le_self (by positivity : (0 : ℝ) ≤ s)
   nlinarith
 
-private theorem eventually_card_lt [Fintype σ.Op] [Fintype U] [Nontrivial U]
+private theorem eventually_card_lt [Finite σ.Op] [Fintype U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∀ᶠ n : ℕ in atTop, (computableFunctions I n (Fintype.card U ^ n / n)).card <
       Fintype.card U ^ (Fintype.card U ^ n) := by
@@ -128,10 +128,9 @@ private theorem eventually_card_lt [Fintype σ.Op] [Fintype U] [Nontrivial U]
 theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
     (I : Interpretation σ U) (arity_le : ∀ op, σ.Arity op ≤ 2) :
     ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → U) → U,
-      ∀ {g} (c : Circuit σ n g 1),
-        c.Computes I (fun x _ => f x) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
+      ∀ c : Circuit σ n 1,
+        c.Computes I (single f) → (Nat.card U : ℝ) ^ n / n < (c.size : ℝ) := by
   classical
-  let := Fintype.ofFinite σ.Op
   let := Fintype.ofFinite U
   simp only [Nat.card_eq_fintype_card]
   apply eventually_atTop.mp
@@ -139,9 +138,9 @@ theorem exists_hard_function [Finite σ.Op] [Finite U] [Nontrivial U]
   obtain ⟨f, _, hf⟩ := Finset.exists_mem_notMem_of_card_lt_card
     (s := computableFunctions I n (Fintype.card U ^ n / n)) (t := Finset.univ)
     (by simpa only [Fintype.card_fun, Fintype.card_fin, Finset.card_univ] using hn)
-  refine ⟨f, fun {g} c hc => ?_⟩
-  have hg : Fintype.card U ^ n / n < g := lt_of_not_ge fun hg =>
-    hf (mem_computableFunctions.mpr ⟨g, hg, c, hc⟩)
+  refine ⟨f, fun c hc => ?_⟩
+  have hg : Fintype.card U ^ n / n < c.size := lt_of_not_ge fun hg =>
+    hf (mem_computableFunctions.mpr ⟨c, hc, hg⟩)
   apply (div_lt_iff₀ (by exact_mod_cast (by omega : 0 < n) : (0 : ℝ) < n)).mpr
   exact_mod_cast (Nat.div_lt_iff_lt_mul (by omega : 0 < n)).mp hg
 

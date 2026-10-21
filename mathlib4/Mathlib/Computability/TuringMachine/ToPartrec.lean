@@ -5,10 +5,10 @@ Authors: Mario Carneiro
 -/
 module
 
+public import Mathlib.Computability.TuringMachine.Config
 public import Mathlib.Computability.TuringMachine.StackTuringMachine
 public import Mathlib.Data.Num.Lemmas
 public import Mathlib.Tactic.DeriveFintype  -- shake: keep (deriving handlers not tracked yet)
-public import Mathlib.Computability.TuringMachine.Config
 
 /-!
 # Modelling partial recursive functions using Turing machines
@@ -712,9 +712,8 @@ theorem head_main_ok {q s L} {c d : List Γ'} :
       (TransGen.head rfl (TransGen.head rfl ?_))
   · cases L <;> simp [o]
   rw [tr]
-  simp only [TM2.step, Option.mem_def, tr_read, TM2.stepAux, Option.isSome_some, elim_update_main,
-    elim, List.reverseAux_eq, List.append_nil, elim_update_rev, default_Γ', Option.getD_some,
-    Function.update_self, cond_eq_ite, ↓reduceIte, trList]
+  simp only [TM2.step, Option.mem_def, TM2.stepAux, elim_update_main, elim, List.reverseAux_eq,
+    List.append_nil, elim_update_rev, default_Γ', Option.getD_some, Function.update_self, trList]
   rw [ite_eq_right (show o ≠ some Γ'.consₗ by cases L <;> simp [o])]
   refine (clear_ok (splitAtPred_eq _ _ _ none [] ?_ ⟨rfl, rfl⟩)).trans ?_
   · exact fun x h => Bool.decide_false (trList_ne_consₗ _ _ h)
@@ -731,10 +730,10 @@ theorem head_stack_ok {q s L₁ L₂ L₃} :
           (splitAtPred_eq _ _ [] (some Γ'.consₗ) L₃ (by rintro _ ⟨⟩) ⟨rfl, rfl⟩))
         (TransGen.head rfl (TransGen.head rfl ?_))
     rw [tr]
-    simp only [TM2.step, Option.mem_def, tr_read, TM2.stepAux, Option.isSome_some, trList,
-      List.nil_append, elim_update_stack, elim, List.reverseAux_eq, List.reverse_nil,
-      List.append_nil, elim_update_rev, default_Γ', Option.getD_some, Function.update_self,
-      cond_eq_ite, ↓reduceIte, id_eq, List.headI_nil, Nat.default_eq_zero, trNat_zero]
+    simp only [TM2.step, Option.mem_def, TM2.stepAux, trList, List.nil_append, elim_update_stack,
+      elim, List.reverseAux_eq, List.reverse_nil, List.append_nil, elim_update_rev, default_Γ',
+      Option.getD_some, Function.update_self, ↓reduceIte, id_eq, List.headI_nil,
+      Nat.default_eq_zero, trNat_zero]
     convert! unrev_ok using 2
     simp
   · refine
@@ -972,7 +971,7 @@ def trStmts₁ : Λ' → Finset Λ'
 theorem trStmts₁_trans {q q'} : q' ∈ trStmts₁ q → trStmts₁ q' ⊆ trStmts₁ q := by
   induction q with
   | move _ _ _ q q_ih => _ | clear _ _ q q_ih => _ | copy q q_ih => _ | push _ _ q q_ih => _
-  | read q q_ih => _ | succ q q_ih => _ | pred q₁ q₂ q₁_ih q₂_ih => _ | ret => _ <;>
+  | read q q_ih => _ | succ q q_ih => _ | pred q₁ q₂ q₁_ih q₂_ih => _ | ret => _
   all_goals
     simp +contextual only [trStmts₁, Finset.mem_insert, Finset.mem_union,
       or_imp, Finset.mem_singleton, Finset.Subset.refl, imp_true_iff, true_and]

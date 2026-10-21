@@ -514,7 +514,7 @@ LEAN_EXPORT lean_obj_res nerodia_py_thread_ctx_system_error(b_lean_obj_arg msg, 
   nerodia_exception_panic();
 }
 
-/* ### Etc */
+/* ### None */
 
 /* none : @& PyEnvironment -> PyNone */
 LEAN_EXPORT lean_obj_res nerodia_py_environment_none(b_lean_obj_arg env) {
@@ -531,6 +531,45 @@ LEAN_EXPORT uint8_t nerodia_py_object_is_none(b_lean_obj_arg self) {
   return nerodia_to_object(self) == Py_None;
 }
 
+/* ### bool */
+
+/* false : @& PyEnvironment -> PyFalse */
+LEAN_EXPORT lean_obj_res nerodia_py_environment_false(b_lean_obj_arg env) {
+  return nerodia_of_immortal_object(Py_False, env);
+}
+
+/* getPyFalse : CPyBaseIO PyFalse */
+LEAN_EXPORT size_t nerodia_get_py_false() {
+  return (size_t)Py_False;
+}
+
+/* isFalse : @& PyObject -> Bool */
+LEAN_EXPORT uint8_t nerodia_py_object_is_false(b_lean_obj_arg self) {
+  return nerodia_to_object(self) == Py_False;
+}
+
+/* true : @& PyEnvironment -> PyTrue */
+LEAN_EXPORT lean_obj_res nerodia_py_environment_true(b_lean_obj_arg env) {
+  return nerodia_of_immortal_object(Py_True, env);
+}
+
+/* getPyTrue : CPyBaseIO PyTrue */
+LEAN_EXPORT size_t nerodia_get_py_true() {
+  return (size_t)Py_True;
+}
+
+/* isTrue : @& PyObject -> Bool */
+LEAN_EXPORT uint8_t nerodia_py_object_is_true(b_lean_obj_arg self) {
+  return nerodia_to_object(self) == Py_True;
+}
+
+/* isBoolInstance : @& PyObject -> Bool */
+LEAN_EXPORT uint8_t nerodia_py_object_is_bool_instance(b_lean_obj_arg self) {
+  return PyBool_Check(nerodia_to_object(self));
+}
+
+/* ### Etc */
+
 /* import : @& String -> CPyIO PyObject */
 LEAN_EXPORT size_t nerodia_import(b_lean_obj_arg mod_name) {
   return (size_t)PyImport_ImportModule(lean_string_cstr(mod_name));
@@ -544,9 +583,41 @@ LEAN_EXPORT uint32_t nerodia_py_module_add_by_string
     lean_string_cstr(name), nerodia_to_object(val));
 }
 
+/* getAttr : @& PyObject -> @& PyStr -> CPyIO PyObject */
+LEAN_EXPORT size_t nerodia_py_object_get_attr(b_lean_obj_arg self, b_lean_obj_arg name) {
+  return (size_t)PyObject_GetAttr(nerodia_to_object(self), nerodia_to_object(name));
+}
+
 /* getAttrByString : @& PyObject -> @& String -> CPyIO PyObject */
-LEAN_EXPORT size_t nerodia_py_object_get_attr_by_string(b_lean_obj_arg self, b_lean_obj_arg attr_name) {
-  return (size_t)PyObject_GetAttrString(nerodia_to_object(self), lean_string_cstr(attr_name));
+LEAN_EXPORT size_t nerodia_py_object_get_attr_by_string(b_lean_obj_arg self, b_lean_obj_arg name) {
+  return (size_t)PyObject_GetAttrString(nerodia_to_object(self), lean_string_cstr(name));
+}
+
+/* setAttr : @& PyObject -> @& PyStr -> @& PyObject -> CPyUnitIO */
+LEAN_EXPORT uint32_t nerodia_py_object_set_attr
+  (b_lean_obj_arg self, b_lean_obj_arg name, b_lean_obj_arg val)
+{
+  return (uint32_t)PyObject_SetAttr(nerodia_to_object(self),
+    nerodia_to_object(name), nerodia_to_object(val));
+}
+
+/* setAttrByString : @& PyObject -> @& String -> @& PyObject -> CPyUnitIO */
+LEAN_EXPORT uint32_t nerodia_py_object_set_attr_by_string
+  (b_lean_obj_arg self, b_lean_obj_arg name, b_lean_obj_arg val)
+{
+  return (uint32_t)PyObject_SetAttrString(nerodia_to_object(self),
+    lean_string_cstr(name), nerodia_to_object(val));
+}
+
+/* call0 : @& PyObject -> CPyIO PyObject */
+LEAN_EXPORT size_t nerodia_py_object_call0(b_lean_obj_arg self) {
+  return (size_t)PyObject_CallNoArgs(nerodia_to_object(self));
+}
+
+/* call1 : @& PyObject -> @& PyObject -> CPyIO PyObject */
+LEAN_EXPORT size_t nerodia_py_object_call1(b_lean_obj_arg self, b_lean_obj_arg arg) {
+  return (size_t)PyObject_CallFunctionObjArgs(
+    nerodia_to_object(self), nerodia_to_object(arg), NULL);
 }
 
 /* ### Types */
@@ -761,6 +832,36 @@ LEAN_EXPORT size_t nerodia_mk_py_nat(b_lean_obj_arg n) {
     lean_inc_ref(n);
     return nerodia_mk_big_py_int(n);
   }
+}
+
+/* mkPyISize : ISize -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_isize(size_t n) {
+  return (size_t)PyLong_FromSsize_t((Py_ssize_t)n);
+}
+
+/* mkPyUSize : USize -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_usize(size_t n) {
+  return (size_t)PyLong_FromSize_t(n);
+}
+
+/* mkPyInt64 : Int64 -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_int64(uint64_t n) {
+  return (size_t)PyLong_FromInt64((int64_t)n);
+}
+
+/* mkPyUInt64 : UInt64 -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_uint64(uint64_t n) {
+  return (size_t)PyLong_FromUInt64(n);
+}
+
+/* mkPyInt32 : Int32 -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_int32(uint32_t n) {
+  return (size_t)PyLong_FromInt32((int32_t)n);
+}
+
+/* mkPyUInt32 : UInt32 -> CPyIO PyInt */
+LEAN_EXPORT size_t nerodia_mk_py_uint32(uint32_t n) {
+  return (size_t)PyLong_FromUInt32(n);
 }
 
 static inline lean_obj_res py_int_to_byte_array(b_lean_obj_arg self, int flags) {

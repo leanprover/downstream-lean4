@@ -4,19 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.Elab
 
-import Verso.Code.Highlighted
-import Verso.Doc.Elab
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import SubVerso.Examples.Messages
-import VersoManual
+public meta import Manual.Meta.Basic
+public import Verso.Log
+public meta import VersoManual.InlineLean.Outputs
+import VersoManual.InlineLean
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 open Verso.Doc.Elab
 open Verso.ArgParse
@@ -36,14 +32,14 @@ section
 
 variable [Monad m] [MonadError m]
 
-instance : FromArgs ModuleConfig m where
+meta instance : FromArgs ModuleConfig m where
   fromArgs := ModuleConfig.mk <$> .named' `name true <*> .named' `moduleName true <*> .flag `error false <*> .flag `show true
 
 end
 
 section
 open SubVerso.Highlighting
-partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
+meta partial def getMessages (hl : Highlighted) : Array (Nat × Highlighted.Message) :=
   let ((), _, out) := go hl (0, #[])
   out
 where
@@ -60,7 +56,7 @@ where
     | .point sev contents =>
       modify fun (l, msgs) => (l, msgs.push (l, ⟨sev, contents⟩))
 
-def dropBlanks (hl : Highlighted) : Highlighted :=
+meta def dropBlanks (hl : Highlighted) : Highlighted :=
   match hl with
   | .text s => .text s.trimAsciiStart.copy
   | .seq xs => Id.run do
@@ -73,6 +69,8 @@ def dropBlanks (hl : Highlighted) : Highlighted :=
 
 end
 
+meta section
+
 def logBuild [Monad m] [MonadRef m] [MonadOptions m] [MonadLog m] [AddMessageContext m] (command : String) (out : IO.Process.Output) (blame : Option Syntax := none) : m Unit := do
   let blame ←
     if let some b := blame then pure b else getRef
@@ -83,6 +81,91 @@ def logBuild [Monad m] [MonadRef m] [MonadOptions m] [MonadLog m] [AddMessageCon
     buildOut := buildOut.push <| .trace {cls := `stderr} (toMessageData out.stderr) #[]
   unless buildOut.isEmpty do
     logSilentInfoAt blame <| .trace {cls := `build} m!"{command}" buildOut
+
+/--
+The number of external processes that an example directive runs at once. It is read from the
+environment variable `MANUAL_EXAMPLE_JOBS`, and defaults to 4.
+-/
+def exampleJobs : IO Nat := do
+  let n := (← IO.getEnv "MANUAL_EXAMPLE_JOBS").bind (·.toNat?) |>.getD 4
+  return max n 1
+
+private abbrev PipedChild := IO.Process.Child { stdin := .null, stdout := .piped, stderr := .piped }
+
+/--
+Runs the processes described by `procs`, at most `exampleJobs` at a time, and returns their
+outputs in the same order. A process's standard input is the corresponding element of `inputs`,
+if there is one; otherwise the process has no standard input, as with `IO.Process.output`.
+
+While waiting, elaboration is checked for interruption. However this returns, including by
+interruption or an error, any process that is still running is killed and reaped first, so the
+caller may remove the directory that the processes work in. Each process is started in its own
+process group, and killing it kills the whole group, so tools that start further processes, such as
+Lake, are stopped along with everything they started.
+-/
+def outputsConcurrently (procs : Array IO.Process.SpawnArgs)
+    (inputs : Array (Option String) := #[]) : DocElabM (Array IO.Process.Output) := do
+  let limit ← exampleJobs
+  -- The children that have not been reaped, kept outside the loop's state for the cleanup below.
+  let live ← IO.mkRef (#[] : Array PipedChild)
+  let mut results : Array (Option IO.Process.Output) := Array.replicate procs.size none
+  let mut next := 0
+  let mut running : Array (Nat × PipedChild × Task (Except IO.Error String) ×
+      Task (Except IO.Error String)) := #[]
+  try
+    while next < procs.size || !running.isEmpty do
+      while running.size < limit do
+        let some proc := procs[next]? | break
+        let child : PipedChild ←
+          match (inputs[next]?).join with
+          | none =>
+            IO.Process.spawn {
+              proc with stdin := .null, stdout := .piped, stderr := .piped, setsid := true
+            }
+          | some input => do
+            let (stdin, child) ← (← IO.Process.spawn {
+              proc with stdin := .piped, stdout := .piped, stderr := .piped, setsid := true
+            }).takeStdin
+            -- The input is written concurrently, and the pipe is closed when the task finishes and
+            -- releases its handle.
+            discard <| IO.asTask (prio := .dedicated) do
+              stdin.putStr input
+              stdin.flush
+            pure child
+        -- The pipes are drained concurrently so that a child with a lot of output cannot block.
+        let stdout ← IO.asTask child.stdout.readToEnd .dedicated
+        let stderr ← IO.asTask child.stderr.readToEnd .dedicated
+        running := running.push (next, child, stdout, stderr)
+        live.set (running.map (·.2.1))
+        next := next + 1
+      let mut stillRunning := #[]
+      for r in running do
+        let (i, child, stdout, stderr) := r
+        match ← child.tryWait with
+        | some exitCode =>
+          let stdout ← IO.ofExcept stdout.get
+          let stderr ← IO.ofExcept stderr.get
+          results := results.set! i (some { exitCode, stdout, stderr })
+        | none => stillRunning := stillRunning.push r
+      running := stillRunning
+      live.set (running.map (·.2.1))
+      unless running.isEmpty do
+        Core.checkInterrupted
+        IO.sleep 10
+  finally
+    for child in ← live.get do
+      try child.kill catch _ => pure ()
+      discard <| child.wait
+  return results.filterMap id
+
+/--
+Runs a single process as `outputsConcurrently` does, killing it if elaboration is interrupted.
+-/
+def outputInterruptibly (proc : IO.Process.SpawnArgs) (input? : Option String := none) :
+    DocElabM IO.Process.Output := do
+  let #[out] ← outputsConcurrently #[proc] #[input?]
+    | throwError "Expected exactly one process output"
+  return out
 
 def lineStx [Monad m] [MonadFileMap m] (l : Nat) : m Syntax := do
   let text ← getFileMap
@@ -100,7 +183,7 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
       let dirname := dirname / u
       IO.FS.createDirAll dirname
       let modName : Name := moduleName.map (·.getId) |>.getD `Main
-      let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
+      let out ← outputInterruptibly {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
       if out.exitCode != 0 then
         throwError
           m!"When running 'lake env which subverso-extract-mod', the exit code was {out.exitCode}\n" ++
@@ -114,7 +197,7 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
 
 
       let jsonFile := dirname / s!"{modName}.json"
-      let out ← IO.Process.output {
+      let out ← outputInterruptibly {
         cmd := toString «subverso-extract-mod»,
         args := #[modName.toString, jsonFile.toString],
         cwd := some dirname,
@@ -160,21 +243,23 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
     else
       ``(Verso.Doc.Block.empty)
 
+end
+
 structure IdentRefConfig where
   name : Ident
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs IdentRefConfig m where
+meta instance : FromArgs IdentRefConfig m where
   fromArgs := IdentRefConfig.mk <$> .positional' `name
 end
 
 @[code_block]
-def identRef : CodeBlockExpanderOf IdentRefConfig
+meta def identRef : CodeBlockExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 @[role identRef]
-def identRefRole : RoleExpanderOf IdentRefConfig
+meta def identRefRole : RoleExpanderOf IdentRefConfig
   | { name := x }, _ => pure x
 
 structure ModulesConfig where
@@ -184,9 +269,11 @@ structure ModulesConfig where
 
 section
 variable [Monad m] [MonadError m]
-instance : FromArgs ModulesConfig m where
+meta instance : FromArgs ModulesConfig m where
   fromArgs := ModulesConfig.mk <$> .flag `server true <*> .many (.named' `moduleRoot false) <*> .flag `error false
 end
+
+meta section
 
 partial def getBlocks (block : Syntax) :
     StateT (NameMap (ModuleConfig × VersoCodeBlock × Syntax)) DocElabM Syntax := do
@@ -236,20 +323,46 @@ partial def getQuotes (stx : Syntax) : StateT (NameMap VersoCode) DocElabM Synta
     return Syntax.node i k args
   | _ => return stx
 
+/--
+Rewrites the `{name}` roles in `blocks` to refer to names defined in `code`.
+
+Returns the rewritten blocks together with a function that wraps a term elaborated from them in the
+bindings that the rewritten roles expect. A name that `code` does not define is reported as an
+error and rendered as plain code.
+-/
+def resolveNameRoles (blocks : Array Syntax) (code : SubVerso.Highlighting.Highlighted) :
+    DocElabM (Array Syntax × (Term → DocElabM Term)) := do
+  let (blocks, quotes) ← blocks.mapM getQuotes |>.run {}
+  let mut wrap : Term → DocElabM Term := pure
+  for (x, q) in quotes do
+    let inline ←
+      if let some tok := code.matchingName? q.getVersoCode then
+        let hl : Term := quote (SubVerso.Highlighting.Highlighted.token tok)
+        `(Verso.Doc.Inline.other
+            {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl}
+            #[Verso.Doc.Inline.code $(quote q.getVersoCode)])
+      else
+        logErrorAt q m!"Not found in the example's code: {q.getVersoCode.quote}"
+        `(Verso.Doc.Inline.code $(quote q.getVersoCode))
+    wrap := wrap >=> fun stx => `(let $(mkIdent x) := $inline; $stx)
+  return (blocks, wrap)
 
 def getRoot (mods : NameMap (ModuleConfig × α)) : Option Name :=
   mods.foldl (init := none) fun
     | none, _, ({ moduleName, .. }, _) => moduleName.map (·.getId)
     | some y, _, ({moduleName := some x, ..}, _) => prefix? y x.getId
     | some y, _, ({moduleName := none, ..}, _) => some y
+
 where
   prefix? x y :=
     if x.isPrefixOf y then some x
     else if y.isPrefixOf x then some y
     else none
 
+end
+
 @[directive]
-def leanModules : DirectiveExpanderOf ModulesConfig
+meta def leanModules : DirectiveExpanderOf ModulesConfig
   | { server, moduleRoots, error }, blocks => do
     let (blocks, codeBlocks) ← blocks.mapM getBlocks {}
     let moduleRoots ←
@@ -265,7 +378,7 @@ def leanModules : DirectiveExpanderOf ModulesConfig
           let mods := mods.map (m!"`{·}`")
           throwError m!"No root module found for {.andList mods}. Use the `moduleRoot` named argument to generate one."
 
-    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
+    let out ← outputInterruptibly {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
     if out.exitCode != 0 then
       throwError
         m!"When running 'lake env which subverso-extract-mod', the exit code was {out.exitCode}\n" ++
@@ -301,7 +414,12 @@ def leanModules : DirectiveExpanderOf ModulesConfig
         IO.FS.writeFile (dirname / leanFileName) <|
           mkImports root <| mods.map fun (x, _, _, _) => x
 
-      let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
+      let out ← outputInterruptibly {
+        cmd := "lake", args := #["build"], cwd := some dirname
+        -- `subverso-extract-mod` reads `.olean` files from the build directory, which the local artifact
+        -- cache leaves empty unless artifacts are restored
+        env := #[("LAKE_RESTORE_ARTIFACTS", "true")]
+      }
       if !error && out.exitCode != 0 then
         throwError
           m!"When running 'lake build' in {dirname}, the exit code was {out.exitCode}\n" ++
@@ -313,18 +431,19 @@ def leanModules : DirectiveExpanderOf ModulesConfig
       let mut hasError := false
       let mut allHl := .empty
 
-      for (modName, x, modConfig, blame) in mods do
+      let jsonFile (modName : Name) := dirname / (modName.toString : System.FilePath).addExtension "json"
+      let srcPath := dirname.toString ++ ((":" ++ ·) <$> (← IO.getEnv "LEAN_SRC_PATH")).getD ""
+      let leanPath := (dirname / ".lake" / "build" / "lib" / "lean").toString ++
+        ((":" ++ ·) <$> (← IO.getEnv "LEAN_PATH")).getD ""
+      let outs ← outputsConcurrently <| mods.map fun (modName, _, _, _) => {
+        cmd := toString «subverso-extract-mod»,
+        args := (if server then #[] else #["--not-server"]) ++ #[modName.toString, (jsonFile modName).toString],
+        cwd := some dirname
+        env := #[("LEAN_SRC_PATH", srcPath), ("LEAN_PATH", leanPath)]
+      }
 
-        let jsonFile := dirname / (modName.toString : System.FilePath).addExtension "json"
-        let out ← IO.Process.output {
-          cmd := toString «subverso-extract-mod»,
-          args := (if server then #[] else #["--not-server"]) ++ #[modName.toString, jsonFile.toString],
-          cwd := some dirname
-          env := #[
-            ("LEAN_SRC_PATH", dirname.toString ++ ((":" ++ ·) <$> (← IO.getEnv "LEAN_SRC_PATH")).getD ""),
-            ("LEAN_PATH", (dirname / ".lake" / "build" / "lib" / "lean").toString ++ ((":" ++ ·) <$> (← IO.getEnv "LEAN_PATH")).getD "")
-          ]
-        }
+      for ((modName, x, modConfig, blame), out) in mods.zip outs do
+        let jsonFile := jsonFile modName
         if out.exitCode != 0 then
           throwError
             m!"When running '{«subverso-extract-mod»} {modName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
@@ -367,18 +486,10 @@ def leanModules : DirectiveExpanderOf ModulesConfig
       if !error && hasError then
         logError "No error expected in code block, but one occurred."
 
-      let (blocks, quotes) ← blocks.mapM getQuotes |>.run {}
-      for (x, q) in quotes do
-        if let some tok := allHl.matchingName? q.getVersoCode then
-          addLets := addLets >=> fun stx => do
-            let hl : SubVerso.Highlighting.Highlighted := .token tok
-            let hl : Term := quote hl
-            let name ← `(Verso.Doc.Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $hl} #[Verso.Doc.Inline.code $(quote q.getVersoCode)])
-            `(let $(mkIdent x) := $name; $stx)
-        else logErrorAt q m!"Not found: {q.getVersoCode.quote}"
+      let (blocks, wrapNames) ← resolveNameRoles blocks allHl
       let body ← blocks.mapM (elabBlock <| ⟨·⟩)
       let body ← `(Verso.Doc.Block.concat #[$body,*])
-      addLets body
+      addLets (← wrapNames body)
 
 
 where
@@ -386,7 +497,6 @@ where
     let libNames := roots.map fun n => n.toString.quote
     let namesList := ", ".intercalate libNames
     let mut content := s!"name = \"example\"\ndefaultTargets = [{namesList}]\n"
-    content := content ++ "leanOptions = { experimental.module = true }\n"
     for lib in libNames do
       content := content ++ "\n[[lean_lib]]\nname = " ++ lib ++ "\n"
     return content

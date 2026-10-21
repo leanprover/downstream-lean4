@@ -148,6 +148,24 @@ open Lean Elab Command in
 /-- info: (o: object, /) -> object -/
 #guard_msgs in #check_fn (o : PyObject) : PyIO PyObject
 
+/-- info: None -/
+#guard_msgs in #check_attr PyIO PyNone
+
+/-- info: (o: None, /) -> None -/
+#guard_msgs in #check_fn (o : PyNone) : PyIO PyNone
+
+/-- info: Literal[False] -/
+#guard_msgs in #check_attr PyIO PyFalse
+
+/-- info: (o: Literal[False], /) -> Literal[False]  -/
+#guard_msgs in #check_fn (o : PyFalse) : PyIO PyFalse
+
+/-- info: Literal[True] -/
+#guard_msgs in #check_attr PyIO PyTrue
+
+/-- info: (o: Literal[True], /) -> Literal[True]  -/
+#guard_msgs in #check_fn (o : PyTrue) : PyIO PyTrue
+
 /-- info: Buffer -/
 #guard_msgs in #check_attr PyIO PyBuffer
 
@@ -174,15 +192,29 @@ open Lean Elab Command in
 
 /-! ### Lean Types -/
 
+/-- info: int | None -/
+#guard_msgs in #check_attr Option Nat
+
+/-- info: (s: str | None, /) -> int | None -/
+#guard_msgs in #check_fn (s : Option String) : Option Nat
+
+/-- info: bool -/
+#guard_msgs in #check_attr Bool
+
+/-- info: (s: bool, /) -> bool -/
+#guard_msgs in #check_fn (s : Bool) : Bool
+
 /-- info: str -/
 #guard_msgs in #check_attr String
 
 /-- info: (s: str, /) -> str -/
 #guard_msgs in #check_fn (s : String) : String
 
--- TODO: Support `ByteArray` as a result type.
-/-- info: (b: Buffer, /) -> None -/
-#guard_msgs in #check_fn (b : ByteArray) : Unit
+/-- info: bytes -/
+#guard_msgs in #check_attr ByteArray
+
+/-- info: (b: Buffer, /) -> bytes -/
+#guard_msgs in #check_fn (b : ByteArray) : ByteArray
 
 /-- info: int -/
 #guard_msgs in #check_attr Int
@@ -201,3 +233,65 @@ open Lean Elab Command in
 
 /-- info: (n: int, /) -> int -/
 #guard_msgs in #check_fn (n : Fin 0) : Fin 1
+
+/-! #### Fixed-Width Integers -/
+
+/-- info: int -/
+#guard_msgs in #check_attr ISize
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : ISize) : ISize
+
+/-- info: int -/
+#guard_msgs in #check_attr USize
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : USize) : USize
+
+/-- info: int -/
+#guard_msgs in #check_attr Int64
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : Int64) : Int64
+
+/-- info: int -/
+#guard_msgs in #check_attr UInt64
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : UInt64) : UInt64
+
+/-- info: int -/
+#guard_msgs in #check_attr Int32
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : Int32) : Int32
+
+/-- info: int -/
+#guard_msgs in #check_attr UInt32
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : UInt32) : UInt32
+
+/-- info: int -/
+#guard_msgs in #check_attr Int16
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : Int16) : Int16
+
+/-- info: int -/
+#guard_msgs in #check_attr UInt16
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : UInt16) : UInt16
+
+/-- info: int -/
+#guard_msgs in #check_attr Int8
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : Int8) : Int8
+
+/-- info: int -/
+#guard_msgs in #check_attr UInt8
+
+/-- info: (n: int, /) -> int -/
+#guard_msgs in #check_fn (n : UInt8) : UInt8

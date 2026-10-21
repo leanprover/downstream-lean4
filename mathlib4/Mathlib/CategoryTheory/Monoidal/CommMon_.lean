@@ -5,7 +5,6 @@ Authors: Kim Morrison
 -/
 module
 
-public import Mathlib.CategoryTheory.Monoidal.Braided.Basic
 public import Mathlib.CategoryTheory.Monoidal.Mon
 
 /-!
@@ -302,6 +301,8 @@ def laxBraidedToCommMon : LaxBraidedFunctor (Discrete PUnit.{u + 1}) C ⥤ CommM
 @[simps!]
 def commMonToLaxBraidedObj (A : CommMon C) :
     Discrete PUnit.{u + 1} ⥤ C := (Functor.const _).obj A.X
+
+attribute [nolint simpNF] commMonToLaxBraidedObj_map
 
 set_option backward.defeqAttrib.useBackward true in
 instance (A : CommMon C) : (commMonToLaxBraidedObj A).LaxMonoidal where

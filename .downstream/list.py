@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import json
 import os
 from argparse import ArgumentParser
+from dataclasses import asdict
 from pathlib import Path
 
 from downstream.updater import Updater
@@ -16,6 +18,7 @@ class Args:
     downstream: Path
     topo: bool
     deps: bool
+    json: bool
     repo: list[str]
 
 
@@ -35,6 +38,12 @@ def main() -> None:
         help="transitively include dependencies of filtered repos as well",
     )
     parser.add_argument(
+        "-j",
+        "--json",
+        action="store_true",
+        help="print each repo as a one-line json object instead of just its name",
+    )
+    parser.add_argument(
         "repo",
         nargs="*",
         help="filter by repo name",
@@ -44,11 +53,11 @@ def main() -> None:
     os.chdir(args.downstream)
     updater = Updater()
 
-    all_subrepos = [s.name for s in updater.subrepos]
+    all_subrepos = updater.subrepos
     if args.topo:
-        all_subrepos = [s.name for s in updater.topo_subrepos()]
+        all_subrepos = updater.topo_subrepos()
 
-    mask = set(all_subrepos)
+    mask = {s.name for s in all_subrepos}
     if args.repo:
         mask = set(args.repo)
     if args.deps:
@@ -56,9 +65,13 @@ def main() -> None:
         for name in list(mask):  # Don't iterate over set while modifying it
             add_transitive_deps(mask, graph, name)
 
-    for name in all_subrepos:
-        if name in mask:
-            print(name)
+    for subrepo in all_subrepos:
+        if subrepo.name not in mask:
+            continue
+        if args.json:
+            print(json.dumps(asdict(subrepo)))
+        else:
+            print(subrepo.name)
 
 
 if __name__ == "__main__":

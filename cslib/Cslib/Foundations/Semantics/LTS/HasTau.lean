@@ -7,6 +7,7 @@ Authors: Fabrizio Montesi
 module
 
 public import Cslib.Foundations.Semantics.LTS.Relation
+public import Cslib.Foundations.Semantics.LTS.SetImage
 
 /-!
 # LTS with a special "internal" transition `τ`.
@@ -37,6 +38,7 @@ theorem τSTr.refl [HasTau Label] {lts : LTS State Label} : lts.τSTr s s :=
   Relation.ReflTransGen.refl
 
 /-- Saturated transition relation. -/
+@[mk_iff]
 inductive STr [HasTau Label] (lts : LTS State Label) : State → Label → State → Prop where
   | refl : lts.STr s HasTau.τ s
   | tr : lts.τSTr s1 s2 → lts.Tr s2 μ s3 → lts.τSTr s3 s4 → lts.STr s1 μ s4
@@ -73,21 +75,12 @@ theorem sTr_τSTr_iff [HasTau Label] (lts : LTS State Label) :
     case refl => exact STr.refl
     case tail _ h1 h2 => exact STr.tr h1 h2 .refl
 
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
+/-- Saturating an LTS does not change its saturated τ-transition relation. -/
 theorem saturate_τsTr_τSTr_iff [hHasTau : HasTau Label] (lts : LTS State Label) :
     lts.saturate.τSTr = lts.τSTr := by
-  ext s s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    induction h
-    case refl => exact .refl
-    case tail _ _ _ h2 h3 => exact Relation.ReflTransGen.trans h3 ((sTr_τSTr_iff _).mp h2)
-  case mpr =>
-    cases h
-    case refl => exact .refl
-    case tail s' h2 h3 =>
-      have h4 := STr.tr h2 h3 Relation.ReflTransGen.refl
-      exact Relation.ReflTransGen.single h4
+  change Relation.ReflTransGen (fun s s' => lts.STr s HasTau.τ s') = _
+  simp only [sTr_τSTr_iff]
+  exact Relation.reflTransGen_eq_self (r := Relation.ReflTransGen _)
 
 /-- Saturated transitions labelled by τ can be composed. -/
 @[scoped grind .]
@@ -114,24 +107,18 @@ theorem STr.comp
   case tr _ _ hτ1 htr hτ2 =>
     exact STr.tr (Relation.ReflTransGen.trans h1 hτ1) htr (Relation.ReflTransGen.trans hτ2 h3)
 
-/-- In a saturated LTS, the transition and saturated transition relations are the same. -/
-theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label)
-    (hμ : μ = hHasTau.τ) : lts.saturate.Tr s μ = lts.saturate.STr s μ := by
+/-- In a saturated LTS, transitions and saturated transitions agree for every label. -/
+theorem saturate_tr_saturate_sTr [hHasTau : HasTau Label] (lts : LTS State Label) :
+    lts.saturate.Tr s μ = lts.saturate.STr s μ := by
   ext s'
-  apply Iff.intro <;> intro h
-  case mp =>
-    cases h
-    case refl => exact .refl
-    case tr hstr1 htr hstr2 =>
-      apply STr.single
-      exact STr.tr hstr1 htr hstr2
-  case mpr =>
-    cases h
-    case refl => exact .refl
-    case tr hstr1 htr hstr2 =>
-      rw [saturate_τsTr_τSTr_iff lts] at hstr1 hstr2
-      rw [←sTr_τSTr_iff lts] at hstr1 hstr2
-      exact STr.comp hstr1 htr hstr2
+  constructor
+  · exact STr.single
+  · intro h
+    cases h with
+    | refl => exact STr.refl
+    | tr h₁ h₂ h₃ =>
+      rw [saturate_τsTr_τSTr_iff] at h₁ h₃
+      exact STr.comp ((sTr_τSTr_iff _).mpr h₁) h₂ ((sTr_τSTr_iff _).mpr h₃)
 
 /-- In a saturated LTS, every state is in its τ-image. -/
 @[scoped grind .]
@@ -158,6 +145,47 @@ def τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) : Set State
 @[scoped grind .]
 lemma τClosure_subset [HasTau Label] (lts : LTS State Label) :
     S ⊆ lts.τClosure S := by grind [Set.mem_of_mem_of_subset, = τClosure]
+
+/-- The `τ`-closure of `S` consists of the states reachable from `S` by `τ`-transitions. -/
+@[scoped grind =]
+theorem mem_τClosure_iff [HasTau Label] {lts : LTS State Label} {S : Set State} {s' : State} :
+    s' ∈ lts.τClosure S ↔ ∃ s ∈ S, lts.τSTr s s' := by
+  simp_rw [τClosure, mem_setImage, ← sTr_τSTr_iff, saturate_tr_sTr]
+
+/-- The `τ`-closure of the empty set is empty. -/
+@[simp, scoped grind =]
+theorem τClosure_empty [HasTau Label] (lts : LTS State Label) : lts.τClosure ∅ = ∅ :=
+  lts.saturate.setImage_empty
+
+/-- The `τ`-closure distributes over binary unions. -/
+@[simp, scoped grind =]
+theorem τClosure_union [HasTau Label] (lts : LTS State Label) (S T : Set State) :
+    lts.τClosure (S ∪ T) = lts.τClosure S ∪ lts.τClosure T :=
+  lts.saturate.setImage_union S T HasTau.τ
+
+/-- Taking the `τ`-closure is monotone. -/
+@[gcongr]
+theorem τClosure_mono [HasTau Label] (lts : LTS State Label) {S T : Set State} (h : S ⊆ T) :
+    lts.τClosure S ⊆ lts.τClosure T :=
+  lts.saturate.setImage_mono h HasTau.τ
+
+/-- The `τ`-closure is idempotent. -/
+@[simp]
+theorem τClosure_τClosure [HasTau Label] (lts : LTS State Label) (S : Set State) :
+    lts.τClosure (lts.τClosure S) = lts.τClosure S := by
+  refine Set.Subset.antisymm (fun s'' h => ?_) (τClosure_subset lts)
+  obtain ⟨s', hs', h₂⟩ := mem_τClosure_iff.mp h
+  obtain ⟨s, hs, h₁⟩ := mem_τClosure_iff.mp hs'
+  exact mem_τClosure_iff.mpr ⟨s, hs, Relation.ReflTransGen.trans h₁ h₂⟩
+
+/-- For a label other than `τ`, the saturated image of `S` is the `τ`-closure of the image of the
+`τ`-closure of `S`. -/
+theorem saturate_setImage_of_ne_τ [HasTau Label] (lts : LTS State Label) {S : Set State}
+    {μ : Label} (hμ : μ ≠ HasTau.τ) :
+    lts.saturate.setImage S μ = lts.τClosure (lts.setImage (lts.τClosure S) μ) := by
+  ext s'
+  simp [mem_setImage, saturate_tr_sTr, sTr_iff, hμ, mem_τClosure_iff]
+  grind
 
 /-- Saturated multistep transition relation. -/
 inductive SMTr [HasTau Label] (lts : LTS State Label) : State → List Label → State → Prop where

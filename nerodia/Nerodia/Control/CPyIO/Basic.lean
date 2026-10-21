@@ -6,7 +6,6 @@ Authors: Mac Malone
 module
 public import Nerodia.Data.CPtr
 public import Nerodia.Data.Py.Basic
-public import Nerodia.Data.Py.Raw.Basic
 public import Nerodia.Control.PyIO.Basic
 public import Nerodia.Control.MonadRaise
 
@@ -46,8 +45,29 @@ with both sharing the strong reference.
 add_decl_doc CPyBaseResult.toCPtrUnsafe
 
 namespace CPyBaseResult
+
 public instance [IsPy α] [Nonempty α] : Nonempty (CPyBaseResult α) :=
   ⟨⟨Classical.ofNonempty⟩⟩
+
+/--
+Promotes a {name}`CPyBaseResult` returning a typed Python object to one returning
+its supertype, sharing the single strong reference between them.
+
+**Memory Safety:** Users must manually manage the reference's lifetime.
+-/
+@[inline] def promote [Promotable U T] (x : CPyBaseResult (Py T)) : CPyBaseResult (Py U) :=
+  have : Nonempty (Py U) := ⟨Classical.choice x.toCPtrUnsafe.nonempty |>.promote⟩
+  .ofCPtrUnsafe <| .ofAddrUnsafe x.toCPtrUnsafe.addr
+
+/--
+Casts a {name}`CPyBaseResult` returning anything to one returning
+a {lean}`PyObject`, sharing the single strong reference between them.
+
+**Memory Safety:** Users must manually manage the reference's lifetime.
+-/
+@[inline] def normalize (x : CPyBaseResult α) : CPyBaseResult PyObject :=
+  .ofCPtrUnsafe <| .ofAddrUnsafe  x.toCPtrUnsafe.addr
+
 end CPyBaseResult
 
 /-! ## CPyResult -/
@@ -126,15 +146,25 @@ its supertype, sharing the single strong reference between them.
 
 **Memory Safety:** Users must manually manage the reference's lifetime.
 -/
-@[inline] def promote [IsSubtypeOf U T] (x : CPyResult (Py T)) : CPyResult (Py U) :=
+@[inline] def promote [Promotable U T] (x : CPyResult (Py T)) : CPyResult (Py U) :=
   let cptr := .ofNullableAddrUnsafe x.toNullableCPtrUnsafe.nullableAddr fun h' =>
-    let t := Classical.choice <| x.toNullableCPtrUnsafe.nonempty_of_not_isNull h'
-    ⟨Py.mk t.raw (infer_subtype.hasType_of_hasType t.raw_hasType)⟩
+    ⟨Classical.choice (x.toNullableCPtrUnsafe.nonempty_of_not_isNull h') |>.promote⟩
   .ofNullableCPtrUnsafe cptr fun _ => inferInstance
 
 /--
 Casts a {name}`CPyResult` returning anything to one returning
-an untyped object, sharing the single strong reference between them.
+a {lean}`PyObject`, sharing the single strong reference between them.
+
+**Memory Safety:** Users must manually manage the reference's lifetime.
+-/
+@[inline] def normalize (x : CPyResult α) : CPyResult PyObject :=
+  let addr := x.toNullableCPtrUnsafe.nullableAddr
+  let cptr := .ofNullableAddrUnsafe  addr fun _ => inferInstance
+  .ofNullableCPtrUnsafe cptr fun _ => inferInstance
+
+/--
+Casts a {name}`CPyResult` returning anything to one returning
+a raw object, sharing the single strong reference between them.
 
 **Memory Safety:** Users must manually manage the reference's lifetime.
 -/
@@ -158,9 +188,6 @@ Return context for external CPython functions that return an object
 and may raise an exception.
 
 Not a monad itself, but lifts into monads equipped with a Python context.
-
-**API Caveat:** The definition of {name}`CPyIO` is not part of Nerodia's
-public API. Nevertheless, it is exposed due to the limitations of Lean's compiler.
 -/
 @[irreducible, expose] -- for codegen
 public def CPyIO (α) :=
@@ -201,18 +228,28 @@ public instance : Nonempty (CPyIO α) := ⟨failureUnsafe⟩
 @[inline] public def ofBind (x : BaseIO α) (f : α → CPyIO β) : CPyIO β :=
   ofBaseIOUnsafe do f (← x) |>.toBaseIOUnsafe
 
-set_option linter.unusedVariables.funArgs false in
 /--
-Promotes a {lean}`CPyIO` returning a
+Casts a {lean}`CPyIO` returning a
 typed Python object to one returning its supertype.
 -/
-@[inline] public def promote [IsSubtypeOf U T] (x : CPyIO (Py T)) : CPyIO (Py U) :=
+@[inline] public def promote [Promotable U T] (x : CPyIO (Py T)) : CPyIO (Py U) :=
   ofBaseIOUnsafe <| x.toBaseIOUnsafe.map (·.promote)
+
+open Internal in
 /--
-Converts a {lean}`CPyIO` returning a
-arbitrary type to one returning {lean}`Py.Raw`.
+Casts a {lean}`CPyIO` returning an
+arbitrary type to one returning {lean}`PyObject`.
 -/
-@[inline] public def raw (x : CPyIO α) : CPyIO Py.Raw :=
+@[inline] public def normalize (x : CPyIO α) : CPyIO PyObject :=
+  ofBaseIOUnsafe <| x.toBaseIOUnsafe <&> (·.normalize)
+
+open Internal in
+/--
+Casts a {lean}`CPyIO` returning a
+arbitrary type to one returning {lean}`Internal.Py.Raw`.
+-/
+@[inline, deprecated normalize +typeChanged (since := "2026-09-22")]
+public def raw (x : CPyIO α) : CPyIO Internal.Py.Raw :=
   ofBaseIOUnsafe <| x.toBaseIOUnsafe.map (·.raw)
 
 end CPyIO
@@ -224,9 +261,6 @@ Return context for external CPython functions that return an object
 and cannot raise an exception.
 
 Not a monad itself, but lifts into monads equipped with a Python context.
-
-**API Caveat:** The definition of {name}`CPyBaseIO` is not part of Nerodia's
-public API. Nevertheless, it is exposed due to the limitations of Lean's compiler.
 -/
 @[irreducible, expose] -- for codegen
 public def CPyBaseIO (α) :=
@@ -260,6 +294,20 @@ and that it  does not outlive the environment.
 
 public instance : MonadLift CPyBaseIO CPyIO := ⟨CPyBaseIO.toCPyIO⟩
 
+/--
+Casts a {lean}`CPyBaseIO` returning a
+typed Python object to one returning its supertype.
+-/
+@[inline] public def promote [Promotable U T] (x : CPyBaseIO (Py T)) : CPyBaseIO (Py U) :=
+  ofBaseIOUnsafe <| x.toBaseIOUnsafe.map (·.promote)
+
+/--
+Casts a {lean}`CPyBaseIO` returning an
+arbitrary type to one returning {lean}`PyObject`.
+-/
+@[inline] public def normalize (x : CPyBaseIO α) : CPyBaseIO  PyObject :=
+  ofBaseIOUnsafe <| x.toBaseIOUnsafe.map (·.normalize)
+
 end CPyBaseIO
 
 /-! ### CPyUnitIO -/
@@ -269,9 +317,6 @@ Return type for external CPython functions that may error but do not return
 a Python object.
 
 Not a monad itself, but lifts into monads equipped with a Python context.
-
-**API Caveat:** The definition of {name}`CPyUnitIO` is not part of Nerodia's
-public API. Nevertheless, it is exposed due to the limitations of Lean's compiler.
 -/
 @[irreducible, expose] -- for codegen
 public def CPyUnitIO :=
@@ -347,6 +392,8 @@ This creates a new temporary Python context for the call.
 
 /-! ### PyCResultIO -/
 
+namespace Internal
+
 @[irreducible, expose] -- for codegen
 public def PyCResultIO (α : Type) :=
   PyBaseIO (CPyResult α)
@@ -374,16 +421,35 @@ This creates a new temporary Python context for the call.
   x.runUnsafe (← PyThreadCtx.getOrInit)
 
 /--
-Converts a {lean}`PyCResultIO` returning an
-arbitrary type to one returning {lean}`Py.Raw`.
+Casts a {lean}`PyCResultIO` returning a
+typed Python object to one returning its supertype.
 -/
-@[inline] public def raw (x : PyCResultIO α) : PyCResultIO Py.Raw :=
-  .ofPyBaseIOUnsafe do return (← x.toPyBaseIOUnsafe).raw
+@[inline] public def promote [Promotable U T] (x : PyCResultIO (Py T)) : PyCResultIO (Py U) :=
+  .ofPyBaseIOUnsafe <| x.toPyBaseIOUnsafe <&> (·.promote)
+
+open Internal in
+/--
+Casts a {lean}`PyCResultIO` returning an
+arbitrary type to one returning {lean}`PyObject`.
+-/
+@[inline] public def normalize (x : PyCResultIO α) : PyCResultIO PyObject :=
+  .ofPyBaseIOUnsafe <| x.toPyBaseIOUnsafe <&> (·.normalize)
+
+open Internal in
+/--
+Casts a {lean}`PyCResultIO` returning an
+arbitrary type to one returning {lean}`Internal.Py.Raw`.
+-/
+@[inline, deprecated normalize +typeChanged (since := "2026-09-22")]
+public def raw (x : PyCResultIO α) : PyCResultIO Internal.Py.Raw :=
+  .ofPyBaseIOUnsafe <| x.toPyBaseIOUnsafe <&> (·.raw)
 
 end PyCResultIO
 
+namespace Nerodia
+
 /-- Lifts a {lean}`CPyIO` action into {lean}`PyCResultIO`. -/
-@[inline] public def CPyIO.toPyResultIO
+@[inline] public def CPyIO.toPyCResultIO
   (x : CPyIO α)
 : PyCResultIO α := .ofPyBaseIOUnsafe do
   let r ← x.toBaseIOUnsafe
@@ -391,23 +457,28 @@ end PyCResultIO
   return r
 
 /-- Sequences a {lean}`PyCResultIO` action after a {lean}`PyBaseIO` action. -/
-@[inline] public def PyBaseIO.bindPyResultIO
+@[inline] public def PyBaseIO.bindPyCResultIO
   (x : PyBaseIO α) (f : α → PyCResultIO β)
 : PyCResultIO β := .ofPyBaseIOUnsafe do f (← x) |>.toPyBaseIOUnsafe
 
 open Internal in
 /-- Sequences a {lean}`PyCResultIO` action after a {lean}`PyIO` action. -/
-@[inline] public def PyIO.bindPyResultIO
+@[inline] public def PyIO.bindPyCResultIO
   (x : PyIO α) (f : α → PyCResultIO β)
 : PyCResultIO β := .ofPyBaseIOUnsafe do
   match ← x.toPyBaseIOUnsafe? with
   | some a => f a |>.toPyBaseIOUnsafe
   | none => return .failureUnsafe
 
+end Nerodia
+
+open Internal in
 /-- Internal function for {lit}`@[py_module_fn]` -/
-@[inline] public def Internal.pyBind
-  {α : Type} (x : PyIO α) (f : α → PyCResultIO Py.Raw)
-: PyCResultIO Py.Raw := x.bindPyResultIO f
+@[inline] public def pyBind
+  {α : Type} (x : PyIO α) (f : α → PyCResultIO PyObject)
+: PyCResultIO PyObject := x.bindPyCResultIO f
+
+end Internal
 
 /-! ## Result Handling -/
 
@@ -463,11 +534,17 @@ Runs {lean}`e` if {lean}`x` has set an exception.
   else
     ofBaseResultUnsafe (res.toCPyBaseResultUnsafe h)
 
+open Internal in
+/-- Returns the address of the Python object (not the Lean wrapper). -/
+@[extern "nerodia_py_object_addr"]
+def PyObject.addr (self : @& PyObject) : Addr :=
+  self.toModel.addr
+
 /-- Returns a new strong reference to Python object's raw unmanaged C pointer. -/
 @[extern "nerodia_py_object_new_ref"]
 def Py.newRef (self : @& Py T) : CPyBaseIO (Py T) :=
   have : Nonempty (Py T) := ⟨self⟩
-  let cptr := .ofAddrUnsafe self.raw.addr
+  let cptr := .ofAddrUnsafe self.toPyObject.addr
   .ofBaseIOUnsafe <| pure (.ofCPtrUnsafe cptr)
 
 namespace CPyBaseIO
@@ -537,7 +614,8 @@ This creates a new temporary Python context for the call.
 @[inline] public def PyIO.toCPyIO (x : PyIO (Py T)) : CPyIO (Py T) :=
   x.bindCPyIO CPyIO.pure
 
-open Internal in
+namespace Internal.Nerodia
+
 /-- Constructs a {lean}`PyCResultIO` that returns {lean}`o`. -/
 @[inline] public protected def PyCResultIO.pure (o : Py T) : PyCResultIO (Py T) :=
   .ofPyBaseIOUnsafe <| liftM (m := BaseIO) do
@@ -555,6 +633,8 @@ open Internal in
     environment is always held throughout.
     -/
     return .ofCPyBaseResultUnsafe (← o.newRef.toBaseIOUnsafe)
+
+end Internal.Nerodia
 
 /-! ## Exception Handling -/
 
