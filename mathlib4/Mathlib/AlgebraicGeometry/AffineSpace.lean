@@ -484,7 +484,8 @@ lemma isIntegralHom_over_iff_isEmpty : IsIntegralHom (𝔸(n; S) ↘ S) ↔ IsEm
         (arrowIsoΓSpecOfIsAffine _)).mpr h.2 (X i)
     have : (rename fun _ ↦ i).comp (uniqueAlgEquiv.{_, u} _ PUnit).symm.toAlgHom p = 0 := by
       simp [← hp', ← algebraMap_eq]
-    rw [AlgHom.comp_apply, map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl))] at this
+    rw [AlgHom.comp_apply,
+      map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl (α := PUnit.{u + 1})))] at this
     simp only [AlgEquiv.coe_toAlgHom, EmbeddingLike.map_eq_zero_iff] at this
     simp [this] at hp
   · rintro (_ | _) <;> infer_instance
