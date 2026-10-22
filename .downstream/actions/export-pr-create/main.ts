@@ -127,7 +127,7 @@ function isBuildReportGreen(report: BuildReport): boolean {
 async function findExportPr(config: ExportConfig): Promise<ListPr | undefined> {
   return await findPrFor(targetOcto, config.targetRepo, config.prBranch, {
     state: "open",
-    headOwner: config.prRepo.owner,
+    headRepo: config.prRepo,
   });
 }
 
@@ -424,6 +424,8 @@ async function createExportPr(
     ...config.targetRepo,
     base: config.targetBranch,
     head: `${config.prRepo.owner}:${config.prBranch}`,
+    // Required for cross-repo PRs when both repos have the same owner.
+    head_repo: config.prRepo.fullName,
     title: prTitle,
     body,
   });

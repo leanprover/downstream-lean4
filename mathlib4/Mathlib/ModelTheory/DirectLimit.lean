@@ -235,7 +235,8 @@ theorem funMap_quotient_mk'_sigma_mk' {n : ℕ} {F : L.Functions n} {i : ι} {x 
   simp only [funMap_quotient_mk', Quotient.eq]
   obtain ⟨k, ik, jk⟩ :=
     directed_of (· ≤ ·) i (Classical.choose (Finite.bddAbove_range fun _ : Fin n => i))
-  refine ⟨k, jk, ik, ?_⟩
+  refine ⟨k, jk, ik, (?_ : (f (Classical.choose _) k jk) (funMap F (unify f _ _ _)) =
+  (f i k ik) (funMap F x))⟩
   simp only [Embedding.map_fun, comp_unify]
   rfl
 

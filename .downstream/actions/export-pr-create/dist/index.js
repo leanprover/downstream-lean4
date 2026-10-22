@@ -25077,16 +25077,17 @@ var Repo = class {
   }
 };
 async function findPrFor(octo, repo, branchName, options = {}) {
-  const { state = "all", headOwner = repo.owner } = options;
+  const { state = "all", headRepo = repo } = options;
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${headOwner}:${branchName}`,
+    head: `${headRepo.owner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
-    per_page: 1
+    per_page: 100
   });
-  return data[0];
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr2) => pr2.head.repo?.full_name.toLowerCase() === fullName);
 }
 
 // actions/lib/input.ts
@@ -25232,7 +25233,7 @@ function isBuildReportGreen(report) {
 async function findExportPr(config) {
   return await findPrFor(targetOcto, config.targetRepo, config.prBranch, {
     state: "open",
-    headOwner: config.prRepo.owner
+    headRepo: config.prRepo
   });
 }
 async function cloneDownstreamRepo() {
@@ -25448,6 +25449,8 @@ downstream-sha: ${buildReport.commit_sha}`;
     ...config.targetRepo,
     base: config.targetBranch,
     head: `${config.prRepo.owner}:${config.prBranch}`,
+    // Required for cross-repo PRs when both repos have the same owner.
+    head_repo: config.prRepo.fullName,
     title: prTitle,
     body
   });

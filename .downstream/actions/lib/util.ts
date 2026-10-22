@@ -1,8 +1,8 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import { getOctokit } from "@actions/github";
-import * as path from "node:path";
 import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
+import * as path from "node:path";
 
 export type Octokit = ReturnType<typeof getOctokit>;
 export type Pr = Response<Octokit["rest"]["pulls"]["get"]>;
@@ -107,7 +107,7 @@ export async function isAncestor(
 
 export interface FindPrForOptions {
   state?: "open" | "closed" | "all";
-  headOwner?: string;
+  headRepo?: Repo;
 }
 
 export async function findPrFor(
@@ -116,16 +116,20 @@ export async function findPrFor(
   branchName: string,
   options: FindPrForOptions = {},
 ): Promise<ListPr | undefined> {
-  const { state = "all", headOwner = repo.owner } = options;
+  const { state = "all", headRepo = repo } = options;
+  // The head filter only checks the owner, so PRs from other repos of the same
+  // owner (e.g. a fork owned by the same org) may also match. In practice, this
+  // is unlikely to be a problem, but just to make sure, we check the repo name.
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${headOwner}:${branchName}`,
+    head: `${headRepo.owner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
-    per_page: 1,
+    per_page: 100,
   });
-  return data[0];
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr) => pr.head.repo?.full_name.toLowerCase() === fullName);
 }
 
 export function adaptationBranchNameFor(prNumber: number): string {
