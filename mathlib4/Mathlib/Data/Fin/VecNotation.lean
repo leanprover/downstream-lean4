@@ -408,11 +408,10 @@ theorem vecAlt1_vecAppend (v : Fin (n + 1) → α) :
     simp only [Nat.zero_add, Nat.lt_one_iff] at hi; subst i; rfl
   | succ n =>
     split_ifs with h <;> congr
-    · simp only [Nat.one_mod, Nat.mod_add_mod]
-      rw [← Nat.mod_eq_of_lt h, Nat.mod_mod]
+    · simp [Nat.mod_eq_of_lt, h]
     · rw [Fin.val_mk, not_lt] at h
-      simp only [Nat.reduceSubDiff, show 1 % (n + 2) = 1 from Nat.mod_eq_of_lt (by lia),
-        Nat.mod_add_mod, Nat.mod_eq_sub_mod h]
+      simp only [Nat.mod_add_mod,
+        Nat.mod_eq_sub_mod h, show 1 % (n + 2) = 1 from Nat.mod_eq_of_lt (by lia)]
       refine (Nat.mod_eq_of_lt ?_).symm
       lia
 

@@ -92,17 +92,20 @@ theorem directSum_symm_lof_tmul (i₁ : ι₁) (m₁ : M₁ i₁) (i₂ : ι₂)
   rw [LinearEquiv.symm_apply_eq, directSum_lof_tmul_lof]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 theorem directSumLeft_tmul_lof (i : ι₁) (x : M₁ i) (y : M₂') :
     directSumLeft R S M₁ M₂' (DirectSum.lof S _ _ i x ⊗ₜ[R] y) =
     DirectSum.lof S _ _ i (x ⊗ₜ[R] y) := by
+  #adaptation_note /-- Before nightly-2026-10-21, this proof used to be:
+  ```lean
+  simpa [directSumLeft] using! lequivCongrLeft_lof S (by simp) _ _ rfl
+  ```
+  -/
   simp only [directSumLeft, LinearEquiv.trans_apply, AlgebraTensorModule.congr_tmul,
     LinearEquiv.coe_one, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
     directSum_lof_tmul_lof]
   exact lequivCongrLeft_lof S (by rw [Equiv.prodUnique_symm_apply,
     PUnit.default_eq_unit]) _ _ rfl
-
 
 @[simp]
 theorem directSumLeft_symm_lof_tmul (i : ι₁) (x : M₁ i) (y : M₂') :
@@ -130,11 +133,15 @@ lemma directSumLeft_symm_of {i : ι₁} (x : (M₁ i) ⊗[R] M₂') :
   | add x y h₁ h₂ => simp [h₁, h₂]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.isDefEq.respectTransparency.types false in
 @[simp]
 theorem directSumRight_tmul_lof (x : M₁') (i : ι₂) (y : M₂ i) :
     directSumRight R S M₁' M₂ (x ⊗ₜ[R] DirectSum.lof R _ _ i y) =
     DirectSum.lof S _ _ i (x ⊗ₜ[R] y) := by
+  #adaptation_note /-- Before 2026-10-22, this proof used to be:
+  ```lean4
+  simpa [directSumRight] using! lequivCongrLeft_lof S (by simp) _ _ rfl
+  ```
+  -/
   simp only [directSumRight, LinearEquiv.trans_apply, AlgebraTensorModule.congr_tmul,
     LinearEquiv.coe_one, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
     directSum_lof_tmul_lof]
