@@ -231,7 +231,8 @@ This keeps the propagation phase predictable and easy to debug.
 :::
 
 The set of propagation rules is expanded and refined over time, so the InfoView will show increasingly rich {lean}`True` and {lean}`False` buckets.
-The full equivalence classes are displayed automatically _only when {tactic}`grind` fails_, and only for the first subgoal that it could not close—use this output to inspect missing facts and understand why the subgoal remains open.
+The full equivalence classes are displayed _only when {tactic}`grind` fails_, and only for the first subgoal that it could not close—use this output to inspect missing facts and understand why the subgoal remains open.
+Because collecting them is costly, they are opt-in: pass the `verbose` option, as in `grind +verbose`, to have the failure message include them.
 
 :::example "Identifying Missing Facts"
 In this example, {tactic}`grind` fails:
@@ -241,9 +242,9 @@ example :
     x = y ∧ y = z →
     w = x ∨ w = v →
     w = z := by
-  grind
+  grind +verbose
 ```
-The resulting error message includes the identified equivalence classes along with the true and false propositions:
+With `+verbose`, the resulting error message includes the identified equivalence classes along with the true and false propositions:
 ```leanOutput missing (expandTrace := eqc)
 `grind` failed
 case grind

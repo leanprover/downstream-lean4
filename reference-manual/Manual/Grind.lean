@@ -248,7 +248,7 @@ def one := 1
 ```
 This means that {tactic}`grind` does not unfold it:
 ```lean +error (name := noUnfold)
-example : one = 1 := by grind
+example : one = 1 := by grind +verbose
 ```
 ```leanOutput noUnfold
 `grind` failed
