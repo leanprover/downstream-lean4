@@ -1183,7 +1183,7 @@ set_option backward.defeqAttrib.useBackward true in
 /--
 Monoid objects in `C` are "just" lax monoidal functors from the trivial monoidal category to `C`.
 -/
-@[to_additive (attr := simps!?)
+@[to_additive (attr := simps!)
   /--
   Additive monoid objects in `C` are "just" lax monoidal functors from
   the trivial monoidal category to `C`.
