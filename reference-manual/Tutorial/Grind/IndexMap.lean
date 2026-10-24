@@ -237,6 +237,7 @@ end IndexMap
 Let's get started.
 We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
 so we can omit these fields whenever `grind` can prove them.
+{tactic}`grind`'s goal diagnostics are opt-in, so the `WF` auto-parameter passes `+verbose`: when `grind` cannot discharge the field, we want to see what it did know.
 While we're modifying the definition of `IndexMap` itself, let's make all the fields private, since we're planning on having complete encapsulation.
 
 ```anchor IndexMap
@@ -249,7 +250,7 @@ structure IndexMap
   private values : Array β
   private size_keys' : keys.size = values.size := by grind
   private WF : ∀ (i : Nat) (a : α),
-    keys[i]? = some a ↔ indices[a]? = some i := by grind
+    keys[i]? = some a ↔ indices[a]? = some i := by grind +verbose
 ```
 
 For the rest of this tutorial, the following namespace and variable declarations are in effect:
@@ -333,7 +334,7 @@ Because we've added {tactic}`grind` annotations for {anchorTerm size}`size` and 
 ```anchor getElem_indices_lt_init
 theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m.indices[a] < m.size := by
-  grind
+  grind +verbose
 ```
 
 This fails, and looking at the `Goal diagnostics` section of the message from {tactic}`grind` we see that it hasn't done much:
