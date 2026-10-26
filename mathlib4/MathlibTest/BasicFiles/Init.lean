@@ -24,6 +24,11 @@ import Mathlib.Init
 #min_imports in
 #min_imports
 
+-- Since importGraph#168, bare `#min_imports` only lodges a request and reports from the end of the
+-- file, so `#guard_msgs` above cannot capture its message; discard the request instead, as
+-- `ImportGraph.Tools.MinImports` recommends for tests.
+run_cmd ImportGraph.Shake.resetMinImports
+
 #guard_msgs (substring := true) in
 #find_home Nat
 
