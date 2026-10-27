@@ -298,11 +298,9 @@ def laxBraidedToCommMon : LaxBraidedFunctor (Discrete PUnit.{u + 1}) C ⥤ CommM
   map α := ((Functor.mapCommMonFunctor (Discrete PUnit) C).map α).app _
 
 /-- Implementation of `CommMon.equivLaxBraidedFunctorPUnit`. -/
-@[simps!]
+@[simps! obj]
 def commMonToLaxBraidedObj (A : CommMon C) :
     Discrete PUnit.{u + 1} ⥤ C := (Functor.const _).obj A.X
-
-attribute [nolint simpNF] commMonToLaxBraidedObj_map
 
 set_option backward.defeqAttrib.useBackward true in
 instance (A : CommMon C) : (commMonToLaxBraidedObj A).LaxMonoidal where

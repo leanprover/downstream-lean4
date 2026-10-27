@@ -844,7 +844,7 @@ theorem tr_respects :
     suffices ∀ q R, Reaches (step (tr enc dec M)) (stepAux (trNormal dec q) v (trTape' enc0 L R))
         (trCfg enc enc0 (stepAux q v (Tape.mk' L R))) by
       refine TransGen.head' rfl ?_
-      simp_rw [← trTape_mk'] at this
+      rw [trTape_mk']
       exact this _ R
     clear R l₁
     intro q R

@@ -213,7 +213,7 @@ def equivProdNatFactoredNumbers {s : Finset ℕ} {p : ℕ} (hp : p.Prime) (hs : 
         filter_eq_self.mpr <| by grind]
   right_inv := by
     rintro ⟨m, hm₀, hm⟩
-    simp_rw [Subtype.mk.injEq, ← primeFactorsList_count_eq, ← prod_replicate, ← prod_append]
+    rw [Subtype.mk.injEq, ← primeFactorsList_count_eq, ← prod_replicate, ← prod_append]
     conv_rhs => rw [← prod_primeFactorsList hm₀]
     have : m.primeFactorsList.filter (· = p) = m.primeFactorsList.filter (· ∉ s) :=
       filter_congr <| by grind

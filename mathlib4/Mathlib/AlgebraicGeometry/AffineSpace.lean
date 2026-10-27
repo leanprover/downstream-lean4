@@ -68,7 +68,6 @@ instance over : 𝔸(n; S).CanonicallyOver S where
 /-- The map from the affine `n`-space over `S` to the integral model `Spec ℤ[n]`. -/
 def toSpecMvPoly : 𝔸(n; S) ⟶ Spec ℤ[n] := pullback.snd _ _
 
-set_option backward.defeqAttrib.useBackward true in
 /--
 Morphisms into `Spec ℤ[n]` are equivalent the choice of `n` global sections.
 Use `homOverEquiv` instead.
@@ -307,7 +306,6 @@ lemma map_SpecMap {R S : CommRingCat.{u}} (φ : R ⟶ S) :
     rw [SpecIso_inv_appTop_coord, ← CommRingCat.comp_apply, ← Scheme.ΓSpecIso_inv_naturality,
         CommRingCat.comp_apply, ConcreteCategory.hom_ofHom, map_X]
 
-set_option backward.defeqAttrib.useBackward true in
 /-- The map between affine spaces over affine bases is
 isomorphic to the natural map between polynomial rings. -/
 def mapSpecMap {R S : CommRingCat.{u}} (φ : R ⟶ S) :
@@ -484,8 +482,7 @@ lemma isIntegralHom_over_iff_isEmpty : IsIntegralHom (𝔸(n; S) ↘ S) ↔ IsEm
         (arrowIsoΓSpecOfIsAffine _)).mpr h.2 (X i)
     have : (rename fun _ ↦ i).comp (uniqueAlgEquiv.{_, u} _ PUnit).symm.toAlgHom p = 0 := by
       simp [← hp', ← algebraMap_eq]
-    rw [AlgHom.comp_apply,
-      map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl (α := PUnit.{u + 1})))] at this
+    rw [AlgHom.comp_apply, map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl))] at this
     simp only [AlgEquiv.coe_toAlgHom, EmbeddingLike.map_eq_zero_iff] at this
     simp [this] at hp
   · rintro (_ | _) <;> infer_instance
