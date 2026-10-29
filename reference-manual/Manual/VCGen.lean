@@ -63,6 +63,7 @@ The {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops verification condit
 The {keywordOf Lean.Parser.Tactic.vcgen}`invariants` clause allows {tech}[loop invariants] to be specified.
 These invariants are used during verification condition generation and can inform the simplification and automation passes.
 By default, hypotheses as well as targets of verification conditions are simplified according to the {attr}`vcgen_simp` set.
+The {keywordOf Lean.Parser.Tactic.vcgen}`simp` clause adds further theorems.
 Simplification can be switched off by setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false`.
 Because {tactic}`vcgen` shares much of its implementation with {tactic}`grind`, the {keywordOf Lean.Parser.Tactic.vcgen}`with` clause allows either an {ref "grind-interactive"}`interactive `grind` tactic` or an ordinary tactic to be applied in all generated verification conditions.
 :::
