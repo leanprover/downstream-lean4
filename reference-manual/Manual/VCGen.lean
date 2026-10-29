@@ -62,7 +62,8 @@ Generates {tech}[verification conditions] for the current goal.
 The {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops verification condition generation at the first goal that matches the provided pattern.
 The {keywordOf Lean.Parser.Tactic.vcgen}`invariants` clause allows {tech}[loop invariants] to be specified.
 These invariants are used during verification condition generation and can inform the simplification and automation passes.
-Hypotheses introduced during verification condition generation are simplified in the same manner as the goals; the {keywordOf Lean.Parser.Tactic.vcgen}`simp` clause adds theorems to the simp set that is used for this, and the simplification can be switched off by setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false`.
+If the {keywordOf Lean.Parser.Tactic.vcgen}`simp` clause is present, then hypotheses as well as targets of verification conditions are simplified according to the {attr}`vcgen_simp` set.
+Simplification can be switched off by setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false`.
 Because {tactic}`vcgen` shares much of its implementation with {tactic}`grind`, the {keywordOf Lean.Parser.Tactic.vcgen}`with` clause allows either an {ref "grind-interactive"}`interactive `grind` tactic` or an ordinary tactic to be applied in all generated verification conditions.
 :::
 
@@ -628,8 +629,8 @@ Generation proceeds as follows:
 VC generation stops early after {name Lean.Elab.Tactic.Do.VCGen.Config.stepLimit}`stepLimit` program steps.
 An {keywordOf Lean.Parser.Tactic.vcgen}`until` clause stops VC generation at the first program that matches the given pattern.
 A {keywordOf Lean.Parser.Tactic.vcgen}`with` clause runs the given {tactic}`grind`-mode step on every remaining verification condition.
-By default, the hypotheses that binders and branches introduce, the state arguments of each weakest precondition, and the verification conditions are rewritten with the theorems tagged {attr}`vcgen_simp`.
-A clause {keywordOf Lean.Parser.Tactic.vcgen}`simp` `[h₁, h₂]` adds `h₁` and `h₂` as further rewrite rules, and setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false` disables the rewriting altogether.
+The local context and target of verification conditions are incrementally rewritten with the theorems tagged {attr}`vcgen_simp`.
+The clause {keywordOf Lean.Parser.Tactic.vcgen}`simp` `[h₁, h₂]` adds `h₁` and `h₂` as further rewrite rules, and setting {name Lean.Elab.Tactic.Do.VCGen.Config.simp}`simp` to {lean}`false` disables the rewriting altogether.
 This keeps the intermediate goals in a normal form that the user chooses: for example, a sequence of state updates can fold into one constructor application, so that the goals do not grow with the number of updates.
 Simplified hypotheses also help {tactic}`grind` to detect contradictory goals.
 :::
