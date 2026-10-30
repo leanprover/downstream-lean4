@@ -175,7 +175,8 @@ public def strLitInputContext [Monad m] [MonadFileMap m] [MonadError m] (str : S
   let endPos := str.getTailPos?.getD startPos
   let text ← getFileMap
   let endPos := if endPos > text.source.rawEndPos then text.source.rawEndPos else endPos
-  let ictx := Parser.mkInputContext text.source fileName (endPos := endPos) (endPos_valid := by grind)
+  let ictx := Parser.InputContext.mk text.source fileName (endPos := endPos)
+    (endPos_valid := by grind) (fileMap := text)
   return (ictx, startPos)
 
 /--
