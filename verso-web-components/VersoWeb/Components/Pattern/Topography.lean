@@ -9,8 +9,7 @@ import VersoWeb.Util
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso.Web Util
-open Verso Output.Html Genre Blog Template
+open Output.Html Genre Blog Template
 
 /--
 Topography background image.
@@ -18,29 +17,29 @@ Topography background image.
 def mainTopography [MonadStateOf Component.State m] [Monad m] : m Html := do
   saveCss (include_str "../../../static/style/pattern.css")
 
-  return {{
+  return html%{
     <div id="main-background" class="background-wrapper" aria-hidden="true">
-      {{
+      {
         svg("../../../static/svg/background.svg")
         |> setAttribute "aria-hidden" "true"
         |> setAttribute "alt" "Topography background"
-      }}
+      }
     </div>
-  }}
+  }
 
 def topography [MonadStateOf Component.State m] [Monad m] : m Html := do
   saveCss (include_str "../../../static/style/pattern.css")
 
-  return {{
+  return html%{
     <div class="topography-wrapper">
-      {{
+      {
         svg("../../../static/svg/topography.svg")
         |> setAttribute "aria-hidden" "true"
         |> setAttribute "alt" "Topography background"
         |> setAttribute "class" "topography-background"
-      }}
+      }
     </div>
-  }}
+  }
 
 block_component +directive mainTopography' where
   toHtml _id _json _goI _ _ := mainTopography

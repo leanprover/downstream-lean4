@@ -3,14 +3,17 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Components.Icon
+module
+
+public import VersoWeb.Components.Icon
+public import VersoBlog.Template
+
+public section
 
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso Output.Html Genre Blog Template
+open Verso Genre Blog Template
 
 namespace Button
 
@@ -20,10 +23,10 @@ Render a complete archive entry
 def readMore [MonadStateOf Component.State m] [Monad m] (target : String) : m Html := do
   saveCss (include_str "../../../static/style/read-more.css")
 
-  return {{
-    <a href={{target}} class="read-more">
-      "Read more" {{Icon.arrowForward (width := "20px") (fill := "#000")}}
+  return html%{
+    <a href={target} class="read-more">
+      Read more{Icon.arrowForward (width := "20px") (fill := "#000")}
     </a>
-  }}
+  }
 
 end Verso.Web.Components.Button

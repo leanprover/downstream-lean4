@@ -3,15 +3,17 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
+module
+
+public import VersoBlog.Component
 import VersoWeb.Components.Icon
+
+public section
 
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso.Output.Html
-open Verso.Genre.Blog Template
+open Verso.Genre.Blog
 
 /-!
 # Footer Component
@@ -115,81 +117,81 @@ namespace Footer
 Render the Lean logo
 -/
 private def renderLogo : Html :=
-  {{ <a href="/"> {{ Icon.leanLogo "white" (some 80) (some 40) (strokeWidth := 10) }} </a> }}
+  html%{<a href="/">{ Icon.leanLogo "white" (some 80) (some 40) (strokeWidth := 10) }</a>}
 
 /--
 Render a single footer item
 -/
 private def renderItem (item : FooterItem) : Html :=
-  {{
+  html%{
     <li>
-      <a href={{item.url}} class="footer-text" target={{if item.blank then "_blank" else "_self"}}>
-        {{item.title}}
+      <a href={item.url} class="footer-text" target={if item.blank then "_blank" else "_self"}>
+        {item.title}
       </a>
     </li>
-  }}
+  }
 
 /--
 Render a footer column
 -/
 private def renderColumn (column : FooterColumn) : Html :=
-  {{
-    <nav class="footer-column" aria-label={{column.ariaLabel.getD column.heading}}>
-      <h3 id={{column.headingId.getD ""}} class="footer-heading">{{column.heading}}</h3>
+  html%{
+    <nav class="footer-column" aria-label={column.ariaLabel.getD column.heading}>
+      <h3 id={column.headingId.getD ""} class="footer-heading">{column.heading}</h3>
       <ul class="footer-links">
-        {{ column.items.map renderItem }}
+        { column.items.map renderItem }
       </ul>
     </nav>
-  }}
+  }
 
 /--
 Render a social link
 -/
 private def renderSocialLink (social : SocialLink) : Html :=
-  {{
-    <a href={{social.url}} aria-label={{social.ariaLabel.getD ""}}>
-      {{social.icon}}
+  html%{
+    <a href={social.url} aria-label={social.ariaLabel.getD ""}>
+      {social.icon}
     </a>
-  }}
+  }
 
 /--
 Render the theme switcher
 -/
 private def renderThemeSwitcher : Html :=
-  {{
+  html%{
     <label class="theme-switch">
       <input type="checkbox" class="change-theme" />
       <div class="switch-container">
         <span class="slider"></span>
       </div>
     </label>
-  }}
+  }
 
 /--
 Render the complete footer
 -/
 def render [MonadStateOf Component.State m] [Monad m] (config : FooterConfig) : m Html := do
-  return {{
+  return html%{
     <footer role="contentinfo" aria-label="Site footer">
       <div class="footer-grid container">
         <nav class="footer-column" aria-label="LEAN">
-          {{ renderLogo }}
+          { renderLogo }
         </nav>
 
-        {{ config.columns.map renderColumn }}
+        { config.columns.map renderColumn }
       </div>
 
       <div class="footer-divider container" role="separator"></div>
       <div class="footer-bottom container">
         <div class="footer-copy">
-          {{config.copyrightText}}
+          {config.copyrightText}
         </div>
         <div class="footer-socials">
-          {{ if config.showThemeSwitcher then renderThemeSwitcher else Html.empty }}
-          {{ config.socialLinks.map renderSocialLink }}
+          { if config.showThemeSwitcher then renderThemeSwitcher else Html.empty }
+          { config.socialLinks.map renderSocialLink }
         </div>
       </div>
     </footer>
-  }}
+  }
 
 end Verso.Web.Components.Footer

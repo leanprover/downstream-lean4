@@ -3,11 +3,15 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import VersoWeb.Components.Icon
+module
+
+public import VersoBlog.Template
+
+public section
 
 namespace Verso.Web.Components
 
-open Lean Verso Output.Html Genre Blog Template
+open Lean Verso Genre Blog Template
 
 inductive Button.Style
   | primary
@@ -25,10 +29,10 @@ def button [MonadStateOf Component.State m] [Monad m] (style : Button.Style) (hr
     let invertedClass :=  if inverted then " inverted" else ""
     let extraClasses := if classes.isEmpty then "" else " " ++ String.intercalate " " classes.toList
 
-    return {{
-      <a class={{s!"button {toString style}{invertedClass}{extraClasses}"}} href={{href}}>
-        {{ content }}
+    return html%{
+      <a class={s!"button {toString style}{invertedClass}{extraClasses}"} href={href}>
+        { content }
       </a>
-    }}
+    }
 
 end Verso.Web.Components

@@ -3,15 +3,17 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
+module
+
+public import VersoBlog
 import VersoWeb.Components.Icon
+
+public section
 
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso.Output.Html
-open Verso.Genre.Blog Template
+open Verso.Genre.Blog
 
 /-!
 # Navigation Bar Component
@@ -188,10 +190,10 @@ deriving Inhabited
 namespace NavBar
 
 private def renderLogo : Html :=
-  {{ <a class="nav-logo" href="/"> {{ Icon.leanLogo "#386EE0" (some 70) (some 20) (strokeWidth := 10) }} </a> }}
+  html%{<a class="nav-logo" href="/">{ Icon.leanLogo "#386EE0" (some 70) (some 20) (strokeWidth := 10) }</a>}
 
 private def renderFroLogo : Html :=
-  {{ <a class="nav-logo" href="/fro"> {{ Icon.froLogo "#386EE0" (some 70) (some 20) (strokeWidth := 10) }} </a> }}
+  html%{<a class="nav-logo" href="/fro">{ Icon.froLogo "#386EE0" (some 70) (some 20) (strokeWidth := 10) }</a>}
 
 private def mobileGroupToggleId (label : String) : String :=
   let cleaned := label.foldl (fun s c => if c.isAlphanum then s.push c else s) ""
@@ -200,23 +202,23 @@ private def mobileGroupToggleId (label : String) : String :=
 
 private def renderItem (item : NavBarItem) : Html :=
   let classes := item.classes.map (s!" {·}") |>.getD ""
-  {{
-    <li class=s!"nav-item{ if item.active then " active" else ""}">
-      {{
+  html%{
+    <li class={s!"nav-item{ if item.active then " active" else ""}"}>
+      {
         if let some url := item.url then
-          {{ <a href={{url}} class=s!"nav-link{classes}" aria-label={{item.alt.getD ""}} target={{if item.blank then "_blank" else "_self"}}>{{item.title}}</a> }}
+          html%{<a href={url} class={s!"nav-link{classes}"} aria-label={item.alt.getD ""} target={if item.blank then "_blank" else "_self"}>{item.title}</a>}
         else
-          {{ <button class=s!"nav-link{classes}" aria-label={{item.alt.getD ""}}>{{item.title}}</button> }}
-      }}
+          html%{<button class={s!"nav-link{classes}"} aria-label={item.alt.getD ""}>{item.title}</button>}
+      }
     </li>
-  }}
+  }
 
 private def renderDivider (classes : Option String) : Html :=
   let cls := classes.map (s!" {·}") |>.getD ""
-  {{ <li class=s!"nav-item nav-divider{cls}" aria-hidden="true"><span class="divider" /></li> }}
+  html%{<li class={s!"nav-item nav-divider{cls}"} aria-hidden="true"><span class="divider" /></li>}
 
 private def chevronDownSvg : Html :=
-  {{
+  html%{
     <svg
       class="dropdown-arrow"
       width="4"
@@ -233,78 +235,78 @@ private def chevronDownSvg : Html :=
         stroke-linejoin="round"
       />
     </svg>
-  }}
+  }
 
 private def renderDesktopGroup (group : NavBarGroup) : Html :=
   let desktopItems := group.items.filter (fun i => i.display.in .desktop)
   let labelEl :=
     if let some url := group.url then
-      {{ <a href={{url}} class="nav-link nav-group-label" aria-label={{group.alt.getD group.label}}>{{group.label}}</a> }}
+      html%{<a href={url} class="nav-link nav-group-label" aria-label={group.alt.getD group.label}>{group.label}</a>}
     else
-      {{ <span class="nav-link nav-group-label" aria-label={{group.alt.getD group.label}}>{{group.label}}</span> }}
-  {{
+      html%{<span class="nav-link nav-group-label" aria-label={group.alt.getD group.label}>{group.label}</span>}
+  html%{
     <li class="nav-item nav-group">
-      {{ labelEl }}
+      { labelEl }
       <ul class="nav-group-items">
-        {{ desktopItems.map renderItem }}
+        { desktopItems.map renderItem }
       </ul>
     </li>
-  }}
+  }
 
 private def renderDropdownItem (item : NavBarItem) : Html :=
   let classes := item.classes.map (s!" {·}") |>.getD ""
   let inner : Html :=
     match item.description with
     | some desc =>
-      {{ <span class="dropdown-item-title">{{item.title}}</span>
-         <span class="dropdown-item-desc">{{desc}}</span> }}
+      html%{<span class="dropdown-item-title">{item.title}</span>
+         <span class="dropdown-item-desc">{desc}</span>}
     | none => item.title
-  {{
-    <li class=s!"nav-item{ if item.active then " active" else ""}">
-      {{
+  html%{
+    <li class={s!"nav-item{ if item.active then " active" else ""}"}>
+      {
         if let some url := item.url then
-          {{ <a href={{url}} class=s!"nav-link dropdown-item{classes}" aria-label={{item.alt.getD ""}} target={{if item.blank then "_blank" else "_self"}}>{{inner}}</a> }}
+          html%{<a href={url} class={s!"nav-link dropdown-item{classes}"} aria-label={item.alt.getD ""} target={if item.blank then "_blank" else "_self"}>{inner}</a>}
         else
-          {{ <button class=s!"nav-link dropdown-item{classes}" aria-label={{item.alt.getD ""}}>{{inner}}</button> }}
-      }}
+          html%{<button class={s!"nav-link dropdown-item{classes}"} aria-label={item.alt.getD ""}>{inner}</button>}
+      }
     </li>
-  }}
+  }
 
 private def renderDesktopDropdown (group : NavBarGroup) : Html :=
   let desktopItems := group.items.filter (fun i => i.display.in .desktop)
   let trigger :=
     if let some url := group.url then
-      {{ <a href={{url}} class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={{group.alt.getD group.label}}>{{group.label}}{{ chevronDownSvg }}</a> }}
+      html%{<a href={url} class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={group.alt.getD group.label}>{group.label}{ chevronDownSvg }</a>}
     else
-      {{ <button class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={{group.alt.getD group.label}}>{{group.label}}{{ chevronDownSvg }}</button> }}
+      html%{<button class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false" aria-label={group.alt.getD group.label}>{group.label}{ chevronDownSvg }</button>}
   let colStyle := if group.columns > 1 then s!"grid-template-columns: repeat({group.columns}, 1fr)" else ""
-  {{
+  html%{
     <li class="nav-item nav-dropdown-wrapper">
-      {{ trigger }}
-      <ul class=s!"nav-dropdown-panel{ if group.columns > 1 then " nav-dropdown-grid" else ""}" role="menu" style={{colStyle}}>
-        {{ desktopItems.map renderDropdownItem }}
+      { trigger }
+      <ul class={s!"nav-dropdown-panel{ if group.columns > 1 then " nav-dropdown-grid" else ""}"} role="menu" style={colStyle}>
+        { desktopItems.map renderDropdownItem }
       </ul>
     </li>
-  }}
+  }
 
 private def renderMobileGroup (group : NavBarGroup) : Html :=
   let mobileItems := group.items.filter (fun i => i.display.in .mobile)
   let toggleId    := mobileGroupToggleId group.label
   let homeItems : Array Html :=
     if let some url := group.url then
-      #[{{ <li class="nav-item"><a href={{url}} class="nav-link" aria-label={{group.alt.getD group.label}}>{{group.homeLabel}}</a></li> }}]
+      #[html%{<li class="nav-item"><a href={url} class="nav-link" aria-label={group.alt.getD group.label}>{group.homeLabel}</a></li>}]
     else
       #[]
-  {{
+  html%{
     <li class="nav-item has-submenu">
-      <input type="checkbox" id={{toggleId}} class="mobile-group-toggle" hidden="true" />
-      <label for={{toggleId}} class="nav-link" aria-label=s!"Toggle {group.label} navigation menu">{{group.label}}</label>
+      <input type="checkbox" id={toggleId} class="mobile-group-toggle" hidden="true" />
+      <label for={toggleId} class="nav-link" aria-label={s!"Toggle {group.label} navigation menu"}>{group.label}</label>
       <ul class="submenu">
-        {{ homeItems }}
-        {{ mobileItems.map renderItem }}
+        { homeItems }
+        { mobileItems.map renderItem }
       </ul>
     </li>
-  }}
+  }
 
 private def renderDesktopEntry (entry : NavBarEntry) : Html :=
   match entry with
@@ -325,31 +327,31 @@ private def renderDesktopMenu (config : NavBarConfig) : Html :=
   let leftEntries  := config.items.filter (fun e => e.align == .left  && e.display.in .desktop)
   let rightEntries := config.items.filter (fun e => e.align == .right && e.display.in .desktop)
 
-  {{
+  html%{
     <menu class="desktop-menu">
       <ul class="desktop-menu-part">
-        {{ leftEntries.map renderDesktopEntry }}
+        { leftEntries.map renderDesktopEntry }
       </ul>
       <ul class="desktop-menu-part">
-        {{ rightEntries.map renderDesktopEntry }}
+        { rightEntries.map renderDesktopEntry }
       </ul>
     </menu>
-  }}
+  }
 
 /--
 Render the sub-navigation bar.
 -/
 def renderSub [MonadStateOf Component.State m] [Monad m] (config : SubNavBarConfig) : m Html := do
-  return {{
+  return html%{
     <nav class="sub-navbar">
       <div class="navbar-container container">
-        {{ renderFroLogo }}
+        { renderFroLogo }
         <ul class="nav-list">
-          {{ config.menuItems.map renderItem }}
+          { config.menuItems.map renderItem }
         </ul>
       </div>
     </nav>
-  }}
+  }
 
 /--
 Render the complete navigation bar.
@@ -361,27 +363,27 @@ def render [MonadStateOf Component.State m] [Monad m] (config : NavBarConfig) : 
   let mobileGroups := mobileVisible.filter (· matches .group ..)
   let mobileEntries := mobileItems ++ mobileGroups
 
-  return {{
+  return html%{
     <nav class="navbar" role="navigation" aria-label="Primary navigation">
       <div class="navbar-container container">
-        {{ renderLogo }}
+        { renderLogo }
 
         <div class="nav-toggle">
           <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox" />
-          <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle navigation menu">"☰"</label>
+          <label for="nav-toggle" class="nav-toggle-label" aria-label="Toggle navigation menu">☰</label>
         </div>
 
-        {{ renderDesktopMenu config }}
+        { renderDesktopMenu config }
       </div>
 
       <menu class="mobile-nav">
         <ul class="nav-list">
-          {{ mobileEntries.map renderMobileEntry }}
+          { mobileEntries.map renderMobileEntry }
         </ul>
       </menu>
     </nav>
 
-    {{ ← if let some res := config.subNavBar then renderSub res else pure .empty }}
-  }}
+    { ← if let some res := config.subNavBar then renderSub res else pure .empty }
+  }
 
 end Verso.Web.Components.NavBar
