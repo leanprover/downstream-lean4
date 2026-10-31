@@ -7,7 +7,8 @@ import Verso.Doc.Html
 import VersoBlog
 import VersoWeb.Components.Icon
 
-open Verso.Output Html
+open Lean (Html)
+open Verso.Output.Html
 open Verso.Genre.Blog Template
 
 namespace Verso.Web.Components

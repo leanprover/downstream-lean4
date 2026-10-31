@@ -14,3 +14,16 @@ public structure TypeExpr where
     deriving Nonempty, DecidableEq
 
 public instance : ToString TypeExpr := ⟨TypeExpr.toString⟩
+
+namespace TypeExpr
+
+/-
+`@[irreducible]` keeps these definitions from being expanded during `whnf`
+in the Nerodia compiler when the definitions are imported into a non-module
+-/
+
+@[inline, irreducible] public def union (lhs rhs : TypeExpr) : TypeExpr :=
+  ⟨s!"{lhs} | {rhs}"⟩ -- equivalent to `Union[<lhs>, <rhs>]`
+
+@[inline, irreducible] public def optional (expr : TypeExpr) : TypeExpr :=
+  ⟨s!"{expr} | None"⟩ -- equivalent to `Optional[<expr>]`

@@ -4,12 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import VersoManual
-import Manual.Meta.Example
+module
+public meta import VersoManual.InlineLean
+public import VersoManual.InlineLean
+import Manual.Meta.Example -- shake: keep
+public meta import Manual.Meta.Basic
+
+public section
 
 open Lean
 open Verso (reportError)
-open Lean.Doc (CodeBlockView VersoCodeBlock)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
 open Manual (namedCodeBlock)
 set_option doc.verso true
 
@@ -157,7 +162,7 @@ variable [Monad m] [MonadError m]
 set_option pp.rawOnError true
 structure ErrorExampleConfig where
   title : String
-instance : Verso.ArgParse.FromArgs ErrorExampleConfig m where
+meta instance : Verso.ArgParse.FromArgs ErrorExampleConfig m where
   fromArgs :=
     ErrorExampleConfig.mk <$> Verso.ArgParse.positional `title Verso.ArgParse.ValDesc.string
 
@@ -192,7 +197,7 @@ Some explanatory text here.
 `````
 -/
 @[directive]
-def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
+meta def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
   | { title }, contents => do
     let brokenStx :: restStx := contents.toList
       | throwError m!"The error example had no contents"
@@ -236,9 +241,9 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
           $narrativeBlocks.toArray,*])
 where
-  partitionFixed (blocks : List (TSyntax ``Lean.Doc.Parser.block)) :
+  partitionFixed (blocks : List VersoBlock) :
       Verso.Doc.Elab.DocElabM
-        (List (Syntax × Option StrLit × VersoCodeBlock) × List (TSyntax ``Lean.Doc.Parser.block)) := do
+        (List (Syntax × Option StrLit × VersoCodeBlock) × List VersoBlock) := do
   match blocks with
   | [] => pure ([], [])
   | block :: rest =>

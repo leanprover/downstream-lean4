@@ -12,7 +12,10 @@ import Lean.Compiler.LCNF.Main
 import Lean.Compiler.LCNF.ToDecl
 import Lean.Compiler.NoncomputableAttr
 import ImportGraph.Shake.EnvExtension
+import ImportGraph.Lean.MessageData
 import ImportGraph.Lean.Syntax
+
+public meta import Lean.Elab.Term.TermElabM
 
 import all Lean.Compiler.LCNF.Visibility -- for `collectUsedDecls`
 
@@ -134,6 +137,19 @@ namespace ImportNeedsKind
 
 end matchers
 
+/-- Every possible `ImportNeedsKind`. -/
+def all : Array ImportNeedsKind := #[
+  .pubNoMeta,
+  .privNoMeta,
+  .privOfPrivNoMeta,
+  .metaPub,
+  .metaPriv,
+  .metaPrivOfPriv,
+  .pubAllowMeta,
+  .privAllowMeta,
+  .privOfPrivAllowMeta,
+]
+
 instance : ToString ImportNeedsKind where
   toString k := Id.run do
     let mut tks := #[]
@@ -242,6 +258,78 @@ def toNeeds (useMeta : Bool := false) (imp : ImportNeeds) : Needs where
 def union (needs : ImportNeeds) (k : ImportNeedsKind) (s : Bitset) : ImportNeeds :=
   needs.modify k (· ∪ s)
 
+@[inline] def any (needs : ImportNeeds) (f : Bitset → Bool) : Bool :=
+  ImportNeedsKind.all.any (f <| needs.get ·)
+
+@[inline] def all (needs : ImportNeeds) (f : Bitset → Bool) : Bool :=
+  ImportNeedsKind.all.all (f <| needs.get ·)
+
+/-- A pair of braille cells depicting the import needs at index `i`.
+
+In the left cell, the left column denotes definite non-meta needs (due to runtime IR). The right
+column denotes meta or non-meta needs.
+
+The left column of the right cell denotes definitely meta needs. The right column of the right cell
+is unused.
+
+The top row denotes public needs, the middle row private needs, and the bottom row
+private-of-private needs.
+
+We call this `brailleCellAt` instead of `brailleCellsAt` so that dot notation does not accidentally
+resolve to `Needs.brailleCellAt`. -/
+def brailleCellAt (i : Nat) (n : ImportNeeds) : Char × Char := Id.run do
+  let mut dotsLeft := 0
+  let mut dotsRight := 0
+  for k in ImportNeedsKind.all do
+    if n.has k i then
+      let row := if k.isExported then 0 else if k.isAll then 2 else 1
+      if k.isMeta then
+        dotsRight := dotsRight ||| (1 <<< row)
+      else
+        let col := if k.allowMeta then 1 else 0
+        dotsLeft := dotsLeft ||| (1 <<< (3 * col + row))
+  return (.ofNat (0x2800 + dotsLeft), .ofNat (0x2800 + dotsRight))
+
+/-- A pair of braille cells depicting the import needs at index `i`.
+
+In the left cell, the left column denotes definite non-meta needs (due to runtime IR). The right
+column denotes meta or non-meta needs.
+
+The left column of the right cell denotes definitely meta needs. The right column of the right cell
+is unused.
+
+The top row denotes public needs, the middle row private needs, and the bottom row
+private-of-private needs.
+
+For the braille cell characters without brackets, see `ImportNeeds.brailleCellAt`. -/
+@[inline] def toStringAt (i : Nat) (n : ImportNeeds) : String :=
+  let (l, r) := n.brailleCellAt i
+  s!"[{l}{r}]"
+
+/-- Represents an `ImportNeeds` as a string of the form e.g. `│⠇⠁│⠑⠁│⠁│⠝⠁│`, where each braille cell
+represents the set of `ImportNeedsKind`s expressed by a single "column" of the `ImportNeeds` (i.e.
+at a given index). The left column of the left cell is non-meta-only needs; the next column is
+meta-or-non-meta needs; the next column is meta-only needs; and the final column is unused. The top
+row holds public needs, the middle private, and the bottom private-of-private.
+
+By default, shows dividers (`│`) between each braille cell; `dividers := false` omits dividers.
+
+By default this shows only as many cells as necessary, or a single empty cell for an empty
+`ImportNeeds`. Instead, `univSize? : Option Nat` can be provided to set the total number of
+indices, and will either truncate (even if higher indices are set) or pad with empty cells as
+appropriate. -/
+def toString (n : ImportNeeds) (univSize? : Option Nat := none) (dividers : Bool := true) :
+    String := Id.run do
+  let size := univSize?.getD n.univSize
+  -- Show a single empty cell rather than no cells at all, unless `0` cells were asked for
+  let size := if size == 0 && !univSize?.isEqSome 0 then 1 else size
+  let mut s := if size == 0 || !dividers then "" else "│"
+  for i in 0...size do
+    let (l, r) := n.brailleCellAt i
+    s := s.push l |>.push r
+    if dividers then s := s.push '│'
+  return s
+
 end ImportNeeds
 
 local instance : Ord Name := ⟨Name.quickCmp⟩
@@ -255,6 +343,14 @@ inductive ComptimeDependency where
 | /-- A compile-time dependency due to parsing. -/
   stx (kind : SyntaxNodeKind) (pos? : Option Syntax.Range) -- TODO: just record syntax?
 deriving Inhabited, BEq, Repr, Hashable, Ord
+
+def ComptimeDependency.toMessageData : ComptimeDependency → MessageData
+  | .indirect { kind, declName } mods =>
+    m!"indirect({kind} for {.ofConstName declName} from {mods})"
+  | .stx kind pos? => m!"syntax({.ofConstName kind (fullNames := true)}\
+    {if let some pos := pos? then m!"@⟨{pos.start},{pos.stop}⟩" else ""})"
+
+instance : ToMessageData ComptimeDependency := ⟨(·.toMessageData)⟩
 
 /-- A location at which a `ConstantInfo` can reference another. -/
 inductive ConstLocation where | type | value
@@ -311,15 +407,17 @@ deriving Inhabited, BEq, Repr, Hashable, Ord
 namespace DeclDeclNeedsKind
 
 /-- An English-language description of a `DeclDeclNeedsKind`. -/
-def pretty : DeclDeclNeedsKind → String
-  | .expr down reExported up => s!"uses {up} in {down}{
+def toMessageData : DeclDeclNeedsKind → MessageData
+  | .expr down reExported up => m!"{if up matches .type then "used" else s!"uses {up}"} in {down}{
     match reExported with
     | some true => " (public)"
     | some false => " (private)"
     | none => ""}"
   | .runtimeIR => "used in runtime IR"
   | .metaIR _ _ => "used in meta IR" -- TODO
-  | .comptime _ => "comptime dependency" -- TODO
+  | .comptime source => m!"{source}"
+
+instance : ToMessageData DeclDeclNeedsKind := ⟨(·.toMessageData)⟩
 
 /-- `some .comptime` if this demands the source declaration's `IRPhases` includes `.comptime`;
 `some .runtime` if this demands the source declaration's `IRPhases` includes `.runtime`. (`.all`
@@ -359,31 +457,66 @@ structure Stance where
 /-- Whether a `Stance` is not `isPublic`. -/
 @[expose, macro_inline, grind] public def Stance.isPrivate (s : Stance) := !s.isPublic
 
+def Stance.toString : Stance → String
+  | { isPublic, isExposed, isMeta, isExact, .. } =>
+    s!"{if isExact then "" else "(≥) "}\
+      {if let some isExposed := isExposed then
+        if isExposed then "@[expose] " else "@[no_expose] "
+      else ""}\
+      {if isPublic then "public" else "private"}\
+      {if let some isMeta := isMeta then
+        if isMeta then " meta" else " runtime"
+      else ""}"
+
+instance : ToString Stance := ⟨(·.toString)⟩
+
 /-- A set of declaration needs. -/
 /- TODO: make this more efficient, ideally a tiny `BitsetOf`, if such API were created. Also
 consider just a small `List` or `Array` that avoids duplication at insertion time. -/
 abbrev DeclDeclNeedsKindSet := Std.TreeSet DeclDeclNeedsKind
 
 /-- The demands of a single declaration, organized to facilitate movement. Free declarations are
-those whose modules may change; fixed ones must remain in the same module. -/
+those whose modules may change; fixed ones must remain in the same module. Does not record extra
+mod uses. -/
 structure DeclNeed where
   /-- Declarations whose location may be altered. -/
   freeDecls : NameMap DeclDeclNeedsKindSet := {}
   -- TODO: more efficient data structure?
   /-- Declarations whose location may not be altered. A map
   `[module name] ↦ [needs of declarations from that module]`. -/
-  fixedDecls : Std.TreeMap Name (NameMap DeclDeclNeedsKindSet) := {}
-  /--
-  Extra module uses recorded in shake extensions during the command. Note that if several
-  declarations were created during the command, the extra mod uses are the same among all of them.
-  -/
-  -- TODO: more performant implementation
-  extraModUses : NameMap (Std.TreeSet NeedsKind) := {}
+  fixedDecls : NameMap (NameMap DeclDeclNeedsKindSet) := {}
   /-- The parent declaration, if the ambient declaration is autogenerated. -/
   parentDecls : List Name := []
   /-- Any autogenerated declarations used by this declaration. -/
   childDecls : List Name := []
 deriving Inhabited, Repr
+
+/-- Render a `NameMap` as `{ key₁ ↦ val₁, key₂ ↦ val₂, ... }`. -/
+private def NameMap.toMessageData (n : NameMap α) (f : α → MessageData)
+    (isConst := false) : MessageData :=
+  if n.isEmpty then "{}" else
+    let ns := n.toList.map fun (n, a) =>
+      m!"{if isConst then MessageData.ofConstName n else m!"{n}"} ↦ {f a}"
+    .bracket "{" ((m!"," ++ Format.line).joinSep ns) "}"
+
+def DeclNeed.toMessageData : DeclNeed → MessageData
+  | { freeDecls, fixedDecls, parentDecls, childDecls } => Id.run do
+    let mut msgs := #[]
+    unless freeDecls.isEmpty do
+      msgs := msgs.push m!"freeDecls := \
+        {NameMap.toMessageData freeDecls (m!"{·.toList.map (·.toMessageData)}") (isConst := true)}"
+    unless fixedDecls.isEmpty do
+      msgs := msgs.push m!"fixedDecls := \
+        {NameMap.toMessageData fixedDecls fun n =>
+          NameMap.toMessageData n (m!"{·.toList.map (·.toMessageData)}") (isConst := true)}"
+    unless parentDecls.isEmpty do
+      msgs := msgs.push m!"parentDecls := {parentDecls.map MessageData.ofConstName}"
+    unless childDecls.isEmpty do
+      msgs := msgs.push m!"parentDecls := {childDecls.map MessageData.ofConstName}"
+    if msgs.isEmpty then return "{}" else
+      return .bracket "{" ((m!"," ++ Format.line).joinSep msgs.toList) "}"
+
+instance : ToMessageData DeclNeed := ⟨(·.toMessageData)⟩
 
 /-- Records that the ambient declaration needs the declaration `decl` at availability `k`, where
 the module of `decl` is left free. -/
@@ -401,20 +534,17 @@ def DeclNeed.insertFixedDecl (k : DeclDeclNeedsKind) (mod : Name) (decl : Name)
       some <| map?.getD {} |>.alter decl fun set? =>
         set?.getD {} |>.insert k }
 
-def DeclNeed.insertExtraModUses (extraModUses : List ExtraModUse) (declNeed : DeclNeed) :
-    DeclNeed :=
-  { declNeed with
-    extraModUses :=
-      extraModUses.foldl (init := declNeed.extraModUses) fun extraModUseMap extraModUse =>
-        extraModUseMap.alter extraModUse.module fun ks? =>
-          ks?.getD {} |>.insert { extraModUse with } }
-
 @[inline] def DeclNeed.isAutoDecl (declNeed : DeclNeed) : Bool :=
   !declNeed.parentDecls.isEmpty
 
 /-- A collection of needs per declaration. -/
 -- TODO: more efficient data structure
 abbrev DeclNeeds := NameMap DeclNeed
+
+def DeclNeeds.toMessageData (needs : DeclNeeds) : MessageData :=
+  NameMap.toMessageData needs (·.toMessageData) (isConst := true)
+
+instance : ToMessageData DeclNeeds := ⟨(·.toMessageData)⟩
 
 @[inline] def DeclNeeds.insertAutoDeclLink (autoDecl parentDecl : Name) (declNeeds : DeclNeeds) :
     DeclNeeds :=
@@ -433,10 +563,6 @@ abbrev DeclNeeds := NameMap DeclNeed
     (mod : Name) (usedDecl : Name) (declNeeds : DeclNeeds) :
     DeclNeeds :=
   declNeeds.alter currentDecl fun need? => need?.getD {} |>.insertFixedDecl k mod usedDecl
-
-@[inline] def DeclNeeds.insertExtraModUsesFor (decl : Name) (extraModUses : List ExtraModUse)
-    (declNeeds : DeclNeeds) : DeclNeeds :=
-  declNeeds.alter decl fun need? => need?.getD {} |>.insertExtraModUses extraModUses
 
 /-- Returns `false` if `s.isExposed = none`. Because of that, this is **not** necessarily equivalent
 to `!(s.isPrivateAt loc)`. -/
@@ -648,13 +774,13 @@ where
           return declNeeds
 
 open Lean Elab Command in
-/-- Calcualte the syntax needs of some syntax, and attaches it as a comptime need for all `decls`.
+/-- Calculate the syntax needs of some syntax, and attaches it as a comptime need for all `decls`.
 This design will likely change in the future, and command needs will have a dedicated location
 instead of being duplicated across different declarations. -/
 def DeclNeeds.calcSyntaxNeeds (env : Environment) (decls : Array Name) (cmd : Syntax)
     (declNeeds : DeclNeeds) : CommandElabM DeclNeeds := do
   trace[ImportGraph.Shake] "Calculating syntax needs for:\
-    {indentD <| toMessageData <| decls.map MessageData.ofConstName}"
+    {indentD m!"{decls.map MessageData.ofConstName}"}"
   let indirectModUses := indirectModUseExt.getState env
   let mut declNeeds := declNeeds
   for stx in cmd.topDown do
@@ -713,34 +839,42 @@ def DeclNeeds.calcIRNeeds (declNeeds : DeclNeeds) : StanceM DeclNeeds := do
           {indentD ex.toMessageData}"
   return declNeeds
 
+/-- A warning to display if any new declarations are `meta`, since `meta` declarations are not
+handled properly yet. -/
+def DeclNeeds.metaWarning? (env : Environment) (declNeeds : DeclNeeds) (cmd : String) :
+    Option MessageData := do
+  let metas := declNeeds.keysArray.filter (isMarkedMeta env) |>.map MessageData.ofConstName
+  guard !metas.isEmpty
+  return m!"Warning: Some declarations are marked meta. `{cmd}` does not yet handle meta IR; \
+    the following is an approximation. Specifically:\n{.bulletList metas.toList}"
+
 open Lean Elab Command in
 /-- Elaborates the command and captures the `DeclNeeds` of all new declarations. Attaches the needs
-implied by the command's syntax to each new declaration. Note: does **not** capture extra rev mod
-uses influencing the file as a whole. -/
+implied by the command's syntax to each new declaration. Also returns the new `ExtraModUse`s
+produced during the command. Note: does **not** capture extra rev mod uses influencing the file as
+a whole. -/
 def withElabCommandCapturingNeeds (cmd : Syntax.Command) :
-    CommandElabM (DeclNeeds × Array Name) := do
+    CommandElabM (DeclNeeds × Array Name × List ExtraModUse) := do
   withFreshShakeRecords do
     let oldEnv ← getEnv
     elabCommand cmd
     let env ← getEnv
+    let oldConstants := oldEnv.constants.map₂
     let newDecls := env.constants.foldStage2 (s := #[]) fun acc decl _ =>
-      if oldEnv.contains decl then acc else acc.push decl
+      if oldConstants.contains decl then acc else acc.push decl
+    trace[ImportGraph.Shake] "New constants captured from command:\
+      {indentD (newDecls.toList.map MessageData.ofConstName)}"
     let mut declNeeds := {}
-    let mut autoDecls := #[] -- Save auto decls, and ensure we found them
-    -- TODO-TAG: auto decl handling
     for new in newDecls do
-      if isDeclNeedsAutoDecl env new then
-        autoDecls := autoDecls.push new
-      else
-        declNeeds := calcDeclConstInfoNeeds new env declNeeds
-    for autoDecl in autoDecls do
-      -- TODO: this should recurse into autodecls of autodecls. Not entirely happy with handling
-      unless declNeeds.contains autoDecl do
-        declNeeds := calcDeclConstInfoNeeds autoDecl env declNeeds
-    -- TODO: extra mod uses. Should be at the command level and decls organized by command
-    let extraModUses := getNewExtraModUses env |>.1
-    for new in newDecls do
-      declNeeds := declNeeds.insertExtraModUsesFor new extraModUses
+      declNeeds := calcDeclConstInfoNeeds new env declNeeds
     declNeeds ← declNeeds.calcSyntaxNeeds env newDecls cmd
     declNeeds ← liftCoreM <| declNeeds.calcIRNeeds.run'
-    return (declNeeds, newDecls)
+    let extraModUses := getNewExtraModUses env |>.1
+    trace[ImportGraph.Shake] "New extra mod uses:\
+      {indentD <| extraModUses.map fun { isExported, isMeta, module } => m!"\
+        {if isExported then "public " else ""}\
+        {if isMeta then "meta " else ""}\
+        {module}"}"
+    return (declNeeds, newDecls, extraModUses)
+
+initialize registerTraceClass `ImportGraph.Shake

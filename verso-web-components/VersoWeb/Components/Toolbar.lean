@@ -7,7 +7,7 @@ import VersoWeb.Components.Icon
 
 namespace Verso.Web.Components
 
-open Lean Verso Output Html Genre Blog Template
+open Lean Verso Output.Html Genre Blog Template
 
 structure Tool where
   text : String

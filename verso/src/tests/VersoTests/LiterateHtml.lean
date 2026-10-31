@@ -302,6 +302,22 @@ private def testUnknownExtensionFallback : Test := do
   assertContains "THIS IS THE FALLBACK" html
     "HTML missing 'THIS IS THE FALLBACK' marker. The conversion's fallback children were not rendered."
 
+/--
+The doc comment on a `#guard_msgs` command is not documentation. Instead, it is a specification of
+the expected messages from the wrapped command. It must not be attributed to the declaration in that
+command as a second docstring.
+-/
+private def testGuardMsgsDocstring (data : TestData) : Test := withTestDir data fun jsonDir htmlDir _ _ => do
+  runLiterateHtml jsonDir htmlDir
+  let html ← IO.FS.readFile (htmlDir / "LitConfig" / "GuardMsgs" / "index.html")
+  let docstring := "A theorem whose proof is left open."
+  let occurrences := (html.splitOn docstring).length - 1
+  assertTrue (occurrences == 1)
+    s!"Expected the docstring of `guarded` once in the HTML, found it {occurrences} times. \
+      The expected-messages comment of `#guard_msgs` was attributed to `guarded` as a docstring."
+  assertContains "declaration uses" html
+    "The expected-messages comment of `#guard_msgs` is missing from the HTML."
+
 /-- Excluded modules produce no HTML output and are absent from the navbar. -/
 private def testExclude (data : TestData) : Test := withTestDir data fun jsonDir htmlDir planFile tomlFile => do
   IO.FS.writeFile tomlFile "exclude = [\"LitConfig.NoDocstrings\"]\n"
@@ -1205,6 +1221,7 @@ private def htmlTests (data : TestData) (projectDir : System.FilePath) : List (S
   ("all built-in doc roles", testAllBuiltinDocRoles data),
   ("custom literate handlers", testCustomLiterateHandlers data),
   ("docstring code block messages", testDocstringCodeBlockMessages data),
+  ("guard_msgs docstring", testGuardMsgsDocstring data),
   ("unknown extension fallback", testUnknownExtensionFallback)
 ]
 
@@ -1212,7 +1229,7 @@ private def htmlTests (data : TestData) (projectDir : System.FilePath) : List (S
 @[test]
 def literateHtml : Test := do
   let projectDir := "test-projects/literate-config"
-  let modules := #["LitConfig", "LitConfig.Core", "LitConfig.Core.Basic", "LitConfig.NoDocstrings", "LitConfig.Builtins", "LitConfig.UserExt"]
+  let modules := #["LitConfig", "LitConfig.Core", "LitConfig.Core.Basic", "LitConfig.NoDocstrings", "LitConfig.Builtins", "LitConfig.UserExt", "LitConfig.GuardMsgs"]
 
   -- First verify test project toolchain matches root toolchain
   let rootToolchain := (← IO.FS.readFile "lean-toolchain").trimAscii
@@ -1279,15 +1296,42 @@ private def testMultiRootNavTree (data : TestData) : Test := withTestDir data fu
   assertContains "<details" navbarSection
     "multi-root nav: navbar should use <details> for top-level entries"
 
+/--
+Library options with the {lit}`weak.` prefix take effect during literate extraction.
+-/
+-- `LibB` sets `weak.linter.unusedVariables = false` and a `weak.` option that isn't
+-- registered. Each library has a definition with an unused variable. The warning appears in the
+-- JSON for `LibA.Core` and does not in the JSON for {lit}`LibB.Utils`.
+
+private def testWeakLeanOptions (data : TestData) : Test := do
+  let warning := "linter.unusedVariables"
+  let libA ← IO.FS.readFile (jsonPath data.jsonDir "LibA.Core")
+  assertContains warning libA
+    "LibA.Core JSON has no unused variable warning, so the test module does not trigger the linter"
+  let libB ← IO.FS.readFile (jsonPath data.jsonDir "LibB.Utils")
+  assertNotContains warning libB
+    "LibB.Utils JSON has an unused variable warning, so `weak.linter.unusedVariables` had no effect"
+
+/--
+A module system root that imports a module from the same package is highlighted with the imported
+constant's docstring.
+-/
+private def testModuleSystemImports (data : TestData) : Test := do
+  let libC ← IO.FS.readFile (jsonPath data.jsonDir "LibC")
+  assertContains "\"content\":\"doubleC\",\"kind\":{\"const\":{\"docs\":\"Doubles a number." libC
+    "LibC JSON has no docs on the `doubleC` token, so the import of LibC.Core was not loaded at the server level"
+
 private def multiRootHtmlTests (data : TestData) : List (String × Test) := [
-  ("multi-root nav tree", testMultiRootNavTree data)
+  ("multi-root nav tree", testMultiRootNavTree data),
+  ("weak lean options", testWeakLeanOptions data),
+  ("module system imports", testModuleSystemImports data)
 ]
 
 /-- The literate HTML generator produces the expected output for the multi-root test project. -/
 @[test]
 def literateHtmlMultiRoot : Test := do
   let projectDir := "test-projects/literate-multi-root"
-  let modules := #["LibA", "LibA.Core", "LibB", "LibB.Utils"]
+  let modules := #["LibA", "LibA.Core", "LibB", "LibB.Utils", "LibC", "LibC.Core"]
 
   let rootToolchain := (← IO.FS.readFile "lean-toolchain").trimAscii
   let testToolchain := (← IO.FS.readFile (projectDir / "lean-toolchain")).trimAscii
@@ -1323,7 +1367,7 @@ def literateHtmlMultiRoot : Test := do
 
     -- Write module list with library annotations
     let moduleEntries := modules.map fun m =>
-      let lib := if m.startsWith "LibA" then "LibA" else "LibB"
+      let lib := m.splitOn "." |>.head!
       s!"{lib}\t{m}"
     IO.FS.writeFile moduleListFile ("\n".intercalate moduleEntries.toList ++ "\n")
 

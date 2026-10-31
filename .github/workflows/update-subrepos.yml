@@ -9,9 +9,13 @@ concurrency:
   group: update-subrepos
   cancel-in-progress: false
 
+defaults:
+  run:
+    shell: bash # Implies -eo pipefail
+
 jobs:
   main:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3

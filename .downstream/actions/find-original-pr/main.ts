@@ -1,8 +1,9 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { abort, assert, getInput, Octokit } from "../lib/util";
+import { abort, assert, Octokit } from "../lib/util";
 
 import type { GetResponseDataTypeFromEndpointMethod as Response } from "@octokit/types";
+import { getInput } from "../lib/input";
 export type Pr = Response<Octokit["rest"]["pulls"]["get"]>;
 
 const token = getInput("token");

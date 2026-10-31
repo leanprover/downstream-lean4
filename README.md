@@ -36,18 +36,23 @@ their transitive dependencies by passing the repo names (without trailing `/`!),
 e.g. `.meta/get-cache.sh mathlib4 repl`.
 
 For every toolchain, a branch `green-nightly-YYYY-MM-DD` points to the latest
-green commit on `master` using said toolchain. In addition, the branch `green`
-points to the latest green commit on `master` regardless of toolchain. In the
-Lean repository, a corresponding branch `downstream-green` points to the commit
-the toolchain used by `green` is based on.
+green commit on `master` using said toolchain, and a tag
+`first-green-nightly-YYYY-MM-DD` points to the first such commit. Similarly, a
+tag `first-green-YYYY-MM-DD` points to the first green commit on `master` on
+each day (UTC). In addition, the branch `green` points to the latest green
+commit on `master` regardless of toolchain. In the Lean repository, a
+corresponding branch `downstream-green` points to the commit the toolchain used
+by `green` is based on.
 
 It is recommended to set the following environment variables while working in
-this repository to benefit from cross-project caching:
+this repository to benefit from cross-project caching and match the CI behavior:
 
 - `LAKE_ARTIFACT_CACHE=1` to enable global lake artifact caching.
 - `LAKE_RESTORE_ARTIFACTS=1` to force lake to populate the `.lake` directories
   with artifacts from the global cache. Some repositories don't support the
   global artifact cache yet and may fail to build, test, or lint without this.
+- `LEAN_ABORT_ON_PANIC=1` to make Lean panics abort the build process (as CI
+  does) instead of only printing a message.
 
 An `.envrc` file for use with [direnv](https://direnv.net/) is provided.
 
@@ -81,17 +86,24 @@ adaptation PR manually.
 
 ## I'm a maintainer of a Lean package featured in this repo.
 
-There are multiple ways you can receive fixes from this repository.
+There are multiple ways you can receive fixes from this repository. They depend
+on whether you are part of the release process, and whether want to maintain
+your own nightly branch.
 
-If your repo has **no nightly branch** and is **not part of the release
-process**, then we can open a PR to your main branch whenever a new release of
-Lean is published. This PR will contain all the changes made in this repository.
+If you **don't want to maintain your own nightly branch**, then we can maintain
+a bump branch (e.g. `bump/v4.X.0`) for you inside your own repo. We will
+automatically merge your main branch into the bump branch, and either push
+downstream adaptations into the bump branch directly, or PR them so you can
+review them. Whenever a new rc1 version of Lean is released, you can then merge
+the bump branch into your main branch when you bump your toolchain. (If your
+repo is part of the release process, this last step will happen automatically.)
 
-If your repo has **no nightly branch** and **is part of the release process**,
-then the changes from this repository will be included in the toolchain bump PR.
+Alternatively, if you're already part of the Lean release process and don't need
+a bump branch nor a nightly branch, the changes from this repository will be
+included directly in the rc1 bump PR.
 
-If your repo **has a nightly branch**, you can either receive the changes as
-pushes directly to the nightly branch, or as PRs against the nightly branch.
+If you **do want to maintain your own nightly branch**, then we can either push
+adaptations to it directly or open PRs against it for you to merge on your own.
 Note that your nightly branch needs to be actively maintained: It needs to pull
 in changes from your repo's main branch and update its toolchain in regular
 intervals. Our automated pushes or PRs won't replace these tasks.

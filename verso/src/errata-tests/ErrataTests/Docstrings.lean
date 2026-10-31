@@ -46,7 +46,7 @@ deriving TypeName
 
 /-- References a constant by the shortest name that is valid where the docstring is rendered. -/
 @[doc_role]
-meta def shortName (xs : TSyntaxArray ``Lean.Doc.Parser.inline) : DocM (Inline ElabInline) := do
+meta def shortName (xs : Array VersoInline) : DocM (Inline ElabInline) := do
   let #[stx] := xs | throwError "expected one code argument"
   let some (.code { content, .. }) := InlineView.of stx
     | throwErrorAt stx "expected a code argument"

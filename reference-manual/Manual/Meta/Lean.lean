@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
-import SubVerso.Highlighting.Code
+module
+public meta import VersoManual.InlineLean
+public import VersoManual.InlineLean
+import VersoManual.Docstring
+
+public section
 
 open Lean.Doc (CodeView RoleView)
 
@@ -20,7 +23,7 @@ open SubVerso.Highlighting
 Elaborates the provided Lean term with a type annotation in the context of the current Verso module.
 -/
 @[role_expander typed]
-def typed : RoleExpander
+meta def typed : RoleExpander
   -- Async elab is turned off to make sure that info trees and messages are available when highlighting
   | args, inlines => withoutAsync do
     let config ← LeanInlineConfig.parse.run args
@@ -48,8 +51,7 @@ def typed : RoleExpander
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          let (tree', t) ← runWithOpenDecls <| runWithVariables fun _ => do
-
+          let (t, tree') ← elabInlineLean `Manual.leanInline arg fun _ => do
             let expectedType ← do
               let t ← leveller <| Elab.Term.elabType ty
               Term.synthesizeSyntheticMVarsNoPostponing
@@ -65,11 +67,7 @@ def typed : RoleExpander
             let t := Std.Format.group <| (← Meta.ppExpr e) ++ (" :" ++ .line) ++ t
 
             Term.synthesizeSyntheticMVarsNoPostponing
-            let ctx := PartialContextInfo.commandCtx {
-              env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
-              openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-            }
-            pure <| (InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees), t)
+            pure t
           pure (← Core.getMessageLog, t, tree')
         finally
           Core.setMessageLog initMsgs
@@ -82,8 +80,6 @@ def typed : RoleExpander
           pure { msg with contents := .append #[.text head, msg.contents] }
 
         saveOutputs name msgs
-
-      pushInfoTree tree
 
       if let some { braceOpen, name, braceClose, .. } := RoleView.of ⟨← getRef⟩ then
         Hover.addCustomHover (mkNullNode #[braceOpen, braceClose]) type
@@ -112,16 +108,3 @@ def typed : RoleExpander
         pure #[]
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
-
-
-  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
-    modifyInfoState fun s => { s with trees := f s.trees }
-
-  -- TODO - consider how to upstream this
-  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
-    let treesSaved ← getResetInfoTrees
-    MonadFinally.tryFinally' x fun _ => do
-      let st    ← getInfoState
-      let tree  ← mkInfoTree st.trees
-      modifyInfoTrees fun _ => treesSaved.push tree
-      pure tree

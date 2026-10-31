@@ -9,7 +9,7 @@ import Lean.Elab
 open Lean Elab Term
 open Lean.Doc (DescListView DescItemView ImageView TextView)
 open Verso Genre Blog ArgParse Doc Elab
-open Output Html Traverse
+open Output.Html Traverse
 
 namespace Verso.Web.Components
 

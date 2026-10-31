@@ -8,7 +8,9 @@ module
 public meta import ImportGraph.Tools.FindHome
 public meta import ImportGraph.Tools.ImportDiff
 public meta import ImportGraph.Tools.MinImports
+public meta import ImportGraph.Tools.NormImports
 public meta import ImportGraph.Tools.RedundantImports
+public meta import ImportGraph.Tools.ShowImports
 
 /-!
 # Tools for analyzing imports.

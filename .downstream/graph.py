@@ -66,7 +66,7 @@ def main() -> None:
     for subrepo in sorted(updater.subrepos, key=lambda r: r.name):
         indirect = indirect_deps(graph, subrepo.name) if args.prune else set()
 
-        label = f'{subrepo.name}<BR/><FONT POINT-SIZE="8">{subrepo.rev}</FONT>'
+        label = f'{subrepo.name}<BR/><FONT POINT-SIZE="8">{subrepo.source_rev}</FONT>'
         attrs = {"label": label}
         if subrepo.critical:
             attrs["style"] = "filled"

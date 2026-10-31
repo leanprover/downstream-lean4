@@ -6,20 +6,19 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.DA.Congr
+public import Cslib.Computability.Automata.DA.Prod
+public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.NA.Loop
 public import Cslib.Computability.Automata.NA.Preimage
-public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
-public import Cslib.Computability.Automata.DA.ToNA
-public import Cslib.Computability.Automata.TwoWayNA.OfNA
 public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
-public import Mathlib.Computability.DFA
-public import Mathlib.Computability.RegularExpressions
+public import Cslib.Computability.Automata.TwoWayNA.OfNA
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Mathlib.Basic.Finite.Sum
-public import Mathlib.Data.Set.Card
+public import Mathlib.Computability.DFA
 
 /-!
 # Regular languages
@@ -241,25 +240,45 @@ theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   classical
   let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
+  have h_eq1 (s : Fin 3) (x : Symbol) : flts.tr s x = 1 ↔ s = 0 ∧ x = a := by grind
+  have h_ne_0 (s : Fin 3) (x : Symbol) : flts.tr s x ≠ 0 := by grind
   use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
   ext xs
-  induction xs using List.reverseRec with
+  induction xs using reverseRec with
   | nil => grind [Accepts, Language.mem_singleton]
   | append_singleton xs x ih =>
-    simp only [mem_language, Accepts, Language.mem_singleton, FLTS.mtr_concat_eq] at ih ⊢
-    constructor
-    · induction xs using List.reverseRec <;> grind
-    · simp_all [flts, List.append_eq_cons_iff]
+    obtain (rfl | ⟨xs, x, rfl⟩) : xs = [] ∨ ∃ xs' x, xs = xs' ++ [x] := xs.eq_nil_or_concat'
+    · simp [Accepts, flts, FLTS.mtr]
+    · simp_rw [Language.mem_singleton, mem_language, Accepts, FLTS.mtr_concat_eq,
+        Set.mem_singleton_iff, h_eq1, h_ne_0, false_and, append_assoc, false_iff]
+      intro h
+      simpa using congr(List.length $h)
+
+section RegularExpression
+
+open RegularExpression
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex {r : RegularExpression Symbol} :
+theorem IsRegular.regex (r : RegularExpression Symbol) :
     r.matches'.IsRegular := by
   induction r with
   | zero => simp
   | epsilon => simp
   | char a => simp [IsRegular.char a]
-  | plus P Q hP hQ => grind [RegularExpression.matches', IsRegular.add]
-  | comp P Q hP hQ => grind [RegularExpression.matches', IsRegular.mul]
-  | star P hP => grind [RegularExpression.matches', IsRegular.kstar]
+  | plus P Q hP hQ => grind [matches', IsRegular.add]
+  | comp P Q hP hQ => grind [matches', IsRegular.mul]
+  | star P hP => grind [matches', IsRegular.kstar]
+
+/-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
+theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
+    l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
+  constructor
+  · intro h
+    obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
+    exact NA.FinAcc.nfa_eq_regex nfa
+  · rintro ⟨r, rfl⟩
+    exact IsRegular.regex r
+
+end RegularExpression
 
 end Cslib.Language

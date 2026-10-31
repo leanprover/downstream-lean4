@@ -4,18 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
-public import Lean.Data.Position
-public import Lean.Syntax
-public import Lean.Environment
-public import Lean.Parser.Types
 public import Lean.Elab.Command
-public import Lean.DocString.View
-import Lean.Parser
-
 public import Verso.Literal
-import Verso.Parser
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting
 
 open Lean
 
@@ -50,6 +40,14 @@ open Lean.Syntax in
 public instance : Quote Position where
   quote
     | .mk l c => mkCApp ``Position.mk #[quote l, quote c]
+
+open Lean.Syntax in
+open MessageSeverity in
+public instance : Quote MessageSeverity where
+  quote
+    | error => mkCIdent ``error
+    | warning => mkCIdent ``warning
+    | information => mkCIdent ``information
 
 open Lean.Syntax in
 public instance : Quote SyntaxError where
@@ -159,23 +157,23 @@ public def commandWithoutAsync : (act : CommandElabM α) → CommandElabM α :=
 public def withoutAsync [Monad m] [MonadWithOptions m] : (act : m α) → m α :=
   withOptions (Elab.async.set · false)
 
-open Lean.Doc (CodeBlockView VersoCodeBlock) in
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock) in
 /--
-The contents of `blk`, if it is a code block that names `name`.
+Returns the contents of `blk` if it is a code block whose name is `name`.
 -/
-public def namedCodeBlock (name : Name) (blk : TSyntax ``Lean.Doc.Parser.block) :
+public def namedCodeBlock (name : Name) (blk : VersoBlock) :
     Option VersoCodeBlock :=
   match CodeBlockView.of blk with
   | some { name? := some n, content, .. } => if n.getId == name then some content else none
   | _ => none
 
-open Lean.Doc (CodeView VersoCode) in
+open Lean.Doc (CodeView VersoCode VersoInline) in
 /--
 If the array of inlines contains a single code element, it is returned. Otherwise, an error is
 logged and `none` is returned.
 -/
 public def oneCodeStr? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
-    (inlines : TSyntaxArray ``Lean.Doc.Parser.inline) : m (Option VersoCode) := do
+    (inlines : Array VersoInline) : m (Option VersoCode) := do
   let #[code] := inlines
     | if inlines.size == 0 then
         Lean.logError "Expected a code element"
