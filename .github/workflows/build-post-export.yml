@@ -19,7 +19,7 @@ jobs:
     concurrency:
       group: build-post-export/batteries
       cancel-in-progress: false
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -87,7 +87,7 @@ jobs:
     concurrency:
       group: build-post-export/mathlib4
       cancel-in-progress: false
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -98,7 +98,7 @@ jobs:
         with:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
-          repositories: downstream-lean4
+          repositories: downstream-lean4,downstream-lean4-fork-mathlib4
 
       - name: Create GitHub App token (leanprover-community organization)
         uses: actions/create-github-app-token@v3
@@ -107,7 +107,7 @@ jobs:
           client-id: ${{ vars.DOWNSTREAM_LEAN4_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOWNSTREAM_LEAN4_APP_PRIVATE_KEY }}
           owner: leanprover-community
-          repositories: mathlib4,mathlib4-nightly-testing
+          repositories: mathlib4
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -149,9 +149,8 @@ jobs:
           source-token:
             ${{ steps.app-token-leanprover-community.outputs.token }}
           pr: true
-          pr-repo: leanprover-community/mathlib4-nightly-testing
-          pr-token:
-            ${{ steps.app-token-leanprover-community.outputs.token }}
+          pr-repo: leanprover/downstream-lean4-fork-mathlib4
+          pr-token: ${{ steps.app-token-leanprover.outputs.token }}
           pr-title: |-
             chore: downstream-lean4 adaptations for ${{ steps.toolchain.outputs.toolchain }}
           update-toolchains: true
@@ -183,7 +182,7 @@ jobs:
     concurrency:
       group: build-post-export/cslib
       cancel-in-progress: false
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -268,7 +267,7 @@ jobs:
     concurrency:
       group: build-post-export/verso
       cancel-in-progress: false
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read

@@ -87,7 +87,7 @@ jobs:
     if: |
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion != 'cancelled' }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -116,7 +116,7 @@ jobs:
       github.event.workflow_run.conclusion != 'cancelled' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch != 'master' }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -197,7 +197,7 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.run_attempt == 1 }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -327,7 +327,7 @@ jobs:
       ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'master' }}
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3

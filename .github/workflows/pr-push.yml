@@ -10,7 +10,7 @@ defaults:
 
 jobs:
   remove-cache-available-label:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3

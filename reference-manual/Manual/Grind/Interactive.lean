@@ -248,8 +248,9 @@ Because they are assigned in order, ordinals are less stable than anchors; re-or
 
 :::example "Ordinal Disambiguators"
 This theorem statement says that if there exist two values that are mapped to `0` or `1` by a function, and the sum of those two values of the function is `2`, then there exists a point that the function maps to `1`.
-Exposing both values with {tactic}`obtain` under the name `a` makes the second shadow the first, so the two disjunctions differ only in a shadowed variable and map to the same underlying anchor, namely `#0e8a`.
-{grindTactic}`cases?` then displays two possibilities, each with an ordinal disambiguator:
+The anchor for a variable is derived from its name.
+Because both witnesses are named `c`, the two values are assigned the same anchor, namely `#7fdc`.
+After exposing the witnesses using {tactic}`obtain`, {grindTactic}`cases?` displays two possibilities, each with an ordinal disambiguator:
 ```lean +error (name := ordinals)
 example (f : Nat → Nat)
     (h : ∃ a b,
@@ -257,16 +258,16 @@ example (f : Nat → Nat)
       (f b = 0 ∨ f b = 1) ∧
       f a + f b = 2) :
     ∃ a, f a = 1 := by
-  obtain ⟨a, a, ha, hb, hab⟩ := h
+  obtain ⟨c, c, ha, hb, hab⟩ := h
   grind =>
     cases?
 ```
 ```leanOutput ordinals
 Try these:
-  [apply] cases #0e8a for
-    f a = 0 ∨ f a = 1
-  [apply] cases #0e8a/2 for
-    f a✝ = 0 ∨ f a✝ = 1
+  [apply] cases #7fdc for
+    f c = 0 ∨ f c = 1
+  [apply] cases #7fdc/2 for
+    f c✝ = 0 ∨ f c✝ = 1
 ```
 :::
 
