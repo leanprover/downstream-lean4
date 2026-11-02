@@ -25413,18 +25413,15 @@ async function exportTargetBranch(config, sha) {
   await cRun("git", ["switch", "--detach", targetSha]);
   await mergeSource(baseSha, `chore: merge '${baseCommit.rev}'`);
   const mergeSha = await cCapture("git", ["rev-parse", "HEAD"]);
+  info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
+  await pushToRepo(
+    config.targetRepo,
+    targetToken,
+    mergeSha,
+    config.targetBranch
+  );
   await cRun("git", ["switch", "--detach", sha]);
-  const interesting = await runExport(mergeSha, sha);
-  if (interesting && pr) {
-    info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
-    await pushToRepo(
-      config.targetRepo,
-      targetToken,
-      mergeSha,
-      config.targetBranch
-    );
-  }
-  return interesting;
+  return await runExport(mergeSha, sha);
 }
 async function createExportPr(config, buildReport) {
   info(
