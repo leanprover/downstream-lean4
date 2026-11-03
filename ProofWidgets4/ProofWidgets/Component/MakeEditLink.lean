@@ -41,7 +41,7 @@ See also `MakeEditLinkProps.ofReplaceRange`.
 -/
 def MakeEditLinkProps.ofReplaceRange' (doc : Server.DocumentMeta) (range : Lsp.Range)
     (newText : String) (newSelection? : Option Lsp.Range := none) : MakeEditLinkProps :=
-  let edit := { textDocument := { uri := doc.uri, version? := doc.version }
+  let edit := { textDocument := { uri := doc.uri, version := doc.version }
                 edits        := #[{ range, newText }] }
   if newSelection?.isSome then
     { edit, newSelection? }
