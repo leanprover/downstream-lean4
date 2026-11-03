@@ -406,8 +406,14 @@ theorem rev_correct {xs : List α} :
   vcgen [rev]
 ```
 ```leanOutput noInst
-No spec applicable to program (forIn xs [] fun x __s => pure (ForInStep.yield (x :: __s))) >>=
-  pure in monad Identity. Candidates were [SpecProof.global Std.WP.Spec.bind].
+No spec applicable to program do
+  let __s ←
+    forIn xs [] fun x __s =>
+        have out := __s;
+        have out := x :: out;
+        pure (ForInStep.yield out)
+  have out : List α := __s
+  pure out in monad Identity. Candidates were [SpecProof.global Std.WP.Spec.bind].
 ```
 When no specification is applicable to {name}`bind`, the problem is usually a missing {name}`WPMonad` instance.
 The issue can be resolved by adding a suitable instance:
