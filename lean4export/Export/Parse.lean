@@ -86,7 +86,8 @@ def addConst (name : Lean.Name) (d : Lean.ConstantInfo) : M Unit := do
 
 @[inline]
 def parseJsonObj (line : String) : M (Std.TreeMap.Raw String Json) := do
-  let .ok (.obj obj) := Json.Parser.anyCore.run line | fail "Expected JSON object"
+  let .ok (.obj obj) := (Json.Parser.anyCore Json.Parser.maxDepth).run line
+    | fail "Expected JSON object"
   return obj
 
 def parseNameStr (json : Json) : M Name := do
