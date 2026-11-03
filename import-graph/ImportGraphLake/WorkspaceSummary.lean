@@ -46,7 +46,7 @@ def WorkspaceSummary.ofWorkspace (ws : Lake.Workspace)
   version := version
   -- Note: we avoid the override with `ws.lakeEnv.lean.githash` instead of `ws.lakeEnv.leanGithash`.
   leanGitHash := ws.lakeEnv.lean.githash
-  inputHash := inputHash.val
+  inputHash := inputHash.hex
   manifestFile := ws.manifestFile
   packageOverridesFile := ws.packageOverridesFile
   packages := ws.packages.map fun pkg => { pkg with
