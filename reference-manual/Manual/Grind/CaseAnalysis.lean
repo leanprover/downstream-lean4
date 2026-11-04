@@ -24,7 +24,7 @@ tag := "grind-split"
 
 In addition to congruence closure and constraint propagation, {tactic}`grind` performs case analysis.
 During case analysis, {tactic}`grind` considers each possible way that a term could have been built, or each possible value of a particular term, in a manner similar to the {tactic}`cases` and {tactic}`split` tactics.
-This case analysis is not exhaustive: {tactic}`grind` only splits cases while the search tree stays within a configured size limit, and configuration options and annotations control which terms are candidates for splitting.
+This case analysis is not exhaustive: {tactic}`grind` only splits cases up to a configured number of branches, and configuration options and annotations control which terms are candidates for splitting.
 
 
 # Selection Heuristics
@@ -55,8 +55,8 @@ This case analysis is not exhaustive: {tactic}`grind` only splits cases while th
 
 : Global limits
 
-  The {tactic}`grind` option `branches := n` caps the size of the search tree.
-  A case split with `k` cases creates `k - 1` new branches; once `n` branches have been created {tactic}`grind` stops splitting, and if the goal cannot be closed it reports that the branch threshold has been reached.
+  The {tactic}`grind` option `branches := n` caps the number of search branches.
+  A case split with `k` cases adds `k - 1` branches (`k` for a recursive type); at `n` branches {tactic}`grind` stops splitting, and if the goal stays open it reports that the branch threshold has been reached.
 
 : Manual annotations
 
@@ -257,7 +257,7 @@ example (h : Even (n + 2)) : Even n := by
 Case analysis is powerful, but computationally expensive: each level of case splitting multiplies the search space.
 It's important to be judicious and not perform unnecessary splits.
 In particular:
-* Increase `branches` *only* when the goal genuinely needs more branching; each extra branch multiplies the search space.
+* Increase `branches` *only* when the goal genuinely needs more branching; each branch adds a goal to close.
 * Disable `splitMatch` when large pattern‑matching definitions explode the tree; this can be observed by setting the {option}`trace.grind.split`.
 * Flags can be combined, e.g. `by grind -splitMatch (branches := 10) +splitImp`.
 * The {attr}`grind cases` attribute is {ref "scoped-attributes"}_scoped_.
