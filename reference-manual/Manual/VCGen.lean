@@ -408,7 +408,7 @@ theorem rev_correct {xs : List α} :
 ```leanOutput noInst
 No spec applicable to program do
   let __s ←
-    forIn xs [] fun x __s =>
+    forIn xs out fun x __s =>
         have out := __s;
         have out := x :: out;
         pure (ForInStep.yield out)
