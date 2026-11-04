@@ -25214,30 +25214,38 @@ async function closeEmptyAdaptationPr(aPr) {
   });
   info(`Closed empty adaptation PR #${aPr.number}`);
 }
-async function waitForMergeability(prNumber) {
-  const attempts = 10;
+async function waitForMergeability(prNumber, headSha) {
+  const attempts = 20;
   const delayMs = 3e3;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const pr = await getPr(octo, downstreamRepo, prNumber);
-    if (pr.mergeable !== null) return;
-    info(
-      `Mergeability of adaptation PR #${prNumber} unknown, retrying... (attempt ${attempt}/${attempts})`
-    );
+    if (pr.head.sha !== headSha) {
+      info(
+        `Head of adaptation PR #${prNumber} is ${pr.head.sha}, not ${headSha}, retrying... (attempt ${attempt}/${attempts})`
+      );
+    } else if (pr.mergeable === null) {
+      info(
+        `Mergeability of adaptation PR #${prNumber} unknown, retrying... (attempt ${attempt}/${attempts})`
+      );
+    } else {
+      return;
+    }
     await sleep(delayMs);
   }
   warning(`Mergeability of adaptation PR #${prNumber} still unknown`);
 }
-async function squashMergeAdaptationPr(aPr) {
+async function squashMergeAdaptationPr(aPr, headSha) {
   try {
     await octo.rest.pulls.merge({
       ...downstreamRepo,
       pull_number: aPr.number,
+      sha: headSha,
       merge_method: "squash"
     });
     info(`Squash merged adaptation PR #${aPr.number}`);
     return true;
   } catch (error2) {
-    if (error2 instanceof RequestError && error2.status === 405) {
+    if (error2 instanceof RequestError && (error2.status === 405 || error2.status === 409)) {
       error(
         `Failed to merge adaptation PR #${aPr.number}: ${error2.message}`
       );
@@ -25301,6 +25309,7 @@ async function mergeForPr(aPr) {
   ]);
   await switchToAdaptationBranch(aPr.head.ref);
   await undoOverridesAndCommit(mergeBase);
+  const headSha = await dCapture("git", ["rev-parse", "HEAD"]);
   if (!await hasChanges(mergeBase)) {
     await tellClosing(aPr);
     await closeEmptyAdaptationPr(aPr);
@@ -25308,8 +25317,8 @@ async function mergeForPr(aPr) {
   }
   await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
-  await waitForMergeability(aPr.number);
-  if (await squashMergeAdaptationPr(aPr)) return true;
+  await waitForMergeability(aPr.number, headSha);
+  if (await squashMergeAdaptationPr(aPr, headSha)) return true;
   await tellAuthorToMerge(uPr, aPr);
   await addMergeLabel(aPr);
   return false;
