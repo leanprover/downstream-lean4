@@ -104,33 +104,53 @@ async function closeEmptyAdaptationPr(aPr: ListPr): Promise<void> {
 
 // After pushing to the adaptation branch, GitHub resets the PR's `mergeable`
 // attribute to `null` and starts a background job to recompute it. Attempting
-// to merge before that job finishes fails as if there were a conflict.
-async function waitForMergeability(prNumber: number): Promise<void> {
-  const attempts = 10;
+// to merge before that job finishes fails as if there were a conflict. Also,
+// GitHub may be slow to register the push, so we need to wait for that first.
+async function waitForMergeability(
+  prNumber: number,
+  headSha: string,
+): Promise<void> {
+  const attempts = 20;
   const delayMs = 3000;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const pr = await getPr(octo, downstreamRepo, prNumber);
-    if (pr.mergeable !== null) return;
-    core.info(
-      `Mergeability of adaptation PR #${prNumber} unknown,` +
-        ` retrying... (attempt ${attempt}/${attempts})`,
-    );
+    if (pr.head.sha !== headSha) {
+      core.info(
+        `Head of adaptation PR #${prNumber} is ${pr.head.sha}, not ${headSha},` +
+          ` retrying... (attempt ${attempt}/${attempts})`,
+      );
+    } else if (pr.mergeable === null) {
+      core.info(
+        `Mergeability of adaptation PR #${prNumber} unknown,` +
+          ` retrying... (attempt ${attempt}/${attempts})`,
+      );
+    } else {
+      return;
+    }
     await sleep(delayMs);
   }
   core.warning(`Mergeability of adaptation PR #${prNumber} still unknown`);
 }
 
-async function squashMergeAdaptationPr(aPr: ListPr): Promise<boolean> {
+async function squashMergeAdaptationPr(
+  aPr: ListPr,
+  headSha: string,
+): Promise<boolean> {
   try {
     await octo.rest.pulls.merge({
       ...downstreamRepo,
       pull_number: aPr.number,
+      sha: headSha,
       merge_method: "squash",
     });
     core.info(`Squash merged adaptation PR #${aPr.number}`);
     return true;
   } catch (error) {
-    if (error instanceof RequestError && error.status === 405) {
+    // 405: not mergeable, 409: head is not the commit we pushed
+    if (
+      error instanceof RequestError &&
+      (error.status === 405 || error.status === 409)
+    ) {
       core.error(
         `Failed to merge adaptation PR #${aPr.number}: ${error.message}`,
       );
@@ -216,6 +236,7 @@ async function mergeForPr(aPr: ListPr): Promise<boolean> {
   // Attempt to merge the adaptation PR using the GitHub API
   await switchToAdaptationBranch(aPr.head.ref);
   await undoOverridesAndCommit(mergeBase);
+  const headSha = await dCapture("git", ["rev-parse", "HEAD"]);
 
   // Merging an adaptation PR without changes results in an empty commit and
   // unnecessary wait time for CI. Instead, we just close the PR with a message.
@@ -227,8 +248,8 @@ async function mergeForPr(aPr: ListPr): Promise<boolean> {
 
   await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
-  await waitForMergeability(aPr.number);
-  if (await squashMergeAdaptationPr(aPr)) return true;
+  await waitForMergeability(aPr.number, headSha);
+  if (await squashMergeAdaptationPr(aPr, headSha)) return true;
 
   // We failed, so tell the upstream PR author
   await tellAuthorToMerge(uPr, aPr);
