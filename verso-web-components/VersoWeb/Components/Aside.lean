@@ -3,26 +3,30 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import VersoWeb.Components.Icon
+module
+
+public import VersoBlog.Component
+
+public section
 
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso Output.Html Genre Blog
+open Verso Genre Blog
 
 /--
 The `aside` component is used to create a sidebar with a title and content.
 -/
 def aside [MonadStateOf Component.State m] [Monad m] (title : String) (content : Html) : m Html := do
-  return {{
+  return html%{
     <aside>
       <nav class="post-index">
         <h1 class="title">
-          {{ title }}
+          { title }
         </h1>
-        {{ content }}
+        { content }
       </nav>
     </aside>
-  }}
+  }
 
 end Verso.Web.Components

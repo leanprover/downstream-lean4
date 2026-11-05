@@ -15,7 +15,8 @@ defaults:
 
 jobs:
   main:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3

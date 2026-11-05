@@ -3,9 +3,14 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import VersoBlog
+module
 
-open Verso Genre Blog Lean Output.Html Template
+public import VersoBlog.Component
+import VersoBlog.Template
+
+public section
+
+open Verso Genre Blog Lean Template
 
 namespace Verso.Web.Components
 
@@ -21,33 +26,33 @@ structure Member where
   socials : List Social := []
 
 def renderSocials (socials : List Social) : Html :=
-  {{
+  html%{
     <div class="social-links">
-      {{socials.map fun s =>
-        {{ <a href={{s.url}} target="_blank" class="social-icon" data-tippy-theme="lean" data-tippy-content={{s.label}}>
-            {{ s.icon }}
-          </a> }}
-      }}
+      {socials.map fun s =>
+        html%{<a href={s.url} target="_blank" class="social-icon" data-tippy-theme="lean" data-tippy-content={s.label}>
+            { s.icon }
+          </a>}
+      }
     </div>
-  }}
+  }
 
 def team (teamMembemr : Member) : HtmlM Page Html := do
   saveCss (include_str "../../static/style/team.css")
 
-  return {{
+  return html%{
     <div class="team-card" onclick="toggleCard(this)">
         <div class="image-container">
-            <img src={{teamMembemr.url}}/>
+            <img src={teamMembemr.url}/>
         </div>
         <div class="content-area">
             <div class="member-details">
-                <h3 class="member-name">{{teamMembemr.name}}</h3>
-                <p class="member-role">{{teamMembemr.role}}</p>
+                <h3 class="member-name">{teamMembemr.name}</h3>
+                <p class="member-role">{teamMembemr.role}</p>
             </div>
 
-            {{ renderSocials teamMembemr.socials }}
+            { renderSocials teamMembemr.socials }
         </div>
     </div>
-  }}
+  }
 
 end Verso.Web.Components

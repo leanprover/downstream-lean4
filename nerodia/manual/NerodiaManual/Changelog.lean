@@ -44,6 +44,14 @@ toolchain they support. Nerodia aims to be generally forward-compatible in
 its API, and an old version of Nerodia is often compatible with multiple newer
 toolchains.
 
+# Nerodia for Lean 4.35
+%%%
+tag := "lean-v4.35"
+shortTitle := "lean-v4.35"
+%%%
+
+- {lean}`PyFloat` and {lean}`Float` {ref "type-conversions"}[type conversions].
+
 # Nerodia for Lean 4.34
 %%%
 tag := "lean-v4.34"

@@ -57,8 +57,7 @@ If `p` left multiple items on the stack, or if it left one tree without `Syntax.
 is a null node that contains these items. The node ends with `.missing` if none of the items
 contains one. If `p` left no tree, the result is `Syntax.missing`.
 
-A null node elaborates as an empty block. The block's content before the error appears in the
-document only when `p` left one tree that includes `Syntax.missing`.
+Each tree in a null node elaborates in order as a top-level block that is partial syntax.
 -/
 public def recoverPartialBlock (p : ParserFn) : ParserFn :=
   recoverFn p fun rctx =>
@@ -98,6 +97,15 @@ public defmethod Syntax.getPos! (stx : Syntax) : String.Pos.Raw :=
 
 public defmethod SourceInfo.getPos! (info : SourceInfo) : String.Pos.Raw :=
   if let some pos := info.getPos? then pos else panic! s!"No position for {repr info}"
+
+/--
+Checks whether two syntax objects have source ranges that are the same. If either syntax is lacking
+a source range, the result is `false`.
+-/
+public defmethod Syntax.hasSameRange (stx1 stx2 : Syntax) : Bool :=
+  match stx1.getRange?, stx2.getRange? with
+  | some r1, some r2 => r1 == r2
+  | _, _ => false
 
 public def ppSyntax (stx : Syntax) : Std.Format := .nest 2 <| stx.formatStx (some 50) false
 

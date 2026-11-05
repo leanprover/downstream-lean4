@@ -3,16 +3,17 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Components.ArchiveEntry
+module
+
+public import VersoWeb.Theme.Primary
 import VersoWeb.Components.Aside
-import VersoWeb.Theme.Post
-import VersoWeb.Theme.Primary
+import VersoWeb.Util
+
+public section
 
 open Lean (Html)
-open Verso Genre Blog Template Output.Html
-open Verso.Web Components Util Multi
+open Verso Genre Blog Template
+open Verso.Web Components Util
 
 namespace Verso.Web.Theme
 
@@ -26,7 +27,7 @@ def markdownPageTemplate (layout : LayoutConfig) : TemplateM Html := do
   let nav := collectH1 content path.relativeLink
 
   let postPageContent := if nav.isSome ∧ layout.isIndexPage path then "post-grid" else "post-center"
-  let sectionTitle := {{ <h1 class="page-title"> {{ ← param "title"}} </h1> }}
+  let sectionTitle := html%{<h1 class="page-title">{ ← param "title"}</h1>}
   let postList := if let some html := (← param? "posts") then layout.renderPostList path html else .empty
   let aside ← if layout.isIndexPage path then aside title nav else pure .empty
 
@@ -34,20 +35,20 @@ def markdownPageTemplate (layout : LayoutConfig) : TemplateM Html := do
     | some styling => s!"container {styling}"
     | none => "container"
 
-  return {{
-    <main class={{containerClass}}>
-      <div class=s!"{postPageContent} post-page">
+  return html%{
+    <main class={containerClass}>
+      <div class={s!"{postPageContent} post-page"}>
         <article class="post-container">
           <div class="post-content">
-            {{ if layout.needsTitle path then sectionTitle else .empty }}
-            {{ postList }}
-            {{ addSlug path.relativeLink content }}
+            { if layout.needsTitle path then sectionTitle else .empty }
+            { postList }
+            { addSlug path.relativeLink content }
           </div>
         </article>
-        {{ aside }}
+        { aside }
       </div>
     </main>
-  }}
+  }
 
 /--
 Free-form page template for custom layouts.
@@ -56,17 +57,17 @@ def freePageTemplate (customTopography : TemplateM Html := pure .empty) : Templa
   let postList :=
     match (← param? "posts") with
     | none => Html.empty
-    | some html => {{ <section class="page-content container"> {{ html }} </section> }}
+    | some html => html%{<section class="page-content container">{ html }</section>}
 
   let topography ← customTopography
 
-  return {{
+  return html%{
     <main>
-      {{ topography }}
-      {{ ← param "content" }}
-      {{ postList }}
+      { topography }
+      { ← param "content" }
+      { postList }
     </main>
-  }}
+  }
 
 /--
 Generic page template router.

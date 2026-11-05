@@ -19,11 +19,11 @@ block_component +directive accordion (active : Bool) where
 
     let title ← goB blocks[0]!
 
-    let accordion := {{
+    let accordion := html%{
       <details class="accordion">
-          <summary> {{ title }} </summary>
-          {{ ← blocks[1:].toArray.mapM goB }}
+          <summary>{ title }</summary>
+          { ← blocks[1:].toArray.mapM goB }
       </details>
-    }}
+    }
 
     return if active then setAttribute "open" "" accordion else accordion

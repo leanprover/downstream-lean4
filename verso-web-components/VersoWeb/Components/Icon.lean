@@ -3,17 +3,18 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Lean
-import VersoBlog
-import Verso.Doc.Html
-import VersoWeb.Util
+module
+
+public import Lean.Data.Html.Basic
+import Verso.Output.Html
 import VersoWeb.Util.Svg
+
+public section
 
 namespace Verso.Web.Components
 
 open Lean (Html)
-open Verso Output.Html Genre ArgParse
-open Verso.Web.Util
+open Verso.Output.Html
 
 /-!
 # Icon
@@ -73,7 +74,7 @@ private def renderSvg (content : Html) (icon : Icon) : Html :=
 
 private def renderImg (src : String) (icon : Icon) : Html :=
   let width := effectiveWidth icon
-  {{ <img width={{width}} src={{src}} alt={{icon.name}} /> }}
+  html%{<img width={width} src={src} alt={icon.name} />}
 
 private def renderStyledSvg (content : Html) (viewBox : Option String) (icon : Icon) : Html :=
   let strokeWidth := toString (effectiveStrokeWidth icon)
@@ -91,11 +92,11 @@ private def renderStyledSvg (content : Html) (viewBox : Option String) (icon : I
 private def renderText (content : String) (icon : Icon) : Html :=
   let color := (effectiveFill icon).getD "#386EE0"
   let fontSize := icon.fontSize.getD "40px"
-  {{
-    <i style=s!"width:{fontSize};height:{fontSize};color:{color};font-size:{fontSize};font-weight:500">
-      {{content}}
+  html%{
+    <i style={s!"width:{fontSize};height:{fontSize};color:{color};font-size:{fontSize};font-weight:500"}>
+      {content}
     </i>
-  }}
+  }
 
 /--
 Main render function
