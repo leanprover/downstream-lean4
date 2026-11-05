@@ -1550,8 +1550,6 @@ When tasks are canceled, the tree in the state is used to cancel their children.
 
 {docstring Std.CancellationContext +allowMissing}
 
-{docstring Std.CancellationContext.State +allowMissing}
-
 {docstring Std.CancellationContext.new}
 
 {docstring Std.CancellationContext.fork}
@@ -1574,7 +1572,3 @@ A cancellation token is a mutex-guarded piece of shared mutable state that track
 Behind the scenes, {name}`ContextAsync.isCancelled` checks the current context's cancellation token, then checks whether the cancellation reason is {name}`some` or {name}`none`.
 
 {docstring Std.CancellationToken +allowMissing}
-
-{docstring Std.CancellationToken.State}
-
-{docstring Std.CancellationToken.Consumer +allowMissing}
