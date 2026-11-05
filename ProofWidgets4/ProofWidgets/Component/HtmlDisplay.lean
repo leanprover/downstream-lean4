@@ -42,11 +42,12 @@ namespace HtmlCommand
 
 open Elab Command
 
+@[deprecated "No longer used." (since := "2026-11-05")]
 unsafe def evalCommandMHtmlUnsafe (stx : Term) : TermElabM (CommandElabM ProofWidgets.Html) := do
   let tp := mkApp (mkConst ``CommandElabM) (mkConst ``ProofWidgets.Html)
   Term.evalTerm _ tp stx
 
-@[implemented_by evalCommandMHtmlUnsafe]
+@[deprecated "No longer used" (since := "2026-11-05"), implemented_by evalCommandMHtmlUnsafe]
 opaque evalCommandMHtml : Term → TermElabM (CommandElabM ProofWidgets.Html)
 
 open Meta in
@@ -59,7 +60,7 @@ where
     let ty ← inferType h
     unless ← isDefEq ty (mkConst ``ProofWidgets.Html) do
       -- Try core elaborator instead.
-      Elab.throwUnsupportedSyntax
+      throwUnsupportedSyntax
     let alt := mkApp (mkConst ``MessageData.ofFormat)
       -- FIXME: render HTML into `alt`
       (mkApp (mkConst ``Format.text) (mkStrLit "<#html command>"))
