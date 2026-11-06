@@ -396,7 +396,7 @@ The function must be {deftech (key := "mvcgen conjunctive")}_conjunctive_, which
 variable {σ : List (Type u)} {ps : PostShape} {x y : PredTrans ps α} {Q : Assertion ps}
 ```
 The {inst}`LE PredTrans` instance is defined in terms of their logical strength; one transformer is stronger than another if the result of applying it always entails the result of applying the other.
-In other words, {lean}`∀ Q, y Q ⊢ₛ x Q`, then {lean}`x ≤ y`.
+In other words, {lean}`∀ Q, y.apply Q ⊢ₛ x.apply Q`, then {lean}`x ≤ y`.
 This means that stronger predicate transformers are considered greater than weaker ones.
 :::
 
