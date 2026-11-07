@@ -17,6 +17,8 @@ jobs:
     if: >
       ${{ !contains(github.event.head_commit.message, 'skip-checks: true') }}
     runs-on: [self-hosted, chonk]
+    permissions:
+      contents: read
     env:
       LAKE_ARTIFACT_CACHE: 1
       LAKE_RESTORE_ARTIFACTS: 1
@@ -64,9 +66,7 @@ jobs:
 
       - name: Stage cache
         run: |
-          mkdir -p "$RUNNER_TEMP/staging/.metadata"
-          git rev-parse HEAD > "$RUNNER_TEMP/staging/.metadata/rev"
-          cp lean-toolchain "$RUNNER_TEMP/staging/.metadata/lean-toolchain"
+          mkdir -p "$RUNNER_TEMP/staging"
           .downstream/list.py . | while IFS= read -r repo; do
             echo "::group::stage $repo"
             pushd "$repo"
@@ -86,7 +86,6 @@ jobs:
         with:
           name: build-staging
           path: ${{ runner.temp }}/staging/
-          include-hidden-files: true
 
       - name: Fail if critical repos are not green
         run: |

@@ -12,8 +12,13 @@ defaults:
 jobs:
   upload-cache:
     if: |
-      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
-      github.event.workflow_run.conclusion != 'cancelled' }}
+      ${{ true
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.path == '.github/workflows/build.yml'
+      && github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.conclusion != 'cancelled'
+      && !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true')
+      }}
     runs-on: ubuntu-latest # May take longer than 15 minutes, so no ubuntu-slim
     permissions:
       actions: read
@@ -54,29 +59,27 @@ jobs:
       - name: Upload artifacts to cache
         env:
           LAKE_CACHE_KEY: ${{ secrets.LAKE_CACHE_KEY }}
+          REV: ${{ github.event.workflow_run.head_sha }}
         run: |
-          REV="$(cat "$RUNNER_TEMP/staging/.metadata/rev")"
-          TOOLCHAIN="$(cat "$RUNNER_TEMP/staging/.metadata/lean-toolchain")"
+          TOOLCHAIN="$(cat built-commit/lean-toolchain)"
           .downstream/list.py built-commit | while IFS= read -r repo; do
             echo "::group::cache put-staged $repo"
-            pushd "built-commit/$repo"
             lake cache put-staged "$RUNNER_TEMP/staging/$repo" --rev "$REV" --scope "$TOOLCHAIN/$repo" || true
-            popd
             echo "::endgroup::"
           done
 
       - name: Find original PR
         id: original-pr
-        if:
-          ${{ github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch != 'master' }}
+        if: ${{ github.event.workflow_run.head_branch != 'master' }}
         continue-on-error: true # May not belong to a PR
         uses: ./.downstream/actions/find-original-pr
 
       - name: Add cache-available label to PR
         if:
-          ${{ steps.original-pr.outcome == 'success' &&
-          steps.original-pr.outputs.sha == github.event.workflow_run.head_sha }}
+          ${{ true
+          && steps.original-pr.outcome == 'success'
+          && steps.original-pr.outputs.sha == github.event.workflow_run.head_sha
+          }}
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -85,9 +88,14 @@ jobs:
 
   update-statuses:
     if: |
-      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
-      github.event.workflow_run.conclusion != 'cancelled' }}
-    runs-on: ubuntu-slim
+      ${{ true
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.path == '.github/workflows/build.yml'
+      && github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.conclusion != 'cancelled'
+      && !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true')
+      }}
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -112,11 +120,15 @@ jobs:
 
   post-report-pr:
     if: |
-      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
-      github.event.workflow_run.conclusion != 'cancelled' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch != 'master' }}
-    runs-on: ubuntu-slim
+      ${{ true
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.path == '.github/workflows/build.yml'
+      && github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.head_branch != 'master'
+      && github.event.workflow_run.conclusion != 'cancelled'
+      && !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true')
+      }}
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -192,12 +204,16 @@ jobs:
 
   post-report-zulip:
     if: |
-      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
-      github.event.workflow_run.conclusion != 'cancelled' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'master' &&
-      github.event.workflow_run.run_attempt == 1 }}
-    runs-on: ubuntu-slim
+      ${{ true
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.path == '.github/workflows/build.yml'
+      && github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.head_branch == 'master'
+      && github.event.workflow_run.run_attempt == 1
+      && github.event.workflow_run.conclusion != 'cancelled'
+      && !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true')
+      }}
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -324,10 +340,17 @@ jobs:
 
   update-branches:
     if: |
-      ${{ !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true') &&
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'master' }}
-    runs-on: ubuntu-slim
+      ${{ true
+      && github.event.workflow_run.head_repository.full_name == github.repository
+      && github.event.workflow_run.path == '.github/workflows/build.yml'
+      && github.event.workflow_run.event == 'push'
+      && github.event.workflow_run.head_branch == 'master'
+      && github.event.workflow_run.conclusion == 'success'
+      && !contains(github.event.workflow_run.head_commit.message, 'skip-checks: true')
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Create GitHub App token
         uses: actions/create-github-app-token@v3

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
 import VersoWeb.Components.Icon
+import VersoWeb.Util
 
-open Lean Elab Term
+open Lean
 open Verso Output.Html Genre Blog Template
 open Verso.Web Components Icon Util
 
@@ -32,21 +33,21 @@ def selectorInput (id : String) (isActive : Bool) (idx : Nat) : ComponentM Html 
     }
   "
 
-  let html := {{ <input type="radio" id={{componentId}} name=s!"tabs-{id}" hidden="true" /> }}
+  let html := html%{<input type="radio" id={componentId} name={s!"tabs-{id}"} hidden="true" />}
   return if isActive then html |> setAttribute "checked" "true" else html
 
 def selectorItem (id : String) (isActive : Bool) (idx : Nat) (content : String) : ComponentM Html := do
-  let html := {{
+  let html := html%{
     <label
-      class=s!"selector-button"
+      class={s!"selector-button"}
       role="tab"
-      for=s!"selector-input-{id}-{idx}"
+      for={s!"selector-input-{id}-{idx}"}
       tabindex="0"
-      data-id={{toString idx}}
+      data-id={toString idx}
     >
-      {{ content }}
+      { content }
     </label>
-  }}
+  }
 
   let html :=
     if isActive
@@ -60,26 +61,26 @@ def selector (id : String) (lbl : String) (active : Nat) (options : Array String
 
   let ariaLabel := s!"{lbl} – {options.size} options"
 
-  return {{
-    {{ ← options.mapIdxM fun idx _ => selectorInput id (idx == active) idx }}
-    <nav class="card selector-list" role="tablist" aria-label={{ariaLabel}} data-id={{id}}>
-      {{ ← options.mapIdxM fun idx txt => selectorItem id (idx == active) idx txt }}
+  return html%{
+    { ← options.mapIdxM fun idx _ => selectorInput id (idx == active) idx }
+    <nav class="card selector-list" role="tablist" aria-label={ariaLabel} data-id={id}>
+      { ← options.mapIdxM fun idx txt => selectorItem id (idx == active) idx txt }
     </nav>
-  }}
+  }
 
 def tabPanel (sectionId : String) (id : Nat) (active : Bool) (sameSize : Bool) (tabClasses : String) (content : Html) : Html :=
-  {{
+  html%{
       <section
-        class={{ String.intercalate " " <| ["selector-panel", if active then "active" else "", if sameSize then "same-size" else ""].filter (· != "") }}
+        class={ String.intercalate " " <| ["selector-panel", if active then "active" else "", if sameSize then "same-size" else ""].filter (· != "") }
         role="tabpanel"
-        id=s!"{sectionId}-panel-{id}"
-        data-id={{ toString id }}
+        id={s!"{sectionId}-panel-{id}"}
+        data-id={ toString id }
       >
-        <article class={{tabClasses}}>
-          {{ content }}
+        <article class={tabClasses}>
+          { content }
         </article>
       </section>
-    }}
+    }
 
 def tabs (name : String) (id : String) (label : String) (active : Nat) (sameSize : Bool) (tabClasses : String) (options : Array String) (contents : Array Html) : ComponentM Html := do
   Template.saveCss (include_str "../../static/style/tabs.css")
@@ -87,14 +88,14 @@ def tabs (name : String) (id : String) (label : String) (active : Nat) (sameSize
 
   let contents := contents.mapIdx fun idx x => tabPanel id idx (idx == active) sameSize tabClasses x
 
-  return {{
-    <div class=s!"selectors-container {name}" data-id={{ id }}>
-      {{ ← selector id label active options }}
-      <div class="selector-panels" data-id={{ id }}>
-        {{ contents }}
+  return html%{
+    <div class={s!"selectors-container {name}"} data-id={ id }>
+      { ← selector id label active options }
+      <div class="selector-panels" data-id={ id }>
+        { contents }
       </div>
     </div>
-  }}
+  }
 
 block_component +directive tabs' (name : String) (label : String) (sameSize : Bool) (active : Nat) (tabClasses : String) where
   toHtml id _json _goI goB contents := do

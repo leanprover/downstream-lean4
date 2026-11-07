@@ -31,7 +31,7 @@ structure IndexMap
   private indices : HashMap α Nat
   private keys : Array α
   private values : Array β
-  private size_keys' : keys.size = values.size := by grind
+  private size_keys' : keys.size = values.size := by grind +verbose
   private WF : ∀ (i : Nat) (a : α),
     keys[i]? = some a ↔ indices[a]? = some i := by grind +verbose
 -- ANCHOR_END: IndexMap

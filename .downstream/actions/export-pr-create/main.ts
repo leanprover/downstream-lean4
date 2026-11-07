@@ -381,22 +381,20 @@ async function exportTargetBranch(
   await mergeSource(baseSha, `chore: merge '${baseCommit.rev}'`);
   const mergeSha = await cCapture("git", ["rev-parse", "HEAD"]);
 
+  // The target branch should stay up-to-date as much as possible since it may
+  // be used by dependencies' own target/nightly branches. Thus, we want to
+  // always push the merge commit even when no export PR needs to be opened.
+  core.info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
+  await pushToRepo(
+    config.targetRepo,
+    targetToken,
+    mergeSha,
+    config.targetBranch,
+  );
+
   // Export downstream changes on top
   await cRun("git", ["switch", "--detach", sha]);
-  const interesting = await runExport(mergeSha, sha);
-
-  // Push merge commit now, to prepare the branch for the export PR
-  if (interesting && pr) {
-    core.info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
-    await pushToRepo(
-      config.targetRepo,
-      targetToken,
-      mergeSha,
-      config.targetBranch,
-    );
-  }
-
-  return interesting;
+  return await runExport(mergeSha, sha);
 }
 
 async function createExportPr(
@@ -428,6 +426,7 @@ async function createExportPr(
     head_repo: config.prRepo.fullName,
     title: prTitle,
     body,
+    maintainer_can_modify: false,
   });
 
   core.notice(`Created export PR #${data.number}: ${data.html_url}`);

@@ -3,20 +3,23 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sofia Rodrigues
 -/
-import VersoBlog
+module
 
-import VersoWeb.Theme.Archive
-import VersoWeb.Theme.Category
-import VersoWeb.Theme.Primary
-import VersoWeb.Theme.Post
-import VersoWeb.Theme.Page
-import VersoWeb.Theme.Css
-import VersoWeb.Theme.Static
+public import VersoWeb.Theme.Archive
+public import VersoWeb.Theme.Category
+public import VersoWeb.Theme.Primary
+public import VersoWeb.Theme.Post
+public import VersoWeb.Theme.Page
+public import VersoWeb.Theme.Css
+public import VersoWeb.Theme.Static
+public import VersoBlog.Theme
+
+public section
 
 namespace Verso.Web
 
 open Verso Genre Blog
-open Verso.Web Components
+open Components
 
 /--
 The main theme of the lean-lang.org website.

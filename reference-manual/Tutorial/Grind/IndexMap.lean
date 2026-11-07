@@ -235,10 +235,9 @@ end IndexMap
 # Header 2
 
 Let's get started.
-We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
-so we can omit these fields whenever `grind` can prove them.
-{tactic}`grind`'s goal diagnostics are opt-in, so the `WF` auto-parameter passes `+verbose`: when `grind` cannot discharge the field, we want to see what it did know.
-While we're modifying the definition of `IndexMap` itself, let's make all the fields private, since we're planning on having complete encapsulation.
+We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the {anchorName IndexMap}`size_keys'` and {anchorName IndexMap}`WF` fields, so we can omit these fields whenever {tactic}`grind` can prove them.
+{tactic}`grind`'s goal diagnostics are opt-in, so the auto-parameters enable the {name Lean.Grind.Config.verbose}`verbose` flag so that we can see what {tactic}`grind` was able to derive when it fails to derive a value for the fields.
+While we're modifying the definition of {anchorName IndexMap}`IndexMap` itself, let's make all the fields private, since we're planning on having complete encapsulation.
 
 ```anchor IndexMap
 open Std
@@ -248,7 +247,7 @@ structure IndexMap
   private indices : HashMap α Nat
   private keys : Array α
   private values : Array β
-  private size_keys' : keys.size = values.size := by grind
+  private size_keys' : keys.size = values.size := by grind +verbose
   private WF : ∀ (i : Nat) (a : α),
     keys[i]? = some a ↔ indices[a]? = some i := by grind +verbose
 ```
@@ -789,9 +788,9 @@ structure IndexMap
   private indices : HashMap α Nat
   private keys : Array α
   private values : Array β
-  private size_keys' : keys.size = values.size := by grind
+  private size_keys' : keys.size = values.size := by grind +verbose
   private WF : ∀ (i : Nat) (a : α),
-    keys[i]? = some a ↔ indices[a]? = some i := by grind
+    keys[i]? = some a ↔ indices[a]? = some i := by grind +verbose
 
 namespace IndexMap
 

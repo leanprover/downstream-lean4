@@ -3,16 +3,17 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.ArgParse
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Util.Svg
-import Std.Data.HashSet
+module
+
+public import VersoWeb.Util.Svg
+public import VersoBlog.Template
+
+public section
 
 namespace Verso.Web.Util
 
 open Lean (Html)
-open Verso Genre Blog Template ArgParse
+open Verso Genre Blog ArgParse
 
 /--
 Function to get all the links from the pages that we created.
@@ -45,14 +46,14 @@ where
 instance : Coe (Option Html) Html where
   coe x := Option.getD x Html.empty
 
-def ValDesc.option [Monad m] [Lean.MonadError m] (x : Verso.ArgParse.ValDesc m α) : Verso.ArgParse.ValDesc m (Option α) where
+meta def ValDesc.option [Monad m] [Lean.MonadError m] (x : Verso.ArgParse.ValDesc m α) : Verso.ArgParse.ValDesc m (Option α) where
   signature := CanMatch.Ident
   description := x.description ++ " or none"
   get
     | .name b => if b.getId == `none then pure none else some <$> x.get (.name b)
     | other => x.get other
 
-instance [Monad m] [Lean.MonadError m] [x : FromArgVal α m] : FromArgVal (Option α) m where
+meta instance [Monad m] [Lean.MonadError m] [x : FromArgVal α m] : FromArgVal (Option α) m where
   fromArgVal := ValDesc.option x.fromArgVal
 
 /--
