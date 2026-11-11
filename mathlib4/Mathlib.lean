@@ -1371,6 +1371,7 @@ public import Mathlib.Algebra.Star.Module
 public import Mathlib.Algebra.Star.MonoidHom
 public import Mathlib.Algebra.Star.NonUnitalSubalgebra
 public import Mathlib.Algebra.Star.NonUnitalSubsemiring
+public import Mathlib.Algebra.Star.Orthogonal
 public import Mathlib.Algebra.Star.Pi
 public import Mathlib.Algebra.Star.Pointwise
 public import Mathlib.Algebra.Star.Prod
@@ -3739,6 +3740,7 @@ public import Mathlib.Combinatorics.Configuration
 public import Mathlib.Combinatorics.Derangements.Basic
 public import Mathlib.Combinatorics.Derangements.Exponential
 public import Mathlib.Combinatorics.Derangements.Finite
+public import Mathlib.Combinatorics.Design.Defs
 public import Mathlib.Combinatorics.Digraph.Basic
 public import Mathlib.Combinatorics.Digraph.Orientation
 public import Mathlib.Combinatorics.Enumerative.Bell
