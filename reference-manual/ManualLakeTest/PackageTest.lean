@@ -103,6 +103,9 @@ instance : Test (Lake.ConfigType kind pkg name) where
 instance : Test Lake.CacheRef where
   toString _ := "#<cacheref>"
 
+instance : Test Lake.CacheService where
+  toString s := s!"#<cache service {s.kind}>"
+
 def contains (fmt : Format) (c : Char) : Bool :=
   match fmt with
   | .text s => s.contains c
