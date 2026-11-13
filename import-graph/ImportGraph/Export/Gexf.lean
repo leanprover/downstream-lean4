@@ -28,11 +28,11 @@ private def isBlackListed (env : Environment) (declName : Name) : Bool :=
 /-- Get number of non-blacklisted declarations per file. -/
 private def getNumberOfDeclsPerFile (env: Environment) : NameMap Nat := Id.run do
   let mut acc := {}
-  for h : idx in [:env.header.moduleData.size] do
+  for h : idx in 0...env.header.moduleData.size do
     let mod := env.allImportedModuleNames[idx]!
     for n in env.header.moduleData[idx].constNames do
       unless isBlackListed env n do
-        acc := acc.insert mod ((acc.getD mod 0) + 1)
+        acc := acc.alter mod fun count? => some <| count?.getD 0 + 1
   return acc
 
 /-- Gexf template for a node in th graph. -/
