@@ -251,6 +251,7 @@ attribute [elementwise (attr := simp)] eqToHom_map_comp
 
 variable {D : Type u'} [𝒟 : Category.{u'} D] (I J : D ⥤ C) (ρ : I ⟶ J) {W : D}
 
+set_option linter.deprecated false in
 attribute [elementwise nosimp] Functor.map_hom_inv Functor.map_inv_hom
   Functor.map_hom_inv' Functor.map_inv_hom'
 

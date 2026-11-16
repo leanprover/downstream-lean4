@@ -268,6 +268,7 @@ register_option linter.countHeartbeatsApprox : Bool := {
 
 namespace CountHeartbeats
 
+set_option linter.deprecated false in
 @[inherit_doc Mathlib.Linter.linter.countHeartbeats,
 deprecated "use `#count_heartbeats in` or `set_option trace.profiler true` with \
   `set_option trace.profiler.useHeartbeats true`" (since := "2026-07-30")]
@@ -294,6 +295,7 @@ def countHeartbeatsLinter : Linter where run := withSetOptionIn fun stx ↦ do
 set_option linter.deprecated false in
 initialize addLinter countHeartbeatsLinter
 
+set_option linter.deprecated false in
 @[inherit_doc Mathlib.Linter.linter.countHeartbeats]
 macro (name := countHeartbeats) "#count_heartbeats" approx:(&" approximately")? : command => do
   let approx ←

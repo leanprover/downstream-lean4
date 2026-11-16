@@ -44,6 +44,7 @@ noncomputable def subsetSupSet [Inhabited s] : SupSet s where
     then ⟨sSup ((↑) '' t : Set α), ht.2.2⟩
     else default
 
+set_option linter.deprecated false in
 attribute [local instance] subsetSupSet
 
 open scoped Classical in
@@ -84,6 +85,7 @@ noncomputable def subsetInfSet [Inhabited s] : InfSet s where
     then ⟨sInf ((↑) '' t : Set α), ht.2.2⟩
     else default
 
+set_option linter.deprecated false in
 attribute [local instance] subsetInfSet
 
 open scoped Classical in

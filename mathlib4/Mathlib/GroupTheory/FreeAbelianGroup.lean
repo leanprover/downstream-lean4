@@ -482,6 +482,7 @@ theorem of_one : (FreeAddCommGroup.of 1 : FreeAddCommGroup α) = 1 :=
 
 end One
 
+set_option linter.deprecated false in
 attribute [local instance] nonUnitalNonAssocRing one
 
 @[deprecated "use `MonoidAlgebra ℤ` instead" (since := "2026-07-29"), nolint docBlame]
@@ -586,6 +587,7 @@ theorem liftMonoid_symm_coe (f : FreeAddCommGroup α →+* R) :
 
 end Monoid
 
+set_option linter.deprecated false in
 attribute [local instance] ring
 
 @[deprecated "use `MonoidAlgebra ℤ` instead" (since := "2026-07-29"), nolint docBlame]
