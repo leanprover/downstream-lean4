@@ -470,8 +470,7 @@ theorem of_one : (of 1 : FreeAbelianGroup α) = 1 :=
 
 end One
 
-attribute [local instance] nonUnitalNonAssocRing one
-
+attribute [local instance] nonUnitalNonAssocRing one in
 @[deprecated "use `MonoidAlgebra ℤ` instead" (since := "2026-07-29"), nolint docBlame]
 local instance nonUnitalRing [Semigroup α] : NonUnitalRing (FreeAbelianGroup α) where
   mul_assoc x y z := by
@@ -495,6 +494,7 @@ section Monoid
 
 variable {R : Type*} [Monoid α] [Ring R]
 
+attribute [local instance] nonUnitalNonAssocRing one in
 @[deprecated "use `MonoidAlgebra ℤ` instead" (since := "2026-07-29"), nolint docBlame]
 local instance ring : Ring (FreeAbelianGroup α) where
   mul_one x := by
@@ -574,8 +574,7 @@ theorem liftMonoid_symm_coe (f : FreeAbelianGroup α →+* R) :
 
 end Monoid
 
-attribute [local instance] ring
-
+attribute [local instance] ring in
 @[deprecated "use `MonoidAlgebra ℤ` instead" (since := "2026-07-29"), nolint docBlame]
 local instance [CommMonoid α] : CommRing (FreeAbelianGroup α) where
   mul_comm x y := by
