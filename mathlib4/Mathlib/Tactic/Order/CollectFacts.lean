@@ -129,12 +129,12 @@ where
         let xIdx ← addAtom α x
         let yIdx ← addAtom α y
         addFact α <| .eq xIdx yIdx expr
-    | ~q(@LE.le $α $inst $x $y) =>
+    | ~q(@LE.le ($α : Type _) $inst $x $y) =>
       let α ← addType α
       let xIdx ← addAtom α x
       let yIdx ← addAtom α y
       addFact α <| .le xIdx yIdx expr
-    | ~q(@LT.lt $α $inst $x $y) =>
+    | ~q(@LT.lt ($α : Type _) $inst $x $y) =>
       let α ← addType α
       let xIdx ← addAtom α x
       let yIdx ← addAtom α y
@@ -147,12 +147,12 @@ where
         addFact α <| .ne xIdx yIdx expr
     | ~q(Not $p) =>
       match p with
-      | ~q(@LE.le $α $inst $x $y) =>
+      | ~q(@LE.le ($α : Type _) $inst $x $y) =>
         let α ← addType α
         let xIdx ← addAtom α x
         let yIdx ← addAtom α y
         addFact α <| .nle xIdx yIdx expr
-      | ~q(@LT.lt $α $inst $x $y) =>
+      | ~q(@LT.lt ($α : Type _) $inst $x $y) =>
         let α ← addType α
         let xIdx ← addAtom α x
         let yIdx ← addAtom α y

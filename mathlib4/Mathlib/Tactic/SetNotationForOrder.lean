@@ -156,7 +156,8 @@ If the type is not known, elaboration of this term is postponed.
 
 We assume that `orderOp` and `setOp` are names for declarations of exactly the form
 `decl.{u} {α : Type u} [Cls.{u} α] (a b : α)`, and that likewise `orderCls` and `setCls` are
-names for declarations of exactly the form  `Cls.{u} (α : Type u) : Type u`. -/
+names for declarations of exactly the form  `Cls.{u} (α : Type u) : Type u`. `LE` and `LT` bind
+`α` as a `Sort`, so an `orderCls` of `LE` or `LT` takes `u+1` where `setCls` takes `u`. -/
 def elabBinSetNotation (x y : Term) (opaqueAux orderOp orderCls setOp setCls : Name)
     (expectedType? : Option Expr) : TermElabM Expr := do
   let app ← `($(mkCIdent opaqueAux) $x $y)
@@ -174,7 +175,9 @@ def elabBinSetNotation (x y : Term) (opaqueAux orderOp orderCls setOp setCls : N
         Consider adding a type annotation, e.g. `(_ : Set _) ⊆ _`.\n\
         The notation will elaborate to a different constant depending on \
         whether the type is tagged with `@[use_set_notation_for_order]`."
-  let (op, cls) := if ← useSetNotationFor α then (orderOp, orderCls) else (setOp, setCls)
+  let (op, cls, us) := if ← useSetNotationFor α then
+    (orderOp, orderCls, if orderCls == ``LE || orderCls == ``LT then us.map .succ else us)
+  else (setOp, setCls, us)
   let inst ← mkInstMVar <| .app (.const cls us) α
   let op := mkApp2 (.const op us) α inst
   -- Add the operation (e.g. `LE.le : Set Nat → Set Nat → Prop`) as a hover on the whole term
