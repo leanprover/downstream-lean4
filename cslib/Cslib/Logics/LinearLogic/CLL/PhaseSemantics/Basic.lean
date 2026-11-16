@@ -61,6 +61,7 @@ universe u v
 open scoped Pointwise
 open Set
 
+set_option linter.deprecated.automationAttr false in
 attribute [scoped grind _=_] Set.le_iff_subset
 
 /--
