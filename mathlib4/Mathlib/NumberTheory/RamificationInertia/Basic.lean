@@ -294,6 +294,7 @@ def Quotient.algebraQuotientOfRamificationIdxNeZero [hfp : NeZero e] :
     Algebra (R ⧸ p) (S ⧸ P) :=
   Quotient.algebraQuotientOfLEComap (le_comap_of_ramificationIdx'_ne_zero hfp.out)
 
+set_option linter.deprecated false in
 attribute [local instance] Ideal.Quotient.algebraQuotientOfRamificationIdxNeZero
 
 @[simp, deprecated "Use results of RingTheory.RamificationInertia.Basic" (since := "2026-07-01")]
@@ -521,6 +522,7 @@ instance Factors.fact_ramificationIdx_neZero (P : (factors (map (algebraMap R S)
     NeZero (ramificationIdx' p P.1) :=
   ⟨Factors.ramificationIdx_ne_zero p P⟩
 
+set_option linter.deprecated false in
 attribute [local instance] Quotient.algebraQuotientOfRamificationIdxNeZero
 
 @[deprecated "Use results of RingTheory.RamificationInertia.Basic" (since := "2026-07-01")]
