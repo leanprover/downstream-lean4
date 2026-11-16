@@ -47,6 +47,9 @@ unsafe def evalCommandMHtmlUnsafe (stx : Term) : TermElabM (CommandElabM ProofWi
   let tp := mkApp (mkConst ``CommandElabM) (mkConst ``ProofWidgets.Html)
   Term.evalTerm _ tp stx
 
+-- The implementation is itself deprecated, which is fine here: both are kept only for
+-- compatibility. `implemented_by` arguments are checked for deprecation since lean4#16384.
+set_option linter.deprecated false in
 @[deprecated "No longer used" (since := "2026-11-05"), implemented_by evalCommandMHtmlUnsafe]
 opaque evalCommandMHtml : Term → TermElabM (CommandElabM ProofWidgets.Html)
 
