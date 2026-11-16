@@ -158,8 +158,9 @@ The facets available for packages are:
 ```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps, `package.extraDep, `package.optBarrel,
-  `package.optCache, `package.optRelease, `package.release, `package.transDeps]
+info: #[`package.artifactCache, `package.barrel, `package.cache, `package.defaultModules, `package.deps, `package.extraDep,
+  `package.optArtifactCache, `package.optBarrel, `package.optCache, `package.optRelease, `package.release,
+  `package.transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
@@ -184,13 +185,23 @@ info: #[`package.barrel, `package.cache, `package.defaultModules, `package.deps,
 
 : `optCache`
 
-  A package's optional cached build archive (e.g., from Reservoir or GitHub).
-  Will *not* cause the whole build to fail if the archive cannot be fetched.
+  A package's optional cached build: either a build archive (e.g., from Reservoir or GitHub) or an artifact cache from the package's {tomlField Lake.PackageConfig}`downloadCacheService`.
+  Will *not* cause the whole build to fail if the cache cannot be fetched.
 
 : `cache`
 
-  A package's cached build archive (e.g., from Reservoir or GitHub).
-  Will cause the whole build to fail if the archive cannot be fetched.
+  A package's cached build: either a build archive (e.g., from Reservoir or GitHub) or an artifact cache from the package's {tomlField Lake.PackageConfig}`downloadCacheService`.
+  Will cause the whole build to fail if the cache cannot be fetched.
+
+: `optArtifactCache`
+
+  A package's optional artifact cache from its {tomlField Lake.PackageConfig}`downloadCacheService`.
+  Will *not* cause the whole build to fail if the cache cannot be fetched.
+
+: `artifactCache`
+
+  A package's artifact cache from its {tomlField Lake.PackageConfig}`downloadCacheService`.
+  Will cause the whole build to fail if the cache cannot be fetched.
 
 : `optBarrel`
 
