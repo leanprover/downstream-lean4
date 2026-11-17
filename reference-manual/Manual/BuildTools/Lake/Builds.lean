@@ -186,7 +186,8 @@ info: #[`package.artifactCache, `package.barrel, `package.cache, `package.defaul
 : `optCache`
 
   A package's optional cached build: either a build archive (e.g., from Reservoir or GitHub) or an artifact cache from the package's {tomlField Lake.PackageConfig}`downloadCacheService`.
-  Will *not* cause the whole build to fail if the cache cannot be fetched.
+  Returns {lean}`true` if the cache was fetched, or {lean}`false` otherwise.
+  Never causes the build to fail.
 
 : `cache`
 
@@ -196,27 +197,32 @@ info: #[`package.artifactCache, `package.barrel, `package.cache, `package.defaul
 : `optArtifactCache`
 
   A package's optional artifact cache from its {tomlField Lake.PackageConfig}`downloadCacheService`.
-  Will *not* cause the whole build to fail if the cache cannot be fetched.
+  Building this facet downloads the package's {tech (key := "mappings file")}[mappings] from the cache service so that Lake can download its artifacts as needed.
+  Returns {lean}`true` if the mappings were fetched, or {lean}`false` otherwise.
+  Never causes the build to fail.
 
 : `artifactCache`
 
   A package's artifact cache from its {tomlField Lake.PackageConfig}`downloadCacheService`.
+  Building this facet downloads the package's {tech (key := "mappings file")}[mappings] from the cache service so that Lake can download its artifacts as needed.
   Will cause the whole build to fail if the cache cannot be fetched.
 
 : `optBarrel`
 
-  A package's optional cached build archive (e.g., from Reservoir or GitHub).
-  Will *not* cause the whole build to fail if the archive cannot be fetched.
+  A package's optional cached build archive from Reservoir.
+  Returns {lean}`true` if the archive was fetched, or {lean}`false` otherwise.
+  Never causes the build to fail.
 
 : `barrel`
 
-  A package's cached build archive (e.g., from Reservoir or GitHub).
+  A package's cached build archive from Reservoir.
   Will cause the whole build to fail if the archive cannot be fetched.
 
 : `optRelease`
 
   A package's optional build archive from a GitHub release.
-  Will *not* cause the whole build to fail if the release cannot be fetched.
+  Returns {lean}`true` if the archive was fetched, or {lean}`false` otherwise.
+  Never causes the build to fail.
 
 : `release`
 
