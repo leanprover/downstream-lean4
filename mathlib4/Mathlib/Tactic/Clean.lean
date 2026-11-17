@@ -61,8 +61,8 @@ def x' : Id Nat := clean% by dsimp [Id]; exact 1
 @[deprecated "`clean%` is not used/needed anymore" (since := "2026-09-03")]
 syntax (name := cleanStx) "clean% " term : term
 
-set_option linter.deprecated false in
-@[term_elab cleanStx, inherit_doc cleanStx]
+@[term_elab cleanStx, inherit_doc cleanStx,
+  deprecated "`clean%` is not used/needed anymore" (since := "2026-09-03")]
 def elabClean : Term.TermElab := fun stx expectedType? =>
   match stx with
   | `(clean% $t) => do

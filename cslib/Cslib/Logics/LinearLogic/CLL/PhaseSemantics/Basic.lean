@@ -61,9 +61,6 @@ universe u v
 open scoped Pointwise
 open Set
 
-set_option linter.deprecated.automationAttr false in
-attribute [scoped grind _=_] Set.le_iff_subset
-
 /--
 A phase space is a commutative monoid M equipped with a distinguished subset ⊥.
 This forms the algebraic foundation for interpreting linear logic propositions.
