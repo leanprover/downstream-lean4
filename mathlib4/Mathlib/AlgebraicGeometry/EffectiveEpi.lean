@@ -72,6 +72,7 @@ private lemma of_isAffine_target {X Y S : Scheme.{u}} [IsAffine X] [IsAffine Y] 
     (AffineScheme.ofHom f) (InducedCategory.Hom.ext hf)
   use u.hom, InducedCategory.Hom.ext_iff.mp hu
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 open pullback in
