@@ -653,7 +653,7 @@ DISCUSSION:
         $ elan completions bash > /etc/bash_completion.d/elan.bash-completion
 
     This installs the completion script. You may have to log out and
-    log back in to your shell session for the changes to take affect.
+    log back in to your shell session for the changes to take effect.
 
     BASH (macOS/Homebrew):
 
@@ -670,7 +670,7 @@ DISCUSSION:
         $ elan completions fish > ~/.config/fish/completions/elan.fish
 
     This installs the completion script. You may have to log out and
-    log back in to your shell session for the changes to take affect.
+    log back in to your shell session for the changes to take effect.
 
     ZSH:
 
@@ -700,7 +700,7 @@ DISCUSSION:
 
         $ exec zsh
 
-    for the new completions to take affect.
+    for the new completions to take effect.
 
     CUSTOM LOCATIONS:
 
