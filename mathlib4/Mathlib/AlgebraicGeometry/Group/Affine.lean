@@ -204,6 +204,7 @@ instance locallyOfFiniteType_specOverSpec [Algebra R A] [Algebra.FiniteType R A]
   rw [specOverSpec_over, HasRingHomProperty.Spec_iff (P := @LocallyOfFiniteType)]
   simpa [RingHom.finiteType_algebraMap]
 
+set_option dsimp.resynthInstances false in
 attribute [local simp] AlgHom.toUnder in
 @[simps! one]
 instance instMonObjSpecAsOverSpec [Bialgebra R A] : MonObj ((Spec A).asOver (Spec R)) :=
@@ -295,6 +296,7 @@ def Spec.mapMulEquiv {R S T : Type u} [CommRing R] [CommRing S] [CommRing T] [Bi
       congr 3
       ext; simp
 
+set_option dsimp.resynthInstances false in
 /-- The adjunction between `Spec` and `Γ` as functors between commutative `R`-algebras and
 schemes over `Spec R`. -/
 def algΓAlgSpecAdjunction (R : CommRingCat.{u}) : algΓ R ⊣ algSpec R := by
@@ -383,6 +385,7 @@ instance [Algebra R T] :
       pullbackSymmetry_inv_comp_snd]
     exact (pullbackSpecIso_inv_fst ..).symm
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable (R S T) in
@@ -417,6 +420,7 @@ lemma μ_pullback_left_fst [Algebra R T] :
     simp [pullbackSpecIso']
     rfl
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 instance [Bialgebra R T] :

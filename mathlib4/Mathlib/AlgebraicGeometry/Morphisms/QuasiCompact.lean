@@ -157,6 +157,7 @@ instance quasiCompact_isStableUnderComposition :
 instance : MorphismProperty.IsMultiplicative @QuasiCompact where
   id_mem _ := inferInstance
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 instance quasiCompact_isStableUnderBaseChange :
