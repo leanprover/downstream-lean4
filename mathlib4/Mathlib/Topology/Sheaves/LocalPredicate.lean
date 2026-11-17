@@ -294,6 +294,7 @@ def stalkToFiber (P : LocalPredicate T) (x : X) :
     (subsheafToTypes P).presheaf.stalk x ⟶ T x :=
   colimit.desc _ (P.cocone x)
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 @[simp]
 lemma stalkToFiber_ι (P : LocalPredicate T) (x : X) (U : (OpenNhds x)ᵒᵖ)

@@ -394,6 +394,7 @@ def Interval.pow [Pow α ℕ] [Zero α] [One α] [Neg α] [LinearOrder α]
       | _, _ => ⊤
     ⟨0, ub⟩
 
+set_option dsimp.resynthInstances false in
 theorem Interval.pow_mem [Pow α ℕ] [Zero α] [One α] [Neg α] [LinearOrder α]
     [Ring β] [LinearOrder β] [IsStrictOrderedRing β] (f : α ↪o β)
     (map_zero : f 0 = 0) (map_one : f 1 = 1) (map_neg : ∀ a, f (-a) = -f a)
