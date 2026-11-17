@@ -397,6 +397,7 @@ lemma simplex_mem_nonDegenerate :
   rw [nonDegenerate_iff_strictMono_objEquiv, Equiv.apply_symm_apply]
   exact hx.strictMono_φ hd
 
+set_option dsimp.resynthInstances false in
 lemma δ_simplex :
     dsimp% (Δ[m + 1] ⊗ Δ[n]).δ (min x hd).castSucc (hx.simplex hd) = (x.cast hd).simplex := by
   apply objEquiv.injective
@@ -429,6 +430,7 @@ variable {hd : x.dim = d + 1} {l : Fin (d + 1)} (hl : IsIndex x hd l.succ)
 
 include hl
 
+set_option dsimp.resynthInstances false in
 lemma min_δ : min (d := d) hl.δ rfl = l := by
   refine le_antisymm (Finset.min'_le _ _ ?_)
     (Finset.le_min' _ _ _ (fun y hy ↦ ?_))
@@ -442,6 +444,7 @@ lemma min_δ : min (d := d) hl.δ rfl = l := by
     rw [Fin.succAbove_of_castSucc_lt _ _ (by grind)] at hy
     grind [(hl.succ_le_simplex_fst_iff y.castSucc).1 hy.symm.le]
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 lemma isType₂_δ : IsType₂ hl.δ := by
   intro _ rfl t ht
@@ -454,6 +457,7 @@ lemma isType₂_δ : IsType₂ hl.δ := by
   dsimp [stdSimplex.δ_apply] at hl ht ⊢
   aesop
 
+set_option dsimp.resynthInstances false in
 variable {x} in
 lemma eq_of_isType₂_δ {u : (Subcomplex.unionProd.{u} Λ[m + 1, k.castSucc] ∂Δ[n]).N}
     (hu : IsType₂ u) (i : Fin (d + 2))
@@ -481,6 +485,7 @@ lemma eq_of_isType₂_δ {u : (Subcomplex.unionProd.{u} Λ[m + 1, k.castSucc] �
 
 end IsIndex
 
+set_option dsimp.resynthInstances false in
 lemma IsType₂.type₁_eq_of_δ_eq
     {t : (Subcomplex.unionProd.{u} Λ[m + 1, k.castSucc] ∂Δ[n]).N}
     (ht : IsType₂ t) (s : Type₁.{u} k n) (hst : s.δ = t) {d : ℕ} (hd : t.dim = d) :
@@ -580,6 +585,7 @@ lemma type₁_pairingCore {m : ℕ} (k : Fin (m + 1)) {n : ℕ}
     (pairingCore k n).type₁ s = s.x :=
   Subcomplex.N.cast_eq_self _ s.hd
 
+set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in
 /-- A weak rank function for `pairingCore k n`. -/

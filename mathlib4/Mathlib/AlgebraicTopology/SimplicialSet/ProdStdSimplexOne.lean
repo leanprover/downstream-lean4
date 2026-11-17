@@ -77,11 +77,13 @@ noncomputable def nonDegenerateEquiv :
           Fin.coe_ofNat_eq_mod, Nat.zero_mod, add_zero] at this
         lia)
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma nonDegenerateEquiv_fst (i : Fin (p + 1)) :
     dsimp% (nonDegenerateEquiv i).val.1 =
       (stdSimplex.objEquiv (m := op ⦋p + 1⦌)).symm (SimplexCategory.σ i) := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma nonDegenerateEquiv_snd (i : Fin (p + 1)) :
     dsimp% (nonDegenerateEquiv i).val.2 =
@@ -138,6 +140,7 @@ def codimOneSimplex (j : Fin (p + 2)) : (Δ[p] ⊗ Δ[1] : SSet.{u}).nonDegenera
     nonDegenerate_of_app_apply (fst _ _)
       (stdSimplex.objEquiv_symm_id_mem_nonDegenerate p)⟩
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency.types false in
 lemma δ_castSucc_nonDegenerateEquiv (j : Fin (p + 1)) :
@@ -148,6 +151,7 @@ lemma δ_castSucc_nonDegenerateEquiv (j : Fin (p + 1)) :
   · dsimp
     rw [stdSimplex.δ_objMk₁_of_lt _ _ (by simp), Fin.pred_succ]
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency.types false in
 lemma δ_succ_nonDegenerateEquiv (j : Fin (p + 1)) :

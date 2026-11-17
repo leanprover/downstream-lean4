@@ -34,42 +34,51 @@ open scoped Simplicial
 
 namespace SSet
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma leftUnitor_hom_app_apply (K : SSet.{u}) {Δ : SimplexCategoryᵒᵖ} (x : (𝟙_ _ ⊗ K).obj Δ) :
     dsimp% (λ_ K).hom.app Δ x = x.2 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma leftUnitor_inv_app_apply (K : SSet.{u}) {Δ : SimplexCategoryᵒᵖ} (x : K.obj Δ) :
     dsimp% (λ_ K).inv.app Δ x = ⟨PUnit.unit, x⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma rightUnitor_hom_app_apply (K : SSet.{u}) {Δ : SimplexCategoryᵒᵖ} (x : (K ⊗ 𝟙_ _).obj Δ) :
     dsimp% (ρ_ K).hom.app Δ x = x.1 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma rightUnitor_inv_app_apply (K : SSet.{u}) {Δ : SimplexCategoryᵒᵖ} (x : K.obj Δ) :
     dsimp% (ρ_ K).inv.app Δ x = ⟨x, PUnit.unit⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma tensorHom_app_apply {K K' L L' : SSet.{u}} (f : K ⟶ K') (g : L ⟶ L')
     {Δ : SimplexCategoryᵒᵖ} (x : (K ⊗ L).obj Δ) :
     dsimp% (f ⊗ₘ g).app Δ x = ⟨f.app Δ x.1, g.app Δ x.2⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma whiskerLeft_app_apply (K : SSet.{u}) {L L' : SSet.{u}} (g : L ⟶ L')
     {Δ : SimplexCategoryᵒᵖ} (x : (K ⊗ L).obj Δ) :
     dsimp% (K ◁ g).app Δ x = ⟨x.1, g.app Δ x.2⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma whiskerRight_app_apply {K K' : SSet.{u}} (f : K ⟶ K') (L : SSet.{u})
     {Δ : SimplexCategoryᵒᵖ} (x : (K ⊗ L).obj Δ) :
     dsimp% (f ▷ L).app Δ x = ⟨f.app Δ x.1, x.2⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma associator_hom_app_apply (K L M : SSet.{u}) {Δ : SimplexCategoryᵒᵖ}
     (x : ((K ⊗ L) ⊗ M).obj Δ) :
     dsimp% (α_ K L M).hom.app Δ x = ⟨x.1.1, x.1.2, x.2⟩ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma associator_inv_app_apply (K L M : SSet.{u}) {Δ : SimplexCategoryᵒᵖ}
     (x : (K ⊗ L ⊗ M).obj Δ) :
@@ -184,9 +193,11 @@ lemma ι₀_fst (X : SSet.{u}) : ι₀ ≫ fst X _ = 𝟙 X := rfl
 @[reassoc (attr := simp)]
 lemma ι₀_snd (X : SSet.{u}) : ι₀ ≫ snd X _ = const (stdSimplex.obj₀Equiv.{u}.symm 0) := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₀_app_fst {X : SSet.{u}} {m} (x : X.obj m) : dsimp% (ι₀.app _ x).1 = x := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₀_app_snd_apply {X : SSet.{u}} {m : ℕ} (x : X _⦋m⦌) (k : Fin (m + 1)) :
     dsimp% (ι₀.app _ x).2 k = 0 := rfl
@@ -205,9 +216,11 @@ lemma ι₁_snd (X : SSet.{u}) : ι₁ ≫ snd X _ = (const (stdSimplex.obj₀Eq
 lemma ι₁_comp {X Y : SSet.{u}} (f : X ⟶ Y) :
     ι₁ ≫ f ▷ _ = f ≫ ι₁ := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₁_app_fst {X : SSet.{u}} {m} (x : X.obj m) : dsimp% (ι₁.app _ x).1 = x := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₁_app_snd_apply {X : SSet.{u}} {m : ℕ} (x : X _⦋m⦌) (k : Fin (m + 1)) :
     dsimp% (ι₁.app _ x).2 k = 1 := rfl
@@ -219,20 +232,26 @@ variable (X Y : SSet.{u})
 section
 
 variable {m n : SimplexCategoryᵒᵖ} (f : m ⟶ n) (z : (X ⊗ Y).obj m)
+set_option dsimp.resynthInstances false in
 @[simp high, grind =] lemma prod_map_fst : dsimp% ((X ⊗ Y).map f z).1 = X.map f z.1 := rfl
+set_option dsimp.resynthInstances false in
 @[simp high, grind =] lemma prod_map_snd : dsimp% ((X ⊗ Y).map f z).2 = Y.map f z.2 := rfl
 
 end
 
+set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_δ_fst {n : ℕ} (i : Fin (n + 2)) (z : (X ⊗ Y : SSet.{u}) _⦋n + 1⦌) :
     dsimp% ((X ⊗ Y).δ i z).1 = X.δ i z.1 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_δ_snd {n : ℕ} (i : Fin (n + 2)) (z : (X ⊗ Y : SSet.{u}) _⦋n + 1⦌) :
     dsimp% ((X ⊗ Y).δ i z).2 = Y.δ i z.2 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_σ_fst {n : ℕ} (i : Fin (n + 1)) (z : (X ⊗ Y : SSet.{u}) _⦋n⦌) :
     dsimp% ((X ⊗ Y).σ i z).1 = X.σ i z.1 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_σ_snd {n : ℕ} (i : Fin (n + 1)) (z : (X ⊗ Y : SSet.{u}) _⦋n⦌) :
     dsimp% ((X ⊗ Y).σ i z).2 = Y.σ i z.2 := rfl
 
@@ -345,11 +364,13 @@ instance : (truncation.{u} n).Monoidal :=
 
 variable {n} {X Y : Truncated.{u} n}
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma tensor_map_apply_fst {d e : (SimplexCategory.Truncated n)ᵒᵖ}
     (f : d ⟶ e) (x : (X ⊗ Y : Truncated _).obj d) :
     dsimp% ((X ⊗ Y : Truncated _).map f x).1 = X.map f x.1 := rfl
 
+set_option dsimp.resynthInstances false in
 @[simp]
 lemma tensor_map_apply_snd {d e : (SimplexCategory.Truncated n)ᵒᵖ}
     (f : d ⟶ e) (x : (X ⊗ Y : Truncated _).obj d) :

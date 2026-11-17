@@ -235,6 +235,7 @@ def rightUnitor (P : Profunctor.{u} C D) : P.comp .id ≅ P :=
     (fun f ↦ by dsimp; ext; simp [compDiagram, chosenCoend.ι_apply _]))
     (fun f ↦ by ext _ ⟨_, _⟩; simp [Types.chosenCoend_def, chosenCoend.map_apply])
 
+set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 attribute [local simp] Types.chosenCoend_def in
 @[simp]

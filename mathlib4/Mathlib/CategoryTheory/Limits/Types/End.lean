@@ -97,6 +97,7 @@ lemma chosenCoend.desc_apply {X : Type max w u} (f : ∀ j, (F.obj (op j)).obj j
         cases h with | mk f x => congrm $(hf f) _) x :=
   rfl
 
+set_option dsimp.resynthInstances false in
 lemma chosenCoend.map_apply {G : Jᵒᵖ ⥤ J ⥤ Type max w u} (f : F ⟶ G) (x : chosenCoend F) :
     dsimp% chosenCoend.map f x =
       Quot.lift (fun ⟨j, y⟩ ↦ Quot.mk _ ⟨j, (f.app _).app _ y⟩) (fun _ _ ↦ by
