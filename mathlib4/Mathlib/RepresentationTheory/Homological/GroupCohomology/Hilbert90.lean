@@ -126,6 +126,7 @@ theorem norm_ofAlgebraAutOnUnits_eq (x : Lˣ) :
 
 variable [IsCyclic (L ≃ₐ[K] L)] {g : Gal(L/K)}
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 attribute [local instance] IsCyclic.commGroup in
 set_option dsimp.resynthInstances false in

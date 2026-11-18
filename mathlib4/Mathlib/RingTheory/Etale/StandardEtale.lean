@@ -95,6 +95,7 @@ lemma HasMap.isUnit_derivative_f {x : S} (h : P.HasMap x) :
     ⟨_, by simpa [h.1] using congr(aeval x $e.symm)⟩
   exact isUnit_of_dvd_unit this (.pow _ h.2)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 lemma aeval_X_g_mul_mk_X : aeval P.X P.g * Ideal.Quotient.mk _ .X = 1 := by
@@ -105,6 +106,7 @@ lemma aeval_X_g_mul_mk_X : aeval P.X P.g * Ideal.Quotient.mk _ .X = 1 := by
   rw [← map_mul, ← map_one (Ideal.Quotient.mk _), ← sub_eq_zero, ← map_sub, mul_comm]
   exact Ideal.Quotient.eq_zero_iff_mem.mpr (Ideal.subset_span (Set.mem_insert_of_mem _ rfl))
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 variable {P} in
@@ -114,6 +116,7 @@ lemma hasMap_X : P.HasMap P.X :=
   ⟨this ▸ Ideal.Quotient.eq_zero_iff_mem.mpr (Ideal.subset_span (Set.mem_insert _ _)),
     IsUnit.of_mul_eq_one _ P.aeval_X_g_mul_mk_X⟩
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 variable {P} in

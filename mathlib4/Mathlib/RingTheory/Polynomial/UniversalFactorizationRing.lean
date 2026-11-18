@@ -438,6 +438,7 @@ lemma UniversalFactorizationRing.factor₁_mul_factor₂ :
   (MvPolynomial.universalFactorizationMapLiftEquiv _ _ n m k hn _
     ⟨fromTensor m k hn p, fromTensor_comp_universalFactorizationMap' m k hn p⟩).property
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 attribute [-instance] leftModule in
 set_option dsimp.resynthInstances false in
