@@ -311,7 +311,7 @@ A predicate transformer is a function from postconditions into assertions that d
 variable {x y : PredTrans Pred EPred α} {post post' : α → Pred} {epost epost' : EPred}
 ```
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
-Monotonicity is part of the definition of a predicate transformer, so every predicate transformer is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
+Every predicate transformer is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
 
 {docstring Lean.Order.PredTrans.apply_mono}
 :::
@@ -397,7 +397,7 @@ instance : WP (Identity α) α Prop EStack⟨⟩ where
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
     (hwp : wp prog P ()) : P x := by
-  simp_all [wp, WP.trans, PredTrans.apply_mk, ← h]
+  simp_all [wp, WP.trans, ← h]
 ```
 
 ```lean -show
@@ -441,12 +441,8 @@ The issue can be resolved by adding a suitable instance:
 ```lean
 instance : WPMonad Identity Prop EStack⟨⟩ where
   toWP _ := inferInstance
-  pure_le_wp_pure _ _ _ := by
-    simp only [wp, WP.trans, PredTrans.apply_mk]
-    exact PartialOrder.rel_refl
-  bind_le_wp_bind _ _ _ _ := by
-    simp only [wp, WP.trans, PredTrans.apply_mk]
-    exact PartialOrder.rel_refl
+  pure_le_wp_pure _ _ _ := by simp [wp, WP.trans, pure]
+  bind_le_wp_bind _ _ _ _ := by simp [wp, WP.trans, bind]
 ```
 With this instance, and a suitable invariant, {tactic}`vcgen` and the {tactic}`grind`-mode {ref "grind-interactive"}[tactic] {grindTactic}`finish` can prove the theorem.
 ```lean

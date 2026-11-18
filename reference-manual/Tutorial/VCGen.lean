@@ -822,12 +822,9 @@ For {name}`bind`, both the definition of {name}`wp` and the definition of {name}
 ```lean
 instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := by
-    simp only [wp, WP.trans, PredTrans.apply_mk]
-    exact PartialOrder.rel_refl
+  pure_le_wp_pure x post epost := by simp [wp, WP.trans, pure]
   bind_le_wp_bind x f post epost := by
-    cases x <;>
-      simp [wp, WP.trans, PredTrans.apply_mk, bind, PartialOrder.rel]
+    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
 ```
 :::
 
@@ -840,9 +837,9 @@ theorem Result.of_eq_wp {α} {x prog : Result α}
       P x := by
   subst h
   match prog with
-  | .ok a   => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
-  | .fail e => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
-  | .div    => simp [wp, WP.trans, PredTrans.apply_mk] at hwp
+  | .ok a   => simpa [wp, WP.trans] using hwp
+  | .fail e => simpa [wp, WP.trans] using hwp
+  | .div    => simp [wp, WP.trans] at hwp
 ```
 :::
 
