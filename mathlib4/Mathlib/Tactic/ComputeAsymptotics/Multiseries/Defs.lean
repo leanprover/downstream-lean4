@@ -795,7 +795,6 @@ theorem elim_cons {exp : ℝ} {coef : MultiseriesExpansion basis_tl}
     coef.Sorted ∧ tl.leadingExp < exp ∧ tl.Sorted := by
   apply Multiseries.Sorted.elim_cons (by simpa using h)
 
-set_option backward.isDefEq.respectTransparency.instances false in
 theorem replaceFun {ms : MultiseriesExpansion (basis_hd :: basis_tl)}
     {f : ℝ → ℝ} (h_sorted : ms.Sorted) :
     (ms.replaceFun f).Sorted := by
@@ -807,6 +806,7 @@ end Sorted
 
 section Approximates
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Coinductive predicate stating that `ms` approximates its attached function on `basis`.
 * If `basis = []`, i.e. `ms` is just a real number, `Approximates` holds unconditionally.
 * If `basis = basis_hd :: basis_tl` and `ms = nil`, then `f =ᶠ[atTop] 0`.

@@ -262,6 +262,7 @@ def ε : Rep.ofMulAction k G (Fin 1 → G) ⟶ Rep.trivial k G k := ofHom
   ⟨(Finsupp.linearCombination _ fun _ ↦ (1 : k)) ∘ₗ (MonoidAlgebra.coeffLinearEquiv k).toLinearMap,
     fun _ ↦ MonoidAlgebra.lhom_ext' fun _ => LinearMap.ext_ring <| by simp⟩
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in

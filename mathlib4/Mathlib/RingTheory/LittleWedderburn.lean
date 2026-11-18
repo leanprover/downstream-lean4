@@ -62,6 +62,7 @@ def field (hD : InductionHyp D) {R : Subring D} (hR : R < ⊤)
   { show DivisionRing R from Fintype.divisionRingOfIsDomain R with
     mul_comm := fun x y ↦ Subtype.ext <| hD hR x.property y.property }
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option dsimp.resynthInstances false in
 /-- We prove that if every subring of `D` is central, then so is `D`. -/

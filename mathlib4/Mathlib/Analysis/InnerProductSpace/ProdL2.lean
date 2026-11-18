@@ -138,6 +138,7 @@ theorem sndL_comp_coe_orthogonalDecomposition :
     WithLp.sndL 2 𝕜 K Kᗮ ∘L K.orthogonalDecomposition = Kᗮ.orthogonalProjectionOnto := by
   ext; simp
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- If a subspace `K` of an inner product space `E` admits an orthogonal projection, then the
 quotient `E ⧸ K` is isometrically isomorphic to the orthogonal complement `Kᗮ` of `K`. -/
 def quotientEquivOrthogonal : (E ⧸ K) ≃ₗᵢ[𝕜] ↥Kᗮ where
