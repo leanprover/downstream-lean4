@@ -54,6 +54,7 @@ def of : V ⥤q Paths V where
 
 variable {V}
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- To prove a property on morphisms of a path category with given source `a`, it suffices to
 prove it for the identity and prove that the property is preserved under composition on the right
 with length 1 paths. -/
@@ -66,6 +67,7 @@ lemma induction_fixed_source {a : Paths V} (P : ∀ {b : Paths V}, (a ⟶ b) →
   | nil => exact id
   | cons _ w h => exact comp _ w h
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- To prove a property on morphisms of a path category with given target `b`, it suffices to prove
 it for the identity and prove that the property is preserved under composition on the left
@@ -106,6 +108,7 @@ lemma induction' (P : ∀ {a b : Paths V}, (a ⟶ b) → Prop)
 
 attribute [local ext (iff := false)] Functor.ext
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Any prefunctor from `V` lifts to a functor from `paths V` -/
 def lift {C} [Category* C] (φ : V ⥤q C) : Paths V ⥤ C where
@@ -150,6 +153,7 @@ theorem lift_spec {C} [Category* C] (φ : V ⥤q C) : of V ⋙q (lift φ).toPref
     dsimp [lift, Quiver.Hom.toPath]
     simp
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 theorem lift_unique {C} [Category* C] (φ : V ⥤q C) (Φ : Paths V ⥤ C)
@@ -172,6 +176,7 @@ theorem lift_unique {C} [Category* C] (φ : V ⥤q C) (Φ : Paths V ⥤ C)
         convert! Functor.map_comp Φ p (Quiver.Hom.toPath f')
       rw [this, ih]
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Two functors out of a path category are equal when they agree on singleton paths. -/
 @[ext (iff := false)]
 theorem ext_functor {C} [Category* C] {F G : Paths V ⥤ C} (h_obj : F.obj = G.obj)

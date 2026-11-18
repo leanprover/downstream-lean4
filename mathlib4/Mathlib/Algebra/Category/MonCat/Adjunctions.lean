@@ -94,6 +94,7 @@ def free : Type u ⥤ AddCommMonCat.{u} where
   obj α := ↧(α →₀ ℕ)
   map f := ofHom (Finsupp.mapDomain.addMonoidHom f)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in

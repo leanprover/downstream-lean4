@@ -96,6 +96,7 @@ theorem intervalGapsWithin_snd_of_lt (hj : j < k) :
   simp only [coe_castPred, val_natCast, Nat.mod_succ_eq_iff_lt]
   lia
 
+set_option backward.isDefEq.respectTransparency.instances false in
 theorem intervalGapsWithin_mapsTo : (Set.Iio k).MapsTo
     (fun (j : ℕ) ↦ ((F.intervalGapsWithin h a b j).2, (F.intervalGapsWithin h a b j.succ).1))
     F := by

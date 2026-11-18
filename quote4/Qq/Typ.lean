@@ -21,7 +21,7 @@ Creates a quoted expression.  Requires that `e` has type `α`.
 
 You should usually write this using the notation `q($e)`.
 -/
-@[expose] protected def Quoted.unsafeMk (e : Expr) : Quoted α := e
+@[expose, instance_reducible] protected def Quoted.unsafeMk (e : Expr) : Quoted α := e
 
 instance : BEq (Quoted α) := inferInstanceAs (BEq Expr)
 instance : Hashable (Quoted α) := inferInstanceAs (Hashable Expr)

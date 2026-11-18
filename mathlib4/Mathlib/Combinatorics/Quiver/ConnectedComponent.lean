@@ -180,6 +180,7 @@ lemma stronglyConnectedComponent_singleton_iff (v : V) :
       exists_path_of_stronglyConnectedComponent_eq (a := w) (b := v) h_same_scc
     exact (h_no_bidir w hw_ne) ⟨hba, hab⟩
 
+set_option backward.isDefEq.respectTransparency.instances false in
 lemma IsStronglyConnected.isStronglyConnected_symmetrify (h : IsStronglyConnected V) :
     IsStronglyConnected (Symmetrify V) := by
   intro a b

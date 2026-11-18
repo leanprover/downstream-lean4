@@ -239,6 +239,7 @@ noncomputable instance : incl.IsEquivalence where
 noncomputable def equivalence : Skeleton ≌ FintypeCat :=
   incl.asEquivalence
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 attribute [local instance] FintypeCat.fintype in
 @[simp]

@@ -98,6 +98,7 @@ def toComon : Bimon C ⥤ Comon C := (Mon.forget C).mapComon
 @[simp]
 theorem toComon_forget : toComon C ⋙ Comon.forget C = forget C := rfl
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 variable {C} in
 /-- The object level part of the forward direction of `Comon (Mon C) ≌ Mon (Comon C)` -/
@@ -266,6 +267,7 @@ theorem BimonObjAux_comul (M : Bimon C) :
     Δ[((toComon C).obj M).X] = Δ[M.X].hom :=
   Category.comp_id _
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 instance (M : Bimon C) : BimonObj M.X.X where
   counit := ε[M.X].hom
