@@ -38,9 +38,9 @@ When we assign a metavariable `m`, we must take some care:
 
 We also replay environment modifications -- e.g., auxiliary declarations added
 by a tactic -- in a similar fashion. To do this, we use
-`Environment.replayConsts`, so newly added constants are sent to the kernel
-again and environment extensions get a chance to replay their changes with
-`replay?`.
+`Environment.replayConsts`, so newly added constants are copied to the current
+environment and environment extensions get a chance to replay their changes
+with `replay?`.
 
 If the root goal is not proven, we extract the goals after safe rule
 applications. This means we proceed as above, but stop as soon as we reach the
@@ -57,7 +57,7 @@ local macro "throwPRError " s:interpolatedStr(term) : term =>
 -- ## Copying Declarations
 
 private def copyEnvModifications (oldEnv newEnv : Environment) : CoreM Unit := do
-  setEnv $ ← (← getEnv).replayConsts oldEnv newEnv (skipExisting := true)
+  setEnv $ ← (← getEnv).replayConsts oldEnv newEnv
 
 -- ## Copying Metavariables
 
