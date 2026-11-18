@@ -806,13 +806,13 @@ Each case of {name}`Result` determines the precondition directly:
 ::::
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
-  trans
-    | .ok v => ⟨fun post _ => post v⟩
-    | .fail e => ⟨fun _ epost => epost e⟩
-    | .div => ⟨fun _ _ => False⟩
-  trans_monotone x := by
-    intro post post' epost epost' hepost hpost
-    cases x <;> simp_all [PartialOrder.rel]
+  trans x := PredTrans.mk
+    (fun post epost =>
+      match x with
+      | .ok v => post v
+      | .fail e => epost e
+      | .div => False)
+    (fun hpost hepost => by cases x <;> simp_all [PartialOrder.rel])
 ```
 :::::
 
@@ -822,9 +822,12 @@ For {name}`bind`, both the definition of {name}`wp` and the definition of {name}
 ```lean
 instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := PartialOrder.rel_refl
+  pure_le_wp_pure x post epost := by
+    simp only [wp, WP.trans, PredTrans.apply_mk]
+    exact PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := by
-    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
+    cases x <;>
+      simp [wp, WP.trans, PredTrans.apply_mk, bind, PartialOrder.rel]
 ```
 :::
 
@@ -837,9 +840,9 @@ theorem Result.of_eq_wp {α} {x prog : Result α}
       P x := by
   subst h
   match prog with
-  | .ok a   => simpa [wp, WP.trans] using hwp
-  | .fail e => simpa [wp, WP.trans] using hwp
-  | .div    => simp [wp, WP.trans] at hwp
+  | .ok a   => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
+  | .fail e => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
+  | .div    => simp [wp, WP.trans, PredTrans.apply_mk] at hwp
 ```
 :::
 
@@ -874,7 +877,9 @@ There are two relevant specification lemmas to register:
 theorem Result.throw_spec {α} {post : α → Prop}
     {epost : Error → Prop} (e : Error) :
     ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
-  ⟨PartialOrder.rel_refl⟩
+  ⟨by
+    simp only [wp, WP.trans, PredTrans.apply_mk]
+    exact PartialOrder.rel_refl⟩
 
 @[spec]
 theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
