@@ -49,15 +49,24 @@ def instAddMonoidWithOne {α : Type u} [Ring α] : AddMonoidWithOne α := inferI
 /-- A shortcut (non)instance for `Nat.AtLeastTwo (n + 2)` to shrink generated proofs. -/
 lemma instAtLeastTwo (n : ℕ) : Nat.AtLeastTwo (n + 2) := inferInstance
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `AddMonoidWithOne α` expression. -/
 meta def inferAddMonoidWithOne (α : Q(Type u)) : MetaM Q(AddMonoidWithOne $α) :=
   return ← synthInstanceQ q(AddMonoidWithOne $α) <|>
     throwError "not an AddMonoidWithOne"
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `Semiring α` expression. -/
 meta def inferSemiring (α : Q(Type u)) : MetaM Q(Semiring $α) :=
   return ← synthInstanceQ q(Semiring $α) <|> throwError "not a semiring"
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `Ring α` expression. -/
 meta def inferRing (α : Q(Type u)) : MetaM Q(Ring $α) :=
   return ← synthInstanceQ q(Ring $α) <|> throwError "not a ring"
