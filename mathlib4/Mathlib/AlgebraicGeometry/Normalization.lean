@@ -355,6 +355,7 @@ instance [IsReduced X] : IsReduced f.normalization :=
     infer_instance
   .of_openCover _ f.normalizationOpenCover
 
+set_option backward.isDefEq.respectTransparency.instances false in
 instance [IsIntegral X] : IsIntegral f.normalization :=
   have : IrreducibleSpace f.normalization := by
     rw [irreducibleSpace_def]
@@ -374,6 +375,7 @@ set_option backward.isDefEq.respectTransparency false in
 the map `X ⟶ T` factors through `f.normalization` uniquely.
 (See `normalization.hom_ext` for the uniqueness result) -/
 noncomputable
+set_option backward.isDefEq.respectTransparency.instances false in
 def normalizationDesc (H : f = f₁ ≫ f₂) : f.normalization ⟶ T := by
   refine colimit.desc _
     { pt := _
