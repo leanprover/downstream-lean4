@@ -742,6 +742,7 @@ theorem reindex_symm_symm_tprod (e : ι₂ ≃ ι) (f : Π i, s i) :
   apply (reindex R s e.symm).injective
   simp
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in
 @[simp]

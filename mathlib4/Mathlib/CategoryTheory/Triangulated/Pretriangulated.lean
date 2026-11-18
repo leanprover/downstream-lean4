@@ -583,6 +583,7 @@ def completeDistinguishedTriangleMorphism (T₁ T₂ : Triangle C)
       comm₂ := h.choose_spec.1
       comm₃ := h.choose_spec.2 }
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- A product of distinguished triangles is distinguished -/
 lemma productTriangle_distinguished {J : Type*} (T : J → Triangle C)
     (hT : ∀ j, T j ∈ distTriang C)

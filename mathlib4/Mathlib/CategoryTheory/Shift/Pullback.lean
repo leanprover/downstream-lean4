@@ -162,6 +162,7 @@ def PullbackShift.natTrans {G : C ⥤ D} (τ : F ⟶ G) :
 
 namespace Functor
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If `F : C ⥤ D` commutes with the shifts on `C` and `D`, then `PullbackShift.functor F φ`
 commutes with their pullbacks by an additive map `φ`.
