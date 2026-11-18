@@ -311,9 +311,9 @@ A predicate transformer is a function from postconditions into assertions that d
 variable {x y : PredTrans Pred EPred α} {post post' : α → Pred} {epost epost' : EPred}
 ```
 The partial order on predicate transformers is inherited pointwise from the assertion lattice: {lean}`x ⊑ y` when {lean}`x.apply post epost ⊑ y.apply post epost` for all {lean}`post` and {lean}`epost`.
-Every predicate transformer that a {name}`WP` instance produces is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
+Every predicate transformer is {deftech}_monotone_: if {lean}`post ⊑ post'` and {lean}`epost ⊑ epost'`, then {lean}`x.apply post epost ⊑ x.apply post' epost'`.
 
-{docstring Lean.Order.PredTrans.Monotone}
+{docstring Lean.Order.PredTrans.apply_mono}
 :::
 
 Predicate transformers form a monad.
@@ -391,13 +391,12 @@ instance : Monad Identity where
   bind x f := f x.run
 
 instance : WP (Identity α) α Prop EStack⟨⟩ where
-  wpTrans x := ⟨fun post _ => post x.run⟩
-  wp_trans_monotone x := fun _ _ _ _ _ hpost => hpost x.run
+  wpTrans x := PredTrans.mk (fun post _ => post x.run) (fun hpost _ => hpost x.run)
 
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)
     (hwp : wp prog P ()) : P x := by
-  simp_all [wp, WP.trans, ← h]
+  simp_all [wp, WP.trans, PredTrans.apply_mk, ← h]
 ```
 
 ```lean -show
@@ -781,8 +780,6 @@ instance : WP (LogM β α) α (Array β → Prop) EStack⟨⟩ where
   wpTrans
     | { log, value } =>
       PredTrans.pushArg (fun s => pure (value, s ++ log))
-  wp_trans_monotone x := fun _ _ _ _ _ hpost s =>
-    hpost x.value (s ++ x.log)
 ```
 
 The {name}`WPMonad` instance also benefits from the conceptual model as a state monad and admits very short proofs:

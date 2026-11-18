@@ -807,12 +807,9 @@ Each case of {name}`Result` determines the precondition directly:
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
   trans
-    | .ok v => ⟨fun post _ => post v⟩
-    | .fail e => ⟨fun _ epost => epost e⟩
-    | .div => ⟨fun _ _ => False⟩
-  trans_monotone x := by
-    intro post post' epost epost' hepost hpost
-    cases x <;> simp_all [PartialOrder.rel]
+    | .ok v => PredTrans.mk (fun post _ => post v) (fun hpost _ => hpost v)
+    | .fail e => PredTrans.mk (fun _ epost => epost e) (fun _ hepost => hepost e)
+    | .div => PredTrans.mk (fun _ _ => False) (fun _ _ h => h)
 ```
 :::::
 
@@ -824,7 +821,7 @@ instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
   toWP _ := inferInstance
   pure_le_wp_pure x post epost := PartialOrder.rel_refl
   bind_le_wp_bind x f post epost := by
-    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
+    cases x <;> simp [wp, WP.trans, PredTrans.apply_mk, bind, PartialOrder.rel]
 ```
 :::
 
@@ -837,9 +834,9 @@ theorem Result.of_eq_wp {α} {x prog : Result α}
       P x := by
   subst h
   match prog with
-  | .ok a   => simpa [wp, WP.trans] using hwp
-  | .fail e => simpa [wp, WP.trans] using hwp
-  | .div    => simp [wp, WP.trans] at hwp
+  | .ok a   => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
+  | .fail e => simpa [wp, WP.trans, PredTrans.apply_mk] using hwp
+  | .div    => simp [wp, WP.trans, PredTrans.apply_mk] at hwp
 ```
 :::
 
