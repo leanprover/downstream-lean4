@@ -391,8 +391,9 @@ instance : Monad Identity where
   bind x f := f x.run
 
 instance : WP (Identity α) α Prop EStack⟨⟩ where
-  trans x :=
-    PredTrans.mk (fun post _ => post x.run) fun hpost _ => hpost x.run
+  trans x := PredTrans.mk
+    (apply := fun post _ => post x.run)
+    (apply_mono := fun hpost _ => hpost x.run)
 
 theorem Identity.of_run_eq_wp {x : α} {prog : Identity α}
     (h : Identity.run prog = x) (P : α → Prop)

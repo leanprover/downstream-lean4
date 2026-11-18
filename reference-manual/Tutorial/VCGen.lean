@@ -807,12 +807,13 @@ Each case of {name}`Result` determines the precondition directly:
 ```lean
 instance : WP (Result α) α Prop (Error → Prop) where
   trans x := PredTrans.mk
-    (fun post epost =>
+    (apply := fun post epost =>
       match x with
       | .ok v => post v
       | .fail e => epost e
       | .div => False)
-    (fun hpost hepost => by cases x <;> simp_all [PartialOrder.rel])
+    (apply_mono := fun hpost hepost => by
+      cases x <;> simp_all [PartialOrder.rel])
 ```
 :::::
 
@@ -874,9 +875,7 @@ There are two relevant specification lemmas to register:
 theorem Result.throw_spec {α} {post : α → Prop}
     {epost : Error → Prop} (e : Error) :
     ⦃epost e⦄ throw (m := Result) (α := α) e ⦃post; epost⦄ :=
-  ⟨by
-    simp only [wp, WP.trans, PredTrans.apply_mk]
-    exact PartialOrder.rel_refl⟩
+  ⟨by simp [wp, WP.trans, throw]⟩
 
 @[spec]
 theorem addOp_ok_spec {x y} (h : x.toNat + y.toNat < UInt32.size) :
