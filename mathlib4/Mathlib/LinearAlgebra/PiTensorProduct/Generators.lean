@@ -48,6 +48,7 @@ noncomputable def equivPiTensorComplSingletonTensor (i₀ : ι) :
 
 variable (i₀ : ι)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 #adaptation_note
 /--
 After https://github.com/leanprover/lean4/pull/14624:

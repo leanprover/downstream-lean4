@@ -39,6 +39,7 @@ def tensorAlgebra (R : Type u) [CommRing R] : ModuleCat.{w} R ⥤ AlgCat.{max u 
 
 variable (R : Type u) [CommRing R]
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option backward.defeqAttrib.useBackward true in
 set_option dsimp.resynthInstances false in

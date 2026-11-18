@@ -276,6 +276,7 @@ def DirectSum.IsInternal.isometryL2OfOrthogonalFamily [DecidableEq ι] {V : ι �
   · simp only [sum_inner, hV'.inner_right_fintype, PiLp.inner_apply]
   · congr <;> simp
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 theorem DirectSum.IsInternal.isometryL2OfOrthogonalFamily_symm_apply [DecidableEq ι]

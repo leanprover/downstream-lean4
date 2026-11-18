@@ -203,6 +203,7 @@ theorem coproductCocone_inl :
 theorem coproductCocone_inr :
     (coproductCocone A B).inr = ofHom (Algebra.TensorProduct.includeRight (R := ℤ)).toRingHom := rfl
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The tensor product `A ⊗[ℤ] B` is a coproduct for `A` and `B`. -/

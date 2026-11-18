@@ -354,6 +354,7 @@ lemma sectionsMap_comp {M N P : PresheafOfModules.{v} R} (f : M ⟶ N) (g : N �
 lemma sectionsMap_id {M : PresheafOfModules.{v} R} (s : M.sections) :
     sectionsMap (𝟙 M) s = s := rfl
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The bijection `(unit R ⟶ M) ≃ M.sections` for `M : PresheafOfModules R`. -/

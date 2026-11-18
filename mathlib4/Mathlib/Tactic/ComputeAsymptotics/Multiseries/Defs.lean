@@ -795,6 +795,7 @@ theorem elim_cons {exp : ℝ} {coef : MultiseriesExpansion basis_tl}
     coef.Sorted ∧ tl.leadingExp < exp ∧ tl.Sorted := by
   apply Multiseries.Sorted.elim_cons (by simpa using h)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 theorem replaceFun {ms : MultiseriesExpansion (basis_hd :: basis_tl)}
     {f : ℝ → ℝ} (h_sorted : ms.Sorted) :
     (ms.replaceFun f).Sorted := by

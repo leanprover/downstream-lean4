@@ -759,6 +759,7 @@ theorem mvfderiv_eq_fderiv :
     d% f x = (fderiv 𝕜 f x) ∘L (NormedSpace.fromTangentSpace (𝕜 := 𝕜) x) := by
   rw [← mvfderivWithin_univ, ← fderivWithin_univ, mvfderivWithin_eq_fderivWithin]
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- For maps between vector spaces, `mfderivWithin` and `fderivWithin` coincide. -/
 theorem mfderivWithin_eq_fderivWithin :
     mfderiv[s] f x =
@@ -766,6 +767,7 @@ theorem mfderivWithin_eq_fderivWithin :
         (NormedSpace.fromTangentSpace (𝕜 := 𝕜) x) := by
   convert! mvfderivWithin_eq_fderivWithin
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- For maps between vector spaces, `mfderiv` and `fderiv` coincide. -/
 theorem mfderiv_eq_fderiv :
     mfderiv% f x =

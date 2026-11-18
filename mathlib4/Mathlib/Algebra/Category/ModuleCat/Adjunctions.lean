@@ -366,6 +366,7 @@ is isomorphic to the original functor.
 def embeddingLiftIso (F : C ⥤ D) : embedding R C ⋙ lift R F ≅ F :=
   NatIso.ofComponents fun _ => Iso.refl _
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Two `R`-linear functors out of the `R`-linear completion are isomorphic iff their
 compositions with the embedding functor are isomorphic.

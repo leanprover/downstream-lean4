@@ -113,6 +113,7 @@ noncomputable def D : (KaehlerDifferential f).Derivation f :=
 differential map `B → KaehlerDifferential f`. -/
 noncomputable abbrev d (b : B) : KaehlerDifferential f := (D f).d b
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 @[ext]
 lemma ext {M : ModuleCat B} {α β : KaehlerDifferential f ⟶ M}

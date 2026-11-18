@@ -165,6 +165,7 @@ instance instField : Field (AlgebraicClosure k) where
   qsmul_def q x := Quotient.inductionOn x fun p ↦ congr(Quotient.mk'' $(by
     ext; simp [MvPolynomial.algebraMap_eq, Rat.smul_def]))
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in
 theorem Monics.map_eq_prod {f : Monics k} :

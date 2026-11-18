@@ -441,6 +441,7 @@ def free : TopCat.{v} ⥤ TopModuleCat.{max v u} R :=
     map_id M := by ext x; congrm $(Finsupp.lmapDomain_id _ _) x
     map_comp f g := by ext; congrm $(Finsupp.lmapDomain_comp _ _ f.hom g.hom) _ }
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in
