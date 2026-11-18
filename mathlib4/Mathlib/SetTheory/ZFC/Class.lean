@@ -190,6 +190,7 @@ lemma fval_ex (F A : ZFClass.{u}) : F ′ A ᶜ∈ .univ := iota_ex _
 
 end ZFClass
 
+set_option linter.deprecated false in
 /-- The collection of all classes.
 We define `Class` as `Set ZFSet`, as this allows us to get many instances automatically. However, in
 practice, we treat it as (the definitionally equal) `ZFSet → Prop`. This means, the preferred way to

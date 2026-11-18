@@ -59,6 +59,7 @@ def cartesianClosedFunctorToTypesSmall {C : Type v₁} [SmallCategory C] :
 
 -- TODO: once we have `MonoidalClosed` instances for functor categories into general monoidal
 -- closed categories, replace this with that, as it will be a more explicit construction.
+set_option linter.deprecated false in
 attribute [local instance] uliftCategory cartesianClosedFunctorToTypesSmall in
 /-- This is not a good instance because of the universe levels. Below is the instance where the
 target category is `Type (max u₁ v₁)`. -/

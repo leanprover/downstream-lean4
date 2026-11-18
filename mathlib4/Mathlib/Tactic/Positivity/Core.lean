@@ -355,7 +355,7 @@ def compareHyp (pα : Q(PartialOrder $α)) (e : Q($α)) (ldecl : LocalDecl) :
   have e' : Q(Prop) := ldecl.type
   let p : Q($e') := .fvar ldecl.fvarId
   match e' with
-  | ~q(@LE.le.{u} $β $_le $lo $hi) =>
+  | ~q(@LE.le.{u+1} $β $_le $lo $hi) =>
     let .defEq (_ : $α =Q $β) ← isDefEqQ α β | return .none
     let .defEq _ ← isDefEqQ e hi | return .none
     match lo with
@@ -363,7 +363,7 @@ def compareHyp (pα : Q(PartialOrder $α)) (e : Q($α)) (ldecl : LocalDecl) :
       assertInstancesCommute
       return .nonnegative q($p)
     | _ => compareHypLE zα pα lo e p
-  | ~q(@LT.lt.{u} $β $_lt $lo $hi) =>
+  | ~q(@LT.lt.{u+1} $β $_lt $lo $hi) =>
     let .defEq (_ : $α =Q $β) ← isDefEqQ α β | return .none
     let .defEq _ ← isDefEqQ e hi | return .none
     match lo with
@@ -535,8 +535,8 @@ def solve (t : Q(Prop)) : MetaM Expr := do
       | .le, .nonzero _ => throw "nonnegativity" "nonzeroness"
       | _, _ => throwError "failed to prove nonzeroness"
   match t with
-  | ~q(@LE.le $α $_a $z $e) => rest α z e .le
-  | ~q(@LT.lt $α $_a $z $e) => rest α z e .lt
+  | ~q(@LE.le ($α : Type _) $_a $z $e) => rest α z e .le
+  | ~q(@LT.lt ($α : Type _) $_a $z $e) => rest α z e .lt
   | ~q($a ≠ ($b : ($α : Type _))) =>
     let _zα ← synthInstanceQ q(Zero $α)
     if ← isDefEq b q((0 : $α)) then

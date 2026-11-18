@@ -45,6 +45,10 @@ abbrev mathlibLeanOptions := #[
     ⟨`maxSynthPendingDepth, .ofNat 3⟩,
     ⟨`weak.linter.unreachableTactic, false⟩, -- superseded by the unused tactic linter
     ⟨`weak.linter.unnecessarySeqFocus, false⟩, -- superseded by the unused tactic linter
+    -- Mathlib deliberately keeps `@[simp]`/`@[grind]` (and label attributes such as
+    -- `@[nontriviality]`) on deprecated declarations for the length of the deprecation window, so
+    -- that downstream proofs keep working. This linter flags every such declaration.
+    ⟨`weak.linter.deprecated.automationAttr, false⟩,
   ] ++ -- options that are used in `lake build`
     mathlibOnlyLinters.map fun s ↦ { s with name := `weak ++ s.name }
 

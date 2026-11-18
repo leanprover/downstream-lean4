@@ -46,10 +46,10 @@ partial def hypPriority (hyp : Q(Prop)) : MetaM Nat := do
     -- Guessing (disjunction) gets a big penalty
     | ~q($a ∨ $b) => pure <| 100 + (← hypPriority a) + (← hypPriority b)
     -- Inequalities get score 1 if they contain zero, 10 otherwise
-    | ~q(@LE.le _ $i $a $b) => ineqPriority a b
-    | ~q(@LT.lt _ $i $a $b) => ineqPriority a b
-    | ~q(@GE.ge _ $i $b $a) => ineqPriority a b
-    | ~q(@GT.gt _ $i $b $a) => ineqPriority a b
+    | ~q(@LE.le (_ : Type _) $i $a $b) => ineqPriority a b
+    | ~q(@LT.lt (_ : Type _) $i $a $b) => ineqPriority a b
+    | ~q(@GE.ge (_ : Type _) $i $b $a) => ineqPriority a b
+    | ~q(@GT.gt (_ : Type _) $i $b $a) => ineqPriority a b
     -- Assume anything else is non-relevant
     | _ => pure 0
 
