@@ -23,6 +23,8 @@ namespace Mathlib.Meta.NormNum
 
 open Lean.Meta Qq
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
 set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `CharZero α` expression given `Ring α`. -/
 def inferCharZeroOfRing {α : Q(Type u)} (_i : Q(Ring $α) := by with_reducible assumption) :
@@ -35,6 +37,8 @@ def inferCharZeroOfRing? {α : Q(Type u)} (_i : Q(Ring $α) := by with_reducible
     MetaM (Option Q(CharZero $α)) :=
   return (← trySynthInstanceQ q(CharZero $α)).toOption
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
 set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `CharZero α` expression given `AddMonoidWithOne α`. -/
 def inferCharZeroOfAddMonoidWithOne {α : Q(Type u)}
@@ -49,6 +53,8 @@ def inferCharZeroOfAddMonoidWithOne? {α : Q(Type u)}
       MetaM (Option Q(CharZero $α)) :=
   return (← trySynthInstanceQ q(CharZero $α)).toOption
 
+-- Qq: the two sides of `<|>` spell `Q(…)` differently (raw `Expr` vs. `Quoted.unsafeMk`), and
+-- `HOrElse` needs them to agree at `instances`. We keep `Quoted.unsafeMk` a plain `def`.
 set_option backward.isDefEq.respectTransparency.instances false in
 /-- Helper function to synthesize a typed `CharZero α` expression given `DivisionRing α`. -/
 def inferCharZeroOfDivisionRing {α : Q(Type u)}
