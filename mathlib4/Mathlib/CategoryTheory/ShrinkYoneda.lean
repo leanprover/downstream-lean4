@@ -531,7 +531,6 @@ noncomputable def shrinkCoyonedaObjCompUliftFunctorIso (X : Cᵒᵖ) :
 alias shrinkYonedaCompEvaluationCompUliftFunctorIsoUliftFunctor :=
   shrinkCoyonedaObjCompUliftFunctorIso
 
-set_option dsimp.resynthInstances false in
 /-- For `Y : C`, the functor `shrinkYoneda.{w}.obj Y` followed by
 `uliftFunctor.{v}` identifies to `yoneda.obj Y` followed by `uliftFunctor.{w}`. -/
 noncomputable def shrinkYonedaObjCompUliftFunctorIso (Y : C) :

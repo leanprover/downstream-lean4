@@ -240,7 +240,6 @@ instance toCat_full : toCat.Full where
     let ⟨x, h⟩ := (SingleObj.mapHom _ _).surjective y.toFunctor
     ⟨ofHom x, Cat.Hom.ext h⟩
 
-set_option dsimp.resynthInstances false in
 instance toCat_faithful : toCat.Faithful where
   map_injective h := MonCat.hom_ext <| by simpa [toCat] using congr(($h).toFunctor)
 

@@ -125,7 +125,6 @@ theorem GabrielPopescu.full (G : C) (hG : IsSeparator G) : (preadditiveCoyonedaO
     ext q
     simpa [-comp_epiDesc] using! Sigma.ι _ q ≫= comp_epiDesc _ _ h
 
-set_option dsimp.resynthInstances false in
 theorem GabrielPopescu.preservesInjectiveObjects (G : C) (hG : IsSeparator G) :
     (preadditiveCoyonedaObj G).PreservesInjectiveObjects where
   injective_obj {B} hB := by

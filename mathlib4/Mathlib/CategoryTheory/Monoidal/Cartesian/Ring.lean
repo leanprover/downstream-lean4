@@ -41,7 +41,6 @@ set_option backward.defeqAttrib.useBackward true in
 lemma yonedaRingObj_map_apply {R : C} [RingObj R] {X Y : Cᵒᵖ} (f : X ⟶ Y) (x : X.unop ⟶ R) :
     dsimp% (yonedaRingObj R).map f x = f.unop ≫ x := rfl
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The yoneda embedding of `RingObjCat C` into presheaves of rings. -/
@@ -67,7 +66,6 @@ set_option backward.defeqAttrib.useBackward true in
 lemma yonedaCommRingObj_map_apply {R : C} [CommRingObj R] {X Y : Cᵒᵖ} (f : X ⟶ Y) (x : X.unop ⟶ R) :
     dsimp% (yonedaCommRingObj R).map f x = f.unop ≫ x := rfl
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The yoneda embedding of `CommRingObjCat C` into presheaves of commutative rings. -/

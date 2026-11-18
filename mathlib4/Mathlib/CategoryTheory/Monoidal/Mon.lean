@@ -1056,7 +1056,6 @@ namespace Adjunction
 variable {F : C ⥤ D} {G : D ⥤ C} (a : F ⊣ G) [F.Monoidal] [G.LaxMonoidal] [a.IsMonoidal]
 
 set_option backward.defeqAttrib.useBackward true in
-set_option dsimp.resynthInstances false in
 /-- An adjunction of monoidal functors lifts to an adjunction of their lifts to monoid objects. -/
 @[to_additive (attr := simps)
 /-- An adjunction of monoidal functors lifts to an adjunction of their lifts to additive
@@ -1144,7 +1143,6 @@ def unitIso :
 
 #adaptation_note
 /-- `respectTransparency.types true` changes the auto-generated lemmas' signature -/
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- Auxiliary definition for `counitIso`. -/
 @[to_additive (attr := simps!) /-- Auxiliary definition for `counitIso`. -/]
@@ -1164,14 +1162,12 @@ theorem monToLaxMonoidal_laxMonoidalToMon_obj_mul (F : Mon C) :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 @[to_additive]
 theorem isMonHom_counitIsoAux (F : Mon C) :
     IsMonHom (counitIsoAux C F).hom where
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Implementation of `Mon.equivLaxMonoidalFunctorPUnit`. -/
 @[to_additive (attr := simps!)
 /-- Implementation of `AddMon.equivLaxMonoidalFunctorPUnit`. -/]

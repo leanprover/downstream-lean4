@@ -485,7 +485,6 @@ lemma leAddSubgroup_monotone (v : Valuation R Γ₀) : Monotone v.leAddSubgroup 
 
 open MonoidWithZeroHom MonoidWithZeroHom.ValueGroup₀
 
-set_option dsimp.resynthInstances false in
 /-- The restriction of a valuation so that it takes values in its `valueGroup₀`. -/
 @[implicit_reducible]
 def restrict : Valuation R v.ValueGroup₀ where

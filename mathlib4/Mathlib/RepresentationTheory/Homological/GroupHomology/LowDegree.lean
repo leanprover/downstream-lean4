@@ -922,7 +922,6 @@ lemma π_comp_H1Iso_inv :
 
 variable {A}
 
-set_option dsimp.resynthInstances false in
 lemma H1π_eq_zero_iff (x : cycles₁ A) : H1π A x = 0 ↔ x.val ∈ boundaries₁ A := by
   rw [← π_comp_H1Iso_inv_apply, map_eq_zero_iff _
     ((ModuleCat.mono_iff_injective (H1Iso A).inv).1 inferInstance)]
@@ -976,7 +975,6 @@ def H1ToTensorOfIsTrivial : H1 A →ₗ[ℤ] (Additive <| Group.Abelianization G
           AddMonoidHom.ofClass (H1Iso A).hom.hom).toIntLinearMap
 
 variable {A} in
-set_option dsimp.resynthInstances false in
 @[simp]
 lemma H1ToTensorOfIsTrivial_H1π_single (g : G) (a : A) :
     H1ToTensorOfIsTrivial A (H1π A <| (cycles₁IsoOfIsTrivial A).inv (single g a)) =
@@ -1060,7 +1058,6 @@ lemma π_comp_H2Iso_inv :
 
 variable {A}
 
-set_option dsimp.resynthInstances false in
 lemma H2π_eq_zero_iff (x : cycles₂ A) : H2π A x = 0 ↔ x.val ∈ boundaries₂ A := by
   rw [← π_comp_H2Iso_inv_apply, map_eq_zero_iff _
     ((ModuleCat.mono_iff_injective (H2Iso A).inv).1 inferInstance)]
