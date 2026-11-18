@@ -35,12 +35,12 @@ variable {C}
 /-- Any two functors to `Discrete PUnit` are isomorphic. -/
 @[simps!]
 def punitExt (F G : C ⥤ Discrete PUnit.{w + 1}) : F ≅ G :=
-  NatIso.ofComponents fun X => eqToIso rfl
+  NatIso.ofComponents fun X => eqToIso (by simp only [eq_iff_true_of_subsingleton])
 
 /-- Any two functors to `Discrete PUnit` are *equal*.
 You probably want to use `punitExt` instead of this. -/
 theorem punit_ext' (F G : C ⥤ Discrete PUnit.{w + 1}) : F = G :=
-  Functor.ext fun X => rfl
+  Functor.ext fun X => by simp only [eq_iff_true_of_subsingleton]
 
 /-- The functor from `Discrete PUnit` sending everything to the given object. -/
 abbrev fromPUnit (X : C) : Discrete PUnit.{w + 1} ⥤ C :=
@@ -79,7 +79,8 @@ theorem equiv_punit_iff_unique :
     intro a b
     rw [this a, this b]
     simp only [Functor.comp_map]
-    rfl
+    congr 3
+    simp [eq_iff_true_of_subsingleton]
   · rintro ⟨⟨p⟩, h⟩
     have := fun x y => (h x y).some
     refine
