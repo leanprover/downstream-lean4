@@ -333,7 +333,6 @@ end PresentationOfFreeCotangent.Aux
 end
 
 #adaptation_note
-set_option backward.isDefEq.respectTransparency.instances false in
 /--
 After https://github.com/leanprover/lean4/pull/14624:
 
@@ -357,6 +356,7 @@ comparison also runs at `.instances`, `respectTransparency false` suppressing th
 Potential fix: make `Algebra.Generators.toExtension` implicit-reducible.
 Then `respectTransparency false` and `instanceSearchTypes false` can both go.
 -/
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in

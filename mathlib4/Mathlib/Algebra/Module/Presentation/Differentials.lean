@@ -86,7 +86,6 @@ lemma hom₁_single (r : σ) :
   simp [hom₁]
 
 #adaptation_note
-set_option backward.isDefEq.respectTransparency.instances false in
 /--
 After https://github.com/leanprover/lean4/pull/14624:
 
@@ -111,6 +110,7 @@ the transparency bump that instance-implicit arguments would otherwise receive.
 Potential fix: Mark `Generators.toExtension` implicit-reducible; then `respectTransparency false`
 and `instanceSearchTypes false` can both go.
 -/
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
