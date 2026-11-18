@@ -57,6 +57,7 @@ of `I/I²` in `I`. -/
 abbrev T :=
   MvPolynomial ι R ⧸ (Ideal.span <| Set.range <| Subtype.val ∘ D.f ∘ b)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -111,6 +112,7 @@ def presLeft : Presentation R D.T ι σ :=
 def kerGen (i : σ) : D.presLeft.toExtension.ker :=
   ⟨(D.f (b i)).val, Presentation.mem_ker_naive _ _ i⟩
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -124,6 +126,7 @@ lemma toAlgHom_fhom : D.fhom.toAlgHom = AlgHom.id R P.Ring := by
   ext : 1
   simp [fhom]
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -138,6 +141,7 @@ set_option backward.isDefEq.respectTransparency.types false in
 def tensorCotangentHom : S ⊗[D.T] D.presLeft.toExtension.Cotangent →ₗ[S] P.toExtension.Cotangent :=
   LinearMap.liftBaseChange _ (Extension.Cotangent.map D.fhom.toExtensionHom)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
@@ -308,6 +312,7 @@ lemma basis_inr [Nontrivial S] (i : σ) :
 
 lemma pres_val_comp_inr : D.pres.val ∘ Sum.inr = P.val := funext (aeval_X _)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The constructed basis indeed is given by the images of the relations. -/
 lemma basis_apply [Nontrivial S] (r : Unit ⊕ σ) :
@@ -328,6 +333,7 @@ end PresentationOfFreeCotangent.Aux
 end
 
 #adaptation_note
+set_option backward.isDefEq.respectTransparency.instances false in
 /--
 After https://github.com/leanprover/lean4/pull/14624:
 

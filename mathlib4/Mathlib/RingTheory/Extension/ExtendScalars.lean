@@ -55,6 +55,7 @@ def extendScalars {R : Type u} {S : Type v} [CommRing R] [CommRing S] [Algebra R
   σ := P.σ
   algebraMap_σ := P.algebraMap_σ
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option backward.defeqAttrib.useBackward true in
 set_option dsimp.resynthInstances false in
