@@ -369,13 +369,13 @@ section UniversalProperty
 
 variable {T : Scheme.{u}} (f₁ : X ⟶ T) (f₂ : T ⟶ Y) [IsIntegralHom f₂]
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Given an qcqs morphism `f : X ⟶ Y`, which factors into `X ⟶ T ⟶ Y` with `T ⟶ Y` integral,
 the map `X ⟶ T` factors through `f.normalization` uniquely.
 (See `normalization.hom_ext` for the uniqueness result) -/
 noncomputable
-set_option backward.isDefEq.respectTransparency.instances false in
 def normalizationDesc (H : f = f₁ ≫ f₂) : f.normalization ⟶ T := by
   refine colimit.desc _
     { pt := _
@@ -418,6 +418,7 @@ lemma toNormalization_normalizationDesc (H : f = f₁ ≫ f₂) :
     (U.property.preimage f₂).fromSpec = (f ⁻¹ᵁ U.val).ι ≫ f₁
   simp
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
