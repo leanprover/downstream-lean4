@@ -7,7 +7,7 @@ module
 
 public import Cslib.Computability.URM.Defs
 public import Mathlib.Data.List.MinMax
---public import Mathlib.Data.List.Fold
+-- public import Mathlib.Data.List.Fold
 
 /-! # URM Basic Lemmas
 
@@ -41,8 +41,7 @@ theorem write_read_self (σ : Regs) (n v : ℕ) : (σ.write n v).read n = v := b
   simp only [write, read, Function.update_self]
 
 @[simp, scoped grind =]
-theorem write_read_of_ne (σ : Regs) (m n v : ℕ) (h : m ≠ n) :
-    (σ.write n v).read m = σ.read m := by
+theorem write_read_of_ne (σ : Regs) (m n v : ℕ) (h : m ≠ n) : (σ.write n v).read m = σ.read m := by
   simp only [write, read, Function.update_of_ne h]
 
 end Regs
@@ -92,16 +91,18 @@ theorem T_nonJump (m n : ℕ) : ¬(T m n).IsJump := not_false
 theorem J_IsJump (m n q : ℕ) : (J m n q).IsJump := trivial
 
 /-- shiftJumps is identity for non-jumping instructions. -/
-theorem shiftJumps_of_nonJump {instr : Instr}
-    (h : ¬instr.IsJump) (offset : ℕ) : instr.shiftJumps offset = instr := by
+theorem shiftJumps_of_nonJump {instr : Instr} (h : ¬instr.IsJump) (offset : ℕ)
+    : instr.shiftJumps offset = instr := by
   cases instr with
   | Z _ | S _ | T _ _ => rfl
   | J _ _ _ => exact absurd trivial h
 
 /-! ## Bounded Jump Targets -/
 
-/-- An instruction's jump target is bounded by a given length.
-Non-jump instructions trivially satisfy this. -/
+/--
+An instruction's jump target is bounded by a given length.
+Non-jump instructions trivially satisfy this.
+-/
 def JumpsBoundedBy (len : ℕ) : Instr → Prop
   | J _ _ q => q ≤ len
   | _ => True
@@ -110,22 +111,21 @@ instance (len : ℕ) (instr : Instr) : Decidable (instr.JumpsBoundedBy len) := b
   cases instr <;> simp only [JumpsBoundedBy] <;> infer_instance
 
 /-- Non-jumping instructions have bounded jumps for any length. -/
-theorem jumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump)
-    (len : ℕ) : instr.JumpsBoundedBy len := by
+theorem jumpsBoundedBy_of_nonJump {instr : Instr} (h : ¬instr.IsJump) (len : ℕ)
+    : instr.JumpsBoundedBy len := by
   cases instr with
   | J _ _ _ => exact absurd trivial h
   | _ => trivial
 
 /-- JumpsBoundedBy is monotonic: if bounded for len1, then bounded for any len2 ≥ len1. -/
-theorem JumpsBoundedBy.mono {instr : Instr} {len1 len2 : ℕ}
-    (h : instr.JumpsBoundedBy len1) (hle : len1 ≤ len2) :
-    instr.JumpsBoundedBy len2 := by
+theorem JumpsBoundedBy.mono
+    {instr : Instr} {len1 len2 : ℕ} (h : instr.JumpsBoundedBy len1) (hle : len1 ≤ len2)
+    : instr.JumpsBoundedBy len2 := by
   grind [JumpsBoundedBy]
 
 /-- shiftJumps preserves bounded jumps with adjusted bound. -/
-theorem JumpsBoundedBy.shiftJumps {instr : Instr} {len offset : ℕ}
-    (h : instr.JumpsBoundedBy len) :
-    (instr.shiftJumps offset).JumpsBoundedBy (offset + len) := by
+theorem JumpsBoundedBy.shiftJumps {instr : Instr} {len offset : ℕ} (h : instr.JumpsBoundedBy len)
+    : (instr.shiftJumps offset).JumpsBoundedBy (offset + len) := by
   cases instr with
   | J _ _ q => simp only [Instr.shiftJumps, JumpsBoundedBy] at h ⊢; omega
   | _ => trivial
@@ -150,20 +150,19 @@ theorem capJump_S (len n : ℕ) : (S n).capJump len = S n := rfl
 theorem capJump_T (len m n : ℕ) : (T m n).capJump len = T m n := rfl
 
 @[simp]
-theorem capJump_J (len m n q : ℕ) :
-    (J m n q).capJump len = J m n (min q len) := rfl
+theorem capJump_J (len m n q : ℕ) : (J m n q).capJump len = J m n (min q len) := rfl
 
 /-- capJump always produces an instruction with bounded jump. -/
-theorem JumpsBoundedBy.capJump (len : ℕ) (instr : Instr) :
-    (instr.capJump len).JumpsBoundedBy len := by
+theorem JumpsBoundedBy.capJump (len : ℕ) (instr : Instr)
+    : (instr.capJump len).JumpsBoundedBy len := by
   cases instr with
   | J _ _ q => exact Nat.min_le_right q len
   | _ => trivial
 
 /-- capJump is idempotent: capping twice is the same as capping once. -/
 @[simp]
-theorem capJump_idempotent (len : ℕ) (instr : Instr) :
-    (instr.capJump len).capJump len = instr.capJump len := by
+theorem capJump_idempotent (len : ℕ) (instr : Instr)
+    : (instr.capJump len).capJump len = instr.capJump len := by
   cases instr with
   | Z | S | T => rfl
   | J m n q => simp [capJump]
@@ -173,10 +172,10 @@ end Instr
 namespace Program
 
 /-- Any instruction in a program has maxRegister at most the program's maxRegister. -/
-theorem mem_maxRegister {p : Program} {instr : Instr} (h : instr ∈ p) :
-    instr.maxRegister ≤ p.maxRegister := by
+theorem mem_maxRegister {p : Program} {instr : Instr} (h : instr ∈ p)
+    : instr.maxRegister ≤ p.maxRegister := by
   unfold maxRegister
-  rw [List.foldl_map.symm, ←List.foldr_eq_foldl]
+  rw [List.foldl_map.symm, ← List.foldr_eq_foldl]
   exact List.le_max_of_le' 0 (List.mem_map.mpr ⟨instr, h, rfl⟩) (le_refl _)
 
 end Program

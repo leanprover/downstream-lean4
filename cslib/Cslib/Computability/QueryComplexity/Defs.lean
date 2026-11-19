@@ -46,33 +46,32 @@ namespace BitString
 /-! ## Flipping blocks of bits -/
 
 /-- `x` with every coordinate of `B` flipped. -/
-def flipBlock (B : Finset (Fin n)) (x : BitString n) : BitString n :=
-  fun j => if j ∈ B then !(x j) else x j
+def flipBlock (B : Finset (Fin n)) (x : BitString n) : BitString n := fun j =>
+  if j ∈ B then !(x j) else x j
 
 /-- Flipping `B` splices the negation of `x` into `x` on `B`. -/
-theorem flipBlock_eq_piecewise (B : Finset (Fin n)) (x : BitString n) :
-    flipBlock B x = B.piecewise (fun j => !(x j)) x :=
+theorem flipBlock_eq_piecewise (B : Finset (Fin n)) (x : BitString n)
+    : flipBlock B x = B.piecewise (fun j => !(x j)) x :=
   rfl
 
 @[simp]
-theorem flipBlock_apply_of_mem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∈ B) :
-    flipBlock B x j = !(x j) := by
+theorem flipBlock_apply_of_mem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∈ B)
+    : flipBlock B x j = !(x j) := by
   simp [flipBlock, h]
 
 @[simp]
-theorem flipBlock_apply_of_notMem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∉ B) :
-    flipBlock B x j = x j := by
+theorem flipBlock_apply_of_notMem {B : Finset (Fin n)} {x : BitString n} {j : Fin n} (h : j ∉ B)
+    : flipBlock B x j = x j := by
   simp [flipBlock, h]
 
 /-- Flipping no coordinates does nothing. -/
 @[simp]
-theorem flipBlock_empty (x : BitString n) : flipBlock ∅ x = x := by
-  funext j; simp [flipBlock]
+theorem flipBlock_empty (x : BitString n) : flipBlock ∅ x = x := by funext j; simp [flipBlock]
 
 /-- Flipping the same block twice does nothing. -/
 @[simp]
-theorem flipBlock_flipBlock (B : Finset (Fin n)) (x : BitString n) :
-    flipBlock B (flipBlock B x) = x := by
+theorem flipBlock_flipBlock (B : Finset (Fin n)) (x : BitString n)
+    : flipBlock B (flipBlock B x) = x := by
   funext j; by_cases h : j ∈ B <;> simp [flipBlock, h]
 
 /-- Flipping a block is an involution. -/
@@ -81,13 +80,13 @@ theorem flipBlock_involutive (B : Finset (Fin n)) : Function.Involutive (flipBlo
 
 /-- Flipping the block `{i}` is flipping the single bit `i`. -/
 @[simp]
-theorem flipBlock_singleton (i : Fin n) (x : BitString n) :
-    flipBlock {i} x = Function.update x i (!x i) := by
+theorem flipBlock_singleton (i : Fin n) (x : BitString n)
+    : flipBlock {i} x = Function.update x i (! x i) := by
   funext j; by_cases h : j = i <;> simp [flipBlock, h]
 
 /-- Flipping `B \ {i}` is flipping `B` and then restoring bit `i ∈ B`. -/
-theorem flipBlock_erase {B : Finset (Fin n)} {i : Fin n} (hi : i ∈ B) (x : BitString n) :
-    flipBlock (B.erase i) x = Function.update (flipBlock B x) i (x i) := by
+theorem flipBlock_erase {B : Finset (Fin n)} {i : Fin n} (hi : i ∈ B) (x : BitString n)
+    : flipBlock (B.erase i) x = Function.update (flipBlock B x) i (x i) := by
   funext j
   by_cases hij : j = i
   · subst hij; simp [flipBlock, hi]
@@ -106,13 +105,12 @@ abbrev Block (n : ℕ) : Type := Finset (Fin n)
 abbrev PartialAssignment (n : ℕ) : Type := Fin n → Option Bool
 
 /-- The coordinates the partial assignment fixes. -/
-def support (C : PartialAssignment n) : Finset (Fin n) :=
-  Finset.univ.filter (fun i => (C i).isSome)
+def support (C : PartialAssignment n) : Finset (Fin n) := Finset.univ.filter (fun i => (C i).isSome)
 
 /-- A coordinate lies in the support if and only if the partial assignment fixes it. -/
 @[simp]
-lemma mem_support {C : PartialAssignment n} {i : Fin n} :
-    i ∈ support C ↔ (C i).isSome := by simp [support]
+lemma mem_support {C : PartialAssignment n} {i : Fin n} : i ∈ support C ↔ (C i).isSome := by
+  simp [support]
 
 /-- How many coordinates the partial assignment fixes. -/
 def size (C : PartialAssignment n) : ℕ := (support C).card
@@ -139,13 +137,13 @@ theorem size_ofBitString (x : BitString n) : size (ofBitString x) = n := by
   simp [size, support, ofBitString]
 
 /-- The partial assignment reading off `x` on the coordinates only in `S`. -/
-def restrict (x : BitString n) (S : Finset (Fin n)) : PartialAssignment n :=
-  fun i => if i ∈ S then some (x i) else none
+def restrict (x : BitString n) (S : Finset (Fin n)) : PartialAssignment n := fun i =>
+  if i ∈ S then some (x i) else none
 
 /-- An input agrees with `restrict x S` if and only if it matches `x` on `S`. -/
 @[simp]
-theorem agrees_restrict_iff {x y : BitString n} {S : Finset (Fin n)} :
-    Agrees (restrict x S) y ↔ ∀ i ∈ S, y i = x i := by
+theorem agrees_restrict_iff {x y : BitString n} {S : Finset (Fin n)}
+    : Agrees (restrict x S) y ↔ ∀ i ∈ S, y i = x i := by
   constructor
   · intro h i hi
     exact h i (x i) (by simp [restrict, hi])
@@ -159,8 +157,8 @@ theorem support_restrict (x : BitString n) (S : Finset (Fin n)) : support (restr
   by_cases hi : i ∈ S <;> simp [restrict, hi]
 
 /-- A partial assignment consistent with `x` is `x` restricted to its support. -/
-theorem eq_restrict_support {C : PartialAssignment n} {x : BitString n} (h : Agrees C x) :
-    C = restrict x (support C) := by
+theorem eq_restrict_support {C : PartialAssignment n} {x : BitString n} (h : Agrees C x)
+    : C = restrict x (support C) := by
   funext i
   cases hC : C i with
   | none => simp [restrict, hC]

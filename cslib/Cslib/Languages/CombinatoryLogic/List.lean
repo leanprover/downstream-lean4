@@ -28,13 +28,14 @@ open Red MRed
 /-- A term correctly Church-encodes a list of natural numbers. -/
 def IsChurchList : List ℕ → SKI → Prop
   | [], cns => ∀ c n : SKI, (cns ⬝ c ⬝ n) ↠ n
-  | x :: xs, cns => ∀ c n : SKI,
-      ∃ cx cxs : SKI, IsChurch x cx ∧ IsChurchList xs cxs ∧
-        (cns ⬝ c ⬝ n) ↠ c ⬝ cx ⬝ (cxs ⬝ c ⬝ n)
+  | x :: xs, cns =>
+    ∀ c n : SKI, ∃ cx cxs : SKI,
+      IsChurch x cx ∧ IsChurchList xs cxs ∧ (cns ⬝ c ⬝ n) ↠ c ⬝ cx ⬝ (cxs ⬝ c ⬝ n)
 
 /-- `IsChurchList` is preserved under multi-step reduction of the term. -/
-theorem isChurchList_trans {ns : List ℕ} {cns cns' : SKI} (h : cns ↠ cns')
-    (hcns' : IsChurchList ns cns') : IsChurchList ns cns := by
+theorem isChurchList_trans
+    {ns : List ℕ} {cns cns' : SKI} (h : cns ↠ cns') (hcns' : IsChurchList ns cns')
+    : IsChurchList ns cns := by
   match ns with
   | [] =>
     intro c n
@@ -51,8 +52,9 @@ structure IsChurchListPair (prev curr : List ℕ) (p : SKI) : Prop where
 
 /-- IsChurchListPair is preserved under reduction. -/
 @[scoped grind →]
-theorem isChurchListPair_trans {prev curr : List ℕ} {p p' : SKI} (hp : p ↠ p')
-    (hp' : IsChurchListPair prev curr p') : IsChurchListPair prev curr p := by
+theorem isChurchListPair_trans
+    {prev curr : List ℕ} {p p' : SKI} (hp : p ↠ p') (hp' : IsChurchListPair prev curr p')
+    : IsChurchListPair prev curr p := by
   constructor
   · apply isChurchList_trans (MRed.tail Fst hp)
     exact hp'.1
@@ -70,8 +72,7 @@ def NilPoly : SKI.Polynomial 2 := &1
 def Nil : SKI := NilPoly.toSKI
 
 /-- Reduction: `Nil ⬝ c ⬝ n ↠ n`. -/
-theorem nil_def (c n : SKI) : (Nil ⬝ c ⬝ n) ↠ n :=
-  NilPoly.toSKI_correct [c, n] (by simp)
+theorem nil_def (c n : SKI) : (Nil ⬝ c ⬝ n) ↠ n := NilPoly.toSKI_correct [c, n] (by simp)
 
 /-- The empty list term correctly represents `[]`. -/
 theorem nil_correct : IsChurchList [] Nil := nil_def
@@ -85,21 +86,20 @@ def ConsPoly : SKI.Polynomial 4 := &2 ⬝' &0 ⬝' (&1 ⬝' &2 ⬝' &3)
 def Cons : SKI := ConsPoly.toSKI
 
 /-- Reduction: `Cons ⬝ x ⬝ xs ⬝ c ⬝ n ↠ c ⬝ x ⬝ (xs ⬝ c ⬝ n)`. -/
-theorem cons_def (x xs c n : SKI) :
-    (Cons ⬝ x ⬝ xs ⬝ c ⬝ n) ↠ c ⬝ x ⬝ (xs ⬝ c ⬝ n) :=
+theorem cons_def (x xs c n : SKI) : (Cons ⬝ x ⬝ xs ⬝ c ⬝ n) ↠ c ⬝ x ⬝ (xs ⬝ c ⬝ n) :=
   ConsPoly.toSKI_correct [x, xs, c, n] (by simp)
 
 /-- Cons preserves Church list representation. -/
-theorem cons_correct {x : ℕ} {xs : List ℕ} {cx cxs : SKI}
-    (hcx : IsChurch x cx) (hcxs : IsChurchList xs cxs) :
-    IsChurchList (x :: xs) (Cons ⬝ cx ⬝ cxs) := by
+theorem cons_correct
+    {x : ℕ} {xs : List ℕ} {cx cxs : SKI} (hcx : IsChurch x cx) (hcxs : IsChurchList xs cxs)
+    : IsChurchList (x :: xs) (Cons ⬝ cx ⬝ cxs) := by
   intro c n
   use cx, cxs, hcx, hcxs
   exact cons_def cx cxs c n
 
 /-- Singleton list correctness. -/
-theorem singleton_correct {x : ℕ} {cx : SKI} (hcx : IsChurch x cx) :
-    IsChurchList [x] (Cons ⬝ cx ⬝ Nil) :=
+theorem singleton_correct {x : ℕ} {cx : SKI} (hcx : IsChurch x cx)
+    : IsChurchList [x] (Cons ⬝ cx ⬝ Nil) :=
   cons_correct hcx nil_correct
 
 /-- The canonical SKI term for a Church-encoded list. -/
@@ -113,8 +113,9 @@ lemma toChurch_nil : toChurch [] = Nil := rfl
 
 /-- `toChurch (x :: xs) = Cons ⬝ SKI.toChurch x ⬝ toChurch xs`. -/
 @[simp]
-lemma toChurch_cons (x : ℕ) (xs : List ℕ) :
-    toChurch (x :: xs) = Cons ⬝ (SKI.toChurch x) ⬝ (toChurch xs) := rfl
+lemma toChurch_cons (x : ℕ) (xs : List ℕ)
+    : toChurch (x :: xs) = Cons ⬝ (SKI.toChurch x) ⬝ (toChurch xs) :=
+  rfl
 
 /-- `toChurch ns` correctly represents `ns`. -/
 theorem toChurch_correct (ns : List ℕ) : IsChurchList ns (toChurch ns) := by
@@ -135,9 +136,9 @@ theorem headD_def (d xs : SKI) : (HeadD ⬝ d ⬝ xs) ↠ xs ⬝ K ⬝ d :=
   HeadDPoly.toSKI_correct [d, xs] (by simp)
 
 /-- General head-with-default correctness. -/
-theorem headD_correct {d : ℕ} {cd : SKI} (hcd : IsChurch d cd)
-    {ns : List ℕ} {cns : SKI} (hcns : IsChurchList ns cns) :
-    IsChurch (ns.headD d) (HeadD ⬝ cd ⬝ cns) := by
+theorem headD_correct
+    {d : ℕ} {cd : SKI} (hcd : IsChurch d cd) {ns : List ℕ} {cns : SKI} (hcns : IsChurchList ns cns)
+    : IsChurch (ns.headD d) (HeadD ⬝ cd ⬝ cns) := by
   match ns with
   | [] =>
     simp only [List.headD_nil]
@@ -154,38 +155,34 @@ theorem headD_correct {d : ℕ} {cd : SKI} (hcd : IsChurch d cd)
 def Head : SKI := HeadD ⬝ SKI.Zero
 
 /-- Reduction: `Head ⬝ xs ↠ xs ⬝ K ⬝ Zero`. -/
-theorem head_def (xs : SKI) : (Head ⬝ xs) ↠ xs ⬝ K ⬝ SKI.Zero :=
-  headD_def SKI.Zero xs
+theorem head_def (xs : SKI) : (Head ⬝ xs) ↠ xs ⬝ K ⬝ SKI.Zero := headD_def SKI.Zero xs
 
 /-- Head correctness (default 0). -/
-theorem head_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
-    IsChurch (ns.headD 0) (Head ⬝ cns) :=
+theorem head_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns)
+    : IsChurch (ns.headD 0) (Head ⬝ cns) :=
   headD_correct zero_correct hcns
 
 /-! ### Tail: Extract the tail of a list -/
 
 /-- Step function for tail: (prev, curr) → (curr, cons h curr) -/
-def TailStepPoly : SKI.Polynomial 2 :=
-  MkPair ⬝' (Snd ⬝' &1) ⬝' (Cons ⬝' &0 ⬝' (Snd ⬝' &1))
+def TailStepPoly : SKI.Polynomial 2 := MkPair ⬝' (Snd ⬝' &1) ⬝' (Cons ⬝' &0 ⬝' (Snd ⬝' &1))
 
 /-- The step function for computing list tail. -/
 def TailStep : SKI := TailStepPoly.toSKI
 
 /-- Reduction of the tail step function. -/
-theorem tailStep_def (h p : SKI) :
-    (TailStep ⬝ h ⬝ p) ↠ MkPair ⬝ (Snd ⬝ p) ⬝ (Cons ⬝ h ⬝ (Snd ⬝ p)) :=
+theorem tailStep_def (h p : SKI)
+    : (TailStep ⬝ h ⬝ p) ↠ MkPair ⬝ (Snd ⬝ p) ⬝ (Cons ⬝ h ⬝ (Snd ⬝ p)) :=
   TailStepPoly.toSKI_correct [h, p] (by simp)
 
 /-- tail xs = Fst (xs TailStep (MkPair Nil Nil)) -/
-def TailPoly : SKI.Polynomial 1 :=
-  Fst ⬝' (&0 ⬝' TailStep ⬝' (MkPair ⬝ Nil ⬝ Nil))
+def TailPoly : SKI.Polynomial 1 := Fst ⬝' (&0 ⬝' TailStep ⬝' (MkPair ⬝ Nil ⬝ Nil))
 
 /-- The tail of a Church-encoded list. -/
 def Tail : SKI := TailPoly.toSKI
 
 /-- Reduction: `Tail ⬝ xs ↠ Fst ⬝ (xs ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil))`. -/
-theorem tail_def (xs : SKI) :
-    (Tail ⬝ xs) ↠ Fst ⬝ (xs ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil)) :=
+theorem tail_def (xs : SKI) : (Tail ⬝ xs) ↠ Fst ⬝ (xs ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil)) :=
   TailPoly.toSKI_correct [xs] (by simp)
 
 /-- The initial pair (nil, nil) satisfies the invariant. -/
@@ -196,16 +193,17 @@ theorem tail_init : IsChurchListPair [] [] (MkPair ⬝ Nil ⬝ Nil) := by
   · apply isChurchList_trans (snd_correct _ _); exact nil_correct
 
 /-- The step function preserves the tail-computing invariant. -/
-theorem tailStep_correct {x : ℕ} {xs : List ℕ} {cx p : SKI}
-    (hcx : IsChurch x cx) (hp : IsChurchListPair xs.tail xs p) :
-    IsChurchListPair xs (x :: xs) (TailStep ⬝ cx ⬝ p) := by
+theorem tailStep_correct
+    {x : ℕ} {xs : List ℕ} {cx p : SKI} (hcx : IsChurch x cx) (hp : IsChurchListPair xs.tail xs p)
+    : IsChurchListPair xs (x :: xs) (TailStep ⬝ cx ⬝ p) := by
   apply isChurchListPair_trans (tailStep_def cx p)
-  exact ⟨isChurchList_trans (fst_correct _ _) hp.2,
-         isChurchList_trans (snd_correct _ _) (cons_correct hcx hp.2)⟩
+  exact ⟨
+    isChurchList_trans (fst_correct _ _) hp.2,
+    isChurchList_trans (snd_correct _ _) (cons_correct hcx hp.2)
+  ⟩
 
-theorem tailFold_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
-    ∃ p, (cns ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil)) ↠ p ∧
-         IsChurchListPair ns.tail ns p := by
+theorem tailFold_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns)
+    : ∃ p, (cns ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil)) ↠ p ∧ IsChurchListPair ns.tail ns p := by
   induction ns generalizing cns with
   | nil =>
     -- For empty list, the fold returns the initial pair
@@ -230,8 +228,8 @@ theorem tailFold_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns
     · exact hstep
 
 /-- Tail correctness. -/
-theorem tail_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
-    IsChurchList ns.tail (Tail ⬝ cns) := by
+theorem tail_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns)
+    : IsChurchList ns.tail (Tail ⬝ cns) := by
   -- Tail ⬝ cns ↠ Fst ⬝ (cns ⬝ TailStep ⬝ (MkPair ⬝ Nil ⬝ Nil))
   apply isChurchList_trans (tail_def cns)
   -- Get the fold result
@@ -254,8 +252,8 @@ theorem prependZero_def (xs : SKI) : (PrependZero ⬝ xs) ↠ Cons ⬝ SKI.Zero 
   PrependZeroPoly.toSKI_correct [xs] (by simp)
 
 /-- Prepending zero preserves Church list representation. -/
-theorem prependZero_correct {ns : List ℕ} {cns : SKI} (hcns : IsChurchList ns cns) :
-    IsChurchList (0 :: ns) (PrependZero ⬝ cns) := by
+theorem prependZero_correct {ns : List ℕ} {cns : SKI} (hcns : IsChurchList ns cns)
+    : IsChurchList (0 :: ns) (PrependZero ⬝ cns) := by
   apply isChurchList_trans (prependZero_def cns)
   exact cons_correct zero_correct hcns
 
@@ -265,8 +263,8 @@ theorem prependZero_correct {ns : List ℕ} {cns : SKI} (hcns : IsChurchList ns 
 def SuccHead : SKI := B ⬝ (C ⬝ Cons ⬝ Nil) ⬝ (B ⬝ SKI.Succ ⬝ Head)
 
 /-- `SuccHead` correctly computes a singleton containing `succ(head ns)`. -/
-theorem succHead_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns) :
-    IsChurchList [ns.headD 0 + 1] (SuccHead ⬝ cns) := by
+theorem succHead_correct (ns : List ℕ) (cns : SKI) (hcns : IsChurchList ns cns)
+    : IsChurchList [ns.headD 0 + 1] (SuccHead ⬝ cns) := by
   have hhead := head_correct ns cns hcns
   have hsucc := succ_correct (ns.headD 0) (Head ⬝ cns) hhead
   apply isChurchList_trans (.trans (B_tail_mred _ _ _ _ (B_def .Succ Head cns)) (C_def Cons Nil _))

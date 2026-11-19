@@ -14,16 +14,16 @@ elab "open_scoped_all" pre:ident : command => do
 open_scoped_all Cslib
 
 /-
-  This check verifies that `grind` annotations in Cslib do not trigger run-away instantiations.
-  (This documentation and test is adapted from Mathlib.)
+This check verifies that `grind` annotations in Cslib do not trigger run-away instantiations.
+(This documentation and test is adapted from Mathlib.)
 
-  Exceptions may be specified here using `#grind_lint skip`. This should be kept minimal, and some
-  of these were added upon the initial commit of this test. PRs removing exceptions are welcome.
+Exceptions may be specified here using `#grind_lint skip`. This should be kept minimal, and some
+of these were added upon the initial commit of this test. PRs removing exceptions are welcome.
 
-  If this test fails, please modify newly introduced `grind` annotations to use the
-  `grind_pattern ... where ...` syntax to add side conditions that will prevent the run-away.
+If this test fails, please modify newly introduced `grind` annotations to use the
+`grind_pattern ... where ...` syntax to add side conditions that will prevent the run-away.
 
-  See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
+See https://lean-lang.org/doc/reference/latest/The--grind--tactic/E___matching/ for details.
 -/
 
 #grind_lint skip Cslib.LTS.Bisimilarity.trans

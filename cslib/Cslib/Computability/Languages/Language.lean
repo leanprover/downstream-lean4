@@ -48,28 +48,25 @@ theorem eq_zero_or_one_ofIsEmpty [IsEmpty α] (l : Language α) : l = 0 ∨ l = 
     simpa
 
 @[simp]
-theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
+theorem mem_biInf {I : Type*} (s : Set I) (l : I → Language α) (x : List α)
+    : (x ∈ ⨅ i ∈ s, l i) ↔ ∀ i ∈ s, x ∈ l i :=
   mem_iInter₂
 
 #adaptation_note
 /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[simp]
-theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α) :
-    (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i where
+theorem mem_biSup {I : Type*} (s : Set I) (l : I → Language α) (x : List α)
+    : (x ∈ ⨆ i ∈ s, l i) ↔ ∃ i ∈ s, x ∈ l i where
   mp h := bex_def.mp (mem_iUnion₂.mp h)
-  mpr h :=  mem_iUnion₂.mpr (bex_def.mpr h)
+  mpr h := mem_iUnion₂.mpr (bex_def.mpr h)
 
-theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 :=
-  subset_singleton_iff_eq
-
-@[simp, scoped grind =]
-theorem mem_singleton (x y : List α) : x ∈ ({y} : Language α) ↔ x = y :=
-  Iff.rfl
+theorem le_one_iff_eq : l ≤ 1 ↔ l = 0 ∨ l = 1 := subset_singleton_iff_eq
 
 @[simp, scoped grind =]
-theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] :=
-  Iff.rfl
+theorem mem_singleton (x y : List α) : x ∈ ({y} : Language α) ↔ x = y := Iff.rfl
+
+@[simp, scoped grind =]
+theorem mem_sub_one (x : List α) : x ∈ (l - 1) ↔ x ∈ l ∧ x ≠ [] := Iff.rfl
 
 @[simp, scoped grind =]
 theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.reverse := by
@@ -79,7 +76,8 @@ theorem reverse_sub (l m : Language α) : (l - m).reverse = l.reverse - m.revers
 /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[scoped grind =]
 theorem sub_one_mul : (l - 1) * l = l * l - 1 := by
-  ext x; constructor
+  ext x
+  constructor
   · rintro ⟨u, h_u, v, h_v, rfl⟩
     constructor
     · exact ⟨u, ((mem_sub_one u).mp h_u).1, v, h_v, rfl⟩
@@ -105,7 +103,8 @@ theorem mul_sub_one : l * (l - 1) = l * l - 1 := by
 /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
 @[scoped grind =]
 theorem kstar_sub_one : l∗ - 1 = (l - 1) * l∗ := by
-  ext x; constructor
+  ext x
+  constructor
   · rintro ⟨h1, h2⟩
     obtain ⟨xl, rfl, h_xl⟩ := kstar_def_nonempty l ▸ h1
     have h3 : ¬ xl = [] := by grind [one_def]
@@ -129,8 +128,7 @@ theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
   grind
 
 /-- The reverse version of Arden's lemma `Language.self_eq_mul_add_iff`. -/
-theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) :
-    l = l * m + n ↔ l = n * m∗ := by
+theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) : l = l * m + n ↔ l = n * m∗ := by
   rw [← reverse_injective.eq_iff, ← reverse_injective.eq_iff (a := l)]
   simp only [reverse_add, reverse_mul, reverse_kstar]
   exact (self_eq_mul_add_iff (by simp [hm]))

@@ -100,13 +100,17 @@ structure Storage (Symbol State : Type*) (k : ℕ) where
   /-- the position of the head on work tape `i` (cf. `Cfg.workTapePos`) -/
   workTapePos (i : Fin k) : ℤ
 
-/-- A bounded storage: the state and work-tape data of a machine, but with the cells and the head
-position of tape `i` restricted to the finite window `[-(w i), w i]`. -/
+/--
+A bounded storage: the state and work-tape data of a machine, but with the cells and the head
+position of tape `i` restricted to the finite window `[-(w i), w i]`.
+-/
 abbrev BoundedStorage (Symbol State : Type*) {k : ℕ} (w : Fin k → ℕ) :=
   Option State × ((i : Fin k) → window (w i) → Option Symbol) × ((i : Fin k) → window (w i))
 
-/-- A storage fits in the per-tape windows `w`: on each tape `j`, the head position and every
-non-blank cell have absolute value `≤ w j`. -/
+/--
+A storage fits in the per-tape windows `w`: on each tape `j`, the head position and every
+non-blank cell have absolute value `≤ w j`.
+-/
 structure Storage.FitsIn (x : Storage Symbol State k) (w : Fin k → ℕ) : Prop where
   /-- the head position on every tape lies within its window -/
   pos_le : ∀ j, (x.workTapePos j).natAbs ≤ w j
@@ -122,17 +126,24 @@ lemma Storage.FitsIn_mono {x : Storage Symbol State k} : Monotone x.FitsIn := by
   · intro j z h_ne
     exact (h_fits.cell_le j z h_ne).trans (h_le j)
 
-/-- Restriction of a storage to the finite windows `w` (with heads outside their window
-clamped to `0`). -/
-def Storage.toBounded (x : Storage Symbol State k) (w : Fin k → ℕ) :
-    BoundedStorage Symbol State w :=
-  (x.state, fun j z => x.workTapes j z.1,
-    fun j => if h : x.workTapePos j ∈ window (w j) then ⟨x.workTapePos j, h⟩
-      else ⟨0, mem_window.mpr (Nat.zero_le _)⟩)
+/--
+Restriction of a storage to the finite windows `w` (with heads outside their window
+clamped to `0`).
+-/
+def Storage.toBounded (x : Storage Symbol State k) (w : Fin k → ℕ)
+    : BoundedStorage Symbol State w := (
+  x.state,
+  fun j z => x.workTapes j z.1,
+  fun j =>
+    if h : x.workTapePos j ∈ window (w j) then
+      ⟨x.workTapePos j, h⟩
+    else
+      ⟨0, mem_window.mpr (Nat.zero_le _)⟩
+)
 
 /-- The restriction is injective on storages that fit in the windows. -/
-lemma Storage.toBounded_injOn (w : Fin k → ℕ) :
-    Set.InjOn (Storage.toBounded (Symbol := Symbol) (State := State) · w) {x | x.FitsIn w} := by
+lemma Storage.toBounded_injOn (w : Fin k → ℕ)
+    : Set.InjOn (Storage.toBounded (Symbol := Symbol) (State := State) · w) {x | x.FitsIn w} := by
   rintro x ⟨_, _⟩ y ⟨_, _⟩ hxy
   simp only [Storage.toBounded, Prod.mk.injEq] at hxy
   obtain ⟨hstate, htapes, hpos⟩ := hxy
@@ -148,49 +159,57 @@ This section is purely combinatorial: it counts how many values a `Storage` rest
 windows can take, without reference to a machine or a run.
 -/
 
-/-- An upper bound on the number of storages a `k`-tape machine can be in while using
+/--
+An upper bound on the number of storages a `k`-tape machine can be in while using
 at most `s` cells of total work-tape space, over the given alphabet and state set. The `(2s + 1)^k`
 factor counts the possible head positions; the dominant factor `(|Symbol| + 1)^(2s + k)` uses the
-*total* space `s` in the exponent (the `k` tapes share the space budget). -/
+*total* space `s` in the exponent (the `k` tapes share the space budget).
+-/
 def storageBound (Symbol State : Type*) [Fintype Symbol] [Fintype State] (k s : ℕ) : ℕ :=
   (Fintype.card State + 1) * ((2 * s + 1) ^ k * (Fintype.card Symbol + 1) ^ (2 * s + k))
 
-/-- The number of bounded storages is at most `storageBound`. Counting the tapes separately gives
+/--
+The number of bounded storages is at most `storageBound`. Counting the tapes separately gives
 the per-tape product `∏ᵢ (2 wᵢ + 1) · (|Symbol| + 1) ^ (2 wᵢ + 1)`; each tape uses at most the
 total space `s`, and the tapes together use at most `s`, which collapses the alphabet exponent
-to `2s + k`. -/
-lemma card_boundedStorage_le [Fintype Symbol] [Fintype State]
-    {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s) :
-    Fintype.card (BoundedStorage Symbol State w) ≤ storageBound Symbol State k s := by
+to `2s + k`.
+-/
+lemma card_boundedStorage_le
+    [Fintype Symbol] [Fintype State] {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s)
+    : Fintype.card (BoundedStorage Symbol State w) ≤ storageBound Symbol State k s := by
   have hle : ∀ i, w i ≤ s := fun i =>
     (Finset.single_le_sum (fun i _ => Nat.zero_le (w i)) (Finset.mem_univ i)).trans hsum
-  simp only [BoundedStorage, storageBound, Fintype.card_prod, Fintype.card_option,
-    Fintype.card_pi, Finset.prod_const, Finset.card_univ, Fintype.card_coe, card_window]
+  simp only [BoundedStorage, storageBound, Fintype.card_prod, Fintype.card_option, Fintype.card_pi,
+    Finset.prod_const, Finset.card_univ, Fintype.card_coe, card_window]
   rw [mul_comm (∏ i, (Fintype.card Symbol + 1) ^ (2 * w i + 1)), Finset.prod_pow_eq_pow_sum]
   have hsc : ∑ i : Fin k, (2 * w i + 1) = 2 * (∑ i, w i) + k := by
     simp [two_mul, Finset.sum_add_distrib]
   gcongr
-  · simpa using Finset.prod_le_pow_card Finset.univ (fun i => 2 * w i + 1) (2 * s + 1)
-      fun i _ => by have := hle i; omega
+  · simpa using
+      Finset.prod_le_pow_card Finset.univ
+        (fun i => 2 * w i + 1)
+        (2 * s + 1)
+        fun i _ => by have := hle i; omega
   · omega
   · omega
 
-/-- The counting result at the heart of this file: a `Storage` whose non-blank cells and head
+/--
+The counting result at the heart of this file: a `Storage` whose non-blank cells and head
 positions stay within per-tape windows of total size at most `s` can take at most
-`storageBound Symbol State k s` different values. -/
-theorem encard_fitsIn_le [Fintype Symbol] [Fintype State]
-    {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s) :
+`storageBound Symbol State k s` different values.
+-/
+theorem encard_fitsIn_le
+    [Fintype Symbol] [Fintype State] {w : Fin k → ℕ} {s : ℕ} (hsum : ∑ i, w i ≤ s)
+    : {x : Storage Symbol State k | x.FitsIn w}.encard ≤ storageBound Symbol State k s := by
+  calc
     {x : Storage Symbol State k | x.FitsIn w}.encard
-      ≤ storageBound Symbol State k s := by
-  calc {x : Storage Symbol State k | x.FitsIn w}.encard
-      = ((Storage.toBounded · w) '' {x | x.FitsIn w}).encard :=
-        ((Storage.toBounded_injOn w).encard_image).symm
+        = ((Storage.toBounded · w) '' {x | x.FitsIn w}).encard :=
+      ((Storage.toBounded_injOn w).encard_image).symm
     _ ≤ (Set.univ : Set (BoundedStorage Symbol State w)).encard :=
-        Set.encard_le_encard (Set.subset_univ _)
+      Set.encard_le_encard (Set.subset_univ _)
     _ = Fintype.card (BoundedStorage Symbol State w) := by
-        simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
-    _ ≤ storageBound Symbol State k s := by
-        exact_mod_cast card_boundedStorage_le hsum
+      simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
+    _ ≤ storageBound Symbol State k s := by exact_mod_cast card_boundedStorage_le hsum
 
 /-! ### The exponential form of `storageBound`
 
@@ -205,10 +224,12 @@ def storageBoundBase (Symbol State : Type*) [Fintype Symbol] [Fintype State] (k 
 def storageBoundExp (Symbol : Type*) [Fintype Symbol] (k : ℕ) : ℕ :=
   2 * (Fintype.card Symbol + 1) + k
 
-/-- `storageBound` grows at most exponentially in the space `s`, with a constant factor and a
-factor in the exponent that only depend on the machine's alphabet, state set and tape count. -/
-lemma storageBound_le_base_mul_pow [Fintype Symbol] [Fintype State] (s : ℕ) :
-    storageBound Symbol State k s
+/--
+`storageBound` grows at most exponentially in the space `s`, with a constant factor and a
+factor in the exponent that only depend on the machine's alphabet, state set and tape count.
+-/
+lemma storageBound_le_base_mul_pow [Fintype Symbol] [Fintype State] (s : ℕ)
+    : storageBound Symbol State k s
       ≤ storageBoundBase Symbol State k * 2 ^ (storageBoundExp Symbol k * s) := by
   set syms := Fintype.card Symbol + 1 with hB
   set states := Fintype.card State + 1 with hQ
@@ -218,18 +239,21 @@ lemma storageBound_le_base_mul_pow [Fintype Symbol] [Fintype State] (s : ℕ) :
   -- (which is in `storageBoundBase`) and the part `(2 * syms + k) * s` linear in `s`.
   have hB2 : syms ≤ 2 ^ syms := Nat.lt_two_pow_self.le
   have h2s1 : 2 * s + 1 ≤ 2 ^ (s + 1) := by grind [pow_succ, Nat.lt_two_pow_self]
-  calc storageBound Symbol State k s
+  calc
+    storageBound Symbol State k s
       = states * ((2 * s + 1) ^ k * syms ^ (2 * s + k)) := rfl
     _ ≤ states * ((2 ^ (s + 1)) ^ k * (2 ^ syms) ^ (2 * s + k)) := by gcongr <;> omega
     _ = states * 2 ^ ((s + 1) * k + syms * (2 * s + k)) := by ring
     _ = states * 2 ^ ((syms * k + k) + (2 * syms + k) * s) := by ring_nf
     _ = states * 2 ^ (syms * k + k) * 2 ^ ((2 * syms + k) * s) := by ring
 
-/-- `storageBound` grows at most exponentially in the space `s`: there exist constants `a` and `c`
+/--
+`storageBound` grows at most exponentially in the space `s`: there exist constants `a` and `c`
 (depending on the machine's alphabet, state set and tape count) with
-`storageBound Symbol State k s ≤ a * 2 ^ (c * s)` for all `s`. -/
-lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
-    ∃ a c : ℕ, ∀ s : ℕ, storageBound Symbol State k s ≤ a * 2 ^ (c * s) :=
+`storageBound Symbol State k s ≤ a * 2 ^ (c * s)` for all `s`.
+-/
+lemma storageBound_le_pow [Fintype Symbol] [Fintype State]
+    : ∃ a c : ℕ, ∀ s : ℕ, storageBound Symbol State k s ≤ a * 2 ^ (c * s) :=
   ⟨_, _, storageBound_le_base_mul_pow⟩
 
 /-! ## The storage and the core of a configuration
@@ -237,15 +261,18 @@ lemma storageBound_le_pow [Fintype Symbol] [Fintype State] :
 Now we relate `Cfg` and `Storage` by giving the projection.
 -/
 
-/-- This function maps a `Cfg` to `Storage`, forgetting the input head position and the
-write-only output tape. -/
+/--
+This function maps a `Cfg` to `Storage`, forgetting the input head position and the
+write-only output tape.
+-/
 def Cfg.storage (c : Cfg k Symbol State input) : Storage Symbol State k :=
   ⟨c.state, c.workTapes, c.workTapePos⟩
 
-/-- The part of a configuration that the machine can still read: the input head position together
-with the `Storage`, i.e. the configuration without the write-only output tape. -/
-def Cfg.core (c : Cfg k Symbol State input) :
-    Fin (input.length + 2) × Storage Symbol State k :=
+/--
+The part of a configuration that the machine can still read: the input head position together
+with the `Storage`, i.e. the configuration without the write-only output tape.
+-/
+def Cfg.core (c : Cfg k Symbol State input) : Fin (input.length + 2) × Storage Symbol State k :=
   (c.inputPos, c.storage)
 
 /-! ## The storages and cores of a space-bounded run
@@ -256,10 +283,13 @@ reachable in bounded space.
 
 namespace MultiTapeNTM
 
-/-- The storage at the end of a computation path fits in the windows given by its per-tape space:
-the tapes start blank, with every head at `0`. -/
-lemma ComputationPath.storage_fitsIn {ntm : MultiTapeNTM k Symbol State}
-    (p : ntm.ComputationPath input) : p.last.storage.FitsIn p.spaceUsedByTape := by
+/--
+The storage at the end of a computation path fits in the windows given by its per-tape space:
+the tapes start blank, with every head at `0`.
+-/
+lemma ComputationPath.storage_fitsIn
+    {ntm : MultiTapeNTM k Symbol State} (p : ntm.ComputationPath input)
+    : p.last.storage.FitsIn p.spaceUsedByTape := by
   refine ⟨fun j => ?_, fun j z hz => ?_⟩
   · simpa [Cfg.storage, p.head_eq, Cfg.init, ComputationPath.spaceUsedByTape] using
       RunPath.natAbs_le_spaceUsedByTape_of_mem_visited p.toRunPath
@@ -273,12 +303,13 @@ end MultiTapeNTM
 
 namespace MultiTapeTM
 
-/-- A machine that uses at most `s` cells of work-tape space at every point in time passes through
+/--
+A machine that uses at most `s` cells of work-tape space at every point in time passes through
 at most `storageBound Symbol State k s` different storages during its whole run — independently of
-the length of the input and of how long it runs. -/
-theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : tm.RunsInSpace input s) :
-    (Set.range fun p : tm.ComputationPath input => p.last.storage).encard
+the length of the input and of how long it runs.
+-/
+theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ} (hs : tm.RunsInSpace input s)
+    : (Set.range fun p : tm.ComputationPath input => p.last.storage).encard
       ≤ storageBound Symbol State k s := by
   -- every storage fits in the windows of a computation path visiting the most cells
   obtain ⟨p, hp⟩ := hs.exists_space_max
@@ -286,51 +317,60 @@ theorem encard_storages_le [Fintype Symbol] [Fintype State] {s : ℕ}
   rintro _ ⟨q, rfl⟩
   exact Storage.FitsIn_mono (q.spaceUsedByTape_le_of_space_le (hp q)) q.storage_fitsIn
 
-/-- The number of configuration cores that a machine bounded by space `s` can reach is at most
-`(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input. -/
-theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ}
-    (hs : tm.RunsInSpace input s) :
-    (Set.range fun p : tm.ComputationPath input => p.last.core).encard
+/--
+The number of configuration cores that a machine bounded by space `s` can reach is at most
+`(n + 2) * storageBound Symbol State k s`, where `n` is the length of the input.
+-/
+theorem encard_cores_le [Fintype Symbol] [Fintype State] {s : ℕ} (hs : tm.RunsInSpace input s)
+    : (Set.range fun p : tm.ComputationPath input => p.last.core).encard
       ≤ (input.length + 2) * storageBound Symbol State k s := by
-  calc (Set.range fun p : tm.ComputationPath input => p.last.core).encard
-      ≤ ((Set.univ : Set (Fin (input.length + 2)))
+  calc
+    (Set.range fun p : tm.ComputationPath input => p.last.core).encard
+        ≤ ((Set.univ : Set (Fin (input.length + 2)))
           ×ˢ (Set.range fun p : tm.ComputationPath input => p.last.storage)).encard := by
-        apply Set.encard_le_encard
-        rintro _ ⟨p, rfl⟩
-        exact ⟨Set.mem_univ _, p, rfl⟩
+      apply Set.encard_le_encard
+      rintro _ ⟨p, rfl⟩
+      exact ⟨Set.mem_univ _, p, rfl⟩
     _ = (Set.univ : Set (Fin (input.length + 2))).encard
-          * (Set.range fun p : tm.ComputationPath input => p.last.storage).encard := Set.encard_prod
+        * (Set.range fun p : tm.ComputationPath input => p.last.storage).encard :=
+      Set.encard_prod
     _ ≤ (input.length + 2) * storageBound Symbol State k s := by
-        refine mul_le_mul' ?_ (tm.encard_storages_le hs)
-        simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
+      refine mul_le_mul' ?_ (tm.encard_storages_le hs)
+      simp [Set.encard_univ, ENat.card_eq_coe_fintype_card]
 
-/-- The storage bound in exponential form: the number of storages a space-`s`-bounded machine
-passes through is at most `2 ^ (O(s))`, with constants depending only on the machine. -/
-theorem encard_storages_le_pow [Finite Symbol] [Finite State] :
-    ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      tm.RunsInSpace input s →
-      (Set.range fun p : tm.ComputationPath input => p.last.storage).encard ≤ a * 2 ^ (c * s) := by
+/--
+The storage bound in exponential form: the number of storages a space-`s`-bounded machine
+passes through is at most `2 ^ (O(s))`, with constants depending only on the machine.
+-/
+theorem encard_storages_le_pow [Finite Symbol] [Finite State]
+    : ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
+      tm.RunsInSpace input s
+        → (Set.range fun p : tm.ComputationPath input => p.last.storage).encard
+          ≤ a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
   refine ⟨a, c, fun input s hs => (tm.encard_storages_le hs).trans ?_⟩
   exact_mod_cast hpow s
 
-/-- The core bound in exponential form: the number of cores a space-`s`-bounded machine can reach
+/--
+The core bound in exponential form: the number of cores a space-`s`-bounded machine can reach
 is at most `(n + 2) * 2 ^ (O(s))`, with constants depending only on the machine and not on the
-input. -/
-theorem encard_cores_le_pow [Finite Symbol] [Finite State] :
-    ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
-      tm.RunsInSpace input s →
-      (Set.range fun p : tm.ComputationPath input => p.last.core).encard
-        ≤ (input.length + 2) * a * 2 ^ (c * s) := by
+input.
+-/
+theorem encard_cores_le_pow [Finite Symbol] [Finite State]
+    : ∃ a c : ℕ, ∀ (input : List Symbol) (s : ℕ),
+      tm.RunsInSpace input s
+        → (Set.range fun p : tm.ComputationPath input => p.last.core).encard
+          ≤ (input.length + 2) * a * 2 ^ (c * s) := by
   have : Fintype Symbol := Fintype.ofFinite Symbol
   have : Fintype State := Fintype.ofFinite State
   obtain ⟨a, c, hpow⟩ := storageBound_le_pow (Symbol := Symbol) (State := State) (k := k)
   refine ⟨a, c, fun input s hs => (tm.encard_cores_le hs).trans ?_⟩
-  calc ((input.length + 2) * storageBound Symbol State k s : ℕ∞)
-      ≤ ((input.length + 2) * (a * 2 ^ (c * s)) : ℕ) := by
-        exact_mod_cast Nat.mul_le_mul_left _ (hpow s)
+  calc
+    ((input.length + 2) * storageBound Symbol State k s : ℕ∞)
+        ≤ ((input.length + 2) * (a * 2 ^ (c * s)) : ℕ) := by
+      exact_mod_cast Nat.mul_le_mul_left _ (hpow s)
     _ = (input.length + 2) * a * 2 ^ (c * s) := by push_cast; ring
 
 end Turing.MultiTapeTM

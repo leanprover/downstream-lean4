@@ -18,8 +18,7 @@ set_option linter.hashCommand false
 open Cslib Cslib.Query
 
 /-- The honest comparison oracle on `ℕ`. -/
-def leOracle : {ι : Type} → LEQuery ℕ ι → ι :=
-  LEQuery.oracleOf fun a b => decide (a ≤ b)
+def leOracle : {ι : Type} → LEQuery ℕ ι → ι := LEQuery.oracleOf fun a b => decide (a ≤ b)
 
 -- The query sorts compute, and agree with the reference sorts.
 #guard (mergeSort [3, 1, 2]).eval leOracle == [1, 2, 3]
@@ -34,20 +33,20 @@ def leOracle : {ι : Type} → LEQuery ℕ ι → ι :=
 
 -- `mergeSort` is stable: with equal keys, payloads keep their input order.
 #guard (mergeSort [(1, "b"), (0, "x"), (1, "a")]).eval
-    (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1)) == [(0, "x"), (1, "b"), (1, "a")]
+    (LEQuery.oracleOf fun p q => decide (p.1 ≤ q.1))
+  == [(0, "x"), (1, "b"), (1, "a")]
 
 -- The complex multiplication examples compute.
 #guard (complexMulNaive (1 : Int) 2 3 4).eval ArithQuery.honest == (-5, 10)
 #guard (complexMulGauss (1 : Int) 2 3 4).eval ArithQuery.honest == (-5, 10)
 
 -- All correct comparison sorts agree under a linear-order oracle (`IsSort.eval_eq`).
-example (xs : List ℕ) :
-    (mergeSort xs).eval leOracle = (insertionSort xs).eval leOracle :=
+example (xs : List ℕ) : (mergeSort xs).eval leOracle = (insertionSort xs).eval leOracle :=
   mergeSort_isSort.eval_eq insertionSort_isSort (· ≤ ·) leOracle (fun _ _ => rfl) xs
 
 -- The sharp triangular bound for insertion sort.
-example (oracle : {ι : Type} → LEQuery ℕ ι → ι) (xs : List ℕ) :
-    (insertionSort xs).countQueries oracle ≤ xs.length * (xs.length - 1) / 2 :=
+example (oracle : {ι : Type} → LEQuery ℕ ι → ι) (xs : List ℕ)
+    : (insertionSort xs).countQueries oracle ≤ xs.length * (xs.length - 1) / 2 :=
   insertionSort_countQueries_le oracle xs
 
 -- Upper and lower bounds compose via `LowerBound.le_upperBound`.

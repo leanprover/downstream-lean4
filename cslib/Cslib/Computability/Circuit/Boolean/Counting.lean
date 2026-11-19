@@ -27,21 +27,20 @@ variable {n s : ℕ}
 abbrev computableFunctions (n s : ℕ) : Set (BooleanFunction n) :=
   Circuits.computableFunctions interpretation n s
 
-theorem mem_computableFunctions {f : BooleanFunction n} :
-    f ∈ computableFunctions n s ↔
-      ∃ c : Circuit signature n 1, c.Computes interpretation (single f) ∧ c.size ≤ s :=
+theorem mem_computableFunctions {f : BooleanFunction n}
+    : f ∈ computableFunctions n s
+      ↔ ∃ c : Circuit signature n 1, c.Computes interpretation (single f) ∧ c.size ≤ s :=
   Circuits.mem_computableFunctions
 
 /-- The De Morgan counting bound, accounting for gate relabelings. -/
-theorem card_computableFunctions_mul_factorial_le (n s : ℕ) :
-    (computableFunctions n s).ncard * s.factorial ≤
-      (s + 1) * (5 * (n + s + 1) ^ 2) ^ s * (n + s) := by
+theorem card_computableFunctions_mul_factorial_le (n s : ℕ)
+    : (computableFunctions n s).ncard * s.factorial
+      ≤ (s + 1) * (5 * (n + s + 1) ^ 2) ^ s * (n + s) := by
   apply Circuits.card_computableFunctions_mul_factorial_le interpretation n s
   · nlinarith [Nat.le_mul_self (n + s + 1)]
   · intro g hg
     have h := Line.card_le (σ := signature) n g 2 (fun op => by cases op <;> simp)
     simp only [Nat.card_eq_fintype_card, Op.card] at h
-    exact h.trans (Nat.mul_le_mul_left 5
-      (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
+    exact h.trans (Nat.mul_le_mul_left 5 (Nat.pow_le_pow_left (by omega : n + g + 1 ≤ n + s + 1) 2))
 
 end Cslib.Circuits.Boolean

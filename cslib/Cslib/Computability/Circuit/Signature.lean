@@ -41,15 +41,18 @@ inductive FullOp (k : Nat) Carrier where
 /-- The signature for FullOp. -/
 def fullSignature (k : Nat) (Carrier : Type v) : Signature where
   Op := FullOp k Carrier
-  Arity op := match op with
+  Arity op :=
+    match op with
     | .fn _ => k
     | .con _ => 0
 
-/-- The natural interpretation for FullOp, where we evaluate each constant
-and function to itself. -/
-def fullInterpretation : Interpretation (fullSignature k Carrier) Carrier :=
-  fun op tuple ↦ match op with
-    | .fn f => f tuple
-    | .con c => c
+/--
+The natural interpretation for FullOp, where we evaluate each constant
+and function to itself.
+-/
+def fullInterpretation : Interpretation (fullSignature k Carrier) Carrier := fun op tuple ↦
+  match op with
+  | .fn f => f tuple
+  | .con c => c
 
 end Cslib.Circuits

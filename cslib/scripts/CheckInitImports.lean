@@ -27,7 +27,7 @@ def exceptions : List Name := [
   `Cslib.Foundations.Lint.Basic,
   `Cslib.Tactic.GrindAttrs,
   `Cslib.Tactic.Membership,
-  `Cslib.Init,
+  `Cslib.Init
 ]
 
 def main : IO UInt32 := do
@@ -36,11 +36,11 @@ def main : IO UInt32 := do
     let env ← getEnv
     let mut publicImports : NameMap (Array Name) := {}
     for name in env.header.moduleNames, data in env.header.moduleData do
-      publicImports := publicImports.insert name <|
-        data.imports.filter (·.isExported) |>.map (·.module)
+      publicImports :=
+        publicImports.insert name <| data.imports.filter (·.isExported) |>.map (·.module)
     let graph := publicImports.transitiveClosure
     let noInitGraph :=
-      graph.filter (fun name imports => name.getRoot = `Cslib ∧ !imports.contains `Cslib.Init)
+      graph.filter (fun name imports => name.getRoot = `Cslib ∧ ! imports.contains `Cslib.Init)
     let diff := noInitGraph.keys.diff exceptions
     if diff.length > 0 then
       IO.eprintln s!"error: the following modules do not publicly import `Cslib.Init`: {diff}"

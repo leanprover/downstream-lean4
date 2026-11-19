@@ -28,9 +28,9 @@ def iSum (na : (i : I) → NA (State i) Symbol) : NA (Σ i, State i) Symbol wher
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- An infinite run of the sum automaton is an infinite run of one of its component automata. -/
 @[simp, scoped grind =]
-theorem iSum_run_iff {na : (i : I) → NA (State i) Symbol}
-    {xs : ωSequence Symbol} {ss : ωSequence (Σ i, State i)} :
-    (iSum na).Run xs ss ↔ ∃ i ss_i, (na i).Run xs ss_i ∧ ss_i.map (Sigma.mk i) = ss := by
+theorem iSum_run_iff
+    {na : (i : I) → NA (State i) Symbol} {xs : ωSequence Symbol} {ss : ωSequence (Σ i, State i)}
+    : (iSum na).Run xs ss ↔ ∃ i ss_i, (na i).Run xs ss_i ∧ ss_i.map (Sigma.mk i) = ss := by
   constructor
   · rintro ⟨h_init, h_next⟩
     obtain ⟨i, s0, h_s0, h_ss0⟩ := mem_iUnion.mp h_init
@@ -59,12 +59,14 @@ namespace Buchi
 
 open ωAcceptor
 
-/-- The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
-by its component automata. -/
+/--
+The ω-language accepted by the Buchi sum automata is the union of the ω-languages accepted
+by its component automata.
+-/
 @[simp]
-theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)} :
-    language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i))) =
-    ⨆ i, language (Buchi.mk (na i) (acc i)) := by
+theorem iSum_language_eq {na : (i : I) → NA (State i) Symbol} {acc : (i : I) → Set (State i)}
+    : language (Buchi.mk (iSum na) (⋃ i, Sigma.mk i '' (acc i)))
+      = ⨆ i, language (Buchi.mk (na i) (acc i)) := by
   apply mem_ext
   intro xs
   simp only [mem_language, mem_iSup]

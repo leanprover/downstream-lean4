@@ -13,14 +13,13 @@ open Cslib.StatefulProcesses Cslib.Mech
 
 -- Notation
 
-example (x : Var) (e : Expr Var Val FunId) :
-    (`(SPpre|x ≔ e) : Prefix Pid Var Val FunId SelLabel) =
-    (Prefix.assign x e) := by
+example (x : Var) (e : Expr Var Val FunId)
+    : (`(SPpre|x ≔ e) : Prefix Pid Var Val FunId SelLabel) = (Prefix.assign x e) := by
   rfl
 
-example (x : Var) (e : Expr Var Val FunId) :
-    (`(SP|x ≔ e; 0) : Process Pid Var Val FunId SelLabel ProcName) =
-    Process.pre (Prefix.assign x e) 0 := by
+example (x : Var) (e : Expr Var Val FunId)
+    : (`(SP|x ≔ e; 0) : Process Pid Var Val FunId SelLabel ProcName)
+      = Process.pre (Prefix.assign x e) 0 := by
   rfl
 
 -- Semantics
@@ -41,9 +40,12 @@ abbrev HelloProcess := Process String String String String String String
 abbrev HelloNetwork := Network String String String String String String
 
 def helloNet : HelloNetwork := fun p =>
-  if p = "p" then `(SP|"q"!"Hello"; 0)
-  else if p = "q" then `(SP|"p"?"x"; 0)
-  else 0
+  if p = "p" then
+    `(SP|"q"!"Hello"; 0)
+  else if p = "q" then
+    `(SP|"p"?"x"; 0)
+  else
+    0
 
 /-- A simple stringified configuration type. -/
 abbrev HelloCfg := Cfg String String String String String String
@@ -61,8 +63,9 @@ def helloLts : LTS HelloCfg (Cfg.TrLabel String String String) := Cfg.lts string
 
 -- Example transition.
 -- This is begging for more automation.
-example : helloLts.Tr helloCfg (.com "p" "q" "Hello")
-    (Cfg.mk 0 (helloCfg.store[("q", "x") := "Hello"])) := by
+example
+    : helloLts.Tr helloCfg (.com "p" "q" "Hello")
+      (Cfg.mk 0 (helloCfg.store[("q", "x") := "Hello"])) := by
   apply Cfg.Tr.com (heval := FunCallEval.EvalExpr.val) (hstore := rfl)
   apply Network.Tr.com (by constructor) (by constructor)
   ext p

@@ -29,26 +29,29 @@ variable {α : Type*}
 
 /-- The words of length `n` in `L`, as a Boolean-valued function of their letters. -/
 noncomputable def slice (L : Language α) (n : ℕ) : (Fin n → α) → Bool :=
-  open scoped Classical in fun x => decide (List.ofFn x ∈ L)
+  open scoped Classical in
+  fun x => decide (List.ofFn x ∈ L)
 
-@[simp] theorem slice_eq_true_iff {L : Language α} {n : ℕ} {x : Fin n → α} :
-    L.slice n x = true ↔ List.ofFn x ∈ L :=
+@[simp]
+theorem slice_eq_true_iff {L : Language α} {n : ℕ} {x : Fin n → α}
+    : L.slice n x = true ↔ List.ofFn x ∈ L :=
   @decide_eq_true_iff _ (Classical.propDecidable _)
 
 /-- The language whose slice at each length `n` is `f n`. -/
-def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α :=
-  {w | f w.length (fun i => w[i]) = true}
+def ofSlices (f : ∀ n, (Fin n → α) → Bool) : Language α := {w | f w.length (fun i => w[i]) = true}
 
-theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α} :
-    w ∈ ofSlices f ↔ f w.length (w[·]) := Iff.rfl
+theorem mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {w : List α}
+    : w ∈ ofSlices f ↔ f w.length (w[·]) :=
+  Iff.rfl
 
-@[simp] theorem ofFn_mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {n : ℕ} {x : Fin n → α} :
-    .ofFn x ∈ ofSlices f ↔ f n x := by
+@[simp]
+theorem ofFn_mem_ofSlices {f : ∀ n, (Fin n → α) → Bool} {n : ℕ} {x : Fin n → α}
+    : .ofFn x ∈ ofSlices f ↔ f n x := by
   congrm f $List.length_ofFn $((Fin.heq_fun_iff List.length_ofFn).mpr ?_)
   simp
 
-@[simp] theorem slice_ofSlices (f : ∀ n, (Fin n → α) → Bool) (n : ℕ) :
-    (ofSlices f).slice n = f n := by
+@[simp]
+theorem slice_ofSlices (f : ∀ n, (Fin n → α) → Bool) (n : ℕ) : (ofSlices f).slice n = f n := by
   ext x
   rw [Bool.eq_iff_iff, slice_eq_true_iff, ofFn_mem_ofSlices]
 

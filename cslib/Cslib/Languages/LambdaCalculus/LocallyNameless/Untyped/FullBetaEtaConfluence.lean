@@ -71,7 +71,8 @@ lemma stronglyCommute_eta_beta : StronglyCommute (@FullEta Var) FullBeta := by
   case abs M N xs st_body_beta ih =>
     cases h₁
     case base h_eta =>
-      cases h_eta with | eta =>
+      cases h_eta with
+      | eta =>
         have ⟨w, _⟩ := fresh_exists <| free_union [fv] Var
         have st_beta_w : app y₁ (fvar w) ⭢βᶠ N ^ fvar w := by grind [st_body_beta w]
         rcases invert_step_app_fvar st_beta_w with ⟨u', h, st_u⟩ | ⟨u1, _, _⟩

@@ -52,16 +52,17 @@ structure Line (σ : Signature) (inputCount gateCount : Nat) where
   wires : Fin (σ.Arity op) → Wire inputCount gateCount
 
 /-- A line is an operation symbol together with a tuple of argument wires. -/
-def Line.equiv (σ : Signature) (inputCount gateCount : Nat) :
-    Line σ inputCount gateCount ≃ Σ op : σ.Op, Fin (σ.Arity op) → Wire inputCount gateCount where
+def Line.equiv (σ : Signature) (inputCount gateCount : Nat)
+    : Line σ inputCount gateCount ≃ Σ op : σ.Op, Fin (σ.Arity op) → Wire inputCount gateCount where
   toFun line := ⟨line.op, line.wires⟩
   invFun line := ⟨line.1, line.2⟩
   left_inv _ := rfl
   right_inv _ := rfl
 
 @[ext (iff := false)]
-protected theorem Line.ext {l₁ l₂ : Line σ inputCount gateCount} (hop : l₁.op = l₂.op)
-    (hw : l₁.wires = hop ▸ l₂.wires) : l₁ = l₂ := by
+protected theorem Line.ext
+    {l₁ l₂ : Line σ inputCount gateCount} (hop : l₁.op = l₂.op) (hw : l₁.wires = hop ▸ l₂.wires)
+    : l₁ = l₂ := by
   cases l₁
   cases l₂
   cases hop
@@ -70,47 +71,55 @@ protected theorem Line.ext {l₁ l₂ : Line σ inputCount gateCount} (hop : l�
 
 /-- Map the inputs of a line through a function, if it is connected to any. -/
 @[implicit_reducible, simps -fullyApplied op wires]
-def Line.mapInputs {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
-    (l : Line σ inputCount gateCount) : Line σ inputCount' gateCount where
+def Line.mapInputs
+    {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') (l : Line σ inputCount gateCount)
+    : Line σ inputCount' gateCount where
   op := l.op
   wires := .mapInputs f ∘ l.wires
 
-@[simp] theorem Line.mapInputs_id :
-    (Line.mapInputs id : Line σ inputCount gateCount → Line σ inputCount gateCount) = id := by
+@[simp]
+theorem Line.mapInputs_id
+    : (Line.mapInputs id : Line σ inputCount gateCount → Line σ inputCount gateCount) = id := by
   funext line
   ext <;> simp
 
 @[simp]
-theorem Line.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
+theorem Line.mapInputs_mapInputs
+    {inputCount' inputCount'' : ℕ}
     (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
-    (l : Line σ inputCount gateCount) : (l.mapInputs f).mapInputs g = l.mapInputs (g ∘ f) := by
+    (l : Line σ inputCount gateCount)
+    : (l.mapInputs f).mapInputs g = l.mapInputs (g ∘ f) := by
   ext <;> simp
 
 /-- Apply a function to every wire read by a line. -/
 def Line.mapWires
     (line : Line σ sourceInputCount sourceGateCount)
-    (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount) :
-    Line σ targetInputCount targetGateCount where
+    (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount)
+    : Line σ targetInputCount targetGateCount where
   op := line.op
   wires := wireMap ∘ line.wires
 
-@[simp] theorem Line.mapWires_op
-    (line : Line σ sourceInputCount sourceGateCount)
-    (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount) :
-    (line.mapWires wireMap).op = line.op := rfl
-
-@[simp] theorem Line.mapWires_wires
+@[simp]
+theorem Line.mapWires_op
     (line : Line σ sourceInputCount sourceGateCount)
     (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount)
-    (argument : Fin (σ.Arity line.op)) :
-    (line.mapWires wireMap).wires argument = wireMap (line.wires argument) := rfl
+    : (line.mapWires wireMap).op = line.op :=
+  rfl
+
+@[simp]
+theorem Line.mapWires_wires
+    (line : Line σ sourceInputCount sourceGateCount)
+    (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount)
+    (argument : Fin (σ.Arity line.op))
+    : (line.mapWires wireMap).wires argument = wireMap (line.wires argument) :=
+  rfl
 
 /-- A topologically ordered straight-line program, indexed by its gate count. -/
 inductive Program (σ : Signature.{v}) (inputCount : Nat) : Nat → Type v where
   | empty : Program σ inputCount 0
-  | gate {gateCount : Nat} :
-      Program σ inputCount gateCount → Line σ inputCount gateCount →
-        Program σ inputCount (gateCount + 1)
+  | gate {gateCount : Nat}
+    : Program σ inputCount gateCount → Line σ inputCount gateCount
+      → Program σ inputCount (gateCount + 1)
 
 /-- The empty program is the only program with no gates. -/
 def Program.emptyEquiv (σ : Signature) (inputCount : Nat) : Program σ inputCount 0 ≃ PUnit.{1} where
@@ -120,143 +129,167 @@ def Program.emptyEquiv (σ : Signature) (inputCount : Nat) : Program σ inputCou
   right_inv x := by cases x; rfl
 
 /-- A nonempty program is a prefix followed by its last gate. -/
-def Program.gateEquiv (σ : Signature) (inputCount gateCount : Nat) :
-    Program σ inputCount (gateCount + 1) ≃
-      Program σ inputCount gateCount × Line σ inputCount gateCount where
-  toFun | .gate p line => (p, line)
+def Program.gateEquiv (σ : Signature) (inputCount gateCount : Nat)
+    : Program σ inputCount (gateCount + 1)
+      ≃ Program σ inputCount gateCount × Line σ inputCount gateCount where
+  toFun
+    | .gate p line => (p, line)
   invFun p := p.1.gate p.2
   left_inv p := by cases p; rfl
   right_inv _ := rfl
 
-/-- Fold the lines from the first gate to the last. The step accepts a line at any gate count,
-retaining its original bound on references to previous gates. -/
-def Program.foldl {gateCount : Nat} (p : Program σ inputCount gateCount)
-    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) : α :=
+/--
+Fold the lines from the first gate to the last. The step accepts a line at any gate count,
+retaining its original bound on references to previous gates.
+-/
+def Program.foldl
+    {gateCount : Nat} (p : Program σ inputCount gateCount)
+    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α)
+    : α :=
   match p with
   | .empty => init
   | .gate q line => f (q.foldl f init) line
 
-@[simp] theorem Program.foldl_empty
-    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) :
-    (Program.empty : Program σ inputCount 0).foldl f init = init := rfl
+@[simp]
+theorem Program.foldl_empty (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α)
+    : (Program.empty : Program σ inputCount 0).foldl f init = init :=
+  rfl
 
-@[simp] theorem Program.foldl_gate (p : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α) :
-    (p.gate line).foldl f init = f (p.foldl f init) line := rfl
+@[simp]
+theorem Program.foldl_gate
+    (p : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (f : ∀ {k : Nat}, α → Line σ inputCount k → α) (init : α)
+    : (p.gate line).foldl f init = f (p.foldl f init) line :=
+  rfl
 
-/-- Two left folds preserve a relation if their initial accumulators are related and each
-pair of steps preserves it. For example, use equality or an order relation. -/
-theorem Program.foldl_rel (p : Program σ inputCount gateCount) (R : α → β → Prop)
-    {f : ∀ {k : Nat}, α → Line σ inputCount k → α}
-    {f' : ∀ {k : Nat}, β → Line σ inputCount k → β}
+/--
+Two left folds preserve a relation if their initial accumulators are related and each
+pair of steps preserves it. For example, use equality or an order relation.
+-/
+theorem Program.foldl_rel
+    (p : Program σ inputCount gateCount)
+    (R : α → β → Prop)
+    {f : ∀ {k : Nat}, α → Line σ inputCount k → α} {f' : ∀ {k : Nat}, β → Line σ inputCount k → β}
     {a : α} {b : β} (hinit : R a b)
-    (hstep : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k),
-      R a b → R (f a line) (f' b line)) : R (p.foldl f a) (p.foldl f' b) := by
+    (hstep
+      : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k), R a b → R (f a line) (f' b line))
+    : R (p.foldl f a) (p.foldl f' b) := by
   induction p with
   | empty => exact hinit
   | gate q line ih => exact hstep line ih
 
-/-- Fold the lines from the last gate to the first. Each line retains its original bound on
-references to previous gates, and the step receives the line before the accumulator. -/
-def Program.foldr {gateCount : Nat} (p : Program σ inputCount gateCount)
-    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) : α :=
+/--
+Fold the lines from the last gate to the first. Each line retains its original bound on
+references to previous gates, and the step receives the line before the accumulator.
+-/
+def Program.foldr
+    {gateCount : Nat} (p : Program σ inputCount gateCount)
+    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α)
+    : α :=
   match p with
   | .empty => init
   | .gate q line => q.foldr f (f line init)
 
-@[simp] theorem Program.foldr_empty
-    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) :
-    (Program.empty : Program σ inputCount 0).foldr f init = init := rfl
+@[simp]
+theorem Program.foldr_empty (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α)
+    : (Program.empty : Program σ inputCount 0).foldr f init = init :=
+  rfl
 
-@[simp] theorem Program.foldr_gate (p : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α) :
-    (p.gate line).foldr f init = p.foldr f (f line init) := rfl
+@[simp]
+theorem Program.foldr_gate
+    (p : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (f : ∀ {k : Nat}, Line σ inputCount k → α → α) (init : α)
+    : (p.gate line).foldr f init = p.foldr f (f line init) :=
+  rfl
 
-/-- Two right folds preserve a relation if their initial accumulators are related and each
-pair of steps preserves it. -/
-theorem Program.foldr_rel (p : Program σ inputCount gateCount) (R : α → β → Prop)
-    {f : ∀ {k : Nat}, Line σ inputCount k → α → α}
-    {f' : ∀ {k : Nat}, Line σ inputCount k → β → β}
+/--
+Two right folds preserve a relation if their initial accumulators are related and each
+pair of steps preserves it.
+-/
+theorem Program.foldr_rel
+    (p : Program σ inputCount gateCount)
+    (R : α → β → Prop)
+    {f : ∀ {k : Nat}, Line σ inputCount k → α → α} {f' : ∀ {k : Nat}, Line σ inputCount k → β → β}
     {a : α} {b : β} (hinit : R a b)
-    (hstep : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k),
-      R a b → R (f line a) (f' line b)) : R (p.foldr f a) (p.foldr f' b) := by
+    (hstep
+      : ∀ {k : Nat} {a : α} {b : β} (line : Line σ inputCount k), R a b → R (f line a) (f' line b))
+    : R (p.foldr f a) (p.foldr f' b) := by
   induction p generalizing a b with
   | empty => exact hinit
   | gate q line ih => exact ih (hstep line hinit)
 
 /-- Map the inputs of a program through a function. -/
-def Program.mapInputs {gateCount inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
-    Program σ inputCount gateCount → Program σ inputCount' gateCount
+def Program.mapInputs {gateCount inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    : Program σ inputCount gateCount → Program σ inputCount' gateCount
   | .empty => .empty
   | .gate p l => .gate (p.mapInputs f) (l.mapInputs f)
 
 @[simp]
-theorem Program.mapInputs_empty {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount') :
-    (.empty : Program σ inputCount 0).mapInputs f = .empty :=
+theorem Program.mapInputs_empty {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    : (.empty : Program σ inputCount 0).mapInputs f = .empty :=
   rfl
 
 @[simp]
-theorem Program.mapInputs_gate {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
-    (p : Program σ inputCount gateCount) (l : Line σ inputCount gateCount) :
-    (p.gate l).mapInputs f = .gate (p.mapInputs f) (l.mapInputs f) :=
+theorem Program.mapInputs_gate
+    {inputCount' : ℕ} (f : Fin inputCount → Fin inputCount')
+    (p : Program σ inputCount gateCount) (l : Line σ inputCount gateCount)
+    : (p.gate l).mapInputs f = .gate (p.mapInputs f) (l.mapInputs f) :=
   rfl
 
-@[simp] theorem Program.mapInputs_id :
-    (Program.mapInputs id :
-      Program σ inputCount gateCount → Program σ inputCount gateCount) = id := by
+@[simp]
+theorem Program.mapInputs_id
+    : (Program.mapInputs id : Program σ inputCount gateCount → Program σ inputCount gateCount)
+      = id := by
   funext program
   induction program with
   | empty => rfl
   | gate p line ih => simp only [Program.mapInputs_gate, ih, Line.mapInputs_id, id_eq]
 
 @[simp]
-theorem Program.mapInputs_mapInputs {inputCount' inputCount'' : ℕ}
+theorem Program.mapInputs_mapInputs
+    {inputCount' inputCount'' : ℕ}
     (g : Fin inputCount' → Fin inputCount'') (f : Fin inputCount → Fin inputCount')
-    (p : Program σ inputCount gateCount) : (p.mapInputs f).mapInputs g = p.mapInputs (g ∘ f) := by
+    (p : Program σ inputCount gateCount)
+    : (p.mapInputs f).mapInputs g = p.mapInputs (g ∘ f) := by
   induction p <;> simp! [*]
 
 /-- Every gate in a program has at most `r` arguments. -/
 def Program.FanInAtMost {gateCount : Nat} : (program : Program σ inputCount gateCount) → Nat → Prop
   | .empty, _ => True
-  | .gate program line, r =>
-      program.FanInAtMost r ∧ σ.Arity line.op ≤ r
+  | .gate program line, r => program.FanInAtMost r ∧ σ.Arity line.op ≤ r
 
 /-- Bounded fan-in is decidable for every concrete program. -/
-instance Program.instDecidableFanInAtMost {gateCount : Nat}
-    (program : Program σ inputCount gateCount)
-    (r : Nat) : Decidable (program.FanInAtMost r) :=
+instance Program.instDecidableFanInAtMost
+    {gateCount : Nat} (program : Program σ inputCount gateCount) (r : Nat)
+    : Decidable (program.FanInAtMost r) :=
   match program with
   | .empty => isTrue trivial
   | .gate prior line =>
-      @instDecidableAnd (prior.FanInAtMost r)
-        (σ.Arity line.op ≤ r)
-        (Program.instDecidableFanInAtMost prior r) inferInstance
+    @instDecidableAnd (prior.FanInAtMost r) (σ.Arity line.op ≤ r)
+      (Program.instDecidableFanInAtMost prior r) inferInstance
 
 /-- Evaluate a line from the values of the inputs and preceding gates. -/
 def Line.eval
-    (line : Line σ inputCount gateCount)
-    (i : Interpretation σ U)
-    (inputs : Fin inputCount → U)
-    (gates : Fin gateCount → U) : U :=
+    (line : Line σ inputCount gateCount) (i : Interpretation σ U) (inputs : Fin inputCount → U)
+    (gates : Fin gateCount → U)
+    : U :=
   i line.op (Wire.elim inputs gates ∘ line.wires)
 
-/-- Mapping a line's wires preserves evaluation when the new valuation agrees
+/--
+Mapping a line's wires preserves evaluation when the new valuation agrees
 with the old valuation along the map. The source and target input namespaces
-may differ. -/
+may differ.
+-/
 theorem Line.eval_mapWires
     (line : Line σ sourceInputCount sourceGateCount)
     (wireMap : Wire sourceInputCount sourceGateCount → Wire targetInputCount targetGateCount)
     (interpretation : Interpretation σ U)
-    (oldInputs : Fin sourceInputCount → U)
-    (newInputs : Fin targetInputCount → U)
-    (oldGates : Fin sourceGateCount → U)
-    (newGates : Fin targetGateCount → U)
-    (preserves : ∀ wire,
-      Wire.elim newInputs newGates (wireMap wire) = Wire.elim oldInputs oldGates wire) :
-    (line.mapWires wireMap).eval interpretation newInputs newGates =
-      line.eval interpretation oldInputs oldGates := by
+    (oldInputs : Fin sourceInputCount → U) (newInputs : Fin targetInputCount → U)
+    (oldGates : Fin sourceGateCount → U) (newGates : Fin targetGateCount → U)
+    (preserves
+      : ∀ wire, Wire.elim newInputs newGates (wireMap wire) = Wire.elim oldInputs oldGates wire)
+    : (line.mapWires wireMap).eval interpretation newInputs newGates
+      = line.eval interpretation oldInputs oldGates := by
   unfold Line.mapWires Line.eval
   congr 1
   funext argument
@@ -264,10 +297,12 @@ theorem Line.eval_mapWires
   exact preserves (line.wires argument)
 
 /-- Evaluating a line with relabeled inputs precomposes its input valuation. -/
-@[simp] theorem Line.eval_mapInputs {inputCount' : ℕ}
+@[simp]
+theorem Line.eval_mapInputs
+    {inputCount' : ℕ}
     (line : Line σ inputCount gateCount) (f : Fin inputCount → Fin inputCount')
-    (i : Interpretation σ U) (inputs : Fin inputCount' → U) (gates : Fin gateCount → U) :
-    (line.mapInputs f).eval i inputs gates = line.eval i (inputs ∘ f) gates :=
+    (i : Interpretation σ U) (inputs : Fin inputCount' → U) (gates : Fin gateCount → U)
+    : (line.mapInputs f).eval i inputs gates = line.eval i (inputs ∘ f) gates :=
   line.eval_mapWires (Wire.mapInputs f) i (inputs ∘ f) inputs gates gates
     (Wire.elim_mapInputs f inputs gates)
 
@@ -276,32 +311,25 @@ theorem Line.eval_mapRenaming
     (line : Line σ inputCount sourceGateCount)
     (ρ : Wire.Renaming inputCount sourceGateCount targetGateCount)
     (interpretation : Interpretation σ U)
-    (inputs : Fin inputCount → U)
-    (oldGates : Fin sourceGateCount → U)
+    (inputs : Fin inputCount → U) (oldGates : Fin sourceGateCount → U)
     (newGates : Fin targetGateCount → U)
-    (preservesGates : ∀ gate, Wire.elim inputs newGates (ρ.gates gate) = oldGates gate) :
-    (line.mapWires ρ).eval interpretation inputs newGates =
-      line.eval interpretation inputs oldGates := by
+    (preservesGates : ∀ gate, Wire.elim inputs newGates (ρ.gates gate) = oldGates gate)
+    : (line.mapWires ρ).eval interpretation inputs newGates
+      = line.eval interpretation inputs oldGates := by
   apply Line.eval_mapWires
   exact ρ.value_apply inputs oldGates newGates preservesGates
 
 /-- The depth of a line, given the depth of every wire it may read. -/
-def Line.depth
-    (line : Line σ inputCount gateCount)
-    (wireDepths : Wire inputCount gateCount → Nat) : Nat :=
-  Nat.succ <| Fin.foldl (σ.Arity line.op)
-    (fun depth k => max depth (wireDepths (line.wires k))) 0
+def Line.depth (line : Line σ inputCount gateCount) (wireDepths : Wire inputCount gateCount → Nat)
+    : Nat :=
+  Nat.succ <| Fin.foldl (σ.Arity line.op) (fun depth k => max depth (wireDepths (line.wires k))) 0
 
 /-- Evaluating a line commutes with a homomorphism. -/
 theorem Line.map_eval
-    {i₁ : Interpretation σ U₁}
-    {i₂ : Interpretation σ U₂}
-    (line : Line σ inputCount gateCount)
-    (h : Homomorphism i₁ i₂)
-    (inputs : Fin inputCount → U₁)
-    (gates : Fin gateCount → U₁) :
-    h.map (line.eval i₁ inputs gates) =
-      line.eval i₂ (h.map ∘ inputs) (h.map ∘ gates) := by
+    {i₁ : Interpretation σ U₁} {i₂ : Interpretation σ U₂}
+    (line : Line σ inputCount gateCount) (h : Homomorphism i₁ i₂) (inputs : Fin inputCount → U₁)
+    (gates : Fin gateCount → U₁)
+    : h.map (line.eval i₁ inputs gates) = line.eval i₂ (h.map ∘ inputs) (h.map ∘ gates) := by
   rw [Line.eval, Line.eval, h.homomorphic]
   congr 1
   funext k
@@ -309,53 +337,51 @@ theorem Line.map_eval
   cases line.wires k <;> rfl
 
 /-- Evaluate every gate in a program, in program order. -/
-def Program.eval {gateCount : Nat}
-    (p : Program σ inputCount gateCount)
-    (i : Interpretation σ U)
-    (x : Fin inputCount → U) : Fin gateCount → U :=
+def Program.eval
+    {gateCount : Nat} (p : Program σ inputCount gateCount)
+    (i : Interpretation σ U) (x : Fin inputCount → U)
+    : Fin gateCount → U :=
   match p with
   | .empty => Fin.elim0
   | .gate p line =>
-      let prior := p.eval i x
-      Fin.lastCases (line.eval i x prior) prior
+    let prior := p.eval i x
+    Fin.lastCases (line.eval i x prior) prior
 
-@[simp] theorem Program.eval_gate_last
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U) :
-    (program.gate line).eval interpretation input (Fin.last gateCount) =
-      line.eval interpretation input (program.eval interpretation input) := by
+@[simp]
+theorem Program.eval_gate_last
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (interpretation : Interpretation σ U) (input : Fin inputCount → U)
+    : (program.gate line).eval interpretation input (Fin.last gateCount)
+      = line.eval interpretation input (program.eval interpretation input) := by
   simp [Program.eval]
 
-@[simp] theorem Program.eval_gate_castSucc
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U)
-    (gate : Fin gateCount) :
-    (program.gate line).eval interpretation input gate.castSucc =
-      program.eval interpretation input gate := by
+@[simp]
+theorem Program.eval_gate_castSucc
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (interpretation : Interpretation σ U) (input : Fin inputCount → U) (gate : Fin gateCount)
+    : (program.gate line).eval interpretation input gate.castSucc
+      = program.eval interpretation input gate := by
   simp [Program.eval]
 
 /-- Evaluating a program with relabeled inputs precomposes its input valuation. -/
-@[simp] theorem Program.eval_mapInputs {inputCount' : ℕ}
+@[simp]
+theorem Program.eval_mapInputs
+    {inputCount' : ℕ}
     (program : Program σ inputCount gateCount) (f : Fin inputCount → Fin inputCount')
-    (i : Interpretation σ U) (inputs : Fin inputCount' → U) :
-    (program.mapInputs f).eval i inputs = program.eval i (inputs ∘ f) := by
+    (i : Interpretation σ U) (inputs : Fin inputCount' → U)
+    : (program.mapInputs f).eval i inputs = program.eval i (inputs ∘ f) := by
   induction program with
   | empty => rfl
-  | gate p line ih =>
-    simp only [Program.mapInputs_gate, Program.eval, ih, Line.eval_mapInputs]
+  | gate p line ih => simp only [Program.mapInputs_gate, Program.eval, ih, Line.eval_mapInputs]
 
 /-- The depth of every gate in a program. Inputs have implicit depth zero. -/
 def Program.depths {gateCount : Nat} (p : Program σ inputCount gateCount) : Fin gateCount → Nat :=
   match p with
   | .empty => Fin.elim0
   | .gate p line =>
-      let prior := p.depths
-      let wireDepths := Wire.elim (fun _ => 0) prior
-      Fin.lastCases (line.depth wireDepths) prior
+    let prior := p.depths
+    let wireDepths := Wire.elim (fun _ => 0) prior
+    Fin.lastCases (line.depth wireDepths) prior
 
 /-- The depth of every input or gate wire in a program. -/
 def Program.wireDepths (p : Program σ inputCount gateCount) : Wire inputCount gateCount → Nat :=
@@ -367,12 +393,9 @@ def Program.depth (p : Program σ inputCount gateCount) : Nat :=
 
 /-- Evaluating a program commutes with a homomorphism. -/
 theorem Program.map_eval
-    {i₁ : Interpretation σ U₁}
-    {i₂ : Interpretation σ U₂}
-    (p : Program σ inputCount gateCount)
-    (h : Homomorphism i₁ i₂)
-    (x : Fin inputCount → U₁) :
-    h.map ∘ p.eval i₁ x = p.eval i₂ (h.map ∘ x) := by
+    {i₁ : Interpretation σ U₁} {i₂ : Interpretation σ U₂}
+    (p : Program σ inputCount gateCount) (h : Homomorphism i₁ i₂) (x : Fin inputCount → U₁)
+    : h.map ∘ p.eval i₁ x = p.eval i₂ (h.map ∘ x) := by
   induction p with
   | empty => exact Subsingleton.elim _ _
   | gate q line ih =>
@@ -381,78 +404,73 @@ theorem Program.map_eval
 
 /-- The value of every input and gate wire. -/
 def Program.trace
-    (p : Program σ inputCount gateCount)
-    (i : Interpretation σ U)
-    (x : Fin inputCount → U) : Wire inputCount gateCount → U :=
+    (p : Program σ inputCount gateCount) (i : Interpretation σ U) (x : Fin inputCount → U)
+    : Wire inputCount gateCount → U :=
   Wire.elim x (p.eval i x)
 
-@[simp] theorem Program.trace_input
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U)
-    (sourceInput : Fin inputCount) :
-    program.trace interpretation input (Wire.input sourceInput) =
-      input sourceInput := rfl
+@[simp]
+theorem Program.trace_input
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (input : Fin inputCount → U) (sourceInput : Fin inputCount)
+    : program.trace interpretation input (Wire.input sourceInput) = input sourceInput :=
+  rfl
 
-@[simp] theorem Program.trace_gate_castSucc
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U)
-    (wire : Wire inputCount gateCount) :
-    (program.gate line).trace interpretation input wire.castSucc =
-      program.trace interpretation input wire := by
+@[simp]
+theorem Program.trace_gate_castSucc
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (interpretation : Interpretation σ U) (input : Fin inputCount → U)
+    (wire : Wire inputCount gateCount)
+    : (program.gate line).trace interpretation input wire.castSucc
+      = program.trace interpretation input wire := by
   cases wire <;> simp [Program.trace]
 
 /-- The interpretation that computes the original inputs supporting a wire. -/
-def supportInterpretation (σ : Signature) (inputCount : ℕ) :
-    Interpretation σ (Finset (Fin inputCount)) :=
-  fun _ supports => Finset.univ.biUnion supports
+def supportInterpretation (σ : Signature) (inputCount : ℕ)
+    : Interpretation σ (Finset (Fin inputCount)) := fun _ supports =>
+  Finset.univ.biUnion supports
 
 /-- The original inputs supporting a line, given the support of each wire it may read. -/
 def Line.inputSupport
     (line : Line σ inputCount gateCount)
-    (wireSupport : Wire inputCount gateCount → Finset (Fin inputCount)) :
-    Finset (Fin inputCount) :=
+    (wireSupport : Wire inputCount gateCount → Finset (Fin inputCount))
+    : Finset (Fin inputCount) :=
   Finset.univ.biUnion fun argument => wireSupport (line.wires argument)
 
-@[simp] theorem Line.mem_inputSupport
+@[simp]
+theorem Line.mem_inputSupport
     {line : Line σ inputCount gateCount}
-    {wireSupport : Wire inputCount gateCount → Finset (Fin inputCount)}
-    {input : Fin inputCount} :
-    input ∈ line.inputSupport wireSupport ↔
-      ∃ argument, input ∈ wireSupport (line.wires argument) := by
+    {wireSupport : Wire inputCount gateCount → Finset (Fin inputCount)} {input : Fin inputCount}
+    : input ∈ line.inputSupport wireSupport
+      ↔ ∃ argument, input ∈ wireSupport (line.wires argument) := by
   simp [Line.inputSupport]
 
 /-- The original inputs that can reach a wire through the program. -/
-def Program.wireSupport
-    (program : Program σ inputCount gateCount) :
-    Wire inputCount gateCount → Finset (Fin inputCount) :=
+def Program.wireSupport (program : Program σ inputCount gateCount)
+    : Wire inputCount gateCount → Finset (Fin inputCount) :=
   program.trace (supportInterpretation σ inputCount) (fun input => {input})
 
-@[simp] theorem Program.wireSupport_input
-    (program : Program σ inputCount gateCount)
-    (input : Fin inputCount) :
-    program.wireSupport (.input input) = {input} :=
+@[simp]
+theorem Program.wireSupport_input
+    (program : Program σ inputCount gateCount) (input : Fin inputCount)
+    : program.wireSupport (.input input) = {input} :=
   rfl
 
-@[simp] theorem Program.wireSupport_gate_castSucc
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (wire : Wire inputCount gateCount) :
-    (program.gate line).wireSupport wire.castSucc = program.wireSupport wire :=
-  program.trace_gate_castSucc line
-    (supportInterpretation σ inputCount) (fun input => {input}) wire
+@[simp]
+theorem Program.wireSupport_gate_castSucc
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (wire : Wire inputCount gateCount)
+    : (program.gate line).wireSupport wire.castSucc = program.wireSupport wire :=
+  program.trace_gate_castSucc line (supportInterpretation σ inputCount) (fun input => {input}) wire
 
-@[simp] theorem Program.wireSupport_gate_last
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount) :
-    (program.gate line).wireSupport (.gate (Fin.last gateCount)) =
-      line.inputSupport program.wireSupport := by
-  change
-    (program.gate line).eval
-        (supportInterpretation σ inputCount) (fun input => {input})
-        (Fin.last gateCount) = _
+@[simp]
+theorem Program.wireSupport_gate_last
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    : (program.gate line).wireSupport (.gate (Fin.last gateCount))
+      = line.inputSupport program.wireSupport := by
+  change (program.gate line).eval (supportInterpretation σ inputCount)
+      (fun input => {input})
+      (Fin.last gateCount)
+    = _
   rw [Program.eval_gate_last]
   rfl
 
@@ -460,43 +478,37 @@ def Program.wireSupport
 theorem Program.trace_congr
     (program : Program σ inputCount gateCount)
     (interpretation : Interpretation σ U)
-    (left right : Fin inputCount → U)
-    (wire : Wire inputCount gateCount)
-    (agree : ∀ input ∈ program.wireSupport wire, left input = right input) :
-    program.trace interpretation left wire =
-      program.trace interpretation right wire := by
+    (left right : Fin inputCount → U) (wire : Wire inputCount gateCount)
+    (agree : ∀ input ∈ program.wireSupport wire, left input = right input)
+    : program.trace interpretation left wire = program.trace interpretation right wire := by
   induction program with
   | empty =>
-      cases wire with
-      | input input => exact agree input (by simp)
-      | gate gate => exact Fin.elim0 gate
+    cases wire with
+    | input input => exact agree input (by simp)
+    | gate gate => exact Fin.elim0 gate
   | @gate gateCount program line ih =>
-      induction wire using Wire.lastCases with
-      | last =>
-          change
-            (program.gate line).eval interpretation left (Fin.last gateCount) =
-              (program.gate line).eval interpretation right (Fin.last gateCount)
-          rw [Program.eval_gate_last, Program.eval_gate_last]
-          unfold Line.eval
-          congr 1 with argument
-          apply ih (line.wires argument)
-          intro input present
-          apply agree input
-          rw [Program.wireSupport_gate_last]
-          exact Line.mem_inputSupport.mpr ⟨argument, present⟩
-      | castSucc wire =>
-          rw [Program.trace_gate_castSucc, Program.trace_gate_castSucc]
-          apply ih wire
-          simpa using agree
+    induction wire using Wire.lastCases with
+    | last =>
+      change (program.gate line).eval interpretation left (Fin.last gateCount)
+        = (program.gate line).eval interpretation right (Fin.last gateCount)
+      rw [Program.eval_gate_last, Program.eval_gate_last]
+      unfold Line.eval
+      congr 1 with argument
+      apply ih (line.wires argument)
+      intro input present
+      apply agree input
+      rw [Program.wireSupport_gate_last]
+      exact Line.mem_inputSupport.mpr ⟨argument, present⟩
+    | castSucc wire =>
+      rw [Program.trace_gate_castSucc, Program.trace_gate_castSucc]
+      apply ih wire
+      simpa using agree
 
 /-- Evaluating every input and gate wire commutes with a homomorphism. -/
 theorem Program.map_trace
-    {i₁ : Interpretation σ U₁}
-    {i₂ : Interpretation σ U₂}
-    (p : Program σ inputCount gateCount)
-    (h : Homomorphism i₁ i₂)
-    (x : Fin inputCount → U₁) :
-    h.map ∘ p.trace i₁ x = p.trace i₂ (h.map ∘ x) := by
+    {i₁ : Interpretation σ U₁} {i₂ : Interpretation σ U₂}
+    (p : Program σ inputCount gateCount) (h : Homomorphism i₁ i₂) (x : Fin inputCount → U₁)
+    : h.map ∘ p.trace i₁ x = p.trace i₂ (h.map ∘ x) := by
   funext wire
   cases wire with
   | input => rfl
@@ -504,141 +516,129 @@ theorem Program.map_trace
 
 /-- The scalar function computed by an internal gate. -/
 def Program.gateFunction
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (gate : Fin gateCount)
-    (input : Fin inputCount → U) : U :=
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (gate : Fin gateCount) (input : Fin inputCount → U)
+    : U :=
   program.eval interpretation input gate
 
 /-- The scalar function carried by an input or internal-gate wire. -/
 def Program.wireFunction
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (wire : Wire inputCount gateCount)
-    (input : Fin inputCount → U) : U :=
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (wire : Wire inputCount gateCount) (input : Fin inputCount → U)
+    : U :=
   program.trace interpretation input wire
 
-@[simp] theorem Program.gateFunction_apply
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
+@[simp]
+theorem Program.gateFunction_apply
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (gate : Fin gateCount) (input : Fin inputCount → U)
+    : program.gateFunction interpretation gate input = program.eval interpretation input gate :=
+  rfl
+
+@[simp]
+theorem Program.wireFunction_input
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (inputWire : Fin inputCount)
+    : program.wireFunction interpretation (Wire.input inputWire) = fun input => input inputWire :=
+  rfl
+
+@[simp]
+theorem Program.wireFunction_gate
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
     (gate : Fin gateCount)
-    (input : Fin inputCount → U) :
-    program.gateFunction interpretation gate input =
-      program.eval interpretation input gate := rfl
+    : program.wireFunction interpretation (Wire.gate gate)
+      = program.gateFunction interpretation gate :=
+  rfl
 
-@[simp] theorem Program.wireFunction_input
-    (program : Program σ inputCount gateCount)
+@[simp]
+theorem Program.gateFunction_gate_last
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
     (interpretation : Interpretation σ U)
-    (inputWire : Fin inputCount) :
-    program.wireFunction interpretation (Wire.input inputWire) =
-      fun input => input inputWire := rfl
-
-@[simp] theorem Program.wireFunction_gate
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (gate : Fin gateCount) :
-    program.wireFunction interpretation (Wire.gate gate) =
-      program.gateFunction interpretation gate := rfl
-
-@[simp] theorem Program.gateFunction_gate_last
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U) :
-    (program.gate line).gateFunction interpretation (Fin.last gateCount) =
-      fun input => line.eval interpretation input
-        (program.eval interpretation input) := by
+    : (program.gate line).gateFunction interpretation (Fin.last gateCount)
+      = fun input => line.eval interpretation input (program.eval interpretation input) := by
   funext input
   exact Program.eval_gate_last program line interpretation input
 
-@[simp] theorem Program.gateFunction_gate_castSucc
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (gate : Fin gateCount) :
-    (program.gate line).gateFunction interpretation gate.castSucc =
-      program.gateFunction interpretation gate := by
+@[simp]
+theorem Program.gateFunction_gate_castSucc
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (interpretation : Interpretation σ U) (gate : Fin gateCount)
+    : (program.gate line).gateFunction interpretation gate.castSucc
+      = program.gateFunction interpretation gate := by
   funext input
   exact Program.eval_gate_castSucc program line interpretation input gate
 
-@[simp] theorem Program.trace_gateWire
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U)
-    (gate : Fin gateCount) :
-    program.trace interpretation input (Wire.gate gate) =
-      program.gateFunction interpretation gate input := rfl
+@[simp]
+theorem Program.trace_gateWire
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (input : Fin inputCount → U) (gate : Fin gateCount)
+    : program.trace interpretation input (Wire.gate gate)
+      = program.gateFunction interpretation gate input :=
+  rfl
 
 /-- The program's lines, each widened to the final wire namespace. -/
-def Program.lines {gateCount : Nat} :
-    (program : Program σ inputCount gateCount) → Fin gateCount → Line σ inputCount gateCount
+def Program.lines {gateCount : Nat}
+    : (program : Program σ inputCount gateCount) → Fin gateCount → Line σ inputCount gateCount
   | .empty => Fin.elim0
   | @Program.gate _ _ gateCount program line =>
-      Fin.lastCases
-        (line.mapWires Wire.Renaming.castSucc)
-        (fun gate => (program.lines gate).mapWires Wire.Renaming.castSucc)
+    Fin.lastCases (line.mapWires Wire.Renaming.castSucc)
+      (fun gate => (program.lines gate).mapWires Wire.Renaming.castSucc)
 
-@[simp] theorem Program.lines_gate_last
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount) :
-    (program.gate line).lines (Fin.last gateCount) =
-      line.mapWires Wire.Renaming.castSucc := by
+@[simp]
+theorem Program.lines_gate_last
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    : (program.gate line).lines (Fin.last gateCount) = line.mapWires Wire.Renaming.castSucc := by
   simp [Program.lines]
 
-@[simp] theorem Program.lines_gate_castSucc
-    (program : Program σ inputCount gateCount)
-    (line : Line σ inputCount gateCount)
-    (gate : Fin gateCount) :
-    (program.gate line).lines gate.castSucc =
-      (program.lines gate).mapWires Wire.Renaming.castSucc := by
+@[simp]
+theorem Program.lines_gate_castSucc
+    (program : Program σ inputCount gateCount) (line : Line σ inputCount gateCount)
+    (gate : Fin gateCount)
+    : (program.gate line).lines gate.castSucc
+      = (program.lines gate).mapWires Wire.Renaming.castSucc := by
   simp [Program.lines]
 
 /-- A widened line evaluates to the value of its corresponding program gate. -/
 theorem Program.lines_eval
-    (program : Program σ inputCount gateCount)
-    (interpretation : Interpretation σ U)
-    (input : Fin inputCount → U)
-    (gate : Fin gateCount) :
-    (program.lines gate).eval interpretation input
-        (program.eval interpretation input) =
-      program.eval interpretation input gate := by
+    (program : Program σ inputCount gateCount) (interpretation : Interpretation σ U)
+    (input : Fin inputCount → U) (gate : Fin gateCount)
+    : (program.lines gate).eval interpretation input (program.eval interpretation input)
+      = program.eval interpretation input gate := by
   induction program with
   | empty => exact Fin.elim0 gate
   | @gate gateCount program line ih =>
-      have evalWidened (oldLine : Line σ inputCount gateCount) :
-          (oldLine.mapWires Wire.Renaming.castSucc).eval interpretation input
-              ((program.gate line).eval interpretation input) =
-            oldLine.eval interpretation input
-              (program.eval interpretation input) := by
-        apply Line.eval_mapWires
-        intro wire
-        simpa only [Wire.Renaming.castSucc_apply, Program.trace] using
-          Program.trace_gate_castSucc program line interpretation input wire
-      refine Fin.lastCases ?_ (fun priorGate => ?_) gate
-      · simpa only [Program.lines_gate_last, Program.eval_gate_last] using
-          evalWidened line
-      · simp only [Program.lines_gate_castSucc, Program.eval_gate_castSucc]
-        exact (evalWidened (program.lines priorGate)).trans (ih priorGate)
+    have evalWidened (oldLine : Line σ inputCount gateCount)
+        : (oldLine.mapWires Wire.Renaming.castSucc).eval interpretation input
+            ((program.gate line).eval interpretation input)
+          = oldLine.eval interpretation input (program.eval interpretation input) := by
+      apply Line.eval_mapWires
+      intro wire
+      simpa only [Wire.Renaming.castSucc_apply, Program.trace] using
+        Program.trace_gate_castSucc program line interpretation input wire
+    refine Fin.lastCases ?_ (fun priorGate => ?_) gate
+    · simpa only [Program.lines_gate_last, Program.eval_gate_last] using evalWidened line
+    · simp only [Program.lines_gate_castSucc, Program.eval_gate_castSucc]
+      exact (evalWidened (program.lines priorGate)).trans (ih priorGate)
 
 /-- A valuation satisfying every gate equation is the program's evaluation. -/
 theorem Program.eq_eval_of_forall_lines_eval
     (p : Program σ inputCount gateCount) (i : Interpretation σ U) (x : Fin inputCount → U)
-    (values : Fin gateCount → U)
-    (h : ∀ gate, (p.lines gate).eval i x values = values gate) :
-    values = p.eval i x := by
+    (values : Fin gateCount → U) (h : ∀ gate, (p.lines gate).eval i x values = values gate)
+    : values = p.eval i x := by
   induction p with
   | empty => exact Subsingleton.elim _ _
   | @gate g p line ih =>
-      have hmap (l : Line σ inputCount g) :
-          (l.mapWires Wire.Renaming.castSucc).eval i x values =
-            l.eval i x (values ∘ Fin.castSucc) := by
-        apply Line.eval_mapWires
-        intro w
-        cases w <;> rfl
-      have hp : values ∘ Fin.castSucc = p.eval i x :=
-        ih _ (fun gate => by simpa [hmap] using h gate.castSucc)
-      funext gate
-      refine Fin.lastCases ?_ (fun gate => ?_) gate
-      · simpa [hmap, hp] using (h (Fin.last g)).symm
-      · simpa using congrFun hp gate
+    have hmap (l : Line σ inputCount g)
+        : (l.mapWires Wire.Renaming.castSucc).eval i x values
+          = l.eval i x (values ∘ Fin.castSucc) := by
+      apply Line.eval_mapWires
+      intro w
+      cases w <;> rfl
+    have hp : values ∘ Fin.castSucc = p.eval i x :=
+      ih _ (fun gate => by simpa [hmap] using h gate.castSucc)
+    funext gate
+    refine Fin.lastCases ?_ (fun gate => ?_) gate
+    · simpa [hmap, hp] using (h (Fin.last g)).symm
+    · simpa using congrFun hp gate
 
 end Cslib.Circuits

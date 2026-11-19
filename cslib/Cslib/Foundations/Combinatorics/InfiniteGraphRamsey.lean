@@ -26,12 +26,13 @@ namespace Cslib
 open Function Set
 
 /-- An infinite pigeonhole principle. -/
-theorem infinite_pigeonhole_principle {X Y : Type*} [Finite Y] (f : X → Y) {s : Set X}
-    (h_inf : s.Infinite) : ∃ y, ∃ t, t.Infinite ∧ t ⊆ s ∧ ∀ x ∈ t, f x = y := by
+theorem infinite_pigeonhole_principle
+    {X Y : Type*} [Finite Y] (f : X → Y) {s : Set X} (h_inf : s.Infinite)
+    : ∃ y, ∃ t, t.Infinite ∧ t ⊆ s ∧ ∀ x ∈ t, f x = y := by
   have := h_inf.to_subtype
   obtain ⟨y, h_inf'⟩ := Finite.exists_infinite_fiber (s.domRestrict f)
-  have h_inf_iff := Equiv.infinite_iff <|
-    Equiv.subtypeSubtypeEquivSubtypeInter (· ∈ s) (fun x ↦ f x = y)
+  have h_inf_iff :=
+    Equiv.infinite_iff <| Equiv.subtypeSubtypeEquivSubtypeInter (· ∈ s) (fun x ↦ f x = y)
   use y, {x | x ∈ s ∧ f x = y}, infinite_coe_iff.mp <| h_inf_iff.mp h_inf'
   grind
 
@@ -54,20 +55,22 @@ private structure Selection (Vertex Color : Type*) where
 variable {Vertex Color : Type*} [Finite Color] (color : Finset Vertex → Color)
 
 open scoped Classical in
-/-- A "good selection" `S` selects an infinite subset `S.vs` of an infinite vertex set `ivs` and
+/--
+A "good selection" `S` selects an infinite subset `S.vs` of an infinite vertex set `ivs` and
 a distinguished vertex `S.v` in `ivs` but not in `S.vs`, and makes sure that the edges between
-`S.v` and all vertices in `S.vs` have the same color `S.c`. -/
+`S.v` and all vertices in `S.vs` have the same color `S.c`.
+-/
 private def GoodSelection (ivs : InfVSet Vertex) (S : Selection Vertex Color) : Prop :=
   S.vs.set ⊆ ivs.set ∧ S.v ∈ ivs.set \ S.vs.set ∧ ∀ u ∈ S.vs.set, color {S.v, u} = S.c
 
 /-- Given any infinite vertex set, a good selection from it always exists. -/
-private lemma goodSelection_exists (ivs : InfVSet Vertex) :
-    ∃ S : Selection Vertex Color, GoodSelection color ivs S := by
+private lemma goodSelection_exists (ivs : InfVSet Vertex)
+    : ∃ S : Selection Vertex Color, GoodSelection color ivs S := by
   classical
   obtain ⟨v, h_v⟩ := Set.Infinite.nonempty ivs.inf
   let f u := color {v, u}
-  obtain ⟨c, vs, h_inf, h_vs, h_col⟩ := infinite_pigeonhole_principle f <|
-    Set.Infinite.sdiff ivs.inf (finite_singleton v)
+  obtain ⟨c, vs, h_inf, h_vs, h_col⟩ :=
+    infinite_pigeonhole_principle f <| Set.Infinite.sdiff ivs.inf (finite_singleton v)
   simp only [subset_sdiff] at h_vs
   let ivs' := InfVSet.mk vs h_inf
   use {vs := ivs', v := v, c := c}
@@ -75,17 +78,22 @@ private lemma goodSelection_exists (ivs : InfVSet Vertex) :
 
 variable [Infinite Vertex]
 
-/-- Starting from the infinite set of all vertices, inductively make an infinite sequence
-of good selections. -/
+/--
+Starting from the infinite set of all vertices, inductively make an infinite sequence
+of good selections.
+-/
 private noncomputable def goodSelection_seq : ℕ → Selection Vertex Color
   | 0 => Classical.choose (goodSelection_exists color (InfVSet.mk univ infinite_univ))
   | n + 1 => Classical.choose (goodSelection_exists color (goodSelection_seq n).vs)
 
-/-- At every step, the `goodSelection_seq` makes a good selection and there are always
-infinitely many vertices remaining to be selected. -/
-private lemma goodSelection_seq_prop (n : ℕ) :
-    ∃ ivs : InfVSet Vertex, GoodSelection color ivs (goodSelection_seq color n) ∧
-      (ivs.set = ⋂ m < n, (goodSelection_seq color m).vs.set) := by
+/--
+At every step, the `goodSelection_seq` makes a good selection and there are always
+infinitely many vertices remaining to be selected.
+-/
+private lemma goodSelection_seq_prop (n : ℕ)
+    : ∃ ivs : InfVSet Vertex,
+      GoodSelection color ivs (goodSelection_seq color n)
+        ∧ (ivs.set = ⋂ m < n, (goodSelection_seq color m).vs.set) := by
   induction n
   case zero =>
     use (InfVSet.mk univ infinite_univ)
@@ -101,14 +109,16 @@ private lemma goodSelection_seq_prop (n : ℕ) :
       grind [GoodSelection]
 
 open scoped Classical in
-/-- There exist an infinite sequence `vs` of vertex sets, an infinite sequence `v` of vertices,
+/--
+There exist an infinite sequence `vs` of vertex sets, an infinite sequence `v` of vertices,
 and an infinite sequence `c` of colors such that each `vs n` is a subset of the intersection of
 all previous `vs m`s, each `v n` belongs to the intersection of all previous `vs m`s but not
-to `vs n`, and the edges between `v n` and all vertices in `vs n` has the same color `c n`. -/
-private lemma good_selections_exist :
-    ∃ vs : ℕ → Set Vertex, ∃ v : ℕ → Vertex, ∃ c : ℕ → Color,
-    ∀ n, vs n ⊆ (⋂ m < n, vs m) ∧ v n ∈ (⋂ m < n, vs m) \ (vs n) ∧
-      ∀ u ∈ vs n, color {v n, u} = c n := by
+to `vs n`, and the edges between `v n` and all vertices in `vs n` has the same color `c n`.
+-/
+private lemma good_selections_exist
+    : ∃ vs : ℕ → Set Vertex, ∃ v : ℕ → Vertex, ∃ c : ℕ → Color, ∀ n,
+      vs n ⊆ (⋂ m < n, vs m) ∧ v n ∈ (⋂ m < n, vs m) \ (vs n)
+        ∧ ∀ u ∈ vs n, color {v n, u} = c n := by
   use (fun k ↦ (goodSelection_seq color k).vs.set)
   use (fun k ↦ (goodSelection_seq color k).v)
   use (fun k ↦ (goodSelection_seq color k).c)
@@ -117,12 +127,14 @@ private lemma good_selections_exist :
   rw [← h_eq]
   exact h_ivs
 
-/-- If the edges of an infinite complete graph is assigned a finite number of colors,
+/--
+If the edges of an infinite complete graph is assigned a finite number of colors,
 then there must exist a color `c` and an infinite set `s` of vertices such that the edge
-between any two vertices of `s` is assigned the same color `c`. -/
-theorem infinite_graph_ramsey :
-    ∃ c : Color, ∃ s : Set Vertex, s.Infinite ∧
-      ∀ e : Finset Vertex, e.card = 2 → ↑e ⊆ s → color e = c := by
+between any two vertices of `s` is assigned the same color `c`.
+-/
+theorem infinite_graph_ramsey
+    : ∃ c : Color, ∃ s : Set Vertex,
+      s.Infinite ∧ ∀ e : Finset Vertex, e.card = 2 → ↑e ⊆ s → color e = c := by
   classical
   obtain ⟨vs, v, c, h_sel⟩ := good_selections_exist color
   simp only [forall_and] at h_sel
@@ -131,8 +143,8 @@ theorem infinite_graph_ramsey :
     intro m n h_mn
     suffices h1 : (⋂ m < n, vs m) ⊆ vs m by grind
     exact iInter₂_subset m h_mn
-  obtain ⟨c', s', h_s'_inf, h_s'_col⟩ :
-      ∃ c' : Color, ∃ s' : Set ℕ, s'.Infinite ∧ ∀ n ∈ s', c n = c' := by
+  obtain ⟨c', s', h_s'_inf, h_s'_col⟩
+      : ∃ c' : Color, ∃ s' : Set ℕ, s'.Infinite ∧ ∀ n ∈ s', c n = c' := by
     obtain ⟨c', s', h_s'_inf, _, h_s'col⟩ := infinite_pigeonhole_principle c infinite_univ
     use c', s'
   use c', (v '' s')

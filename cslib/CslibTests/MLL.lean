@@ -17,10 +17,8 @@ open Proposition Proof Sequent
 -- Test the custom Proof.IsMLL recursor with induction.
 example {Γ : Sequent Atom} (p : ⇓Γ) (h : p.IsMLL) : Γ.IsMLL := by
   induction h with
-  | ax =>
-    grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
-  | one =>
-    simp [Sequent.IsMLL, Proposition.IsMLL]
+  | ax => grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
+  | one => simp [Sequent.IsMLL, Proposition.IsMLL]
   | parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
   | bot p h =>
     simp
@@ -30,12 +28,9 @@ example {Γ : Sequent Atom} (p : ⇓Γ) (h : p.IsMLL) : Γ.IsMLL := by
 example {Γ : Sequent Atom} (p : MLL⇓Γ) : Γ.IsMLL := by
   rcases p with ⟨p, h⟩
   induction h with
-  | ax =>
-    grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
-  | one =>
-    simp [Sequent.IsMLL, Proposition.IsMLL]
-  | parr | tensor | cut =>
-    grind [Proposition.IsMLL, Proof.IsMLL]
+  | ax => grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
+  | one => simp [Sequent.IsMLL, Proposition.IsMLL]
+  | parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
   | bot p h =>
     simp
     grind [Proof.IsMLL]

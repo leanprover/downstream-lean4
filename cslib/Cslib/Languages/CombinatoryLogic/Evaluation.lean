@@ -65,23 +65,33 @@ def evalStep : (x : SKI) → PLift (x.RedexFree) ⊕ SKI
   | S => Sum.inl (PLift.up trivial)
   | K => Sum.inl (PLift.up trivial)
   | I => Sum.inl (PLift.up trivial)
-  | S ⬝ x => match x.evalStep with
+  | S ⬝ x =>
+    match x.evalStep with
     | Sum.inl h => Sum.inl h
     | Sum.inr x' => Sum.inr (S ⬝ x')
-  | K ⬝ x => match x.evalStep with
+  | K ⬝ x =>
+    match x.evalStep with
     | Sum.inl h => Sum.inl h
     | Sum.inr x' => Sum.inr (K ⬝ x')
-  | I ⬝ x => Sum.inr x
-  | S ⬝ x ⬝ y => match x.evalStep, y.evalStep with
+  | I ⬝ x =>
+    Sum.inr x
+  | S ⬝ x ⬝ y =>
+    match x.evalStep, y.evalStep with
     | Sum.inl h1, Sum.inl h2 => Sum.inl (.up ⟨h1.down, h2.down⟩)
     | Sum.inl _, Sum.inr y' => Sum.inr (S ⬝ x ⬝ y')
     | Sum.inr x', _ => Sum.inr (S ⬝ x' ⬝ y)
-  | K ⬝ x ⬝ _ => Sum.inr x
-  | I ⬝ x ⬝ y => Sum.inr (x ⬝ y)
-  | S ⬝ x ⬝ y ⬝ z => Sum.inr (x ⬝ z ⬝ (y ⬝ z))
-  | K ⬝ x ⬝ _ ⬝ z => Sum.inr (x ⬝ z)
-  | I ⬝ x ⬝ y ⬝ z => Sum.inr (x ⬝ y ⬝ z)
-  | a ⬝ b ⬝ c ⬝ d ⬝ e => match evalStep (a ⬝ b ⬝ c ⬝ d), evalStep e with
+  | K ⬝ x ⬝ _ =>
+    Sum.inr x
+  | I ⬝ x ⬝ y =>
+    Sum.inr (x ⬝ y)
+  | S ⬝ x ⬝ y ⬝ z =>
+    Sum.inr (x ⬝ z ⬝ (y ⬝ z))
+  | K ⬝ x ⬝ _ ⬝ z =>
+    Sum.inr (x ⬝ z)
+  | I ⬝ x ⬝ y ⬝ z =>
+    Sum.inr (x ⬝ y ⬝ z)
+  | a ⬝ b ⬝ c ⬝ d ⬝ e =>
+    match evalStep (a ⬝ b ⬝ c ⬝ d), evalStep e with
     | Sum.inl h1, Sum.inl h2 => Sum.inl (.up ⟨h1.down, h2.down⟩)
     | Sum.inl _, Sum.inr e' => Sum.inr (a ⬝ b ⬝ c ⬝ d ⬝ e')
     | Sum.inr abcd', _ => Sum.inr (abcd' ⬝ e)
@@ -92,44 +102,50 @@ theorem evalStep_right_correct : (x y : SKI) → (x.evalStep = Sum.inr y) → x 
     match hx : x.evalStep with
     | Sum.inl _ => by simp only [hx, evalStep, reduceCtorEq] at h
     | Sum.inr x' => by
-        simp only [evalStep, hx, Sum.inr.injEq] at h
-        rw [←h]
-        exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
+      simp only [evalStep, hx, Sum.inr.injEq] at h
+      rw [← h]
+      exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
   | K ⬝ x, a, h =>
     match hx : x.evalStep with
     | Sum.inl _ => by simp only [hx, evalStep, reduceCtorEq] at h
     | Sum.inr x' => by
-        simp only [evalStep, hx, Sum.inr.injEq] at h
-        rw [←h]
-        exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
-  | I ⬝ x, a, h => Sum.inr.inj h ▸ red_I _
+      simp only [evalStep, hx, Sum.inr.injEq] at h
+      rw [← h]
+      exact .red_tail _ _ _ (evalStep_right_correct _ _ hx)
+  | I ⬝ x, a, h =>
+    Sum.inr.inj h ▸ red_I _
   | S ⬝ x ⬝ y, a, h =>
-      match hx : x.evalStep, hy : y.evalStep with
-      | Sum.inl _, Sum.inl _ => by simp only [hx, hy, evalStep, reduceCtorEq] at h
-      | Sum.inl _, Sum.inr y' => by
-          simp only [hx, hy, evalStep, Sum.inr.injEq] at h
-          rw [←h]
-          exact .red_tail _ _ _ <| evalStep_right_correct _ _ hy
-      | Sum.inr x', _ => by
-          simp only [hx, hy, evalStep, Sum.inr.injEq] at h
-          rw [←h]
-          exact .red_head _ _ _ <| .red_tail _ _ _ <| evalStep_right_correct _ _ hx
-  | K ⬝ x ⬝ y, a, h => Sum.inr.inj h ▸ red_K ..
-  | I ⬝ x ⬝ y, a, h => Sum.inr.inj h ▸ (red_head _ _ _ <| red_I _)
-  | S ⬝ x ⬝ y ⬝ z, a, h => Sum.inr.inj h ▸ red_S ..
-  | K ⬝ x ⬝ y ⬝ z, a, h => Sum.inr.inj h ▸ (red_head _ _ _ <| red_K ..)
-  | I ⬝ x ⬝ y ⬝ z, a, h => Sum.inr.inj h ▸ (red_head _ _ _ <| red_head _ _ _ <| red_I _)
+    match hx : x.evalStep, hy : y.evalStep with
+    | Sum.inl _, Sum.inl _ => by simp only [hx, hy, evalStep, reduceCtorEq] at h
+    | Sum.inl _, Sum.inr y' => by
+      simp only [hx, hy, evalStep, Sum.inr.injEq] at h
+      rw [← h]
+      exact .red_tail _ _ _ <| evalStep_right_correct _ _ hy
+    | Sum.inr x', _ => by
+      simp only [hx, hy, evalStep, Sum.inr.injEq] at h
+      rw [← h]
+      exact .red_head _ _ _ <| .red_tail _ _ _ <| evalStep_right_correct _ _ hx
+  | K ⬝ x ⬝ y, a, h =>
+    Sum.inr.inj h ▸ red_K ..
+  | I ⬝ x ⬝ y, a, h =>
+    Sum.inr.inj h ▸ (red_head _ _ _ <| red_I _)
+  | S ⬝ x ⬝ y ⬝ z, a, h =>
+    Sum.inr.inj h ▸ red_S ..
+  | K ⬝ x ⬝ y ⬝ z, a, h =>
+    Sum.inr.inj h ▸ (red_head _ _ _ <| red_K ..)
+  | I ⬝ x ⬝ y ⬝ z, a, h =>
+    Sum.inr.inj h ▸ (red_head _ _ _ <| red_head _ _ _ <| red_I _)
   | a ⬝ b ⬝ c ⬝ d ⬝ e, x, h =>
-      match habcd : evalStep (a ⬝ b ⬝ c ⬝ d), he : evalStep e with
-      | Sum.inl _, Sum.inl _ => by simp only [habcd, he, evalStep, reduceCtorEq] at h
-      | Sum.inl _, Sum.inr e' => by
-          simp only [habcd, he, evalStep, Sum.inr.injEq] at h
-          rw [←h]
-          exact red_tail _ _ _ <| evalStep_right_correct _ _ he
-      | Sum.inr abcd', _ => by
-          simp only [habcd, he, evalStep, Sum.inr.injEq] at h
-          rw [←h]
-          exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
+    match habcd : evalStep (a ⬝ b ⬝ c ⬝ d), he : evalStep e with
+    | Sum.inl _, Sum.inl _ => by simp only [habcd, he, evalStep, reduceCtorEq] at h
+    | Sum.inl _, Sum.inr e' => by
+      simp only [habcd, he, evalStep, Sum.inr.injEq] at h
+      rw [← h]
+      exact red_tail _ _ _ <| evalStep_right_correct _ _ he
+    | Sum.inr abcd', _ => by
+      simp only [habcd, he, evalStep, Sum.inr.injEq] at h
+      rw [← h]
+      exact red_head _ _ _ <| evalStep_right_correct _ _ habcd
 
 theorem redexFree_of_normal_red {x : SKI} (h : Normal Red x) : x.RedexFree := by
   match hx : x.evalStep with
@@ -178,8 +194,8 @@ theorem redexFree_iff_mred_eq {x : SKI} : x.RedexFree ↔ ∀ y, (x ↠ y) ↔ x
     exact Red.ne hy (h.1 (Relation.ReflTransGen.single hy))
 
 /-- If a term has a common reduct with a normal term, it in fact reduces to that term. -/
-theorem join_mRed_redexFree {x y : SKI} (hy : y.RedexFree) (h : Join (ReflTransGen Red) x y) :
-    x ↠ y :=
+theorem join_mRed_redexFree {x y : SKI} (hy : y.RedexFree) (h : Join (ReflTransGen Red) x y)
+    : x ↠ y :=
   let ⟨w, hyw, hzw⟩ := h
   (redexFree_iff_mred_eq.1 hy _ |>.1 hzw : y = w) ▸ hyw
 
@@ -193,17 +209,18 @@ lemma confluent_redexFree {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hz : Re
 /--
 If `x` reduces to both `y` and `z`, and both `y` and `z` are in normal form, then they are equal.
 -/
-lemma unique_normal_form {x y z : SKI}
-    (hxy : x ↠ y) (hxz : x ↠ z) (hy : y.RedexFree) (hz : RedexFree z) : y = z :=
+lemma unique_normal_form
+    {x y z : SKI} (hxy : x ↠ y) (hxz : x ↠ z) (hy : y.RedexFree) (hz : RedexFree z)
+    : y = z :=
   (redexFree_iff_mred_eq.1 hy _).1 (confluent_redexFree hxy hxz hz)
 
 /-- If `x` and `y` are normal and have a common reduct, then they are equal. -/
-lemma eq_of_join_mRed_redexFree {x y : SKI} (h : Join (ReflTransGen Red) x y)
-    (hx : x.RedexFree) (hy : y.RedexFree) : x = y :=
+lemma eq_of_join_mRed_redexFree
+    {x y : SKI} (h : Join (ReflTransGen Red) x y) (hx : x.RedexFree) (hy : y.RedexFree)
+    : x = y :=
   (redexFree_iff_mred_eq.1 hx _).1 (join_mRed_redexFree hy h)
 
 @[deprecated (since := "2026-09-12")] alias eq_of_mJoin_red_redexFree := eq_of_join_mRed_redexFree
-
 
 /-! ### Injectivity for datatypes -/
 
@@ -215,8 +232,9 @@ lemma sk_nequiv : ¬ Join (ReflTransGen Red) S K := by
   cases (redexFree_iff_mred_eq.1 hK _).1 hkz
 
 /-- Injectivity for booleans. -/
-theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y)
-    (hxy : Join (ReflTransGen Red) x y) : u = v := by
+theorem isBool_injective
+    (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool v y) (hxy : Join (ReflTransGen Red) x y)
+    : u = v := by
   have h : Join (ReflTransGen Red) (if u then S else K) (if v then S else K) := by
     apply join_mRed_equivalence.trans (y := x ⬝ S ⬝ K)
     · apply join_mRed_equivalence.symm
@@ -234,27 +252,29 @@ lemma TF_nequiv : ¬ Join (ReflTransGen Red) TT FF := fun h =>
 /-- A specialisation of `Church : Nat → SKI`. -/
 def churchK : Nat → SKI
   | 0 => K
-  | n+1 => K ⬝ (churchK n)
+  | n + 1 => K ⬝ (churchK n)
 
 lemma churchK_church : (n : Nat) → churchK n = Church n K K
   | 0 => rfl
-  | n+1 => by simp [churchK, Church, churchK_church n]
+  | n + 1 => by simp [churchK, Church, churchK_church n]
 
 lemma churchK_redexFree : (n : Nat) → RedexFree (churchK n)
   | 0 => trivial
-  | n+1 => churchK_redexFree n
+  | n + 1 => churchK_redexFree n
 
 @[simp]
-lemma churchK_size : (n : Nat) → (churchK n).size = n+1
+lemma churchK_size : (n : Nat) → (churchK n).size = n + 1
   | 0 => rfl
   | n + 1 => by rw [churchK, size, size, churchK_size, Nat.add_comm]
 
-lemma churchK_injective : Function.Injective churchK :=
-  fun n m h => by simpa using congrArg SKI.size h
+lemma churchK_injective : Function.Injective churchK := fun n m h => by
+  simpa using congrArg SKI.size h
 
 /-- Injectivity for Church numerals -/
-theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
-    (hxy : Join (ReflTransGen Red) x y) : n = m := by
+theorem isChurch_injective
+    (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsChurch m y)
+    (hxy : Join (ReflTransGen Red) x y)
+    : n = m := by
   suffices Join (ReflTransGen Red) (churchK n) (churchK m) by
     apply churchK_injective
     exact eq_of_join_mRed_redexFree this (churchK_redexFree n) (churchK_redexFree m)
@@ -275,39 +295,44 @@ This version of Rice's theorem derives a contradiction from the existence of a p
 existence of terms `x` for which `P · x` is true (`P · x ↠ TT`) and for which `P · x` is false
 (`P · x ↠ FF`).
 -/
-theorem rice {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF)
-    (hxt : ∃ x : SKI, (P ⬝ x) ↠ TT) (hxf : ∃ x : SKI, (P ⬝ x) ↠ FF) : False := by
+theorem rice
+    {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF) (hxt : ∃ x : SKI, (P ⬝ x) ↠ TT)
+    (hxf : ∃ x : SKI, (P ⬝ x) ↠ FF)
+    : False := by
   obtain ⟨a, ha⟩ := hxt
   obtain ⟨b, hb⟩ := hxf
   let Neg : SKI := P ⬝' &0 ⬝' b ⬝' a |>.toSKI (n := 1)
   let Abs : SKI := Neg.fixedPoint
-  have Neg_app : ∀ x : SKI, (Neg ⬝ x) ↠ P ⬝ x ⬝ b ⬝ a :=
-    fun x => (P ⬝' &0 ⬝' b ⬝' a) |>.toSKI_correct (n := 1) [x] (by simp)
+  have Neg_app : ∀ x : SKI, (Neg ⬝ x) ↠ P ⬝ x ⬝ b ⬝ a := fun x =>
+    (P ⬝' &0 ⬝' b ⬝' a) |>.toSKI_correct (n := 1) [x] (by simp)
   cases hP Abs
   case inl h =>
-    have : (P ⬝ Abs) ↠ FF := calc
-      _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
-      _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
-      _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
-      _ ↠ P ⬝ b := by apply MRed.tail; apply TT_correct
-      _ ↠ FF := hb
+    have : (P ⬝ Abs) ↠ FF :=
+      calc
+        _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
+        _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
+        _ ↠ P ⬝ (TT ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
+        _ ↠ P ⬝ b := by apply MRed.tail; apply TT_correct
+        _ ↠ FF := hb
     exact TF_nequiv <| MRed.diamond h this
   case inr h =>
-    have : (P ⬝ Abs) ↠ TT := calc
-      _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
-      _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
-      _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
-      _ ↠ P ⬝ a := by apply MRed.tail; apply FF_correct
-      _ ↠ TT := ha
+    have : (P ⬝ Abs) ↠ TT :=
+      calc
+        _ ↠ P ⬝ (Neg ⬝ Abs) := by apply MRed.tail; apply fixedPoint_correct
+        _ ↠ P ⬝ (P ⬝ Abs ⬝ b ⬝ a) := by apply MRed.tail; apply Neg_app
+        _ ↠ P ⬝ (FF ⬝ b ⬝ a) := by apply MRed.tail; apply MRed.head; apply MRed.head; exact h
+        _ ↠ P ⬝ a := by apply MRed.tail; apply FF_correct
+        _ ↠ TT := ha
     exact TF_nequiv <| MRed.diamond this h
 
-/-- **Rice's theorem**: any SKI predicate is trivial.
+/--
+**Rice's theorem**: any SKI predicate is trivial.
 
 This version of Rice's theorem proves (classically) that any SKI predicate `P` either is constantly
 true (ie `P · x ↠ TT` for every `x`) or is constantly false (`P · x ↠ FF` for every `x`).
 -/
-theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF) :
-    (∀ x : SKI, (P ⬝ x) ↠ TT) ∨ (∀ x : SKI, (P ⬝ x) ↠ FF) := by
+theorem rice' {P : SKI} (hP : ∀ x : SKI, ((P ⬝ x) ↠ TT) ∨ (P ⬝ x) ↠ FF)
+    : (∀ x : SKI, (P ⬝ x) ↠ TT) ∨ (∀ x : SKI, (P ⬝ x) ↠ FF) := by
   by_contra! h
   obtain ⟨⟨a, ha⟩, b, hb⟩ := h
   exact rice hP ⟨b, (hP _).resolve_right hb⟩ ⟨a, (hP _).resolve_left ha⟩

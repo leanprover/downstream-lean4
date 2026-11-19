@@ -20,10 +20,11 @@ namespace Set
 
 variable {ι α : Type*}
 
-/-- `f : ι → Set α` saturates `s : Set α` iff `f i` is a subset of `s`
-whenever `f i` and `s` has any intersection at all. -/
-def Saturates (f : ι → Set α) (s : Set α) : Prop :=
-  ∀ i : ι, (f i ∩ s).Nonempty → f i ⊆ s
+/--
+`f : ι → Set α` saturates `s : Set α` iff `f i` is a subset of `s`
+whenever `f i` and `s` has any intersection at all.
+-/
+def Saturates (f : ι → Set α) (s : Set α) : Prop := ∀ i : ι, (f i ∩ s).Nonempty → f i ⊆ s
 
 variable {f : ι → Set α} {s : Set α}
 
@@ -35,8 +36,8 @@ theorem saturates_compl (hs : Saturates f s) : Saturates f sᶜ := by
   grind [Saturates]
 
 /-- If `f` is a cover and saturates `s`, then `s` is the union of all `f i` that intersects `s`. -/
-theorem saturates_eq_biUnion (hs : Saturates f s) (hc : ⋃ i, f i = univ) :
-    s = ⋃ i ∈ {i | (f i ∩ s).Nonempty}, f i := by
+theorem saturates_eq_biUnion (hs : Saturates f s) (hc : ⋃ i, f i = univ)
+    : s = ⋃ i ∈ {i | (f i ∩ s).Nonempty}, f i := by
   ext x
   simp only [mem_iUnion]
   constructor

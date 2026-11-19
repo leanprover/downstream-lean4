@@ -20,8 +20,9 @@ class IsIntuitionistic (S α : Type*) [Bot α] [HasImp α] [InferenceSystem S α
   /-- A chosen derivation of `⊥ → a`. -/
   derivationBotImp (a : α) : S⇓(⊥ → a)
 
-lemma derivableIn_bot_imp {S α : Type*} [Bot α] [HasImp α] [InferenceSystem S α]
-    [IsIntuitionistic S α] (a : α) : DerivableIn S (⊥ → a) :=
+lemma derivableIn_bot_imp
+    {S α : Type*} [Bot α] [HasImp α] [InferenceSystem S α] [IsIntuitionistic S α] (a : α)
+    : DerivableIn S (⊥ → a) :=
   ⟨IsIntuitionistic.derivationBotImp a⟩
 
 /-- Classical inference systems derive double-negation elimination. -/
@@ -29,8 +30,9 @@ class IsClassical (S α : Type*) [HasNot α] [HasImp α] [InferenceSystem S α] 
   /-- A chosen derivation of `¬¬a → a`. -/
   derivationDNE (a : α) : S⇓(¬¬a → a)
 
-lemma derivableIn_dne {S α : Type*} [HasNot α] [HasImp α] [InferenceSystem S α]
-    [IsClassical S α] (a : α) : DerivableIn S (¬¬a → a) :=
+lemma derivableIn_dne
+    {S α : Type*} [HasNot α] [HasImp α] [InferenceSystem S α] [IsClassical S α] (a : α)
+    : DerivableIn S (¬¬a → a) :=
   ⟨IsClassical.derivationDNE a⟩
 
 end Cslib.Logic.InferenceSystem

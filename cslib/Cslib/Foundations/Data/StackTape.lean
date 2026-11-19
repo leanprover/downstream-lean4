@@ -67,8 +67,7 @@ def nil : StackTape Symbol := ⟨[], by grind⟩
 instance : Inhabited (StackTape Symbol) where
   default := nil
 
-instance : EmptyCollection (StackTape Symbol) :=
-  ⟨nil⟩
+instance : EmptyCollection (StackTape Symbol) := ⟨nil⟩
 
 @[simp]
 lemma empty_eq_nil : (∅ : StackTape Symbol) = nil := rfl
@@ -88,8 +87,9 @@ lemma cons_none_nil_toList : (cons none (nil : StackTape Symbol)).toList = [] :=
   grind only [nil, cons]
 
 @[simp]
-lemma cons_some_toList (a : Symbol) (l : StackTape Symbol) :
-    (cons (some a) l).toList = some a :: l.toList := by simp only [cons]
+lemma cons_some_toList (a : Symbol) (l : StackTape Symbol)
+    : (cons (some a) l).toList = some a :: l.toList := by
+  simp only [cons]
 
 /-- Remove the first element of the `StackTape`, returning the rest -/
 @[scoped grind]
@@ -105,35 +105,33 @@ def head (l : StackTape Symbol) : Option Symbol :=
   | [] => none
   | h :: _ => h
 
-lemma eq_iff (l1 l2 : StackTape Symbol) :
-    l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
+lemma eq_iff (l1 l2 : StackTape Symbol) : l1 = l2 ↔ l1.head = l2.head ∧ l1.tail = l2.tail := by
   constructor
   · grind
   · intro ⟨hhead, htail⟩
-    cases l1 with | mk as1 h1 =>
-    cases l2 with | mk as2 h2 =>
-    cases as1 <;> cases as2 <;> grind [nil]
+    cases l1 with
+    | mk as1 h1 =>
+      cases l2 with
+      | mk as2 h2 => cases as1 <;> cases as2 <;> grind [nil]
 
 @[simp]
 lemma head_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).head = o := by
   cases o with
   | none =>
-    cases l with | mk toList hl =>
-    cases toList <;> grind [cons]
+    cases l with
+    | mk toList hl => cases toList <;> grind [cons]
   | some a => grind [cons_some_toList]
 
 @[simp]
 lemma tail_cons (o : Option Symbol) (l : StackTape Symbol) : (cons o l).tail = l := by
   cases o with
   | none =>
-    cases l with | mk toList h =>
-    cases toList <;> grind [nil, cons]
-  | some a =>
-    simp only [cons, tail]
+    cases l with
+    | mk toList h => cases toList <;> grind [nil, cons]
+  | some a => simp only [cons, tail]
 
 @[simp]
-lemma cons_head_tail (l : StackTape Symbol) :
-    cons (l.head) (l.tail) = l := by
+lemma cons_head_tail (l : StackTape Symbol) : cons (l.head) (l.tail) = l := by
   rw [eq_iff]
   simp
 
@@ -147,23 +145,22 @@ section Length
 @[scoped grind]
 def length (l : StackTape Symbol) : ℕ := l.toList.length
 
-lemma length_tail_le (l : StackTape Symbol) : l.tail.length ≤ l.length := by
-  grind
+lemma length_tail_le (l : StackTape Symbol) : l.tail.length ≤ l.length := by grind
 
 grind_pattern length_tail_le => l.tail.length
 
 @[scoped grind =]
-lemma length_cons_none (l : StackTape Symbol) :
-    (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
-  cases l with | mk toList h =>
-  cases toList <;> grind [cons]
+lemma length_cons_none (l : StackTape Symbol)
+    : (cons none l).length = l.length + if l.length = 0 then 0 else 1 := by
+  cases l with
+  | mk toList h => cases toList <;> grind [cons]
 
-lemma length_cons_some (a : Symbol) (l : StackTape Symbol) :
-    (cons (some a) l).length = l.length + 1 := by
+lemma length_cons_some (a : Symbol) (l : StackTape Symbol)
+    : (cons (some a) l).length = l.length + 1 := by
   grind [cons_some_toList]
 
-lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol) :
-    (cons o l).length ≤ l.length + 1 := by
+lemma length_cons_le (o : Option Symbol) (l : StackTape Symbol)
+    : (cons o l).length ≤ l.length + 1 := by
   cases o <;> grind [cons_some_toList]
 
 @[simp, scoped grind =]

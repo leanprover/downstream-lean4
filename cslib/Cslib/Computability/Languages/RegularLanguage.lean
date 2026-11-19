@@ -33,14 +33,16 @@ open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
 
-/-- A characterization of `Language.IsRegular` in terms of `DA`. This is the only theorem in Cslib
-in which Mathlib's definition of `Language.IsRegular` is used. -/
-theorem IsRegular.iff_dfa {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ dfa : DA.FinAcc State Symbol, language dfa = l := by
+/--
+A characterization of `Language.IsRegular` in terms of `DA`. This is the only theorem in Cslib
+in which Mathlib's definition of `Language.IsRegular` is used.
+-/
+theorem IsRegular.iff_dfa {l : Language Symbol}
+    : l.IsRegular
+      ↔ ∃ State : Type, ∃ _ : Finite State, ∃ dfa : DA.FinAcc State Symbol, language dfa = l := by
   constructor
   · rintro ⟨State, h_fin, ⟨tr, start, acc⟩, rfl⟩
-    let dfa := DA.FinAcc.mk {tr, start} acc
+    let dfa := DA.FinAcc.mk { tr, start } acc
     use State, Fintype.finite h_fin, dfa
     rfl
   · rintro ⟨State, h_fin, ⟨⟨flts, start⟩, acc⟩, rfl⟩
@@ -49,10 +51,11 @@ theorem IsRegular.iff_dfa {l : Language Symbol} :
     rfl
 
 /-- A characterization of Language.IsRegular in terms of NA. -/
-theorem IsRegular.iff_nfa {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ nfa : NA.FinAcc State Symbol, language nfa = l := by
-  rw [IsRegular.iff_dfa]; constructor
+theorem IsRegular.iff_nfa {l : Language Symbol}
+    : l.IsRegular
+      ↔ ∃ State : Type, ∃ _ : Finite State, ∃ nfa : NA.FinAcc State Symbol, language nfa = l := by
+  rw [IsRegular.iff_dfa]
+  constructor
   · rintro ⟨State, h_fin, ⟨da, acc⟩, rfl⟩
     use State, h_fin, ⟨da.toNA, acc⟩
     grind
@@ -61,9 +64,10 @@ theorem IsRegular.iff_nfa {l : Language Symbol} :
     grind
 
 /-- A characterization of `Language.IsRegular` in terms of `εNA`. -/
-theorem IsRegular.iff_epsilon_nfa {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ enfa : εNA.FinAcc State Symbol, language enfa = l := by
+theorem IsRegular.iff_epsilon_nfa {l : Language Symbol}
+    : l.IsRegular
+      ↔ ∃ State : Type, ∃ _ : Finite State, ∃ enfa : εNA.FinAcc State Symbol,
+        language enfa = l := by
   rw [IsRegular.iff_nfa]
   constructor
   · rintro ⟨State, h_fin, nfa, rfl⟩
@@ -82,11 +86,13 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   simp only [language, Accepts]
   rfl
 
-/-- A language is regular if and only if it is accepted by some two-way nondeterministic
-automaton with finitely many states. -/
-theorem IsRegular.iff_twoWayNA {l : Language Symbol} :
-    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
-      ∃ a : TwoWayNA State Symbol, language a = l := by
+/--
+A language is regular if and only if it is accepted by some two-way nondeterministic
+automaton with finitely many states.
+-/
+theorem IsRegular.iff_twoWayNA {l : Language Symbol}
+    : l.IsRegular
+      ↔ ∃ State : Type, ∃ _ : Finite State, ∃ a : TwoWayNA State Symbol, language a = l := by
   constructor
   · intro h
     rw [IsRegular.iff_nfa] at h
@@ -117,10 +123,12 @@ theorem IsRegular.one : (1 : Language Symbol).IsRegular := by
   rw [IsRegular.iff_dfa]
   let flts := FLTS.mk (fun (_ : Fin 2) (_ : Symbol) ↦ 1)
   use Fin 2, inferInstance, ⟨DA.mk flts 0, {0}⟩
-  ext; constructor
+  ext
+  constructor
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  · intro h; by_contra h'
+  · intro h
+    by_contra h'
     have := dropLast_append_getLast h'
     grind [Accepts]
   · grind [Accepts, Language.mem_one]
@@ -133,32 +141,35 @@ theorem IsRegular.top : (⊤ : Language Symbol).IsRegular := by
 
 /-- The intersection of two regular languages is regular. -/
 @[simp]
-theorem IsRegular.inf {l1 l2 : Language Symbol}
-    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 ⊓ l2).IsRegular := by
+theorem IsRegular.inf {l1 l2 : Language Symbol} (h1 : l1.IsRegular) (h2 : l2.IsRegular)
+    : (l1 ⊓ l2).IsRegular := by
   rw [IsRegular.iff_dfa] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∩ snd ⁻¹' acc2⟩
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  ext; grind [Accepts, Language.mem_inf]
+  ext
+  grind [Accepts, Language.mem_inf]
 
 /-- The union of two regular languages is regular. -/
 @[simp]
-theorem IsRegular.add {l1 l2 : Language Symbol}
-    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 + l2).IsRegular := by
+theorem IsRegular.add {l1 l2 : Language Symbol} (h1 : l1.IsRegular) (h2 : l2.IsRegular)
+    : (l1 + l2).IsRegular := by
   rw [IsRegular.iff_dfa] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, ⟨da1, acc1⟩, rfl⟩ := h1
   obtain ⟨State2, h_fin1, ⟨da2, acc2⟩, rfl⟩ := h2
   use State1 × State2, inferInstance, ⟨da1.prod da2, fst ⁻¹' acc1 ∪ snd ⁻¹' acc2⟩
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
-  ext; grind [Accepts, Language.mem_add]
+  ext
+  grind [Accepts, Language.mem_add]
 
 /-- The intersection of any finite number of regular languages is regular. -/
 @[simp]
-theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
-    (h : ∀ i ∈ s, (l i).IsRegular) : (⨅ i ∈ s, l i).IsRegular := by
+theorem IsRegular.iInf
+    {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol} (h : ∀ i ∈ s, (l i).IsRegular)
+    : (⨅ i ∈ s, l i).IsRegular := by
   generalize h_n : s.ncard = n
   induction n generalizing s
   case zero => simp_all [ncard_eq_zero (s := s)]
@@ -169,8 +180,9 @@ theorem IsRegular.iInf {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
 
 /-- The union of any finite number of regular languages is regular. -/
 @[simp]
-theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol}
-    (h : ∀ i ∈ s, (l i).IsRegular) : (⨆ i ∈ s, l i).IsRegular := by
+theorem IsRegular.iSup
+    {I : Type*} [Finite I] {s : Set I} {l : I → Language Symbol} (h : ∀ i ∈ s, (l i).IsRegular)
+    : (⨆ i ∈ s, l i).IsRegular := by
   generalize h_n : s.ncard = n
   induction n generalizing s
   case zero =>
@@ -184,8 +196,8 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
 
 /-- The concatenation of two regular languages is regular. -/
 @[simp]
-theorem IsRegular.mul {l1 l2 : Language Symbol}
-    (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 * l2).IsRegular := by
+theorem IsRegular.mul {l1 l2 : Language Symbol} (h1 : l1.IsRegular) (h2 : l2.IsRegular)
+    : (l1 * l2).IsRegular := by
   rw [IsRegular.iff_epsilon_nfa] at h1 h2 ⊢
   obtain ⟨State1, h_fin1, a1, rfl⟩ := h1
   obtain ⟨State2, h_fin2, a2, rfl⟩ := h2
@@ -193,8 +205,7 @@ theorem IsRegular.mul {l1 l2 : Language Symbol}
 
 /-- The Kleene star of a regular language is regular. -/
 @[simp]
-theorem IsRegular.kstar {l : Language Symbol}
-    (h : l.IsRegular) : (l∗).IsRegular := by
+theorem IsRegular.kstar {l : Language Symbol} (h : l.IsRegular) : (l∗).IsRegular := by
   rw [IsRegular.iff_epsilon_nfa] at h ⊢
   obtain ⟨State, h_fin, a, rfl⟩ := h
   exact ⟨Unit ⊕ State, inferInstance, a.star, εNA.FinAcc.language_star a⟩
@@ -202,9 +213,9 @@ theorem IsRegular.kstar {l : Language Symbol}
 open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
-theorem IsRegular.congr_fin_index {Symbol : Type}
-    [c : RightCongruence Symbol] [Finite (Quotient c.eq)]
-    (a : Quotient c.eq) : (eqvCls a).IsRegular := by
+theorem IsRegular.congr_fin_index
+    {Symbol : Type} [c : RightCongruence Symbol] [Finite (Quotient c.eq)] (a : Quotient c.eq)
+    : (eqvCls a).IsRegular := by
   rw [IsRegular.iff_dfa]
   use Quotient c.eq, inferInstance, ⟨c.toDA, {a}⟩
   exact DA.FinAcc.congr_language_eq
@@ -226,8 +237,8 @@ theorem IsRegular.reverse_iff {l : Language Symbol} : l.reverse.IsRegular ↔ l.
 
 open NA _root_.Language in
 /-- The preimage of a regular languge under a language homomorphism is regular. -/
-theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l.IsRegular) :
-    (l.preimage f).IsRegular := by
+theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l.IsRegular)
+    : (l.preimage f).IsRegular := by
   rw [IsRegular.iff_nfa] at h ⊢
   obtain ⟨State, h_fin, nfa, rfl⟩ := h
   use State, inferInstance, nfa.preimage f, nfa.preimage_language_eq f
@@ -235,8 +246,7 @@ theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l
 /-- The language containing only the one character string `a` is regular. -/
 @[simp]
 theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular :=
-  IsRegular.iff_epsilon_nfa.mpr
-    ⟨Bool, inferInstance, εNA.FinAcc.char a, εNA.FinAcc.language_char a⟩
+  IsRegular.iff_epsilon_nfa.mpr ⟨Bool, inferInstance, εNA.FinAcc.char a, εNA.FinAcc.language_char a⟩
 
 /-- Languages matching regular expressions are regular. -/
 theorem IsRegular.regex (r : RegularExpression Symbol) : r.matches'.IsRegular :=
@@ -244,8 +254,8 @@ theorem IsRegular.regex (r : RegularExpression Symbol) : r.matches'.IsRegular :=
 
 open RegularExpression in
 /-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
-theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
-    l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
+theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol}
+    : l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
   constructor
   · intro h
     obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h

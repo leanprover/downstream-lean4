@@ -37,23 +37,30 @@ abbrev doSub (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.sub a b)
 abbrev doMul (a b : α) : FreeM (ArithQuery α) α := FreeM.lift (.mul a b)
 
 /-- An honest oracle interprets arithmetic queries using the actual ring operations. -/
-@[expose] def honest [Add α] [Sub α] [Mul α] {ι : Type} : ArithQuery α ι → ι
+@[expose]
+def honest [Add α] [Sub α] [Mul α] {ι : Type} : ArithQuery α ι → ι
   | .add a b => a + b
   | .sub a b => a - b
   | .mul a b => a * b
 
-/-- Weighted cost model for arithmetic queries. Subtraction costs the same as addition
-    (both are linear-time on bignums). -/
-@[expose] def weight (c_add c_mul : Nat) {ι : Type} : ArithQuery α ι → Nat
+/--
+Weighted cost model for arithmetic queries. Subtraction costs the same as addition
+(both are linear-time on bignums).
+-/
+@[expose]
+def weight (c_add c_mul : Nat) {ι : Type} : ArithQuery α ι → Nat
   | .add _ _ => c_add
   | .sub _ _ => c_add
   | .mul _ _ => c_mul
 
 end ArithQuery
 
-/-- Naive complex multiplication: `(a + bi)(c + di) = (ac - bd) + (ad + bc)i`.
-    Uses 4 multiplications, 1 subtraction, 1 addition. -/
-@[expose] def complexMulNaive (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
+/--
+Naive complex multiplication: `(a + bi)(c + di) = (ac - bd) + (ad + bc)i`.
+Uses 4 multiplications, 1 subtraction, 1 addition.
+-/
+@[expose]
+def complexMulNaive (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
   let ac ← ArithQuery.doMul a c
   let bd ← ArithQuery.doMul b d
   let ad ← ArithQuery.doMul a d
@@ -62,10 +69,13 @@ end ArithQuery
   let imag ← ArithQuery.doAdd ad bc
   return (real, imag)
 
-/-- Gauss's trick for complex multiplication: computes `(a+b)(c+d)` to save one
-    multiplication, at the cost of extra additions and subtractions.
-    Uses 3 multiplications, 2 subtractions, 3 additions. -/
-@[expose] def complexMulGauss (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
+/--
+Gauss's trick for complex multiplication: computes `(a+b)(c+d)` to save one
+multiplication, at the cost of extra additions and subtractions.
+Uses 3 multiplications, 2 subtractions, 3 additions.
+-/
+@[expose]
+def complexMulGauss (a b c d : α) : FreeM (ArithQuery α) (α × α) := do
   let ac ← ArithQuery.doMul a c
   let bd ← ArithQuery.doMul b d
   let apb ← ArithQuery.doAdd a b

@@ -38,15 +38,14 @@ namespace Cslib.LTS
 open Deterministic
 
 /-- If `s₁` is simulated by `s₂` all of `s₁`'s traces are also traces of `s₂`. -/
-theorem IsSimulation.traces_subset (hr : IsSimulation lts₁ lts₂ r) (hrel : r s₁ s₂) :
-    lts₁.traces s₁ ⊆ lts₂.traces s₂ := by
+theorem IsSimulation.traces_subset (hr : IsSimulation lts₁ lts₂ r) (hrel : r s₁ s₂)
+    : lts₁.traces s₁ ⊆ lts₂.traces s₂ := by
   intro μs ⟨s₁', h₁⟩
   obtain ⟨s₂', h₂, _⟩ := hr.sim_trace hrel μs s₁' h₁
   exact ⟨s₂', h₂⟩
 
 /-- Two states are trace equivalent if they have the same set of traces. -/
-def TraceEq (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label)
-    (s₁ : State₁) (s₂ : State₂) :=
+def TraceEq (lts₁ : LTS State₁ Label) (lts₂ : LTS State₂ Label) (s₁ : State₁) (s₂ : State₂) :=
   lts₁.traces s₁ = lts₂.traces s₂
 
 /--
@@ -64,18 +63,19 @@ abbrev HomTraceEq (lts : LTS State Label) := TraceEq lts lts
 scoped notation s:max " ~tr[" lts "] " s':max => HomTraceEq lts s s'
 
 /-- Homogeneous trace equivalence is reflexive. -/
-@[refl] theorem HomTraceEq.refl (s : State) : s ~tr[lts] s := rfl
+@[refl]
+theorem HomTraceEq.refl (s : State) : s ~tr[lts] s := rfl
 
-@[simp] theorem TraceEq.flip_eq : flip (TraceEq lts₁ lts₂) = TraceEq lts₂ lts₁ := by
-  grind [flip, TraceEq]
+@[simp]
+theorem TraceEq.flip_eq : flip (TraceEq lts₁ lts₂) = TraceEq lts₂ lts₁ := by grind [flip, TraceEq]
 
 /-- Trace equivalence is symmetric. -/
-theorem TraceEq.symm (h : s₁ ~tr[lts₁,lts₂] s₂) : s₂ ~tr[lts₂,lts₁] s₁ := by
-  rwa [←flip_eq]
+theorem TraceEq.symm (h : s₁ ~tr[lts₁,lts₂] s₂) : s₂ ~tr[lts₂,lts₁] s₁ := by rwa [← flip_eq]
 
 /-- Trace equivalence is transitive. -/
-theorem TraceEq.trans (h1 : s₁ ~tr[lts₁,lts₂] s₂) (h2 : s₂ ~tr[lts₂,lts₃] s₃) :
-    s₁ ~tr[lts₁,lts₃] s₃ := Eq.trans h1 h2
+theorem TraceEq.trans (h1 : s₁ ~tr[lts₁,lts₂] s₂) (h2 : s₂ ~tr[lts₂,lts₃] s₃)
+    : s₁ ~tr[lts₁,lts₃] s₃ :=
+  Eq.trans h1 h2
 
 /-- Homogeneous trace equivalence is an equivalence relation. -/
 theorem HomTraceEq.eqv : Equivalence (· ~tr[lts] ·) where
@@ -88,29 +88,38 @@ instance : Trans (TraceEq lts₁ lts₂) (TraceEq lts₂ lts₃) (TraceEq lts₁
   trans := TraceEq.trans
 
 /-- For trace-equivalent states, any multistep transition of one can be mimicked by the other. -/
-theorem TraceEq.exists_mTr_of_mTr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.MTr s₁ μs s₁') : ∃ s₂', lts₂.MTr s₂ μs s₂' := by
-  rw [←mem_traces_iff, ←h]
+theorem TraceEq.exists_mTr_of_mTr
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.MTr s₁ μs s₁')
+    : ∃ s₂', lts₂.MTr s₂ μs s₂' := by
+  rw [← mem_traces_iff, ← h]
   exact ⟨s₁', htr⟩
 
 /-- For trace-equivalent states, any single-step transition of one can be mimicked by the other. -/
-theorem TraceEq.exists_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.Tr s₁ μ s₁') : ∃ s₂', lts₂.Tr s₂ μ s₂' := by
-  rw [←mem_traces_singleton_iff, ←h, mem_traces_singleton_iff]
+theorem TraceEq.exists_tr_of_tr
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    (h : s₁ ~tr[lts₁,lts₂] s₂) (htr : lts₁.Tr s₁ μ s₁')
+    : ∃ s₂', lts₂.Tr s₂ μ s₂' := by
+  rw [← mem_traces_singleton_iff, ← h, mem_traces_singleton_iff]
   exact ⟨s₁', htr⟩
 
-/-- For deterministic lts's, trace equivalence is preserved by respective transitions with the same
-label. -/
-theorem TraceEq.traceEq_of_tr_of_tr {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic] (h : s₁ ~tr[lts₁,lts₂] s₂)
-    (htr₁ : lts₁.Tr s₁ μ s₁') (htr₂ : lts₂.Tr s₂ μ s₂') : s₁' ~tr[lts₁,lts₂] s₂' := by
+/--
+For deterministic lts's, trace equivalence is preserved by respective transitions with the same
+label.
+-/
+theorem TraceEq.traceEq_of_tr_of_tr
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic]
+    (h : s₁ ~tr[lts₁,lts₂] s₂) (htr₁ : lts₁.Tr s₁ μ s₁') (htr₂ : lts₂.Tr s₂ μ s₂')
+    : s₁' ~tr[lts₁,lts₂] s₂' := by
   rw [TraceEq] at h
   simp_rw [TraceEq, Deterministic.traces_of_tr htr₁, Deterministic.traces_of_tr htr₂, h]
 
 /-- In deterministic LTSs, trace equivalence is a simulation. -/
-theorem Deterministic.isSimulation_traceEq {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
-    [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic] :
-    IsSimulation lts₁ lts₂ (TraceEq lts₁ lts₂) := by
+theorem Deterministic.isSimulation_traceEq
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic]
+    : IsSimulation lts₁ lts₂ (TraceEq lts₁ lts₂) := by
   intro s₁ s₂ h μ s₁' htr1
   obtain ⟨s₂', htr2⟩ := h.exists_tr_of_tr htr1
   use s₂', htr2, h.traceEq_of_tr_of_tr htr1 htr2
@@ -121,11 +130,14 @@ theorem SimulationEquiv.traceEq (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₁ ~tr
   exact (hr.traces_subset h).antisymm (hr'.traces_subset h')
 
 /-- Simulation equivalence and trace equivalence are equivalence for detemrinistic lts's. -/
-theorem Deterministic.traceEq_iff_simulationEquiv {lts₁ : LTS State₁ Label}
-    {lts₂ : LTS State₂ Label} [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic]
-    (s₁ : State₁) (s₂ : State₂) : (s₁ ~tr[lts₁,lts₂] s₂) ↔ s₁ ≤≥[lts₁,lts₂] s₂ :=
-  ⟨fun h =>
+theorem Deterministic.traceEq_iff_simulationEquiv
+    {lts₁ : LTS State₁ Label} {lts₂ : LTS State₂ Label}
+    [hdet₁ : lts₁.Deterministic] [hdet₂ : lts₂.Deterministic]
+    (s₁ : State₁) (s₂ : State₂)
+    : (s₁ ~tr[lts₁,lts₂] s₂) ↔ s₁ ≤≥[lts₁,lts₂] s₂ := ⟨
+  fun h =>
     ⟨⟨_, h, Deterministic.isSimulation_traceEq⟩, _, h.symm, Deterministic.isSimulation_traceEq⟩,
-    SimulationEquiv.traceEq⟩
+  SimulationEquiv.traceEq
+⟩
 
 end Cslib.LTS

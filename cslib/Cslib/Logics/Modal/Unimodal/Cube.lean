@@ -55,8 +55,7 @@ def D World Atom := logic {m : Model World Atom | Relation.Serial m.rel}
 
 /-- The modal logic D4. -/
 @[scoped grind =]
-def D4 World Atom :=
-  logic {m : Model World Atom | Relation.Serial m.rel ∧ IsTrans World m.rel}
+def D4 World Atom := logic {m : Model World Atom | Relation.Serial m.rel ∧ IsTrans World m.rel}
 
 /-- The modal logic D5. -/
 @[scoped grind =]
@@ -66,34 +65,32 @@ def D5 World Atom :=
 /-- The modal logic D45. -/
 @[scoped grind =]
 def D45 World Atom :=
-  logic {m : Model World Atom |
-    Relation.Serial m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
+  logic
+    {m : Model World Atom |
+      Relation.Serial m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic DB. -/
 @[scoped grind =]
-def DB World Atom :=
-  logic {m : Model World Atom | Relation.Serial m.rel ∧ Std.Symm m.rel}
+def DB World Atom := logic {m : Model World Atom | Relation.Serial m.rel ∧ Std.Symm m.rel}
 
 /-- The modal logic TB. -/
 @[scoped grind =]
-def TB World Atom :=
-  logic {m : Model World Atom | Std.Refl m.rel ∧ Std.Symm m.rel}
+def TB World Atom := logic {m : Model World Atom | Std.Refl m.rel ∧ Std.Symm m.rel}
 
 /-- The modal logic KB5. -/
 @[scoped grind =]
-def KB5 World Atom :=
-  logic {m : Model World Atom | Std.Symm m.rel ∧ Relation.RightEuclidean m.rel}
+def KB5 World Atom := logic {m : Model World Atom | Std.Symm m.rel ∧ Relation.RightEuclidean m.rel}
 
 /-- The modal logic S4. -/
 @[scoped grind =]
-def S4 World Atom :=
-  logic {m : Model World Atom | Std.Refl m.rel ∧ IsTrans World m.rel}
+def S4 World Atom := logic {m : Model World Atom | Std.Refl m.rel ∧ IsTrans World m.rel}
 
 /-- The modal logic S5. -/
 @[scoped grind =]
 def S5 World Atom :=
-  logic {m : Model World Atom |
-    Std.Refl m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
+  logic
+    {m : Model World Atom |
+      Std.Refl m.rel ∧ IsTrans World m.rel ∧ Relation.RightEuclidean m.rel}
 
 section Order
 
@@ -119,13 +116,14 @@ theorem k_subset_five : K World Atom ⊆ Five World Atom := by
   grind only [subset_def, Five, K, = ofPred_true, = logic, mem_ofPred_eq, = Proposition.valid]
 
 open scoped Relation in
-theorem d_subset_t : D World Atom ⊆ T World Atom := by
-  grind
+theorem d_subset_t : D World Atom ⊆ T World Atom := by grind
 
 theorem k_subset_t : (K World Atom ⊆ T World Atom) := by
   calc
-    K World Atom ⊆ D World Atom := k_subset_d
-    D World Atom ⊆ T World Atom := d_subset_t
+    K World Atom
+      ⊆ D World Atom := k_subset_d
+    D World Atom
+      ⊆ T World Atom := d_subset_t
 
 end Order
 
@@ -142,7 +140,8 @@ open scoped Satisfies
 
 /-- The axiom K is valid in the logic K. -/
 theorem K.k_valid : (□(φ₁ → φ₂) → (□φ₁ → □φ₂) : Proposition Atom) ∈ K World Atom := by
-  open scoped Proposition in grind
+  open scoped Proposition in
+  grind
 
 /-- The axiom T is valid in the logic T. -/
 theorem T.t_valid : (φ → ◇φ : Proposition Atom) ∈ T World Atom := by

@@ -21,23 +21,23 @@ open Cslib.Logic.CLL
 -- Define some atomic propositions for testing
 abbrev P := Proposition Nat
 
-def a : P  := .atom 0
+def a : P := .atom 0
 def a' : P := .atomDual 0
-def b : P  := .atom 1
-def c : P  := .atom 2
+def b : P := .atom 1
+def c : P := .atom 2
 
 -- Test that notations work correctly
-example : P := a ⊗ b           -- tensor
-example : P := a ⅋ b           -- parr
-example : P := a ⊕ b           -- oplus
-example : P := a & b           -- with
-example : P := !a              -- bang
-example : P := ʔa              -- quest
-example : P := (1 : P)         -- one
-example : P := (0 : P)         -- zero
-example : P := (⊤ : P)         -- top
-example : P := (⊥ : P)         -- bot
-example : P := a ⊸ b           -- linear implication
+example : P := a ⊗ b -- tensor
+example : P := a ⅋ b -- parr
+example : P := a ⊕ b -- oplus
+example : P := a & b -- with
+example : P := !a -- bang
+example : P := ʔa -- quest
+example : P := (1 : P) -- one
+example : P := (0 : P) -- zero
+example : P := (⊤ : P) -- top
+example : P := (⊥ : P) -- bot
+example : P := a ⊸ b -- linear implication
 
 -- Test nested propositions
 example : P := (a ⊗ b) ⅋ c
@@ -68,7 +68,6 @@ example : (1 : P) ≠ (1 : P)⫠ := Proposition.dual_neq 1
 
 -- dual_inj: duality is injective
 example : (a⫠ = b⫠) ↔ (a = b) := Proposition.dual_inj a b
-
 
 /-! ## Basic proof tests -/
 
@@ -107,7 +106,6 @@ example : ⇓({ʔa, a⫠} : Sequent Nat) := Proof.quest Proof.ax
 -- Weaken: from ⊢ Γ derive ⊢ ʔa, Γ
 example : ⇓({ʔa, 1} : Sequent Nat) := Proof.weaken Proof.one
 
-
 /-! ## Logical equivalence tests (proof-irrelevant) -/
 
 -- Reflexivity
@@ -130,7 +128,6 @@ example : (a ⊗ (b ⊕ c) : P) ≡ (a ⊗ b) ⊕ (a ⊗ c) := (Proposition.tens
 example : (a ⊕ a : P) ≡ a := Proposition.oplusIdem.toProp
 example : (a & a : P) ≡ a := Proposition.withIdem.toProp
 
-
 /-! ## Proof-relevant equivalence tests -/
 
 -- equiv.refl
@@ -150,7 +147,6 @@ example : (a ⊗ (b ⊗ c) : P) ≡⇓ (a ⊗ b) ⊗ c := Proposition.tensorAsso
 example : (a ⊕ a : P) ≡⇓ a := Proposition.oplusIdem
 example : (a & a : P) ≡⇓ a := Proposition.withIdem
 
-
 /-! ## Inversion tests -/
 
 -- parrInversion
@@ -162,7 +158,6 @@ example (h : ⇓({⊥, 1} : Sequent Nat)) : ⇓({1} : Sequent Nat) := Proof.botI
 -- with_inversion
 example (h : ⇓({a & b} : Sequent Nat)) : ⇓({a} : Sequent Nat) := Proof.withInversion₁ h
 example (h : ⇓({a & b} : Sequent Nat)) : ⇓({b} : Sequent Nat) := Proof.withInversion₂ h
-
 
 /-! ## Positive/Negative classification tests -/
 
@@ -182,10 +177,10 @@ example : Proposition.negative (a ⅋ b) = true := rfl
 example : Proposition.negative (a & b) = true := rfl
 example : Proposition.negative (ʔa) = true := rfl
 
-
 /-! ## linear logic proofs tests -/
 
-/-- Example 37 Figure 5 from https://arxiv.org/abs/1904.06850
+/--
+Example 37 Figure 5 from https://arxiv.org/abs/1904.06850
 
 B ⊢ (!(A ⊸ B) ⊸ B) ⊗ (B ⊸ (!A ⊸ B))
 
@@ -207,15 +202,14 @@ example : ⇓({b⫠, (!(a ⊸ b) ⊸ b) ⊗ (b ⊸ (!a ⊸ b))} : Sequent Nat) :
   -- tensor rule, We need Γ + Δ = {b⫠}, so Γ = {b⫠} and Δ = {}
   apply Proof.tensor (Γ := {b⫠}) (Δ := {})
   · -- !(a ⊸ b) ⊸ b = ʔ(a ⊗ b⫠) ⅋ b
-    apply Proof.parr   -- Apply parr to get: ⊢ ʔ(a ⊗ b⫠), b, b⫠
+    apply Proof.parr -- Apply parr to get: ⊢ ʔ(a ⊗ b⫠), b, b⫠
     apply Proof.weaken
     apply Proof.ax
   · -- b ⊸ (!a ⊸ b) = b⫠ ⅋ (ʔa⫠ ⅋ b)
-    apply Proof.parr   -- Apply parr to get: ⊢ b⫠, ʔa⫠ ⅋ b
+    apply Proof.parr -- Apply parr to get: ⊢ b⫠, ʔa⫠ ⅋ b
     apply Proof.rwConclusion (Multiset.pair_comm ..)
-    apply Proof.parr   -- Apply parr to get: ⊢ b⫠, ʔa⫠, b
+    apply Proof.parr -- Apply parr to get: ⊢ b⫠, ʔa⫠, b
     apply Proof.weaken
     exact Proof.ax
-
 
 end CslibTests

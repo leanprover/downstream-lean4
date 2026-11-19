@@ -34,8 +34,7 @@ variable {α : Type*} {r : α → α → Prop}
 instance [RightEuclidean r] (s : Set α) : RightEuclidean (α := s) r :=
   ⟨RightEuclidean.rightEuclidean⟩
 
-instance [LeftEuclidean r] (s : Set α) : LeftEuclidean (α := s) r :=
-  ⟨LeftEuclidean.leftEuclidean⟩
+instance [LeftEuclidean r] (s : Set α) : LeftEuclidean (α := s) r := ⟨LeftEuclidean.leftEuclidean⟩
 
 @[scoped grind →]
 lemma refl_serial (r : α → α → Prop) (h : Std.Refl r) : Serial r where
@@ -78,19 +77,19 @@ theorem rightUnique_trans (h : Relator.RightUnique r) : IsTrans α r where
 
 theorem rightTotal_equiv (h : Relator.RightTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => reflOn_cod.of_cod (h a).choose_spec⟩
-  exact {toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩}
+  exact { toIsTrans := ⟨fun _ _ _ ab bc => rightEuclidean (symm ab) bc⟩ }
 
 omit [RightEuclidean r] in
-theorem leftTotal_rightUnique_trans (h₁ : LeftTotal r) (h₂ : RightUnique r) [IsTrans α r] :
-    RightEuclidean r where
+theorem leftTotal_rightUnique_trans (h₁ : LeftTotal r) (h₂ : RightUnique r) [IsTrans α r]
+    : RightEuclidean r where
   rightEuclidean {a b c} ab ac := by
     obtain ⟨d, dc⟩ := h₁ c
     have : b = c := h₂ ab ac
     have : d = c := h₂ (_root_.trans ac dc) ac
     grind
 
-private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r] :
-    ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
+private theorem three_contra [Std.Trichotomous r] [Std.Antisymm r]
+    : ¬ ∃ (a b c : α), a ≠ b ∧ a ≠ c ∧ b ≠ c := by
   rintro ⟨a, b, c, _⟩
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a b
   have := @Std.Trichotomous.rel_or_eq_or_rel_swap _ r _ a c
@@ -108,8 +107,8 @@ theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Fin
   have ⟨a, b, c, _, _, _, _⟩ := Finset.card_eq_three.mp hcard
   use a, b, c
 
-theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
-    Fintype.card α ≤ 2 := by
+theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α]
+    : Fintype.card α ≤ 2 := by
   by_contra! h
   apply three_contra (r := r)
   have ⟨a, b, c, _⟩ := Fintype.two_lt_card_iff.mp h
@@ -117,8 +116,8 @@ theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintyp
 
 theorem cod_subset_dom : cod r ⊆ dom r := fun _ ⟨_, ab⟩ ↦ of_cod (reflOn_cod.of_cod ab)
 
-theorem rightTotal_cod : Relator.RightTotal (α := cod r) (β := cod r) r :=
-  fun ⟨_, _, h⟩ => of_cod (reflOn_cod.of_cod h)
+theorem rightTotal_cod : Relator.RightTotal (α := cod r) (β := cod r) r := fun ⟨_, _, h⟩ =>
+  of_cod (reflOn_cod.of_cod h)
 
 theorem equiv_cod : IsEquiv (cod r) r := rightTotal_equiv rightTotal_cod
 
@@ -160,11 +159,11 @@ theorem leftUnique_trans (h : Relator.LeftUnique r) : IsTrans α r where
 
 theorem leftTotal_equiv (h : Relator.LeftTotal r) : IsEquiv α r := by
   have : Std.Refl r := ⟨fun a => reflOn_dom.of_dom (h a).choose_spec⟩
-  exact {toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩}
+  exact { toIsTrans := ⟨fun _ _ _ ab bc => leftEuclidean ab (symm bc)⟩ }
 
 omit [LeftEuclidean r] in
-theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) [IsTrans α r] :
-    LeftEuclidean r where
+theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) [IsTrans α r]
+    : LeftEuclidean r where
   leftEuclidean {a b c} ac bc := by
     obtain ⟨d, da⟩ := h₁ a
     have : a = b := h₂ ac bc
@@ -174,14 +173,14 @@ theorem rightTotal_leftUnique_trans (h₁ : RightTotal r) (h₂ : LeftUnique r) 
 theorem trichotomous_antisymm_finite [Std.Trichotomous r] [Std.Antisymm r] : Finite α :=
   RightEuclidean.trichotomous_antisymm_finite (r := Function.swap r)
 
-theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α] :
-    Fintype.card α ≤ 2 :=
+theorem trichotomous_antisymm_card [Std.Trichotomous r] [Std.Antisymm r] [Fintype α]
+    : Fintype.card α ≤ 2 :=
   RightEuclidean.trichotomous_antisymm_card (r := Function.swap r)
 
 theorem dom_subset_cod : dom r ⊆ cod r := fun _ ⟨_, ab⟩ ↦ of_dom (reflOn_dom.of_dom ab)
 
-theorem leftTotal_dom : Relator.LeftTotal (α := dom r) (β := dom r) r :=
-  fun ⟨a, _, h⟩ => ⟨⟨a, of_dom h⟩, reflOn_dom.of_dom h⟩
+theorem leftTotal_dom : Relator.LeftTotal (α := dom r) (β := dom r) r := fun ⟨a, _, h⟩ =>
+  ⟨⟨a, of_dom h⟩, reflOn_dom.of_dom h⟩
 
 theorem equiv_dom : IsEquiv (dom r) r := leftTotal_equiv leftTotal_dom
 
@@ -203,7 +202,7 @@ theorem symm_leftEuclidean_iff_rightEuclidean : LeftEuclidean r ↔ RightEuclide
   List.TFAE.out symm_equivalents 2 1
 
 /-- For a symmetric relation, `LeftEuclidean` and transitivity are equivalent. -/
-theorem symm_leftEuclidean_iff_trans : LeftEuclidean r ↔  IsTrans α r :=
+theorem symm_leftEuclidean_iff_trans : LeftEuclidean r ↔ IsTrans α r :=
   List.TFAE.out symm_equivalents 2 3
 
 /-- For a symmetric relation, `RightEuclidean` and transitivity are equivalent. -/
@@ -212,28 +211,30 @@ theorem symm_rightEuclidean_iff_trans : RightEuclidean r ↔ IsTrans α r :=
 
 end euclidean_symm
 
-theorem leftEuclidean_rightEuclidean_dom_cod_eq [LeftEuclidean r] [RightEuclidean r] :
-    dom r = cod r := by
+theorem leftEuclidean_rightEuclidean_dom_cod_eq [LeftEuclidean r] [RightEuclidean r]
+    : dom r = cod r := by
   have : dom r ⊆ cod r := LeftEuclidean.dom_subset_cod
   have : cod r ⊆ dom r := RightEuclidean.cod_subset_dom
   grind
 
-theorem dom_cod_leftEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r] :
-    LeftEuclidean r where
+theorem dom_cod_leftEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r]
+    : LeftEuclidean r where
   leftEuclidean {a b c} ac bc := by
     have cb : r c b := equiv_dom.symm ⟨_, _, bc⟩ ⟨c, by grind⟩ bc
     exact equiv_dom.trans ⟨_, _, ac⟩ ⟨_, _, cb⟩ ⟨_, by grind⟩ ac cb
 
-lemma dom_cod_rightEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r] :
-    RightEuclidean r where
+lemma dom_cod_rightEuclidean (eq : dom r = cod r) [equiv_dom : IsEquiv (dom r) r]
+    : RightEuclidean r where
   rightEuclidean {a b c} ab ac := by
     have ba : r b a := equiv_dom.symm ⟨a, _, ab⟩ ⟨b, by grind⟩ ab
     exact equiv_dom.trans ⟨_, _, ba⟩ ⟨_, _, ac⟩ ⟨c, by grind⟩ ba ac
 
-/-- A relation is both left and right Euclidean if and only if the relation is an equivalence on
-  coinciding domain and codomain. -/
-theorem leftEuclidean_rightEuclidean_iff_dom_cod :
-    LeftEuclidean r ∧ RightEuclidean r ↔ dom r = cod r ∧ IsEquiv (dom r) r where
+/--
+A relation is both left and right Euclidean if and only if the relation is an equivalence on
+coinciding domain and codomain.
+-/
+theorem leftEuclidean_rightEuclidean_iff_dom_cod
+    : LeftEuclidean r ∧ RightEuclidean r ↔ dom r = cod r ∧ IsEquiv (dom r) r where
   mp := fun ⟨_, _⟩ ↦ ⟨leftEuclidean_rightEuclidean_dom_cod_eq, LeftEuclidean.equiv_dom⟩
   mpr := fun ⟨eq, _⟩ ↦ ⟨dom_cod_leftEuclidean eq, dom_cod_rightEuclidean eq⟩
 

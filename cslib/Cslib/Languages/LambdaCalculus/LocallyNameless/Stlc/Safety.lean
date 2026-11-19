@@ -54,7 +54,8 @@ theorem preservation : PreservesTyping (Var := Var) (· ⭢βᶠ ·) Base := by
   case abs.abs xs _ _ _ xs' _ => apply Typing.abs (free_union Var); grind
   case app.base h der _ _ der_l =>
     cases der_l
-    cases h with | abs _ cofin => exact preservation_open cofin der
+    cases h with
+    | abs _ cofin => exact preservation_open cofin der
   all_goals grind
 
 open scoped Term in
@@ -75,7 +76,9 @@ theorem progress {t : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ) : t.Value 
     right
     cases ih_l with
     -- if the lhs is a value, beta reduce the application
-    | inl val => cases val with | abs M _ => use M ^ N, by grind
+    | inl val =>
+      cases val with
+      | abs M _ => use M ^ N, by grind
     -- otherwise, propagate the step to the lhs of the application
     | inr step =>
       obtain ⟨M', _⟩ := step

@@ -44,8 +44,9 @@ theorem update_apply (f : α →₀ β) : ((f.update a' b) a) = if a = a' then b
 
 /-- Conditional characterisation of the support of an updated `FinFun`. -/
 @[scoped grind =]
-theorem update_support (f : α →₀ β) :
-    (f.update a b).support = if b = 0 then f.support \ {a} else f.support ∪ {a} := by simp [update]
+theorem update_support (f : α →₀ β)
+    : (f.update a b).support = if b = 0 then f.support \ {a} else f.support ∪ {a} := by
+  simp [update]
 
 /-- Updating a finite function on the same key is the same as doing the last update. -/
 @[scoped grind =, simp]
@@ -53,8 +54,8 @@ theorem update_idem (f : α →₀ β) : (f.update a b).update a b' = f.update a
 
 /-- Updates on different keys commute. -/
 @[scoped grind =]
-theorem update_comm (f : α →₀ β) (h : a ≠ a') :
-    (f.update a b).update a' b' = (f.update a' b').update a b := by
+theorem update_comm (f : α →₀ β) (h : a ≠ a')
+    : (f.update a b).update a' b' = (f.update a' b').update a b := by
   grind only [←= ext, = update_apply]
 
 /-- Updates that do not change mappings are redundant. -/

@@ -25,8 +25,10 @@ namespace Turing.MultiTapeTM
 
 variable {Symbol : Type*} {input : List Symbol}
 
-/-- The copy machine: a single state and no work tapes. It copies every input symbol to the output
-tape while moving right, and halts on reading the blank at the right end of the input. -/
+/--
+The copy machine: a single state and no work tapes. It copies every input symbol to the output
+tape while moving right, and halts on reading the blank at the right end of the input.
+-/
 def copy : MultiTapeTM 0 Symbol Unit :=
   ofTr () fun _ s _ =>
     match s with
@@ -35,15 +37,17 @@ def copy : MultiTapeTM 0 Symbol Unit :=
 
 namespace Copy
 
-/-- The configuration of the copy machine in state `q` after copying the first `n` input symbols
+/--
+The configuration of the copy machine in state `q` after copying the first `n` input symbols
 to the output: the input head is over cell `n + 1` (capped at the right end marker) and there are
-no work tapes. `input` is explicit because it only occurs in the type. -/
+no work tapes. `input` is explicit because it only occurs in the type.
+-/
 def cfg (input : List Symbol) (q : Option Unit) (n : ℕ) : Cfg 0 Symbol Unit input :=
   ⟨q, ⟨min (n + 1) (input.length + 1), by omega⟩, fun _ _ => none, fun _ => 0, input.take n⟩
 
 /-- Over an input symbol, the copy machine emits it and moves right. -/
-lemma step_scan {n : ℕ} (hn : n < input.length) :
-    copy.step (cfg input (some ()) n) = cfg input (some ()) (n + 1) := by
+lemma step_scan {n : ℕ} (hn : n < input.length)
+    : copy.step (cfg input (some ()) n) = cfg input (some ()) (n + 1) := by
   have hsym : (cfg input (some ()) n).inputSymbol = some input[n] :=
     inputSymbolInner n (by simp [cfg]; omega) hn
   rw [step_of_state rfl, hsym, copy, tr_ofTr]
@@ -54,42 +58,45 @@ lemma step_scan {n : ℕ} (hn : n < input.length) :
     grind [List.take_add_one]
 
 /-- On the blank at the right end of the input, the copy machine halts in place. -/
-lemma step_halt :
-    copy.step (cfg input (some ()) input.length) = cfg input none input.length := by
+lemma step_halt : copy.step (cfg input (some ()) input.length) = cfg input none input.length := by
   have hsym : (cfg input (some ()) input.length).inputSymbol = none :=
     inputSymbol_eq_none_of_boundary (Or.inr (by simp [cfg]))
   rw [step_of_state rfl, hsym, copy, tr_ofTr]
   apply Cfg.ext_zero_tapes <;> simp [cfg, Action.apply]
 
 /-- After `n ≤ input.length` steps, the copy machine has copied the first `n` input symbols. -/
-lemma runFrom_scan (n : ℕ) (hn : n ≤ input.length) :
-    copy.runFrom (copy.initCfg input) n = cfg input (some ()) n := by
+lemma runFrom_scan (n : ℕ) (hn : n ≤ input.length)
+    : copy.runFrom (copy.initCfg input) n = cfg input (some ()) n := by
   induction n with
   | zero => exact Cfg.ext_zero_tapes rfl rfl rfl
   | succ n ih =>
     rw [runFrom, Function.iterate_succ_apply', ← runFrom, ih (by omega), step_scan (by omega)]
 
-/-- The complete run: after `input.length + 1` steps the copy machine has halted with the input
-copied to the output. -/
-lemma runFrom_full (input : List Symbol) :
-    copy.runFrom (copy.initCfg input) (input.length + 1) = cfg input none input.length := by
+/--
+The complete run: after `input.length + 1` steps the copy machine has halted with the input
+copied to the output.
+-/
+lemma runFrom_full (input : List Symbol)
+    : copy.runFrom (copy.initCfg input) (input.length + 1) = cfg input none input.length := by
   rw [runFrom, Function.iterate_succ_apply', ← runFrom, runFrom_scan _ le_rfl, step_halt]
 
 /-- The copy machine outputs its input unchanged, in `input.length + 1` steps and zero space. -/
-theorem computesInTimeAndSpace (input : List Symbol) :
-    ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
+theorem computesInTimeAndSpace (input : List Symbol)
+    : ComputesInTimeAndSpace copy input input (input.length + 1) 0 := by
   have hhalt := congrArg Cfg.state (runFrom_full input)
-  exact ⟨⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
-    runsInTime_of_halted hhalt, by simp⟩
+  exact ⟨
+    ⟨input.length + 1, hhalt, by rw [runFrom_full]; simp [cfg]⟩,
+    runsInTime_of_halted hhalt,
+    by simp
+  ⟩
 
 end Copy
 
 variable {α : Type*}
 
 /-- The identity function is computable in one step per input symbol and zero space. -/
-public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool} :
-    ComputableInTimeAndSpace (id : α → α) enc enc
-      (fun a => (enc a).length + 1) (fun _ => 0) :=
+public theorem computableInTimeAndSpace_id {enc : α ↪ List Bool}
+    : ComputableInTimeAndSpace (id : α → α) enc enc (fun a => (enc a).length + 1) (fun _ => 0) :=
   ⟨0, Unit, inferInstance, copy, fun a ↦ Copy.computesInTimeAndSpace (enc a)⟩
 
 end Turing.MultiTapeTM

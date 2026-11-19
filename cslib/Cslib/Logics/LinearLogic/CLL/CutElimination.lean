@@ -17,18 +17,19 @@ namespace Cslib.Logic.CLL
 open Cslib.Logic.InferenceSystem
 
 /-- A `CutFreeProof` is a `Proof` without cuts (applications of `Proof.cut`). -/
-abbrev CutFreeProof (Γ : Sequent Atom) := { q : ⇓Γ // q.cutFree }
+abbrev CutFreeProof (Γ : Sequent Atom) := {q : ⇓Γ // q.cutFree}
 
 -- TODO
-/- Cut admissibility: given two proofs with dual propositions, returns a cut-free proof of their
-cut. -/
+/-
+Cut admissibility: given two proofs with dual propositions, returns a cut-free proof of their
+cut.
+-/
 -- def Proof.cutAdm
 --     {a : Proposition Atom} (p : CutFreeProof (a ::ₘ Γ)) (q : CutFreeProof (a⫠ ::ₘ Δ)) :
 --     CutFreeProof (Γ + Δ)
 
 -- TODO
-/- Cut elimination: given a proof of a sequent `Γ`, returns a cut-free proof of the same sequent.
--/
+/- Cut elimination: given a proof of a sequent `Γ`, returns a cut-free proof of the same sequent. -/
 -- def Proof.cut_elim (p : ⇓Γ) : CutFreeProof Γ
 
 end Cslib.Logic.CLL

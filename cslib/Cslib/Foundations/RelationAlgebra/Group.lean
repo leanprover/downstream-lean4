@@ -88,16 +88,16 @@ def cayley : RelationAlgebraHom (ComplexAlgebra (ofGroup G)) (SetRel G G) where
   map_star' x := by ext ⟨_, _⟩; simp
 
 @[simp]
-theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} :
-    (g, h) ∈ cayley G x ↔ g⁻¹ * h ∈ x := .rfl
+theorem mem_cayley {x : ComplexAlgebra (ofGroup G)} {g h : G} : (g, h) ∈ cayley G x ↔ g⁻¹ * h ∈ x :=
+  .rfl
 
 theorem cayley_injective : Function.Injective (cayley G) := by
   intro x y hxy
   ext g
   simpa using congr((1, g) ∈ $hxy)
 
-theorem mem_range_cayley {r : SetRel G G} :
-    r ∈ Set.range (cayley G) ↔ ∀ g h k : G, (g, h) ∈ r → (k * g, k * h) ∈ r := by
+theorem mem_range_cayley {r : SetRel G G}
+    : r ∈ Set.range (cayley G) ↔ ∀ g h k : G, (g, h) ∈ r → (k * g, k * h) ∈ r := by
   constructor
   · rintro ⟨x, rfl⟩
     simp
@@ -109,14 +109,14 @@ theorem mem_range_cayley {r : SetRel G G} :
     · simpa using hinv g h g⁻¹
 
 open scoped Pointwise in
-theorem _root_.MulAction.set_mem_fixedPoints_iff {G α : Type*} [Group G] [MulAction G α]
-    {s : Set α} : s ∈ MulAction.fixedPoints G (Set α) ↔ ∀ g : G, g • s ⊆ s :=
+theorem _root_.MulAction.set_mem_fixedPoints_iff {G α : Type*} [Group G] [MulAction G α] {s : Set α}
+    : s ∈ MulAction.fixedPoints G (Set α) ↔ ∀ g : G, g • s ⊆ s :=
   ⟨fun h g => (h g).subset, fun h g => (h g).antisymm (Set.subset_smul_set_iff.mpr (h g⁻¹))⟩
 
 open scoped Pointwise in
 theorem range_cayley : Set.range (cayley G) = MulAction.fixedPoints G (SetRel G G) := by
   ext
-  simp [↓mem_range_cayley, ↓MulAction.set_mem_fixedPoints_iff, Set.smul_set_subset_iff]
+  simp [↓ mem_range_cayley, ↓ MulAction.set_mem_fixedPoints_iff, Set.smul_set_subset_iff]
   grind
 
 theorem representable_ofGroup (G : Type u) [Group G] : Representable (ComplexAlgebra (ofGroup G)) :=
@@ -133,19 +133,21 @@ namespace GroupRepresentable
 
 variable {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
 
-/-- A relation algebra that embeds into an algebra representable over a group is itself
-representable over a group. -/
-theorem of_injective (f : RelationAlgebraHom α α') (hf : Function.Injective f) :
-    GroupRepresentable α' → GroupRepresentable α :=
-  fun ⟨G, _, g, hg⟩ => ⟨G, inferInstance, g.comp f, hg.comp hf⟩
+/--
+A relation algebra that embeds into an algebra representable over a group is itself
+representable over a group.
+-/
+theorem of_injective (f : RelationAlgebraHom α α') (hf : Function.Injective f)
+    : GroupRepresentable α' → GroupRepresentable α := fun ⟨G, _, g, hg⟩ =>
+  ⟨G, inferInstance, g.comp f, hg.comp hf⟩
 
 /-- A relation algebra representable over a group is representable. -/
-theorem representable : GroupRepresentable α → Representable α :=
-  fun ⟨G, _, f, hf⟩ => (ComplexAlgebra.representable_ofGroup G).of_injective f hf
+theorem representable : GroupRepresentable α → Representable α := fun ⟨G, _, f, hf⟩ =>
+  (ComplexAlgebra.representable_ofGroup G).of_injective f hf
 
 /-- A relation algebra representable over a group is integral. -/
-theorem isIntegral : GroupRepresentable α → IsIntegral α :=
-  fun ⟨_, _, f, hf⟩ => f.isIntegral_of_injective hf ComplexAlgebra.isIntegral_ofGroup
+theorem isIntegral : GroupRepresentable α → IsIntegral α := fun ⟨_, _, f, hf⟩ =>
+  f.isIntegral_of_injective hf ComplexAlgebra.isIntegral_ofGroup
 
 end GroupRepresentable
 

@@ -11,7 +11,6 @@ namespace CslibTests
 open Cslib CCS Process Algorithms.CCS.VendingMachine
 
 /-- The deterministic vending machine can perform a coin action. -/
-example : ltsD.Tr vm Coin `(CCS| (Tea. const .vm) + (Coffee. const .vm)) :=
-  Tr.const rfl Tr.pre
+example : ltsD.Tr vm Coin `(CCS| (Tea. const .vm) + (Coffee. const .vm)) := Tr.const rfl Tr.pre
 
 end CslibTests

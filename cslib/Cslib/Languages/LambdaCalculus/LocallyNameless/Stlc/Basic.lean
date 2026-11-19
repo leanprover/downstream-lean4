@@ -50,9 +50,9 @@ open Ty Context
 /-- An extrinsic typing derivation for locally nameless terms. -/
 inductive Typing : Context Var (Ty Base) → Term Var → Ty Base → Prop
   /-- Free variables, from a context judgement. -/
-  | var : Γ✓ → ⟨x,σ⟩ ∈ Γ → Typing Γ (fvar x) σ
+  | var : Γ✓ → ⟨x, σ⟩ ∈ Γ → Typing Γ (fvar x) σ
   /-- Lambda abstraction. -/
-  | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x,σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ)
+  | abs (L : Finset Var) : (∀ x ∉ L, Typing (⟨x, σ⟩ :: Γ) (t ^ fvar x) τ) → Typing Γ t.abs (σ ⤳ τ)
   /-- Function application. -/
   | app : Typing Γ t (σ ⤳ τ) → Typing Γ t' σ → Typing Γ (app t t') τ
 
@@ -96,8 +96,7 @@ variable [HasFresh Var]
 open Term
 
 /-- Substitution for a context weakened by a single type between appended contexts. -/
-lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
-    Δ ++ Γ ⊢ t[x := s] ∶ τ := by
+lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) : Δ ++ Γ ⊢ t[x := s] ∶ τ := by
   generalize eq : Δ ++ ⟨x, σ⟩ :: Γ = Θ at h
   induction h generalizing Γ Δ der
   case app => grind
@@ -105,22 +104,20 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
     subst eq
     cases ((List.perm_nodupKeys (by simp)).mp ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons =>
-    observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
-    by_cases h : x = x'
-    · have := (weaken der ?_).perm perm <;> grind
-    · grind
-  case abs =>
-    grind [Typing.abs <| free_union Var, subst_open_var _ _ _ _ ?_ der.lc]
+      observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
+      by_cases h : x = x'
+      · have := (weaken der ?_).perm perm <;> grind
+      · grind
+  case abs => grind [Typing.abs <| free_union Var, subst_open_var _ _ _ _ ?_ der.lc]
 
 /-- Substitution for a context weakened by a single type. -/
-lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) :
-    Γ ⊢ (t[x := s]) ∶ τ := by
+lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ σ) : Γ ⊢ (t[x := s]) ∶ τ := by
   grind [subst_aux]
 
 /-- Typing preservation for opening. -/
-theorem preservation_open {xs : Finset Var}
-    (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) :
-    Γ ⊢ m ^ n ∶ τ := by
+theorem preservation_open
+    {xs : Finset Var} (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ)
+    : Γ ⊢ m ^ n ∶ τ := by
   have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
   grind [subst_intro fresh _ _ ?_, typing_subst_head]
 

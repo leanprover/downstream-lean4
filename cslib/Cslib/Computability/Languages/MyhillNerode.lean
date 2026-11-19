@@ -46,9 +46,11 @@ namespace Language
 open Cslib Language Automata DA FinAcc Acceptor Function
 open scoped RightCongruence
 
-/-- The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
+/--
+The Nerode congruence (henceforth called `c_l`) of a language `l` is a right congruence on
 strings where two strings are related iff all their right extensions are either both in the language
-or both not in it. -/
+or both not in it.
+-/
 @[implicit_reducible]
 def NerodeCongruence (l : Language α) : RightCongruence α where
   r x y := ∀ z, x ++ z ∈ l ↔ y ++ z ∈ l
@@ -60,10 +62,12 @@ def NerodeCongruence (l : Language α) : RightCongruence α where
 /-- The quotient type of a Nerode congruence. -/
 abbrev NerodeQuotient (l : Language α) := Quotient l.NerodeCongruence.eq
 
-/-- The Nerode congruence of a language `l` gives rise to a DFA where each state corresponds to an
+/--
+The Nerode congruence of a language `l` gives rise to a DFA where each state corresponds to an
 equivalence class of the language under the Nerode congruence. Note that this is simply the DFA
 given rise to by the underlying right congruence with only the accept states specified here as
-`{⟦ x ⟧ | x ∈ l}`. -/
+`{⟦ x ⟧ | x ∈ l}`.
+-/
 def NerodeCongruenceDA (l : Language α) : DA.FinAcc (l.NerodeQuotient) α :=
   FinAcc.mk l.NerodeCongruence.toDA ((⟦·⟧) '' l)
 
@@ -71,8 +75,7 @@ variable {l : Language α}
 
 /-- The DFA constructed from the Nerode congruence `c_l` on `l` accepts `l`. -/
 @[simp, scoped grind =]
-theorem nerodeCongruenceDA_language_eq (l : Language α) :
-    language (l.NerodeCongruenceDA) = l := by
+theorem nerodeCongruenceDA_language_eq (l : Language α) : language (l.NerodeCongruenceDA) = l := by
   ext x
   simp only [NerodeCongruenceDA, language, Acceptor.Accepts, congr_mtr_eq]
   constructor
@@ -83,18 +86,19 @@ theorem nerodeCongruenceDA_language_eq (l : Language α) :
   · intro hx
     use x, hx
 
-/-- The statement (two strings are related by the Nerode congruence `c_l` on `l` iff all their right
+/--
+The statement (two strings are related by the Nerode congruence `c_l` on `l` iff all their right
 extensions are either both in the language or both not in it) is equivalent to stating that (all
-their right extensions are either both accepted or rejected by the DFA given rise to by `c_l`.) -/
-theorem da_nerodeCongruence_iff {State : Type*} (M : DA.FinAcc State α) (x y : List α) :
-    ((language M).NerodeCongruence).r x y ↔
-    ∀ z, M.mtr (M.mtr M.start x) z ∈ M.accept ↔ M.mtr (M.mtr M.start y) z ∈ M.accept := by
+their right extensions are either both accepted or rejected by the DFA given rise to by `c_l`.)
+-/
+theorem da_nerodeCongruence_iff {State : Type*} (M : DA.FinAcc State α) (x y : List α)
+    : ((language M).NerodeCongruence).r x y
+      ↔ ∀ z, M.mtr (M.mtr M.start x) z ∈ M.accept ↔ M.mtr (M.mtr M.start y) z ∈ M.accept := by
   simp only [FLTS.mtr, ← List.foldl_append]
   rfl
 
 /-- If `l` is regular then the Nerode congruence on `l` has finitely many equivalence classes. -/
-theorem IsRegular.finite_nerodeQuotient (h : l.IsRegular) :
-    Finite (l.NerodeQuotient) := by
+theorem IsRegular.finite_nerodeQuotient (h : l.IsRegular) : Finite (l.NerodeQuotient) := by
   obtain ⟨State, hFin, M, hM⟩ := IsRegular.iff_dfa.mp h
   rw [← hM]
   apply Finite.of_surjective (fun s ↦ ⟦ Classical.epsilon (fun x ↦ M.mtr M.start x = s) ⟧)
@@ -110,8 +114,8 @@ theorem IsRegular.finite_nerodeQuotient (h : l.IsRegular) :
 
 /-- `l` is regular iff the Nerode congruence on `l` has finitely many equivalence classes. -/
 @[scoped grind =]
-theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
-    l.IsRegular ↔ Finite (l.NerodeQuotient) := by
+theorem IsRegular.iff_finite_nerodeQuotient {l : Language α}
+    : l.IsRegular ↔ Finite (l.NerodeQuotient) := by
   constructor
   · intro h
     exact IsRegular.finite_nerodeQuotient h
@@ -119,14 +123,17 @@ theorem IsRegular.iff_finite_nerodeQuotient {l : Language α} :
     apply IsRegular.iff_dfa.mpr
     use l.NerodeQuotient, h, l.NerodeCongruenceDA, nerodeCongruenceDA_language_eq l
 
-/-- Given a set of strings all distinguishable by `l` (i.e., not related to each other by the Nerode
+/--
+Given a set of strings all distinguishable by `l` (i.e., not related to each other by the Nerode
 congruence on `l`), the number of states in the DFA accepting `l` is at least the number of strings
-in the set. -/
+in the set.
+-/
 theorem dfa_num_state_ge
     {l : Language α} {ws : Set (List α)} [Finite ws]
     (hws : ws.Pairwise (¬ (l.NerodeCongruence).r · ·))
-    {State : Type*} [Finite State] {M : DA.FinAcc State α} (hm : language M = l) :
-    Nat.card ws ≤ Nat.card State := by
+    {State : Type*} [Finite State]
+    {M : DA.FinAcc State α} (hm : language M = l)
+    : Nat.card ws ≤ Nat.card State := by
   -- In this proof it is easier to work with `Fintype` rather than `Finite` because of the use of
   -- the theorem `Fintype.exists_ne_map_eq_of_card_lt` below.
   have : Fintype State := Fintype.ofFinite _
@@ -141,15 +148,17 @@ theorem dfa_num_state_ge
 
 -- Myhill-Nerode (2)
 
-/-- All DFAs accepting `l` must have at least as many states as the number of equivalence classes
-of the Nerode congruence on `l`. -/
-theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State] :
-    Nat.card (language M).NerodeQuotient ≤ Nat.card State := by
+/--
+All DFAs accepting `l` must have at least as many states as the number of equivalence classes
+of the Nerode congruence on `l`.
+-/
+theorem dfa_num_state_min {State : Type} {M : DA.FinAcc State α} [Finite State]
+    : Nat.card (language M).NerodeQuotient ≤ Nat.card State := by
   let ws : Set (List α) := Set.range (Quotient.out : NerodeQuotient (language M) → List α)
   have : Finite (language M).NerodeQuotient :=
-      IsRegular.iff_finite_nerodeQuotient.mp (IsRegular.iff_dfa.mpr ⟨State, inferInstance, M, rfl⟩)
+    IsRegular.iff_finite_nerodeQuotient.mp (IsRegular.iff_dfa.mpr ⟨State, inferInstance, M, rfl⟩)
   have : Finite ws := Set.finite_range _ |>.to_subtype
-  have hws : ws.Pairwise (fun x y ↦ ¬((language M).NerodeCongruence).r x y) := by
+  have hws : ws.Pairwise (fun x y ↦ ¬ ((language M).NerodeCongruence).r x y) := by
     rintro _ ⟨qx, rfl⟩ _ ⟨qy, rfl⟩ hne h
     apply hne
     simpa using Quotient.sound h
@@ -163,39 +172,43 @@ namespace Cslib.Automata.DA.FinAcc
 open Cslib Cslib.Language Automata DA FinAcc Acceptor
 open _root_.Language RightCongruence
 
-/-- The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
-of the Nerode congruence on `l`. -/
+/--
+The minimal DFA accepting `l` has the same number of states as the number of equivalence classes
+of the Nerode congruence on `l`.
+-/
 def IsMinimalAutomaton {State : Type*} (M : FinAcc State α) (l : Language α) :=
   language M = l ∧ Nat.card State = Nat.card l.NerodeQuotient
 
-/-- Given a DFA `M`, two strings are related iff they reach the same state under when run through
-`M`. The Nerode congruence is the state congruence with respect to the minimal DFA accepting `l`. -/
+/--
+Given a DFA `M`, two strings are related iff they reach the same state under when run through
+`M`. The Nerode congruence is the state congruence with respect to the minimal DFA accepting `l`.
+-/
 @[implicit_reducible]
 def StateCongruence (M : FinAcc State α) : RightCongruence α where
   r x y := ∀ z, M.mtr M.start (x ++ z) = M.mtr M.start (y ++ z)
   iseqv.refl := by grind
-  iseqv.symm  := by grind
+  iseqv.symm := by grind
   iseqv.trans := by grind
   right_cov.elim := by grind [Covariant]
 
 variable {M : FinAcc State α}
 
 /-- The Nerode congruence is the most coarse state congruence given a language. -/
-theorem stateCongruence_le_nerodeCongruence {x y : List α}
-    (h : (StateCongruence M).r x y) : ((language M).NerodeCongruence).r x y := by
+theorem stateCongruence_le_nerodeCongruence {x y : List α} (h : (StateCongruence M).r x y)
+    : ((language M).NerodeCongruence).r x y := by
   intro z
   grind [h z, language, Acceptor.Accepts, FLTS.mtr_concat_eq]
 
 -- Myhill-Nerode (3)
 
 /-- The minimal DFA `M` accepting the language `l` is unique up to unique isomorphism. -/
-theorem unique_minimal [Finite State]
-    (l : Language α) (hr : l.IsRegular) (hm : M.IsMinimalAutomaton l) :
-    ∃! φ : State ≃ l.NerodeQuotient, ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
+theorem unique_minimal
+    [Finite State] (l : Language α) (hr : l.IsRegular) (hm : M.IsMinimalAutomaton l)
+    : ∃! φ : State ≃ l.NerodeQuotient, ∀ x, φ (M.mtr M.start x) = ⟦ x ⟧ := by
   obtain ⟨rfl, hc⟩ := hm
   have := Language.IsRegular.iff_finite_nerodeQuotient.mp hr
-  let φ : State → Quotient ((language M).NerodeCongruence).eq :=
-    fun s ↦ ⟦ Classical.epsilon (fun x : List α ↦ M.mtr M.start x = s) ⟧
+  let φ : State → Quotient ((language M).NerodeCongruence).eq := fun s ↦
+    ⟦ Classical.epsilon (fun x : List α ↦ M.mtr M.start x = s) ⟧
   have hφ (x : List α) : φ (M.mtr M.start x) = ⟦ x ⟧ := by
     apply Quotient.sound
     apply stateCongruence_le_nerodeCongruence

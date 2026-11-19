@@ -18,16 +18,18 @@ variable {State Label : Type*}
 
 /-- The product of two FLTS with the same label type. -/
 @[scoped grind =]
-def prod (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label) :
-    FLTS (State1 × State2) Label where
+def prod (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label)
+    : FLTS (State1 × State2) Label where
   tr := fun (s1, s2) μ ↦ (flts1.tr s1 μ, flts2.tr s2 μ)
 
-/-- A state is reachable by the product FLTS iff its components are reachable by
-the respective FLTS components. -/
+/--
+A state is reachable by the product FLTS iff its components are reachable by
+the respective FLTS components.
+-/
 @[simp, scoped grind =]
-theorem prod_mtr_eq (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label)
-    (s : State1 × State2) (μs : List Label) :
-    (flts1.prod flts2).mtr s μs = (flts1.mtr s.fst μs, flts2.mtr s.snd μs) := by
+theorem prod_mtr_eq
+    (flts1 : FLTS State1 Label) (flts2 : FLTS State2 Label) (s : State1 × State2) (μs : List Label)
+    : (flts1.prod flts2).mtr s μs = (flts1.mtr s.fst μs, flts2.mtr s.snd μs) := by
   induction μs generalizing s <;> grind
 
 end Cslib.FLTS

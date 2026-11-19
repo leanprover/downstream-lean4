@@ -37,10 +37,9 @@ inductive Sub : Env Var → Ty Var → Ty Var → Prop
   | refl_tvar : Γ.Wf → (fvar X).Wf Γ → Sub Γ (fvar X) (fvar X)
   | trans_tvar : Binding.sub σ ∈ Γ.dlookup X → Sub Γ σ σ' → Sub Γ (fvar X) σ'
   | arrow : Sub Γ σ σ' → Sub Γ τ' τ → Sub Γ (arrow σ' τ') (arrow σ τ)
-  | all (L : Finset Var) :
-      Sub Γ σ σ' →
-      (∀ X ∉ L, Sub (⟨X, Binding.sub σ⟩ :: Γ) (τ' ^ᵞ fvar X) (τ ^ᵞ fvar X)) →
-      Sub Γ (all σ' τ') (all σ τ)
+  | all (L : Finset Var)
+    : Sub Γ σ σ' → (∀ X ∉ L, Sub (⟨X, Binding.sub σ⟩ :: Γ) (τ' ^ᵞ fvar X) (τ ^ᵞ fvar X))
+      → Sub Γ (all σ' τ') (all σ τ)
   | sum : Sub Γ σ' σ → Sub Γ τ' τ → Sub Γ (sum σ' τ') (sum σ τ)
 
 namespace Sub
@@ -79,14 +78,14 @@ lemma weaken_head (sub : Sub Δ σ σ') (wf : (Γ ++ Δ).Wf) : Sub (Γ ++ Δ) σ
 
 lemma narrow_aux
     (trans : ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ)
-    (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ' δ) :
-      Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ := by
+    (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ' δ)
+    : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ⟩ :: Δ = Θ at sub₁
   induction sub₁ generalizing Γ δ
   case trans_tvar σ _ σ' X' mem sub ih =>
     subst eq
-    have p : ∀ δ, Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) :=
-      by grind [perm_middle]
+    have p : ∀ δ, Γ ++ ⟨X, Binding.sub δ⟩ :: Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := by
+      grind [perm_middle]
     by_cases X = X'
     · grind only [= append_assoc, = Option.or_some, = dlookup_append, weaken, = dlookup_cons_eq,
         → wf, =_ singleton_append, =_ cons_append, = mem_append, = Option.or_eq_some_iff,
@@ -133,18 +132,17 @@ lemma trans : Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ := by
           grind [Sub.narrow_aux]
     all_goals grind
 
-instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) :=
-  ⟨Sub.trans⟩
+instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) := ⟨Sub.trans⟩
 
 /-- Narrowing of subtypes. -/
-lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) :
-    Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ := by
+lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ)
+    : Sub (Γ ++ ⟨X, Binding.sub δ⟩ :: Δ) σ τ := by
   grind [narrow_aux (δ := δ')]
 
 variable [HasFresh Var] in
 /-- Subtyping of substitutions. -/
-lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ δ') :
-    Sub (Γ.mapVal (·[X := δ]) ++ Δ) (σ[X := δ]) (τ[X := δ]) := by
+lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub₂ : Sub Δ δ δ')
+    : Sub (Γ.mapVal (·[X := δ]) ++ Δ) (σ[X := δ]) (τ[X := δ]) := by
   generalize eq : Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ = Θ at sub₁
   induction sub₁ generalizing Γ
   case all => apply Sub.all (free_union Var) <;> grind [open_subst_var]
@@ -156,11 +154,10 @@ lemma map_subst (sub₁ : Sub (Γ ++ ⟨X, Binding.sub δ'⟩ :: Δ) σ τ) (sub
     by_cases X = X'
     · trans δ' <;> grind [→ mem_dlookup, Ty.subst_fresh, Ty.Wf.nmem_fv, weaken_head]
     · grind
-  all_goals
-    grind [Env.Wf.to_ok, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
+  all_goals grind [Env.Wf.to_ok, Sub.refl, Env.Wf.map_subst, Ty.Wf.map_subst]
 
 /-- Strengthening of subtypes. -/
-lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by
+lemma strengthen (sub : Sub (Γ ++ ⟨X, Binding.ty δ⟩ :: Δ) σ τ) : Sub (Γ ++ Δ) σ τ := by
   generalize eq : Γ ++ ⟨X, Binding.ty δ⟩ :: Δ = Θ at sub
   induction sub generalizing Γ with
   | all => grind [Sub.all (free_union Var)]

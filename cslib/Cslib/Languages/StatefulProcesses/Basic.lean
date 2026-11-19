@@ -125,8 +125,7 @@ scoped macro_rules
   | `(`(SP| 0)) => `(0)
   | `(`(SP| $prf:spPre; $pr:spProc)) => `(Process.pre `(SPpre| $prf) `(SP| $pr))
   | `(`(SP| $p:term & $l:term)) => `(Process.recvLabel $p $l)
-  | `(`(SP| if $e:term then $p₁:spProc else $p₂:spProc)) =>
-    `(Process.cond $e `(SP| $p₁) `(SP| $p₂))
+  | `(`(SP| if $e:term then $p₁:spProc else $p₂:spProc)) => `(Process.cond $e `(SP| $p₁) `(SP| $p₂))
 
 end Syntax
 
@@ -163,19 +162,22 @@ abbrev Prefix.toAct : Prefix Pid Var Val FunId SelLabel → Act Pid Var Val FunI
   | recvValue p x => .recvValue p x
   | sendLabel p l => .sendLabel p l
 
-/-- Symbolic transition relation for processes.
-Do not use this directly, use `Process.lts` instead. -/
-inductive Process.Tr :
-    Process Pid Var Val FunId SelLabel ProcName → Act Pid Var Val FunId SelLabel →
-    Process Pid Var Val FunId SelLabel ProcName → Prop
+/--
+Symbolic transition relation for processes.
+Do not use this directly, use `Process.lts` instead.
+-/
+inductive Process.Tr
+  : Process Pid Var Val FunId SelLabel ProcName → Act Pid Var Val FunId SelLabel
+    → Process Pid Var Val FunId SelLabel ProcName
+    → Prop
   | pre : Tr (pre prf pr) prf.toAct (pr)
   | condThen : Tr (cond e pr₁ pr₂) (.condThen e) pr₁
   | condElse : Tr (cond e pr₁ pr₂) (.condElse e) pr₂
-  | recvLabel (h : (l, pr) ∈ branches): Tr (recvLabel p branches) (.recvLabel p l) pr
+  | recvLabel (h : (l, pr) ∈ branches) : Tr (recvLabel p branches) (.recvLabel p l) pr
 
 /-- Symbolic LTS of processes. -/
-def Process.lts :
-    LTS (Process Pid Var Val FunId SelLabel ProcName) (Act Pid Var Val FunId SelLabel) :=
+def Process.lts
+    : LTS (Process Pid Var Val FunId SelLabel ProcName) (Act Pid Var Val FunId SelLabel) :=
   ⟨Process.Tr⟩
 
 end Semantics

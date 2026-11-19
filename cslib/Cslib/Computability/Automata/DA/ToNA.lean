@@ -24,8 +24,7 @@ section NA
 
 /-- `DA` is a special case of `NA`. -/
 @[scoped grind =]
-def toNA (a : DA State Symbol) : NA State Symbol :=
-  { a.toLTS with start := {a.start} }
+def toNA (a : DA State Symbol) : NA State Symbol := { a.toLTS with start := {a.start} }
 
 instance : Coe (DA State Symbol) (NA State Symbol) where
   coe := toNA
@@ -33,8 +32,8 @@ instance : Coe (DA State Symbol) (NA State Symbol) where
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 open scoped FLTS NA NA.Run LTS in
 @[simp, scoped grind =]
-theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State} :
-    a.toNA.Run xs ss ↔ a.run xs = ss := by
+theorem toNA_run {a : DA State Symbol} {xs : ωSequence Symbol} {ss : ωSequence State}
+    : a.toNA.Run xs ss ↔ a.run xs = ss := by
   constructor
   · rintro _
     ext n
@@ -47,15 +46,17 @@ namespace FinAcc
 
 /-- `DA.FinAcc` is a special case of `NA.FinAcc`. -/
 @[scoped grind =]
-def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol :=
-  { a.toNA with accept := a.accept }
+def toNAFinAcc (a : DA.FinAcc State Symbol) : NA.FinAcc State Symbol := {
+  a.toNA with
+  accept := a.accept
+}
 
 open Acceptor in
 open scoped FLTS NA.FinAcc in
 /-- The `NA.FinAcc` constructed from a `DA.FinAcc` has the same language. -/
 @[simp, scoped grind _=_]
-theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol} :
-    language a.toNAFinAcc = language a := by
+theorem toNAFinAcc_language_eq {a : DA.FinAcc State Symbol}
+    : language a.toNAFinAcc = language a := by
   ext xs
   simp [Accepts, toNAFinAcc, toNA, FLTS.toLTS_mtr]
 
@@ -65,14 +66,15 @@ namespace Buchi
 
 /-- `DA.Buchi` is a special case of `NA.Buchi`. -/
 @[scoped grind =]
-def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol :=
-  { a.toNA with accept := a.accept }
+def toNABuchi (a : DA.Buchi State Symbol) : NA.Buchi State Symbol := {
+  a.toNA with
+  accept := a.accept
+}
 
 open ωAcceptor in
 /-- The `NA.Buchi` constructed from a `DA.Buchi` has the same ω-language. -/
 @[simp, scoped grind _=_]
-theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} :
-    language a.toNABuchi = language a := by
+theorem toNABuchi_language_eq {a : DA.Buchi State Symbol} : language a.toNABuchi = language a := by
   ext xs
   simp [Accepts, language, toNABuchi]
 

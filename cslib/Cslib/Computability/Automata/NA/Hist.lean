@@ -23,34 +23,42 @@ open scoped LTS
 
 variable {Symbol State Hist : Type*}
 
-/-- The construction of adding a history state.  Note that `start'` can depend on the initial
+/--
+The construction of adding a history state.  Note that `start'` can depend on the initial
 value of the original state and `tr'` can depend on the new value of the original state.
-So there is no loss of generality in their being functions, rather than relations. -/
+So there is no loss of generality in their being functions, rather than relations.
+-/
 @[scoped grind =]
-def addHist (na : NA State Symbol) (start' : State → Hist)
-    (tr' : State × Hist → Symbol → State → Hist) : NA (State × Hist) Symbol where
+def addHist
+    (na : NA State Symbol) (start' : State → Hist) (tr' : State × Hist → Symbol → State → Hist)
+    : NA (State × Hist) Symbol where
   Tr s x t := na.Tr s.fst x t.fst ∧ tr' s x t.fst = t.snd
   start := { s | s.fst ∈ na.start ∧ start' s.fst = s.snd }
 
-variable {na : NA State Symbol} {start' : State → Hist}
-  {tr' : State × Hist → Symbol → State → Hist}
+variable {na : NA State Symbol} {start' : State → Hist} {tr' : State × Hist → Symbol → State → Hist}
 
 /-- Every run of the history automaton projects onto a run of the original automaton. -/
-theorem hist_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
-    (h_run : (na.addHist start' tr').Run xs ss) : na.Run xs (ss.map fst) :=
+theorem hist_run_proj
+    {xs : ωSequence Symbol} {ss : ωSequence (State × Hist)}
+    (h_run : (na.addHist start' tr').Run xs ss)
+    : na.Run xs (ss.map fst) :=
   ⟨h_run.start.1, fun n => (h_run.trans n).1⟩
 
 /-- Given a run of the original automaton, `makeHist` builds a run of the history state. -/
 @[scoped grind =]
-def makeHist (start' : State → Hist) (tr' : State × Hist → Symbol → State → Hist)
-    (xs : ωSequence Symbol) (ss : ωSequence State) : ℕ → Hist
+def makeHist
+    (start' : State → Hist) (tr' : State × Hist → Symbol → State → Hist) (xs : ωSequence Symbol)
+    (ss : ωSequence State)
+    : ℕ → Hist
   | 0 => start' (ss 0)
   | n + 1 => tr' (ss n, makeHist start' tr' xs ss n) (xs n) (ss (n + 1))
 
-/-- For every run `ss` of the original automaton, there exists a run `ss'` of the history automaton
-which projects back onto `ss`. -/
-theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State}
-    (h_run : na.Run xs ss) : ∃ ss', (na.addHist start' tr').Run xs ss' ∧ ss'.map fst = ss := by
+/--
+For every run `ss` of the original automaton, there exists a run `ss'` of the history automaton
+which projects back onto `ss`.
+-/
+theorem hist_run_exists {xs : ωSequence Symbol} {ss : ωSequence State} (h_run : na.Run xs ss)
+    : ∃ ss', (na.addHist start' tr').Run xs ss' ∧ ss'.map fst = ss := by
   refine ⟨fun n => (ss n, makeHist start' tr' xs ss n), ⟨⟨h_run.start, rfl⟩, ?_⟩, rfl⟩
   exact fun n => ⟨h_run.trans n, rfl⟩
 

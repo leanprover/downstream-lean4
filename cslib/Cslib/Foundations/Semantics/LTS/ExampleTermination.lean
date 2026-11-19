@@ -33,15 +33,13 @@ instance countdownLTS_terminating : countdownLTS.Terminating where
 example : countdownLTS.Acyclic := inferInstance
 example : Relation.Acyclic countdownLTS.UnlabelledTr := inferInstance
 
-private theorem countdownLTS_mTr (n : ℕ) :
-    countdownLTS.MTr n (List.replicate n ()) 0 := by
+private theorem countdownLTS_mTr (n : ℕ) : countdownLTS.MTr n (List.replicate n ()) 0 := by
   induction n with
   | zero => exact .refl
-  | succ n ih =>
-      simpa [List.replicate_succ] using MTr.stepL (by simp [countdownLTS]) ih
+  | succ n ih => simpa [List.replicate_succ] using MTr.stepL (by simp [countdownLTS]) ih
 
 /-- The countdown LTS is not bounded. -/
-theorem countdownLTS_not_bounded : ¬ countdownLTS.Bounded := by
+theorem countdownLTS_not_bounded : ¬countdownLTS.Bounded := by
   rintro ⟨bound, hbound⟩
   simpa using hbound bound (List.replicate bound ()) 0 (countdownLTS_mTr bound)
 
@@ -49,8 +47,9 @@ theorem countdownLTS_not_bounded : ¬ countdownLTS.Bounded := by
 def successorLTS : LTS ℕ Unit where
   Tr n _ m := m = n + 1
 
-private theorem successorLTS_transGen_lt {n m : ℕ}
-    (h : Relation.TransGen successorLTS.UnlabelledTr n m) : n < m := by
+private theorem successorLTS_transGen_lt
+    {n m : ℕ} (h : Relation.TransGen successorLTS.UnlabelledTr n m)
+    : n < m := by
   apply Relation.transGen_minimal (r' := (· < ·)) at h
   · exact h
   · rintro n m ⟨μ, htr⟩
@@ -61,7 +60,7 @@ instance successorLTS_acyclic : successorLTS.Acyclic where
   acyclic := ⟨fun n h => (Nat.lt_irrefl n) (successorLTS_transGen_lt h)⟩
 
 /-- The successor LTS is not terminating. -/
-theorem successorLTS_not_terminating : ¬ successorLTS.Terminating := by
+theorem successorLTS_not_terminating : ¬successorLTS.Terminating := by
   intro h
   exact (Relation.Terminating.iff_isEmpty_chain.mp h.terminating).false
     ⟨fun n => n, fun n => ⟨(), by simp [successorLTS]⟩⟩
@@ -71,7 +70,7 @@ def selfLoopLTS : LTS Unit Unit where
   Tr _ _ _ := True
 
 /-- The self-loop LTS is not acyclic. -/
-theorem selfLoopLTS_not_acyclic : ¬ selfLoopLTS.Acyclic :=
-  fun h => h.acyclic.irrefl () (.single ⟨(), trivial⟩)
+theorem selfLoopLTS_not_acyclic : ¬selfLoopLTS.Acyclic := fun h =>
+  h.acyclic.irrefl () (.single ⟨(), trivial⟩)
 
 end Cslib.LTS.Example

@@ -25,14 +25,15 @@ namespace Cslib.Query
 variable {α : Type}
 
 /-- Merge sort has worst-case query complexity at least `⌈log₂(n!)⌉`. -/
-theorem mergeSort_lowerBound [Infinite α] :
-    LowerBound (mergeSort (α := α)) List.length (fun n => Nat.clog 2 (Nat.factorial n)) :=
+theorem mergeSort_lowerBound [Infinite α]
+    : LowerBound (mergeSort (α := α)) List.length (fun n => Nat.clog 2 (Nat.factorial n)) :=
   mergeSort_isSort.lowerBound_infinite
 
-/-- Sanity check that the bounds compose: comparing merge sort's upper and lower bounds
-    yields this arithmetic fact with no further work. -/
-theorem clog_factorial_le_mul_clog (n : ℕ) :
-    Nat.clog 2 (Nat.factorial n) ≤ n * Nat.clog 2 n :=
+/--
+Sanity check that the bounds compose: comparing merge sort's upper and lower bounds
+yields this arithmetic fact with no further work.
+-/
+theorem clog_factorial_le_mul_clog (n : ℕ) : Nat.clog 2 (Nat.factorial n) ≤ n * Nat.clog 2 n :=
   (mergeSort_lowerBound (α := ℕ)).le_upperBound mergeSort_upperBound n
 
 end Cslib.Query

@@ -36,11 +36,14 @@ structure AtomStructure (α : Type*) where
   /-- The set of atom cycles, where `(r, s, t)` represents `t ≤ r * s`. -/
   cycles : Set (α × α × α)
 
-/-- `LawfulAtomStructure` asserts the cycles of an atom structure follow associativity, converse,
-and identity conditions, so that its complex algebra is a relation algebra. -/
+/--
+`LawfulAtomStructure` asserts the cycles of an atom structure follow associativity, converse,
+and identity conditions, so that its complex algebra is a relation algebra.
+-/
 class LawfulAtomStructure {α : Type*} (A : AtomStructure α) : Prop where
-  assoc : (r, q, p) ∈ A.cycles → (s, t, q) ∈ A.cycles →
-    ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles
+  assoc
+    : (r, q, p) ∈ A.cycles → (s, t, q) ∈ A.cycles
+      → ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles
   id_cycle_right : s ∈ A.id → (r, s, p) ∈ A.cycles → p = r
   exists_id_cycle_right (r) : ∃ s ∈ A.id, (r, s, r) ∈ A.cycles
   cycle_left : (r, s, t) ∈ A.cycles → (A.conv r, t, s) ∈ A.cycles
@@ -49,8 +52,8 @@ namespace AtomStructure
 
 variable {α : Type*} (A : AtomStructure α) [LawfulAtomStructure A]
 
-theorem assoc {r q p s t : α} (h₁ : (r, q, p) ∈ A.cycles) (h₂ : (s, t, q) ∈ A.cycles) :
-    ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles :=
+theorem assoc {r q p s t : α} (h₁ : (r, q, p) ∈ A.cycles) (h₂ : (s, t, q) ∈ A.cycles)
+    : ∃ q', (q', t, p) ∈ A.cycles ∧ (r, s, q') ∈ A.cycles :=
   LawfulAtomStructure.assoc h₁ h₂
 
 theorem id_cycle_right {s r p : α} (hs : s ∈ A.id) (h : (r, s, p) ∈ A.cycles) : p = r :=
@@ -66,14 +69,14 @@ theorem cycle_left {r s t : α} (h : (r, s, t) ∈ A.cycles) : (A.conv r, t, s) 
 theorem conv_conv (r : α) : A.conv (A.conv r) = r := by
   grind [A.id_cycle_right, => A.cycle_left, A.exists_id_cycle_right r]
 
-theorem conv_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles) :
-    (A.conv s, A.conv r, A.conv t) ∈ A.cycles := by
+theorem conv_cycles {r s t : α} (h : (r, s, t) ∈ A.cycles)
+    : (A.conv s, A.conv r, A.conv t) ∈ A.cycles := by
   obtain ⟨e, he, hs⟩ := A.exists_id_cycle_right s
   obtain ⟨q, hq, hsq⟩ := A.assoc (A.cycle_left hs) (A.cycle_left h)
   grind [A.id_cycle_right he (A.cycle_left hq)]
 
-theorem assoc_symm {r s t p q : α} (h₁ : (q, t, p) ∈ A.cycles) (h₂ : (r, s, q) ∈ A.cycles) :
-    ∃ q', (r, q', p) ∈ A.cycles ∧ (s, t, q') ∈ A.cycles := by
+theorem assoc_symm {r s t p q : α} (h₁ : (q, t, p) ∈ A.cycles) (h₂ : (r, s, q) ∈ A.cycles)
+    : ∃ q', (r, q', p) ∈ A.cycles ∧ (s, t, q') ∈ A.cycles := by
   obtain ⟨u, hu₁, hu₂⟩ := A.assoc (A.conv_cycles h₁) (A.conv_cycles h₂)
   exact ⟨A.conv u, by simpa using A.conv_cycles hu₁, by simpa using A.conv_cycles hu₂⟩
 
@@ -204,12 +207,15 @@ instance {α : Type*} [RelationAlgebra α] [IsAtomic α] : LawfulAtomStructure (
     exact ⟨⟨s, hs⟩, hs1, hrs⟩
   cycle_left {r s t} h := atom_cycle_left s.property t.property.ne_bot h
 
-/-- The isomorphism from a complete atomic relation algebra to the complex algebra of its
-atom structure. -/
-noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebra α] :
-    RelationAlgebraEquiv α (ComplexAlgebra (atomStructure α)) where
-  toOrderIso := CompleteAtomicBooleanAlgebra.toSetOfIsAtom.trans
-    (ComplexAlgebra.orderIsoSet (atomStructure α)).symm
+/--
+The isomorphism from a complete atomic relation algebra to the complex algebra of its
+atom structure.
+-/
+noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebra α]
+    : RelationAlgebraEquiv α (ComplexAlgebra (atomStructure α)) where
+  toOrderIso :=
+    CompleteAtomicBooleanAlgebra.toSetOfIsAtom.trans (ComplexAlgebra.orderIsoSet (atomStructure
+      α)).symm
   map_mul' x y := by
     ext p
     rw [ComplexAlgebra.mem_mul]
@@ -225,7 +231,8 @@ noncomputable def complexAlgebraEquiv {α : Type*} [CompleteAtomicRelationAlgebr
     rw [ComplexAlgebra.mem_star]
     exact le_star_iff
 
-theorem complexAlgebraEquiv_apply {α : Type*} [CompleteAtomicRelationAlgebra α] (x : α) :
-    complexAlgebraEquiv x = ⟨{a | a.val ≤ x}⟩ := rfl
+theorem complexAlgebraEquiv_apply {α : Type*} [CompleteAtomicRelationAlgebra α] (x : α)
+    : complexAlgebraEquiv x = ⟨{a | a.val ≤ x}⟩ :=
+  rfl
 
 end Cslib.RelationAlgebra

@@ -39,9 +39,9 @@ theorem Bounded.toTerminating (h : lts.Bounded) : lts.Terminating := by
     induction n with
     | zero => exact ⟨[], rfl, .refl⟩
     | succ n ih =>
-        obtain ⟨μs, hlength, hmtr⟩ := ih
-        obtain ⟨μ, htr⟩ := hf n
-        exact ⟨μs ++ [μ], by simp [hlength], hmtr.stepR lts htr⟩
+      obtain ⟨μs, hlength, hmtr⟩ := ih
+      obtain ⟨μ, htr⟩ := hf n
+      exact ⟨μs ++ [μ], by simp [hlength], hmtr.stepR lts htr⟩
   obtain ⟨μs, hlength, hmtr⟩ := hpaths bound
   have := hbound (f 0) μs (f bound) hmtr
   omega
@@ -58,10 +58,12 @@ theorem Terminating.toAcyclic (h : lts.Terminating) : lts.Acyclic where
 instance terminating_acyclic [lts.Terminating] : lts.Acyclic :=
   (inferInstance : lts.Terminating).toAcyclic
 
-/-- On a finite state space, an acyclic LTS has execution length strictly less than the number of
-states. -/
-theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic) :
-    lts.BoundedUpTo (Nat.card State) := by
+/--
+On a finite state space, an acyclic LTS has execution length strictly less than the number of
+states.
+-/
+theorem Acyclic.toBoundedUpTo [Finite State] (h : lts.Acyclic)
+    : lts.BoundedUpTo (Nat.card State) := by
   let := Fintype.ofFinite State
   rw [Nat.card_eq_fintype_card]
   intro s1 μs s2 hmtr
@@ -80,13 +82,16 @@ theorem Acyclic.toBounded [Finite State] (h : lts.Acyclic) : lts.Bounded :=
 theorem Acyclic.toTerminating [Finite State] (h : lts.Acyclic) : lts.Terminating :=
   h.toBounded.toTerminating
 
-/-- A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
-is a parameter. -/
+/--
+A state 'may terminate' if it can reach a terminated state. The definition of `Terminated`
+is a parameter.
+-/
 def MayTerminate (s : State) : Prop := ∃ s', Terminated s' ∧ lts.CanReach s s'
 
-/-- A state 'is stuck' if it is not terminated and cannot go forward. The definition of `Terminated`
-is a parameter. -/
-def Stuck (s : State) : Prop :=
-  ¬Terminated s ∧ ¬∃ μ s', lts.Tr s μ s'
+/--
+A state 'is stuck' if it is not terminated and cannot go forward. The definition of `Terminated`
+is a parameter.
+-/
+def Stuck (s : State) : Prop := ¬ Terminated s ∧ ¬ ∃ μ s', lts.Tr s μ s'
 
 end Cslib.LTS

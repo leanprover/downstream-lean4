@@ -50,8 +50,10 @@ structure BaseHistory (Event Operation Value Session : Type*) where
   op : Event → Operation
   /-- `se` assigns each event its session. -/
   se : Event → Session
-  /-- `rval` assigns each event its return value, where `none` indicates that
-  the event never returns. -/
+  /--
+  `rval` assigns each event its return value, where `none` indicates that
+  the event never returns.
+  -/
   rval : Event → Option Value
   /-- `rb` is the "returns before" order on events. -/
   rb : Event → Event → Prop
@@ -74,8 +76,10 @@ structure History (Event Operation Value Session : Type*)
   /-- The `so` order is a strict total order of the events of each session. -/
   so_strict_total_order : ∀ s, IsStrictTotalOrder {x | se x = s} (bh.so s)
 
-/-- `AbstractExecution` extends `History` with two more orders and additional
-well-formedness conditions. -/
+/--
+`AbstractExecution` extends `History` with two more orders and additional
+well-formedness conditions.
+-/
 structure AbstractExecution (Event Operation Value Session : Type*)
     extends History Event Operation Value Session where
   /-- `vis x y` means that `x` is visible to `y`. -/
@@ -89,69 +93,84 @@ structure AbstractExecution (Event Operation Value Session : Type*)
   /-- The arbitration order is a strict total order of all events. -/
   ar_strict_total_order : IsStrictTotalOrder Event ar
 
-/-- A history satisfies a predicte `p` on abstract executions iff it can be extended
-to an abstract execution satisfying `p`. -/
-def History.Satisfies (h : History Event Operation Value Session)
-    (p : AbstractExecution Event Operation Value Session → Prop) : Prop :=
+/--
+A history satisfies a predicte `p` on abstract executions iff it can be extended
+to an abstract execution satisfying `p`.
+-/
+def History.Satisfies
+    (h : History Event Operation Value Session)
+    (p : AbstractExecution Event Operation Value Session → Prop)
+    : Prop :=
   ∃ a : AbstractExecution Event Operation Value Session, a.toHistory = h ∧ p a
 
 namespace AbstractExecution
 
-/-- `ReadMyWrites` says that if two events are ordered by `so`,
-then they are also ordered by `vis`. -/
-def ReadMyWrites (a : AbstractExecution Event Operation Value Session) : Prop :=
-  ∀ s, a.so s ≤ a.vis
+/--
+`ReadMyWrites` says that if two events are ordered by `so`,
+then they are also ordered by `vis`.
+-/
+def ReadMyWrites (a : AbstractExecution Event Operation Value Session) : Prop := ∀ s, a.so s ≤ a.vis
 
-/-- `MonotonicReads` says that if `x` is visible to `y`, then `x` is also visible to all
-successors of `y` under the `so` order. -/
+/--
+`MonotonicReads` says that if `x` is visible to `y`, then `x` is also visible to all
+successors of `y` under the `so` order.
+-/
 def MonotonicReads (a : AbstractExecution Event Operation Value Session) : Prop :=
   ∀ s x y z, a.vis x y → a.so s y z → a.vis x z
 
-/-- `ConsistentPrefix` says that if `x` is visible to `y` in a different session,
-then all predecessors of `x` in the arbitration order are also visible to `y`. -/
+/--
+`ConsistentPrefix` says that if `x` is visible to `y` in a different session,
+then all predecessors of `x` in the arbitration order are also visible to `y`.
+-/
 def ConsistentPrefix (a : AbstractExecution Event Operation Value Session) : Prop :=
   ∀ x y, a.se x ≠ a.se y → a.vis x y → ∀ z, a.ar z x → a.vis z y
 
-/-- The `happens before` order is transitive closure of the union of the `vis` order
-and the `so s` orders for all sessions `s`. -/
+/--
+The `happens before` order is transitive closure of the union of the `vis` order
+and the `so s` orders for all sessions `s`.
+-/
 def hb (a : AbstractExecution Event Operation Value Session) : Event → Event → Prop :=
   TransGen fun x y ↦ a.vis x y ∨ ∃ s, a.so s x y
 
 /-- `NoCircularCausality` says that the `hb` order is acyclic. -/
-def NoCircularCausality (a : AbstractExecution Event Operation Value Session) : Prop :=
-  Acyclic a.hb
+def NoCircularCausality (a : AbstractExecution Event Operation Value Session) : Prop := Acyclic a.hb
 
-/-- `CausalArbitration` says that if two events are ordered by `hb`,
-then they are also ordered by `ar`. -/
-def CausalArbitration (a : AbstractExecution Event Operation Value Session) : Prop :=
-  a.hb ≤ a.ar
+/--
+`CausalArbitration` says that if two events are ordered by `hb`,
+then they are also ordered by `ar`.
+-/
+def CausalArbitration (a : AbstractExecution Event Operation Value Session) : Prop := a.hb ≤ a.ar
 
-/-- `CausalVisibility` says that if two events are ordered by `hb`,
-then they are also ordered by `vis`. -/
-def CausalVisibility (a : AbstractExecution Event Operation Value Session) : Prop :=
-  a.hb ≤ a.vis
+/--
+`CausalVisibility` says that if two events are ordered by `hb`,
+then they are also ordered by `vis`.
+-/
+def CausalVisibility (a : AbstractExecution Event Operation Value Session) : Prop := a.hb ≤ a.vis
 
 /-- `Causality` is the conjunction of `CausalArbitration` and `CausalVisibility`. -/
 def Causality (a : AbstractExecution Event Operation Value Session) : Prop :=
   a.CausalArbitration ∧ a.CausalVisibility
 
-/-- `SingleOrder` says that `vis` and `ar` are the same order except that there may be
-a set of events which never returns and are not visible. -/
+/--
+`SingleOrder` says that `vis` and `ar` are the same order except that there may be
+a set of events which never returns and are not visible.
+-/
 def SingleOrder (a : AbstractExecution Event Operation Value Session) : Prop :=
-  ∃ xs : Set Event, (∀ x, x ∈ xs → a.rval x = none) ∧
-    ∀ x y, a.vis x y ↔ a.ar x y ∧ ¬ x ∈ xs
+  ∃ xs : Set Event, (∀ x, x ∈ xs → a.rval x = none) ∧ ∀ x y, a.vis x y ↔ a.ar x y ∧ ¬ x ∈ xs
 
 /-- `RealTime` says that if two events are ordered by `rb`, then they are also ordered by `ar`. -/
-def RealTime (a : AbstractExecution Event Operation Value Session) : Prop :=
-  a.rb ≤ a.ar
+def RealTime (a : AbstractExecution Event Operation Value Session) : Prop := a.rb ≤ a.ar
 
-/-- `a.nonVisibleEvents x s` is the set of events in session `s` which returns after `x`
-but does not see `x`. -/
-def nonVisibleEvents (a : AbstractExecution Event Operation Value Session)
-    (x : Event) (s : Session) : Set Event :=
+/--
+`a.nonVisibleEvents x s` is the set of events in session `s` which returns after `x`
+but does not see `x`.
+-/
+def nonVisibleEvents (a : AbstractExecution Event Operation Value Session) (x : Event) (s : Session)
+    : Set Event :=
   { y | a.se y = s ∧ a.rb x y ∧ ¬ a.vis x y }
 
-/-- `EventualVisibility` says that for any event `x` and any session `s`, there can be at most
+/--
+`EventualVisibility` says that for any event `x` and any session `s`, there can be at most
 finitely many events in `s` that return after `x` and do not see `x`.
 -/
 def EventualVisibility (a : AbstractExecution Event Operation Value Session) : Prop :=
@@ -159,8 +178,10 @@ def EventualVisibility (a : AbstractExecution Event Operation Value Session) : P
 
 end AbstractExecution
 
-/-- An `OperationContext` is the data used by a replicated data type to determine the
-return value of an operation.  It is an abstraction of the notion of states. -/
+/--
+An `OperationContext` is the data used by a replicated data type to determine the
+return value of an operation.  It is an abstraction of the notion of states.
+-/
 structure OperationContext (Event Operation : Type*) where
   /-- The set of events in the operation context. -/
   events : Set Event
@@ -171,12 +192,14 @@ structure OperationContext (Event Operation : Type*) where
   /-- Arbitration order. -/
   ar : Event → Event → Prop
 
-/-- The notion of equivalence on `OperationContext`, which is essentially an isomorphism
+/--
+The notion of equivalence on `OperationContext`, which is essentially an isomorphism
 that ignores the identities of events and the behavior of `op`, `vis`, and `ar` outside
-the set of events in the operation context. -/
+the set of events in the operation context.
+-/
 structure OperationContext.Equiv (c1 c2 : OperationContext Event Operation) where
   /-- A bijection from `c1`'s events to `c2`'s events. -/
-  equiv : { x // x ∈ c1.events } ≃ { x // x ∈ c2.events }
+  equiv : {x // x ∈ c1.events} ≃ {x // x ∈ c2.events}
   /-- `op` is preserved by the bijection. -/
   op_equiv : ∀ x, c1.op x.val = c2.op (equiv x).val
   /-- `vis` is preserved by the bijection. -/
@@ -194,39 +217,53 @@ structure ReplicatedDataType (Event Operation Value : Type*) where
 namespace AbstractExecution
 
 /-- `a.context xs` is the operation context obtained by restricting `a` to `xs`. -/
-def context (a : AbstractExecution Event Operation Value Session)
-    (xs : Set Event) : OperationContext Event Operation where
+def context (a : AbstractExecution Event Operation Value Session) (xs : Set Event)
+    : OperationContext Event Operation where
   events := xs
   op := a.op
   vis := a.vis
   ar := a.ar
 
-/-- `a.RVal d` says that the return value of any event in the abstract execution `a` is
+/--
+`a.RVal d` says that the return value of any event in the abstract execution `a` is
 the same as the value returned by the replicated data type `d` in the context consisting of
-the predecessors of the event. -/
-def RVal (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
+the predecessors of the event.
+-/
+def RVal
+    (a : AbstractExecution Event Operation Value Session)
+    (d : ReplicatedDataType Event Operation Value)
+    : Prop :=
   ∀ x, a.rval x = d.rval (a.op x) (a.context (predecessors a.vis x))
 
 /-- `Linearizability` is the conjunction of `SingleOrder`, `RealTime`, and `RVal`. -/
-def Linearizability (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
+def Linearizability
+    (a : AbstractExecution Event Operation Value Session)
+    (d : ReplicatedDataType Event Operation Value)
+    : Prop :=
   a.SingleOrder ∧ a.RealTime ∧ a.RVal d
 
 /-- `SequentialConsistency` is the conjunction of `SingleOrder`, `ReadMyWrites`, and `RVal`. -/
-def SequentialConsistency (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
+def SequentialConsistency
+    (a : AbstractExecution Event Operation Value Session)
+    (d : ReplicatedDataType Event Operation Value)
+    : Prop :=
   a.SingleOrder ∧ a.ReadMyWrites ∧ a.RVal d
 
 /-- `CausalConsistency` is the conjunction of `EventualVisibility`, `Causality`, and `RVal`. -/
-def CausalConsistency (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
+def CausalConsistency
+    (a : AbstractExecution Event Operation Value Session)
+    (d : ReplicatedDataType Event Operation Value)
+    : Prop :=
   a.EventualVisibility ∧ a.Causality ∧ a.RVal d
 
-/-- `BasicEventualConsistency` is the conjunction of `EventualVisibility`, `NoCircularCausality`,
-and `RVal`. -/
-def BasicEventualConsistency (a : AbstractExecution Event Operation Value Session)
-    (d : ReplicatedDataType Event Operation Value) : Prop :=
+/--
+`BasicEventualConsistency` is the conjunction of `EventualVisibility`, `NoCircularCausality`,
+and `RVal`.
+-/
+def BasicEventualConsistency
+    (a : AbstractExecution Event Operation Value Session)
+    (d : ReplicatedDataType Event Operation Value)
+    : Prop :=
   a.EventualVisibility ∧ a.NoCircularCausality ∧ a.RVal d
 
 end AbstractExecution

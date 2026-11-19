@@ -23,58 +23,51 @@ attribute [local grind =] Multiset.insert_eq_cons
 
 open Cslib.Logic.InferenceSystem
 
-/-- The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
-only to atomic propositions. -/
+/--
+The η-expansion of a proposition `a` is a `Proof` of `{a, a⫠}` that applies the axiom
+only to atomic propositions.
+-/
 @[simp]
-def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom):=
+def Proposition.expand (a : Proposition Atom) : ⇓({a, a⫠} : Sequent Atom) :=
   match a with
-  | atom x
-    | atomDual x => Proof.ax
+  | atom x | atomDual x => Proof.ax
   | 1 =>
-    Proof.one |> Proof.bot
-    |> .rwConclusion (by rw [show ⊥ = 1⫠ by rfl])
-    |> .rwConclusion (by grind : 1⫠ ::ₘ {1} = {1, 1⫠})
+    Proof.one
+      |> Proof.bot
+      |> .rwConclusion (by rw [show ⊥ = 1⫠ by rfl])
+      |> .rwConclusion (by grind : 1⫠ ::ₘ {1} = {1, 1⫠})
   | ⊥ =>
     Proof.one |> Proof.bot
-  | ⊤ => Proof.top
+  | ⊤ =>
+    Proof.top
   | 0 =>
     Proof.top (Γ := {0}).rwConclusion (by grind)
   | tensor a b =>
     Proof.tensor a.expand b.expand
-    |> .rwConclusion (by grind)
-    |> Proof.parr
-    |> .rwConclusion (by grind :
-      ((a⫠ ⅋ b⫠) ::ₘ {a ⊗ b}) = {a ⊗ b, (a ⊗ b)⫠})
+      |> .rwConclusion (by grind)
+      |> Proof.parr
+      |> .rwConclusion (by grind : ((a⫠ ⅋ b⫠) ::ₘ {a ⊗ b}) = {a ⊗ b, (a ⊗ b)⫠})
   | parr a b =>
-    Proof.tensor (a := a⫠) (b := b⫠)
-      (a.expand.rwConclusion (by grind : {a, a⫠} = {a⫠, a}))
-      (b.expand.rwConclusion (by grind : {b, b⫠} = {b⫠, b}))
-    |> .rwConclusion (by grind)
-    |> Proof.parr
+    Proof.tensor (a := a⫠) (b := b⫠) (a.expand.rwConclusion (by grind : {a, a⫠} = {a⫠, a}))
+        (b.expand.rwConclusion (by grind : {b, b⫠} = {b⫠, b}))
+      |> .rwConclusion (by grind)
+      |> Proof.parr
   | oplus a b =>
-    Proof.with
-      (a.expand.oplus₁ (b := b) |> .rwConclusion (by grind))
-      (b.expand.oplus₂ (a := a) |> .rwConclusion (by grind))
-    |> .rwConclusion (by grind : (a⫠ & b⫠) ::ₘ {a ⊕ b} = {(a ⊕ b), (a⫠ & b⫠)})
+    Proof.with (a.expand.oplus₁ (b := b) |> .rwConclusion (by grind))
+        (b.expand.oplus₂ (a := a) |> .rwConclusion (by grind))
+      |> .rwConclusion (by grind : (a⫠ & b⫠) ::ₘ {a ⊕ b} = {(a ⊕ b), (a⫠ & b⫠)})
   | .with a b =>
-    Proof.with
-      (a⫠.expand.oplus₁ (b := b⫠) |> .rwConclusion (by grind))
+    Proof.with (a⫠.expand.oplus₁ (b := b⫠) |> .rwConclusion (by grind))
       (b⫠.expand.oplus₂ (a := a⫠) |> .rwConclusion (by grind))
   | ʔa =>
-    Proof.bang
-      (Γ := {ʔa})
-      rfl
-      (a.expand.quest.rwConclusion (by grind : ʔa ::ₘ {a⫠} = a⫠ ::ₘ {ʔa}))
-    |> Proof.rwConclusion (by grind)
+    Proof.bang (Γ := {ʔa}) rfl (a.expand.quest.rwConclusion (by grind : ʔa ::ₘ {a⫠} = a⫠ ::ₘ {ʔa}))
+      |> Proof.rwConclusion (by grind)
   | bang a =>
-    Proof.bang
-      (Γ := {ʔ(a⫠)})
-      rfl
-      (a⫠.expand.quest.rwConclusion (by grind : ʔa⫠ ::ₘ {a⫠⫠} = a⫠⫠ ::ₘ {ʔa⫠}))
-    |> Proof.rwConclusion (by grind)
+    Proof.bang (Γ := {ʔ(a⫠)}) rfl
+        (a⫠.expand.quest.rwConclusion (by grind : ʔ a⫠ ::ₘ {a⫠⫠} = a⫠⫠ ::ₘ {ʔ a⫠}))
+      |> Proof.rwConclusion (by grind)
 termination_by a
-decreasing_by
-  all_goals grind
+decreasing_by all_goals grind
 
 /-- A `Proof` has only atomic axioms if all its instances of the axiom treat atomic propositions. -/
 @[scoped grind =]
@@ -96,14 +89,15 @@ def Proof.onlyAtomicAxioms {Γ : Sequent Atom} (p : ⇓Γ) : Bool :=
   | bang _ p => p.onlyAtomicAxioms
 
 /-- `Proof.onlyAtomicAxioms` is preserved by `Proof.rwConclusion`. -/
-theorem Proof.onlyAtomicAxioms_rwConclusion {Γ Δ : Sequent Atom} {heq : Γ = Δ} {p : ⇓Γ}
-    (h : p.onlyAtomicAxioms) :
-  (rwConclusion heq p).onlyAtomicAxioms := by grind
+theorem Proof.onlyAtomicAxioms_rwConclusion
+    {Γ Δ : Sequent Atom} {heq : Γ = Δ} {p : ⇓Γ} (h : p.onlyAtomicAxioms)
+    : (rwConclusion heq p).onlyAtomicAxioms := by
+  grind
 
 open Proposition Proof in
 @[local grind →]
-private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom} :
-    a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
+private lemma Proof.expand_onlyAtomicAxioms_dual {a : Proposition Atom}
+    : a.expand.onlyAtomicAxioms → a⫠.expand.onlyAtomicAxioms := by
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   induction a with
@@ -120,11 +114,11 @@ theorem Proof.expand_onlyAtomicAxioms (a : Proposition Atom) : a.expand.onlyAtom
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
   induction a with
   | one =>
-    rw [←dual_involution .one]
+    rw [← dual_involution .one]
     apply expand_onlyAtomicAxioms_dual
     simp [expand, onlyAtomicAxioms, dual]
   | zero =>
-    rw [←dual_involution .zero]
+    rw [← dual_involution .zero]
     apply expand_onlyAtomicAxioms_dual
     simp [expand, onlyAtomicAxioms, dual]
   | top | bot => simp [expand, onlyAtomicAxioms]

@@ -19,12 +19,12 @@ public section
 namespace Nat
 
 /-- The logarithm of the factorial is at least `n log n - n`. -/
-theorem mul_log_sub_le_log_factorial (n : ℕ) :
-    (n : ℝ) * Real.log n - n ≤ Real.log n.factorial := by
+theorem mul_log_sub_le_log_factorial (n : ℕ) : (n : ℝ) * Real.log n - n ≤ Real.log n.factorial := by
   obtain rfl | hn := n.eq_zero_or_pos
   · simp
-  have h := Real.log_le_log (by positivity : 0 < (n : ℝ) ^ n / n.factorial)
-    (Real.pow_div_factorial_le_exp (n : ℝ) (by positivity) n)
+  have h :=
+    Real.log_le_log (by positivity : 0 < (n : ℝ) ^ n / n.factorial)
+      (Real.pow_div_factorial_le_exp (n : ℝ) (by positivity) n)
   rw [Real.log_div (by positivity) (by positivity), Real.log_pow, Real.log_exp] at h
   linarith
 

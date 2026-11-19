@@ -48,30 +48,33 @@ open scoped NNReal
 
 variable {Message Commitment Opening : Type*}
 
-/-- A scheme is perfectly hiding when every message yields the same commitment
+/--
+A scheme is perfectly hiding when every message yields the same commitment
 distribution, so a commitment reveals nothing about the message as long as its
-opening is withheld ([BonehShoup2023], Section 8.12). -/
+opening is withheld ([BonehShoup2023], Section 8.12).
+-/
 def PerfectlyHiding (scheme : Scheme Message Commitment Opening) : Prop :=
-  ∀ message₀ message₁ : Message,
-    scheme.commitmentDist message₀ = scheme.commitmentDist message₁
+  ∀ message₀ message₁ : Message, scheme.commitmentDist message₀ = scheme.commitmentDist message₁
 
-/-- A scheme is statistically hiding with error `ε` when the commitment
+/--
+A scheme is statistically hiding with error `ε` when the commitment
 distributions of any two messages are within statistical distance `ε`
-([BonehShoup2023], Definition 3.5 and Section 8.12). -/
-def StatisticallyHiding [Fintype Commitment]
-    (scheme : Scheme Message Commitment Opening) (ε : ℝ≥0) : Prop :=
+([BonehShoup2023], Definition 3.5 and Section 8.12).
+-/
+def StatisticallyHiding [Fintype Commitment] (scheme : Scheme Message Commitment Opening) (ε : ℝ≥0)
+    : Prop :=
   ∀ message₀ message₁ : Message,
-    StatisticallyClose (scheme.commitmentDist message₀)
-      (scheme.commitmentDist message₁) ε
+    StatisticallyClose (scheme.commitmentDist message₀) (scheme.commitmentDist message₁) ε
 
-/-- A scheme is perfectly binding when a commitment can be opened to at most
+/--
+A scheme is perfectly binding when a commitment can be opened to at most
 one message: any two accepted openings of the same commitment agree on the
 message ([BonehShoup2023], Section 8.12). Different openings of the same
-message are still allowed. -/
+message are still allowed.
+-/
 def PerfectlyBinding (scheme : Scheme Message Commitment Opening) : Prop :=
   ∀ commitment message₀ opening₀ message₁ opening₁,
-    scheme.Accepts message₀ commitment opening₀ →
-      scheme.Accepts message₁ commitment opening₁ →
-        message₀ = message₁
+    scheme.Accepts message₀ commitment opening₀ → scheme.Accepts message₁ commitment opening₁
+      → message₀ = message₁
 
 end Cslib.Crypto.Protocols.Commitment.Scheme

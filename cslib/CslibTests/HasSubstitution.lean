@@ -3,7 +3,8 @@ import Cslib.Foundations.Syntax.HasSubstitution
 namespace CslibTests
 namespace HasSubstitution
 
-/-- Regression test for leanprover/cslib#631.
+/--
+Regression test for leanprover/cslib#631.
 
 Before the notation was guarded by `noWs`, the parser tried to read the instance
 binder below as part of a substitution expression attached to `Type`.

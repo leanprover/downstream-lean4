@@ -28,8 +28,7 @@ Ideals are invariant under this action, while radical membership corresponds to 
 def posPowAction [Monoid α] : MulAction ℕ+ α where
   smul n x := x ^ (n : ℕ)
   one_smul x := pow_one x
-  mul_smul m n x := by
-    simp [HSMul.hSMul, ←pow_mul, mul_comm]
+  mul_smul m n x := by simp [HSMul.hSMul, ← pow_mul, mul_comm]
 
 local instance [Monoid α] : MulAction ℕ+ α := posPowAction
 
@@ -55,11 +54,13 @@ abbrev IdealEquiv [Semiring R] := Proposition.Equiv (idealPowerModel (R := R))
 /-- An ideal atom denotes its underlying set in `idealPowerModel`. -/
 example [Semiring R] (I : Ideal R) : (I : Set R) = Proposition.denotation idealPowerModel I := rfl
 
-/-- Characterisation of radicals as modal denotations. This is the key bridge that enables reasoning
-about membership of radicals with modal logic. -/
+/--
+Characterisation of radicals as modal denotations. This is the key bridge that enables reasoning
+about membership of radicals with modal logic.
+-/
 @[local grind =]
-theorem Ideal.radical_eq_modal_denotation [CommSemiring R] (I : Ideal R) :
-    (I.radical : Set R) = Proposition.denotation idealPowerModel (◇I) := by
+theorem Ideal.radical_eq_modal_denotation [CommSemiring R] (I : Ideal R)
+    : (I.radical : Set R) = Proposition.denotation idealPowerModel (◇I) := by
   rw [Proposition.ofSMul_diamond_denotation (τ := (τUnimodal R))]
   ext x
   apply Iff.intro
@@ -70,8 +71,8 @@ theorem Ideal.radical_eq_modal_denotation [CommSemiring R] (I : Ideal R) :
     exact ⟨(n : ℕ), hn⟩
 
 /-- In `idealPowerModel`, the radical of an ideal is logically equivalent to possibility. -/
-theorem Ideal.radical_equiv_diamond [CommSemiring R] (I : Ideal R) :
-    (I.radical : Proposition (τUnimodal R) (Ideal R)) ≡[IdealEquiv] ◇I :=
+theorem Ideal.radical_equiv_diamond [CommSemiring R] (I : Ideal R)
+    : (I.radical : Proposition (τUnimodal R) (Ideal R)) ≡[IdealEquiv] ◇I :=
   Proposition.equiv_iff_denotation_eq.mpr (Ideal.radical_eq_modal_denotation I)
 
 open scoped Satisfies
@@ -88,10 +89,12 @@ theorem Ideal.radical_idem [CommSemiring R] (I : Ideal R) : I.radical.radical = 
       apply LawfulCongruence.covariant.elim pc (Ideal.radical_equiv_diamond I)
     _ ≡[IdealEquiv] ◇I := by apply Proposition.diamond_diamond_equiv
 
-/-- In `idealPowerModel`, possibility of membership in an infimum is equivalent to simultaneous
-possibility of membership in both ideals. -/
-theorem Ideal.inf_modelEquiv {R : Type u} [Semiring R] (I J : Ideal R) :
-    (◇(I ⊓ J : Ideal R) : Proposition (τUnimodal R) (Ideal R)) ≡[IdealEquiv] (◇I ∧ ◇J) := by
+/--
+In `idealPowerModel`, possibility of membership in an infimum is equivalent to simultaneous
+possibility of membership in both ideals.
+-/
+theorem Ideal.inf_modelEquiv {R : Type u} [Semiring R] (I J : Ideal R)
+    : (◇(I ⊓ J : Ideal R) : Proposition (τUnimodal R) (Ideal R)) ≡[IdealEquiv] (◇I ∧ ◇J) := by
   calc
     (◇(I ⊓ J : Ideal R) : Proposition (τUnimodal R) (Ideal R)) ≡[IdealEquiv] ◇(I ∧ J) := by
       let pc : HasContext.Context (Proposition (τUnimodal R) (Ideal R)) := Context.diamond .hole
@@ -99,10 +102,12 @@ theorem Ideal.inf_modelEquiv {R : Type u} [Semiring R] (I J : Ideal R) :
         (Proposition.ofContainers_inf_equiv idealPowerFrame I J (by simp))
     _ ≡[IdealEquiv] (◇I ∧ ◇J) := Proposition.ofSMul_diamond_and_equiv I J
 
-/-- Radicals of ideals distribute over intersection, as a consequence that `◇(I ⊓ J)` is logically
-equivalent to `◇I ∧ ◇J`. -/
-theorem Ideal.radical_inf [CommSemiring R] (I J : Ideal R) :
-    (I ⊓ J).radical = I.radical ⊓ J.radical := by
+/--
+Radicals of ideals distribute over intersection, as a consequence that `◇(I ⊓ J)` is logically
+equivalent to `◇I ∧ ◇J`.
+-/
+theorem Ideal.radical_inf [CommSemiring R] (I J : Ideal R)
+    : (I ⊓ J).radical = I.radical ⊓ J.radical := by
   apply SetLike.ext'
   simp_rw [Submodule.coe_inf, Ideal.radical_eq_modal_denotation,
     Proposition.denotation_eq_of_equiv (Ideal.inf_modelEquiv I J)]

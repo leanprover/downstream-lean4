@@ -28,8 +28,7 @@ open scoped LTS NA
 
 /-- A sequence `xs` is in `eventuallyZero` iff `xs k = 0` for all large `k`. -/
 @[scoped grind =]
-def eventuallyZero : ωLanguage (Fin 2) :=
-  { xs : ωSequence (Fin 2) | ∀ᶠ k in atTop, xs k = 0 }
+def eventuallyZero : ωLanguage (Fin 2) := { xs : ωSequence (Fin 2) | ∀ᶠ k in atTop, xs k = 0 }
 
 /-- `eventuallyZero` is accepted by a 2-state nondeterministic Buchi automaton. -/
 @[scoped grind =]
@@ -40,13 +39,15 @@ def eventuallyZeroNa : NA.Buchi (Fin 2) (Fin 2) where
   accept := {1}
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
-theorem eventuallyZero_accepted_by_na_buchi :
-    language eventuallyZeroNa = eventuallyZero := by
-  ext xs; unfold eventuallyZeroNa; constructor
+theorem eventuallyZero_accepted_by_na_buchi : language eventuallyZeroNa = eventuallyZero := by
+  ext xs
+  unfold eventuallyZeroNa
+  constructor
   · rintro ⟨ss, h_run, h_acc⟩
     obtain ⟨m, h_m⟩ := Frequently.exists h_acc
     apply eventually_atTop.mpr
-    use m; intro n h_n
+    use m
+    intro n h_n
     obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le h_n
     suffices h1 : xs (m + k) = 0 ∧ ss (m + k) = 1 by grind
     have := h_run.trans m
@@ -63,19 +64,18 @@ theorem eventuallyZero_accepted_by_na_buchi :
       use (m + 1)
       grind
 
-private lemma extend_by_zero (u : List (Fin 2)) :
-    u ++ω const 0 ∈ eventuallyZero := by
+private lemma extend_by_zero (u : List (Fin 2)) : u ++ω const 0 ∈ eventuallyZero := by
   apply eventually_atTop.mpr
   use u.length
   grind [get_append_right']
 
-private lemma extend_by_one (u : List (Fin 2)) :
-    ∃ v, 1 ∈ v ∧ u ++ v ++ω const 0 ∈ eventuallyZero := by
+private lemma extend_by_one (u : List (Fin 2))
+    : ∃ v, 1 ∈ v ∧ u ++ v ++ω const 0 ∈ eventuallyZero := by
   use [1]
   grind [extend_by_zero]
 
-private lemma extend_by_hyp {l : Language (Fin 2)} (h : l↗ω = eventuallyZero)
-    (u : List (Fin 2)) : ∃ v, 1 ∈ v ∧ u ++ v ∈ l := by
+private lemma extend_by_hyp {l : Language (Fin 2)} (h : l↗ω = eventuallyZero) (u : List (Fin 2))
+    : ∃ v, 1 ∈ v ∧ u ++ v ∈ l := by
   obtain ⟨v, _, h_pfx⟩ := extend_by_one u
   rw [← h] at h_pfx
   have := frequently_atTop.mp h_pfx (u ++ v).length
@@ -84,8 +84,8 @@ private lemma extend_by_hyp {l : Language (Fin 2)} (h : l↗ω = eventuallyZero)
 private noncomputable def oneSegs {l : Language (Fin 2)} (h : l↗ω = eventuallyZero) (n : ℕ) :=
   Classical.choose <| extend_by_hyp h (List.ofFn (fun k : Fin n ↦ oneSegs h k)).flatten
 
-private lemma oneSegs_lemma {l : Language (Fin 2)} (h : l↗ω = eventuallyZero) (n : ℕ) :
-    1 ∈ oneSegs h n ∧ (List.ofFn (fun k : Fin (n + 1) ↦ oneSegs h k)).flatten ∈ l := by
+private lemma oneSegs_lemma {l : Language (Fin 2)} (h : l↗ω = eventuallyZero) (n : ℕ)
+    : 1 ∈ oneSegs h n ∧ (List.ofFn (fun k : Fin (n + 1) ↦ oneSegs h k)).flatten ∈ l := by
   let P u v := 1 ∈ v ∧ u ++ v ∈ l
   have : P ((List.ofFn (fun k : Fin n ↦ oneSegs h k)).flatten) (oneSegs h n) := by
     unfold oneSegs
@@ -95,8 +95,7 @@ private lemma oneSegs_lemma {l : Language (Fin 2)} (h : l↗ω = eventuallyZero)
   rw [List.ofFn_succ_last]
   simpa
 
-theorem eventuallyZero_not_omegaLim :
-    ¬ ∃ l : Language (Fin 2), l↗ω = eventuallyZero := by
+theorem eventuallyZero_not_omegaLim : ¬ ∃ l : Language (Fin 2), l↗ω = eventuallyZero := by
   rintro ⟨l, h⟩
   let ls := ωSequence.mk (oneSegs h)
   have h_segs := oneSegs_lemma h
@@ -119,6 +118,6 @@ theorem eventuallyZero_not_omegaLim :
     grind
   obtain ⟨n, h_n, k, rfl⟩ := frequently_atTop.mp h_inf m
   have h_k : 1 ∈ ls k := by grind
-  grind [List.mem_iff_getElem, = _ extract_flatten]
+  grind [List.mem_iff_getElem, =_ extract_flatten]
 
 end Cslib.ωLanguage.Example

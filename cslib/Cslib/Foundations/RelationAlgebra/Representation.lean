@@ -30,8 +30,10 @@ universe u v w
 
 namespace Cslib.RelationAlgebra
 
-/-- The relation algebra of all binary relations on a type `α`. This is scoped so that other
-instances, such as those under `Pointwise`, can be used elsewhere. -/
+/--
+The relation algebra of all binary relations on a type `α`. This is scoped so that other
+instances, such as those under `Pointwise`, can be used elsewhere.
+-/
 scoped instance (α : Type u) : RelationAlgebra (SetRel α α) where
   one := SetRel.id
   mul := SetRel.comp
@@ -77,9 +79,11 @@ def Representable (α : Type u) [RelationAlgebra α] : Prop :=
   ∃ (ι : Type u) (β : ι → Type u), Nonempty (Representation α ι β)
 
 /-- A relation algebra that embeds into a representable relation algebra is representable. -/
-theorem Representable.of_injective {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
-    (f : RelationAlgebraHom α α') (hf : Function.Injective f) (h : Representable α') :
-    Representable α :=
+theorem Representable.of_injective
+    {α α' : Type u} [RelationAlgebra α] [RelationAlgebra α']
+    (f : RelationAlgebraHom α α') (hf : Function.Injective f)
+    (h : Representable α')
+    : Representable α :=
   let ⟨ι, β, ⟨r⟩⟩ := h
   ⟨ι, β, ⟨⟨r.hom.comp f, r.injective.comp hf⟩⟩⟩
 
@@ -88,4 +92,3 @@ proof_wanted representable_univ {α : Type u} [RelationAlgebra α] {ι : Type v}
     Representation α ι β → Representable α
 
 end Cslib.RelationAlgebra
-

@@ -25,22 +25,23 @@ section SubsetConstruction
 
 /-- Converts an `NA` into a `DA` using the subset construction. -/
 @[scoped grind =]
-def toDA (a : NA State Symbol) : DA (Set State) Symbol :=
-  { a.toFLTS with start := a.start }
+def toDA (a : NA State Symbol) : DA (Set State) Symbol := { a.toFLTS with start := a.start }
 
 namespace FinAcc
 
 /-- Converts an `NA.FinAcc` into a `DA.FinAcc` using the subset construction. -/
 @[scoped grind =]
-def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol :=
-  { a.toDA with accept := { S | ∃ s ∈ S, s ∈ a.accept } }
+def toDAFinAcc (a : NA.FinAcc State Symbol) : DA.FinAcc (Set State) Symbol := {
+  a.toDA with
+  accept := { S | ∃ s ∈ S, s ∈ a.accept }
+}
 
 open Acceptor in
 open scoped DA.FinAcc LTS in
 /-- The `DA` constructed from an `NA` has the same language. -/
 @[scoped grind _=_]
-theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol} :
-  language na.toDAFinAcc = language na := by
+theorem toDAFinAcc_language_eq {na : NA.FinAcc State Symbol}
+    : language na.toDAFinAcc = language na := by
   ext xs
   #adaptation_note
   /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/

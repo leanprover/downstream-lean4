@@ -17,10 +17,10 @@ open Cslib LTS
 -- A simple LTS on natural numbers
 
 inductive NatTr : ℕ → ℕ → ℕ → Prop where
-| one : NatTr 1 2 2
-| one' : NatTr 1 1 1
-| two : NatTr 2 1 1
-| two' : NatTr 2 2 2
+  | one : NatTr 1 2 2
+  | one' : NatTr 1 1 1
+  | two : NatTr 2 1 1
+  | two' : NatTr 2 2 2
 
 theorem NatTr.dom : NatTr n μ m → (n = 1 ∨ n = 2) ∧ (m = 1 ∨ m = 2) := by
   intro h
@@ -29,10 +29,10 @@ theorem NatTr.dom : NatTr n μ m → (n = 1 ∨ n = 2) ∧ (m = 1 ∨ m = 2) := 
 def natLTS : LTS ℕ ℕ := ⟨NatTr⟩
 
 inductive NatBisim : ℕ → ℕ → Prop where
-| one_one : NatBisim 1 1
-| one_two : NatBisim 1 2
-| two_one : NatBisim 2 1
-| two_two : NatBisim 2 2
+  | one_one : NatBisim 1 1
+  | one_two : NatBisim 1 2
+  | two_one : NatBisim 2 1
+  | two_two : NatBisim 2 2
 
 example : 1 ~[natLTS] 2 := by
   exists NatBisim
@@ -46,22 +46,19 @@ example : 1 ~[natLTS] 2 := by
       cases htr <;> (cases hr <;> repeat constructor)
 
 inductive TLabel : Type where
-| τ
+  | τ
 
-instance : HasTau TLabel := {
-  τ := TLabel.τ
-}
+instance : HasTau TLabel := { τ := TLabel.τ }
 
 inductive NatDivergentTr : ℕ → TLabel → ℕ → Prop where
-| step : NatDivergentTr n τ n.succ
+  | step : NatDivergentTr n τ n.succ
 
 def natDivLTS : LTS ℕ TLabel := ⟨NatDivergentTr⟩
 
 def natInfiniteExecution : ωSequence ℕ := ⟨fun n => n⟩
 def τSequence : ωSequence TLabel := ⟨fun _ => .τ⟩
 
-theorem τSequence_divergentTrace : LTS.DivergentTrace τSequence := by
-  simp [LTS.DivergentTrace]
+theorem τSequence_divergentTrace : LTS.DivergentTrace τSequence := by simp [LTS.DivergentTrace]
 
 example : natDivLTS.Divergent 0 := by
   use natInfiniteExecution, τSequence
@@ -115,7 +112,7 @@ example (a b : Term) (μ : Label) : a [μ]⭢ b := by
   change labelled_transition a μ b
   simp
 
---check that namespaces are respected
+-- check that namespaces are respected
 
 /-- info: CslibTests.labelled_transition {Term Label : Type} : Term → Label → Term → Prop -/
 #guard_msgs in

@@ -56,10 +56,12 @@ structure FinAcc (State Symbol : Type*) extends NA State Symbol where
 
 namespace FinAcc
 
-/-- An `NA.FinAcc` accepts a string if there is a multistep transition from a start state to an
+/--
+An `NA.FinAcc` accepts a string if there is a multistep transition from a start state to an
 accept state.
 
-This is the standard string recognition performed by NFAs in the literature. -/
+This is the standard string recognition performed by NFAs in the literature.
+-/
 @[simp, scoped grind =]
 instance : Acceptor (FinAcc State Symbol) Symbol where
   Accepts (a : FinAcc State Symbol) (xs : List Symbol) :=
@@ -89,8 +91,10 @@ structure Muller (State Symbol : Type*) extends NA State Symbol where
 
 namespace Muller
 
-/-- An infinite run is accepting iff the set of states that occur infinitely many times
-is one of the sets in `accept`. -/
+/--
+An infinite run is accepting iff the set of states that occur infinitely many times
+is one of the sets in `accept`.
+-/
 @[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
   Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=

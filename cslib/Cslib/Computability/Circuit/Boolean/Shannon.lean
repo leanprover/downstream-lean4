@@ -23,27 +23,34 @@ namespace Cslib.Circuits.Boolean.Shannon
 
 open Filter Topology
 
-/-- Almost all Boolean functions on `n` inputs require more than `2ⁿ/n` De Morgan gates: the
-fraction computable within that budget tends to zero. -/
-theorem tendsto_card_computableFunctions_div :
-    Tendsto (fun n : ℕ => ((computableFunctions interpretation n (2 ^ n / n)).ncard : ℝ) /
-      2 ^ 2 ^ n) atTop (𝓝 0) := by
-  simpa [Nat.card_eq_fintype_card] using Circuits.Shannon.tendsto_card_computableFunctions_div
-    interpretation (fun op => by cases op <;> simp)
+/--
+Almost all Boolean functions on `n` inputs require more than `2ⁿ/n` De Morgan gates: the
+fraction computable within that budget tends to zero.
+-/
+theorem tendsto_card_computableFunctions_div
+    : Tendsto
+      (fun n : ℕ => ((computableFunctions interpretation n (2 ^ n / n)).ncard : ℝ) / 2 ^ 2 ^ n)
+      atTop (𝓝 0) := by
+  simpa [Nat.card_eq_fintype_card] using
+    Circuits.Shannon.tendsto_card_computableFunctions_div interpretation
+      (fun op => by cases op <;> simp)
 
-/-- For all sufficiently large `n`, some Boolean function on `n` inputs requires
-more than `2ⁿ/n` De Morgan gates, counting constants and negations. -/
-theorem exists_hard_function :
-    ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
-      ∀ c : Circuit signature n 1,
-        c.Computes interpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
+/--
+For all sufficiently large `n`, some Boolean function on `n` inputs requires
+more than `2ⁿ/n` De Morgan gates, counting constants and negations.
+-/
+theorem exists_hard_function
+    : ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n, ∀ c : Circuit signature n 1,
+      c.Computes interpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Circuits.Shannon.exists_hard_function interpretation (fun op => by cases op <;> simp)
 
-/-- Shannon's lower bound for circuit complexity: for all sufficiently large `n`, some Boolean
-function on `n` inputs has complexity more than `2ⁿ/n`. -/
-theorem lt_complexity :
-    ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
+/--
+Shannon's lower bound for circuit complexity: for all sufficiently large `n`, some Boolean
+function on `n` inputs has complexity more than `2ⁿ/n`.
+-/
+theorem lt_complexity
+    : ∃ N : ℕ, ∀ n ≥ N, ∃ f : BooleanFunction n,
       2 ^ n / (n : ℝ) < (complexity interpretation (single f) : ℝ) := by
   obtain ⟨N, hN⟩ := exists_hard_function
   refine ⟨N, fun n hn => ?_⟩

@@ -20,12 +20,14 @@ structure Model (World : Type u) (τ : PFunctor) (Atom : Type v) extends Frame W
   /-- Valuation of atoms at a world. -/
   v : World → Atom → Prop
 
-/-- Satisfaction relation. `Satisfies m w φ` means that, in the model `m`, the world `w` satisfies
-the proposition `φ`. -/
+/--
+Satisfaction relation. `Satisfies m w φ` means that, in the model `m`, the world `w` satisfies
+the proposition `φ`.
+-/
 def Satisfies (m : Model World τ Atom) (w : World) : Proposition τ Atom → Prop
   | .atom p => m.v w p
   | .false => False
-  | .not φ => ¬Satisfies m w φ
+  | .not φ => ¬ Satisfies m w φ
   | .or φ₁ φ₂ => Satisfies m w φ₁ ∨ Satisfies m w φ₂
   | .triangle op φs => ∃ ws : τ.B op → World, m.r op w ws ∧ ∀ i, Satisfies m (ws i) (φs i)
 
@@ -40,19 +42,22 @@ structure Judgement World τ Atom where
   /-- The proposition satisfied by the world `w`. -/
   φ : Proposition τ Atom
 
-@[inherit_doc] scoped notation "Modal[" m "," w " ⊨ " φ "]" => Judgement.mk m w φ
+@[inherit_doc]
+scoped notation "Modal[" m "," w " ⊨ " φ "]" => Judgement.mk m w φ
 
 /-- Satisfaction for judgements. This just refers to the unbundled `Satisfies`. -/
 def Satisfies.Bundled (j : Judgement World τ Atom) : Prop := Satisfies j.m j.w j.φ
 
-instance {World : Type*} {τ : PFunctor} {Atom : Type*} :
-    HasInferenceSystem (Judgement World τ Atom) := ⟨Satisfies.Bundled⟩
+instance {World : Type*} {τ : PFunctor} {Atom : Type*}
+    : HasInferenceSystem (Judgement World τ Atom) :=
+  ⟨Satisfies.Bundled⟩
 
 open scoped InferenceSystem Proposition PropositionMap Frame PFunctor
 
 @[scoped grind =]
-theorem derivation_def {m : Model World τ Atom} {w : World} {φ : Proposition τ Atom} :
-  Satisfies m w φ = ⇓Modal[m,w ⊨ φ] := rfl
+theorem derivation_def {m : Model World τ Atom} {w : World} {φ : Proposition τ Atom}
+    : Satisfies m w φ = ⇓Modal[m,w ⊨ φ] :=
+  rfl
 
 @[simp, scoped grind =, modal =]
 theorem Satisfies.atom_iff {a : Atom} : ⇓Modal[m,w ⊨ a] ↔ m.v w a := by rfl
@@ -62,62 +67,70 @@ theorem Satisfies.false : ⇓Modal[m,w ⊨ ⊥] ↔ False := by rfl
 
 /-- A world satisfies a proposition iff it does not satisfy the negation of the proposition. -/
 @[scoped grind =, modal =]
-theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬⇓Modal[m,w ⊨ φ] := by rfl
+theorem Satisfies.not_iff_not : ⇓Modal[m,w ⊨ ¬φ] ↔ ¬ ⇓Modal[m,w ⊨ φ] := by rfl
 
 @[simp, scoped grind ., modal .]
-theorem Satisfies.true : ⇓Modal[m,w ⊨ ⊤] := by
-  grind [=_ Proposition.true_def, Proposition.true]
+theorem Satisfies.true : ⇓Modal[m,w ⊨ ⊤] := by grind [=_ Proposition.true_def, Proposition.true]
 
 @[scoped grind =, modal =]
-theorem Satisfies.or_iff_or {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by rfl
+theorem Satisfies.or_iff_or {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ φ₁ ∨ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∨ ⇓Modal[m,w ⊨ φ₂] := by
+  rfl
 
 @[scoped grind =]
-theorem Satisfies.triangle_iff_exists {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ Δ[op]φs] ↔ ∃ ws, m.r op w ws ∧ ∀ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by rfl
+theorem Satisfies.triangle_iff_exists {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ Δ[op]φs] ↔ ∃ ws, m.r op w ws ∧ ∀ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by
+  rfl
 
 @[scoped grind =]
-theorem Satisfies.triangle_not_iff_exists_not {φs : τ.B op → Proposition τ Atom}
-    {m : Model World τ Atom} : ⇓Modal[m,w ⊨ Δ[op]¬φs] ↔
-      ∃ ws, m.r op w ws ∧ ∀ i, ¬⇓Modal[m,(ws i) ⊨ (φs i)] := by
+theorem Satisfies.triangle_not_iff_exists_not
+    {φs : τ.B op → Proposition τ Atom} {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ Δ[op]¬φs] ↔ ∃ ws, m.r op w ws ∧ ∀ i, ¬ ⇓Modal[m,(ws i) ⊨ (φs i)] := by
   grind
 
-/-- Characterisation of the `∧` connective.
+/--
+Characterisation of the `∧` connective.
 
 Conjunction is defined in terms of the more primitive connectives given in `Proposition`.
-This result proves that the definition is correct. -/
+This result proves that the definition is correct.
+-/
 @[scoped grind =, modal =]
-theorem Satisfies.and_iff_and {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by
+theorem Satisfies.and_iff_and {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ φ₁ ∧ φ₂] ↔ ⇓Modal[m,w ⊨ φ₁] ∧ ⇓Modal[m,w ⊨ φ₂] := by
   grind [=_ Proposition.and_def, Proposition.and]
 
-/-- Characterisation of the `→` connective.
+/--
+Characterisation of the `→` connective.
 
 Implication is defined in terms of the more primitive connectives given in `Proposition`.
 This result proves that the definition is correct.
 -/
 @[scoped grind =, modal =]
-theorem Satisfies.imp_iff_imp {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
+theorem Satisfies.imp_iff_imp {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ φ₁ → φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] → ⇓Modal[m,w ⊨ φ₂]) := by
   grind [=_ Proposition.imp_def, Proposition.imp]
 
-/-- Characterisation of the `↔` connective.
+/--
+Characterisation of the `↔` connective.
 
 Bi-implication is defined in terms of the more primitive connectives given in `Proposition`.
-This result proves that the definition is correct. -/
+This result proves that the definition is correct.
+-/
 @[scoped grind =, modal =]
-theorem Satisfies.iff_iff_iff {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
+theorem Satisfies.iff_iff_iff {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] ↔ (⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂]) := by
   simp only [HasIff.iff, Proposition.iff]
   grind
 
-/-- Characterisation of `∇`.
+/--
+Characterisation of `∇`.
 
 Necessity is defined in terms of the more primitive connectives given in `Proposition`.
-This result proves that the definition is correct. -/
+This result proves that the definition is correct.
+-/
 @[scoped grind =]
-theorem Satisfies.nabla_iff_forall {m : Model World τ Atom} :
-    ⇓Modal[m,w ⊨ ∇[op]φs] ↔ ∀ ws, m.r op w ws → ∃ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by
+theorem Satisfies.nabla_iff_forall {m : Model World τ Atom}
+    : ⇓Modal[m,w ⊨ ∇[op]φs] ↔ ∀ ws, m.r op w ws → ∃ i, ⇓Modal[m,(ws i) ⊨ (φs i)] := by
   grind [=_ Proposition.nabla_def, Proposition.nabla]
 
 /-- A state satisfies a finite conjunction iff it satisfies all conjuncts. -/
@@ -131,28 +144,30 @@ theorem Satisfies.finiteOr_iff_exists : ⇓Modal[m,s ⊨ ⋁φs] ↔ ∃ φ ∈ 
   induction φs <;> grind
 
 /-- The theory of a world in a model is the set of all propositions that it satisfies. -/
-abbrev theory {World : Type*} {τ : PFunctor} {Atom : Type*} (m : Model World τ Atom)
-    (w : World) : Set (Proposition τ Atom) := {φ | ⇓Modal[m,w ⊨ φ]}
+abbrev theory {World : Type*} {τ : PFunctor} {Atom : Type*} (m : Model World τ Atom) (w : World)
+    : Set (Proposition τ Atom) :=
+  {φ | ⇓Modal[m,w ⊨ φ]}
 
 /-- Two worlds are theory-equivalent under a model if they have the same theory. -/
-abbrev TheoryEq (m : Model World τ Atom) (w₁ w₂ : World) :=
-  theory m w₁ = theory m w₂
+abbrev TheoryEq (m : Model World τ Atom) (w₁ w₂ : World) := theory m w₁ = theory m w₂
 
-theorem TheoryEq.ext_iff : TheoryEq m w₁ w₂ ↔ (∀ φ, φ ∈ theory m w₁ ↔ φ ∈ theory m w₂) := by
-  grind
+theorem TheoryEq.ext_iff : TheoryEq m w₁ w₂ ↔ (∀ φ, φ ∈ theory m w₁ ↔ φ ∈ theory m w₂) := by grind
 
 /-- Any proposition satisfied by a world is in the theory of that world. -/
 @[scoped grind →]
 theorem satisfies_theory (h : ⇓Modal[m,w ⊨ φ]) : φ ∈ theory m w := by grind
 
 /-- If two worlds are not theory equivalent, there exists a distinguishing proposition. -/
-lemma not_theoryEq_satisfies (h : ¬TheoryEq m w₁ w₂) :
-    ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬⇓Modal[m,w₂ ⊨ φ]) := by grind [=_ Satisfies.not_iff_not]
+lemma not_theoryEq_satisfies (h : ¬ TheoryEq m w₁ w₂)
+    : ∃ φ, (⇓Modal[m,w₁ ⊨ φ] ∧ ¬ ⇓Modal[m,w₂ ⊨ φ]) := by
+  grind [=_ Satisfies.not_iff_not]
 
-/-- If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
-well. -/
-theorem theoryEq_satisfies {m : Model World τ Atom} (h : TheoryEq m w₁ w₂)
-    (hs : Satisfies m w₁ φ) : ⇓Modal[m,w₂ ⊨ φ] := by
+/--
+If two worlds are theory equivalent and the former satisfies a proposition, the latter does as
+well.
+-/
+theorem theoryEq_satisfies {m : Model World τ Atom} (h : TheoryEq m w₁ w₂) (hs : Satisfies m w₁ φ)
+    : ⇓Modal[m,w₂ ⊨ φ] := by
   apply TheoryEq.ext_iff.1 at h
   exact (h φ).mp hs
 
@@ -160,81 +175,108 @@ theorem theoryEq_satisfies {m : Model World τ Atom} (h : TheoryEq m w₁ w₂)
 inductive Axiom (f : Frame World τ)
 
 /-- A proposition `φ` is an axiom under a frame `f` if it holds for all valuations and worlds. -/
-instance {World : Type*} {τ : PFunctor} {Atom : Type*} (f : Frame World τ) :
-    InferenceSystem (Axiom f) (Proposition τ Atom) where
+instance {World : Type*} {τ : PFunctor} {Atom : Type*} (f : Frame World τ)
+    : InferenceSystem (Axiom f) (Proposition τ Atom) where
   derivation φ := ∀ v w, ⇓Modal[⟨f,v⟩,w ⊨ φ]
 
 @[scoped grind ⇒]
-theorem Satisfies.axiom_def (f : Frame World τ) :
-    (∀ v w, ⇓Modal[⟨f,v⟩,w ⊨ φ]) ↔ Axiom f⇓φ := by rfl
+theorem Satisfies.axiom_def (f : Frame World τ) : (∀ v w, ⇓Modal[⟨f,v⟩,w ⊨ φ]) ↔ Axiom f⇓φ := by rfl
 
 @[modal .]
 theorem Satisfies.der_of_axiom (h : Axiom m.toFrame⇓φ) : ⇓Modal[m,w ⊨ φ] := h m.v w
 
 /-- If a proposition is an axiom under the frame of a model, it is satisfied by every world. -/
 @[scoped grind ., modal .]
-theorem Satisfies.of_axiom (m : Model World τ Atom) (φ : Proposition τ Atom) (h : Axiom m.toFrame⇓φ)
-    (w : World) : ⇓Modal[m,w ⊨ φ] := h m.v w
+theorem Satisfies.of_axiom
+    (m : Model World τ Atom) (φ : Proposition τ Atom) (h : Axiom m.toFrame⇓φ) (w : World)
+    : ⇓Modal[m,w ⊨ φ] :=
+  h m.v w
 
 @[scoped grind =]
-theorem Satisfies.subst_apply_iff [DecidableEq (τ.B op)] {φs : PropositionMap τ op Atom}
-    {i j : τ.B op} {φ : Proposition τ Atom} : ⇓Modal[m,w ⊨ φs[i := φ] j] ↔
-      (j = i ∧ ⇓Modal[m,w ⊨ φ]) ∨ (j ≠ i ∧ ⇓Modal[m,w ⊨ φs j]) :=
+theorem Satisfies.subst_apply_iff
+    [DecidableEq (τ.B op)] {φs : PropositionMap τ op Atom} {i j : τ.B op} {φ : Proposition τ Atom}
+    : ⇓Modal[m,w ⊨ φs[i := φ] j] ↔ (j = i ∧ ⇓Modal[m,w ⊨ φ]) ∨ (j ≠ i ∧ ⇓Modal[m,w ⊨ φs j]) :=
   Function.pred_update (P := fun _ φ' => Satisfies m w φ') φs i φ j
 
-/-- Axiom K, valid for all frames.
+/--
+Axiom K, valid for all frames.
 
-This is from Definition 4.13 in [Blackburn2001]. -/
+This is from Definition 4.13 in [Blackburn2001].
+-/
 @[scoped grind ., modal .]
-theorem Satisfies.k (f : Frame World τ) {φs : PropositionMap τ op Atom} [DecidableEq (τ.B op)]
-    {i : τ.B op} {φ₁ φ₂ : Proposition τ Atom} (hi : φs i = (φ₁ → φ₂)) :
-    Axiom f⇓(∇[op]φs → (∇[op]φs[i := φ₁] → ∇[op]φs[i := φ₂])) := by grind
+theorem Satisfies.k
+    (f : Frame World τ)
+    {φs : PropositionMap τ op Atom} [DecidableEq (τ.B op)]
+    {i : τ.B op} {φ₁ φ₂ : Proposition τ Atom} (hi : φs i = (φ₁ → φ₂))
+    : Axiom f⇓(∇[op]φs → (∇[op]φs[i := φ₁] → ∇[op]φs[i := φ₂])) := by
+  grind
 
-/-- The dual axiom, valid for all frames.
+/--
+The dual axiom, valid for all frames.
 
-This is from Definition 4.13 in [Blackburn2001]. -/
-theorem Satisfies.dual (f : Frame World τ) {φs : PropositionMap τ op Atom} :
-    Axiom f⇓(Δ[op]φs ↔ ¬∇[op]¬φs) := by grind
+This is from Definition 4.13 in [Blackburn2001].
+-/
+theorem Satisfies.dual (f : Frame World τ) {φs : PropositionMap τ op Atom}
+    : Axiom f⇓(Δ[op]φs ↔ ¬∇[op]¬φs) := by
+  grind
 
 /-- Possibility preserves conjunction. -/
 @[scoped grind ., modal .]
-theorem Satisfies.triangle_and (f : Frame World τ) (φs₁ φs₂ : PropositionMap τ op Atom) :
-    Axiom f⇓(Δ[op](φs₁ ∧ φs₂) → (Δ[op]φs₁ ∧ Δ[op]φs₂)) := by grind
-
-/-- Possibility can be combined with necessity.
-
-This generalises the unimodal law `◇φ₁ ∧ □φ₂ → ◇(φ₁ ∧ φ₂)`. -/
-@[modal .]
-theorem Satisfies.triangle_and_nabla {m : Model World τ Atom} [DecidableEq (τ.B op)]
-    (h : ⇓Modal[m,w ⊨ Δ[op]φs₁ ∧ ∇[op]φs₂]) : ∃ i, ⇓Modal[m,w ⊨ Δ[op]φs₁[i := φs₁ i ∧ φs₂ i]] := by
+theorem Satisfies.triangle_and (f : Frame World τ) (φs₁ φs₂ : PropositionMap τ op Atom)
+    : Axiom f⇓(Δ[op](φs₁ ∧ φs₂) → (Δ[op]φs₁ ∧ Δ[op]φs₂)) := by
   grind
 
-/-- If `φ₁` is necessary and some successor exists, then some successor satisfies `φ₁`.
+/--
+Possibility can be combined with necessity.
 
-This generalises the unimodal law `□φ₁ ∧ ◇φ₂ → ◇φ₁`. -/
+This generalises the unimodal law `◇φ₁ ∧ □φ₂ → ◇(φ₁ ∧ φ₂)`.
+-/
+@[modal .]
+theorem Satisfies.triangle_and_nabla
+    {m : Model World τ Atom} [DecidableEq (τ.B op)] (h : ⇓Modal[m,w ⊨ Δ[op]φs₁ ∧ ∇[op]φs₂])
+    : ∃ i, ⇓Modal[m,w ⊨ Δ[op]φs₁[i := φs₁ i ∧ φs₂ i]] := by
+  grind
+
+/--
+If `φ₁` is necessary and some successor exists, then some successor satisfies `φ₁`.
+
+This generalises the unimodal law `□φ₁ ∧ ◇φ₂ → ◇φ₁`.
+-/
 @[scoped grind ., modal .]
-theorem Satisfies.triangle_of_nabla {φs₁ φs₂ : PropositionMap τ op Atom}
-    [DecidableEq (τ.B op)] (h : ⇓Modal[m,w ⊨ ∇[op]φs₁ ∧ Δ[op]φs₂]) :
-    ∃ i, ⇓Modal[m,w ⊨ Δ[op]φs₂[i := φs₁ i]] := by grind
+theorem Satisfies.triangle_of_nabla
+    {φs₁ φs₂ : PropositionMap τ op Atom} [DecidableEq (τ.B op)]
+    (h : ⇓Modal[m,w ⊨ ∇[op]φs₁ ∧ Δ[op]φs₂])
+    : ∃ i, ⇓Modal[m,w ⊨ Δ[op]φs₂[i := φs₁ i]] := by
+  grind
 
-/-- If the diagonal relation for `op` is reflexive, a world satisfying `φ` also satisfies `Δ[op]`
-with `φ` at every argument position. -/
+/--
+If the diagonal relation for `op` is reflexive, a world satisfying `φ` also satisfies `Δ[op]`
+with `φ` at every argument position.
+-/
 @[scoped grind .]
-theorem Satisfies.triangle_of_diagonal {m : Model World τ Atom} {op : τ.A} {w : World}
-    {φ : Proposition τ Atom} [instRefl : Std.Refl (m.toFrame.diagonal op)]
-    (h : ⇓Modal[m,w ⊨ φ]) : ⇓Modal[m,w ⊨ Δ[op](PropositionMap.const op φ)] :=
+theorem Satisfies.triangle_of_diagonal
+    {m : Model World τ Atom} {op : τ.A} {w : World} {φ : Proposition τ Atom}
+    [instRefl : Std.Refl (m.toFrame.diagonal op)]
+    (h : ⇓Modal[m,w ⊨ φ])
+    : ⇓Modal[m,w ⊨ Δ[op](PropositionMap.const op φ)] :=
   ⟨fun _ => w, instRefl.refl w, by grind⟩
 
-/-- Axiom T, valid for all frames with reflexive diagonals.
+/--
+Axiom T, valid for all frames with reflexive diagonals.
 
-This generalises the unimodal law `φ → ◇φ`. -/
-theorem Satisfies.t (f : Frame World τ) [instRefl : Std.Refl (f.diagonal op)]
-    (φ : Proposition τ Atom) : Axiom f⇓(φ → Δ[op](PropositionMap.const op φ)) := by grind
+This generalises the unimodal law `φ → ◇φ`.
+-/
+theorem Satisfies.t
+    (f : Frame World τ) [instRefl : Std.Refl (f.diagonal op)] (φ : Proposition τ Atom)
+    : Axiom f⇓(φ → Δ[op](PropositionMap.const op φ)) := by
+  grind
 
 /-- Any frame admitting T for `op` has a reflexive diagonal relation. -/
-theorem Satisfies.t_refl (f : Frame World τ) {op : τ.A} [Nonempty Atom]
-    (h : ∀ φ : Proposition τ Atom, Axiom f⇓(φ → Δ[op](PropositionMap.const op φ))) :
-    Std.Refl (f.diagonal op) where
+theorem Satisfies.t_refl
+    (f : Frame World τ)
+    {op : τ.A} [Nonempty Atom]
+    (h : ∀ φ : Proposition τ Atom, Axiom f⇓(φ → Δ[op](PropositionMap.const op φ)))
+    : Std.Refl (f.diagonal op) where
   refl w := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (_ : Atom) => w' = w
@@ -245,27 +287,32 @@ theorem Satisfies.t_refl (f : Frame World τ) {op : τ.A} [Nonempty Atom]
     have hws : ws = fun _ => w := by grind
     grind [Frame.diagonal]
 
-/-- In any model whose diagonal relation for `op` is reflexive, `∇[op]φ → φ` is equivalent to
-`φ → Δ[op]φ`. -/
-theorem Satisfies.t_nabla_triangle (f : Frame World τ) [Std.Refl (f.diagonal op)] :
-    Axiom f⇓((∇[op](PropositionMap.const op φ) → φ) ↔ (φ → Δ[op](PropositionMap.const op φ))) := by
-  intro _ w
-  have hr : f.r op w (fun _ => w) := by
-    simpa [Frame.diagonal] using (Std.Refl.refl (r := f.diagonal op) w)
-  grind
+/--
+In any model whose diagonal relation for `op` is reflexive, `∇[op]φ → φ` is equivalent to
+`φ → Δ[op]φ`.
+-/
+theorem Satisfies.t_nabla_triangle (f : Frame World τ) [Std.Refl (f.diagonal op)]
+    : Axiom f⇓((∇[op](PropositionMap.const op φ) → φ) ↔ (φ → Δ[op](PropositionMap.const op φ))) :=
+  by
+    intro _ w
+    have hr : f.r op w (fun _ => w) := by
+      simpa [Frame.diagonal] using (Std.Refl.refl (r := f.diagonal op) w)
+    grind
 
 /-- Axiom B, valid for diagonally symmetric frames. -/
-theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition τ Atom) :
-    Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))) := by
+theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition τ Atom)
+    : Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))) := by
   intro _ w
   have := Frame.DiagonalSymm.symm (f := f) (op := op)
   grind only [modal, => axiom_def, = triangle_iff_exists, = nabla_iff_forall]
 
 /-- Any frame that admits B at `op` is diagonally symmetric at `op`. -/
-theorem Satisfies.b_symm (f : Frame World τ) [Nonempty Atom]
+theorem Satisfies.b_symm
+    (f : Frame World τ)
+    [Nonempty Atom]
     (h : ∀ φ : Proposition τ Atom,
-      Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ))))) :
-    f.DiagonalSymm op where
+      Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))))
+    : f.DiagonalSymm op where
   symm w ws hwws := by
     have a := Classical.arbitrary Atom
     let v := fun (w' : World) (_ : Atom) => w' = w
@@ -278,17 +325,20 @@ theorem Satisfies.b_symm (f : Frame World τ) [Nonempty Atom]
     grind
 
 /-- The 4 axiom, valid for transitive frames. -/
-theorem Satisfies.four (f : Frame World τ) [f.Trans op]
-    (φs ψs : PropositionMap τ op Atom) (i : τ.B op)
-    (hi : φs i = (Δ[op]ψs)) :
-    Axiom f⇓(Δ[op]φs → Δ[op]ψs) := by
+theorem Satisfies.four
+    (f : Frame World τ) [f.Trans op]
+    (φs ψs : PropositionMap τ op Atom) (i : τ.B op) (hi : φs i = (Δ[op]ψs))
+    : Axiom f⇓(Δ[op]φs → Δ[op]ψs) := by
   have ht := Frame.Trans.trans (f := f) (op := op) (i := i)
   grind only [modal, =_ axiom_def, = triangle_iff_exists]
 
 /-- Any frame that admits 4 at `op` is transitive at `op`. -/
-theorem Satisfies.four_trans (f : Frame World τ)
-    (e : τ.B op ↪ Atom) (h : ∀ (φs ψs : PropositionMap τ op Atom) (i : τ.B op),
-      φs i = (Δ[op]ψs) → Axiom f⇓(Δ[op]φs → Δ[op]ψs)) : f.Trans op where
+theorem Satisfies.four_trans
+    (f : Frame World τ)
+    (e : τ.B op ↪ Atom)
+    (h : ∀ (φs ψs : PropositionMap τ op Atom) (i : τ.B op),
+      φs i = (Δ[op]ψs) → Axiom f⇓(Δ[op]φs → Δ[op]ψs))
+    : f.Trans op where
   trans w ws i ws' h₁ h₂ := by
     classical
     let a := e i
@@ -296,11 +346,9 @@ theorem Satisfies.four_trans (f : Frame World τ)
     let ψs : PropositionMap τ op Atom := fun j => e j
     -- A tautology for the irrelevant coordinates of the outer triangle.
     let top : Proposition τ Atom := a → a
-    let φs : PropositionMap τ op Atom :=
-      fun j => if j = i then Δ[op]ψs else top
+    let φs : PropositionMap τ op Atom := fun j => if j = i then Δ[op]ψs else top
     -- Atom `e j` holds exactly at `ws' j`.
-    let v : World → Atom → Prop :=
-      fun x p => ∃ j, p = e j ∧ x = ws' j
+    let v : World → Atom → Prop := fun x p => ∃ j, p = e j ∧ x = ws' j
     have hi : φs i = (Δ[op]ψs) := by grind only
     have h' := h φs ψs i hi (v := v) (w := w)
     have hφs : ⇓Modal[⟨f, v⟩,w ⊨ Δ[op]φs] := by
@@ -315,20 +363,21 @@ theorem Satisfies.four_trans (f : Frame World τ)
     grind only
 
 /-- Axiom 5, valid for right-Euclidean frames. -/
-theorem Satisfies.five (f : Frame World τ) [f.RightEuclidean op]
-    (φs : PropositionMap τ op Atom) :
-    Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs))) := by
+theorem Satisfies.five (f : Frame World τ) [f.RightEuclidean op] (φs : PropositionMap τ op Atom)
+    : Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs))) := by
   have he := Frame.RightEuclidean.rightEuclidean (f := f) (op := op)
   grind only [modal, => axiom_def, = triangle_iff_exists, = nabla_iff_forall]
 
 /-- Any frame that admits 5 at `op` is right-Euclidean at `op`. -/
-theorem Satisfies.five_rightEuclidean (f : Frame World τ) (e : τ.B op ↪ Atom)
+theorem Satisfies.five_rightEuclidean
+    (f : Frame World τ)
+    (e : τ.B op ↪ Atom)
     (h : ∀ φs : PropositionMap τ op Atom,
-      Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs)))) : f.RightEuclidean op where
+      Axiom f⇓(Δ[op]φs → ∇[op](PropositionMap.const op (Δ[op]φs))))
+    : f.RightEuclidean op where
   rightEuclidean {w ws₁ ws₂} h₁ h₂ := by
     let φs : PropositionMap τ op Atom := fun i => e i
-    let v : World → Atom → Prop :=
-      fun w' a => ∃ i, a = e i ∧ w' = ws₁ i
+    let v : World → Atom → Prop := fun w' a => ∃ i, a = e i ∧ w' = ws₁ i
     have h' := h φs (v := v) (w := w)
     have hφs : ⇓Modal[⟨f,v⟩,w ⊨ Δ[op]φs] := by grind
     rw [Satisfies.imp_iff_imp] at h'
@@ -345,34 +394,45 @@ theorem Satisfies.five_rightEuclidean (f : Frame World τ) (e : τ.B op ↪ Atom
       simpa [hjk] using hw
     grind only
 
-/-- A proposition is valid in a class of models `S` (modelled as a set) if it is satisfied under
+/--
+A proposition is valid in a class of models `S` (modelled as a set) if it is satisfied under
 all models in `S` for all worlds.
 
-Corresponds to Definition 1.28 (for classes of models) in [Blackburn2001]. -/
+Corresponds to Definition 1.28 (for classes of models) in [Blackburn2001].
+-/
 @[simp, scoped grind =]
-def Proposition.valid {World : Type*} {τ : PFunctor} {Atom : Type*} (S : Set (Model World τ Atom))
-    (φ : Proposition τ Atom) : Prop := ∀ m ∈ S, ∀ (w : World), ⇓Modal[m,w ⊨ φ]
+def Proposition.valid
+    {World : Type*} {τ : PFunctor} {Atom : Type*}
+    (S : Set (Model World τ Atom)) (φ : Proposition τ Atom)
+    : Prop :=
+  ∀ m ∈ S, ∀ (w : World), ⇓Modal[m,w ⊨ φ]
 
-/-- The modal logic of a class of models `S` is the set of all propositions valid in `S`.
+/--
+The modal logic of a class of models `S` is the set of all propositions valid in `S`.
 
-Corresponds to Definition 1.28 (for classes of models) in [Blackburn2001]. -/
+Corresponds to Definition 1.28 (for classes of models) in [Blackburn2001].
+-/
 @[simp, scoped grind =]
-def logic {World : Type*} {τ : PFunctor} {Atom : Type*} (S : Set (Model World τ Atom)) :
-    Set (Proposition τ Atom) := {φ | φ.valid S}
+def logic {World : Type*} {τ : PFunctor} {Atom : Type*} (S : Set (Model World τ Atom))
+    : Set (Proposition τ Atom) :=
+  {φ | φ.valid S}
 
 /-- Modal logic is antitone (wrt the class of models). -/
-theorem logic_antitone {World : Type*} {τ : PFunctor} {Atom : Type*} :
-    Antitone (logic (World := World) (τ := τ) (Atom := Atom)) :=
-  fun _ _ hS₁S₂ _ hφ m hm w => hφ m (hS₁S₂ hm) w
+theorem logic_antitone {World : Type*} {τ : PFunctor} {Atom : Type*}
+    : Antitone (logic (World := World) (τ := τ) (Atom := Atom)) := fun _ _ hS₁S₂ _ hφ m hm w =>
+  hφ m (hS₁S₂ hm) w
 
 /-- The class of all models generated by a frame (relation). -/
-abbrev modelsOfFrame {World : Type*} {τ : PFunctor} {Atom : Type*} (f : Frame World τ) :
-    Set (Model World τ Atom) := {m | m.toFrame = f}
+abbrev modelsOfFrame {World : Type*} {τ : PFunctor} {Atom : Type*} (f : Frame World τ)
+    : Set (Model World τ Atom) :=
+  {m | m.toFrame = f}
 
-/-- A proposition is an axiom of a frame exactly when it belongs to the logic of all models over
-that frame. -/
-theorem axiom_iff_mem_logic_modelsOfFrame (f : Frame World τ) (φ : Proposition τ Atom) :
-    Axiom f⇓φ ↔ φ ∈ logic (modelsOfFrame f) := by
+/--
+A proposition is an axiom of a frame exactly when it belongs to the logic of all models over
+that frame.
+-/
+theorem axiom_iff_mem_logic_modelsOfFrame (f : Frame World τ) (φ : Proposition τ Atom)
+    : Axiom f⇓φ ↔ φ ∈ logic (modelsOfFrame f) := by
   constructor
   case mp =>
     rintro h m rfl w

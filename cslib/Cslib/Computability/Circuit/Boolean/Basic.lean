@@ -35,10 +35,11 @@ inductive Op where
   | and
   /-- Binary disjunction. -/
   | or
-  deriving DecidableEq, Fintype
+deriving DecidableEq, Fintype
 
 /-- The De Morgan basis has five operation symbols, counting its two constants. -/
-@[simp] theorem Op.card : Fintype.card Op = 5 := rfl
+@[simp]
+theorem Op.card : Fintype.card Op = 5 := rfl
 
 /-- The De Morgan signature. -/
 abbrev signature : Signature where
@@ -51,22 +52,21 @@ abbrev signature : Signature where
 /-- The usual Boolean interpretation. -/
 def interpretation : Interpretation signature Bool
   | .const b, _ => b
-  | .not, x => !x 0
+  | .not, x => ! x 0
   | .and, x => x 0 && x 1
   | .or, x => x 0 || x 1
 
 end Boolean
 
 /-- Every De Morgan program has fan-in at most two. -/
-theorem Program.fanInAtMost_two {n g : ℕ} (p : Program Boolean.signature n g) :
-    p.FanInAtMost 2 := by
+theorem Program.fanInAtMost_two {n g : ℕ} (p : Program Boolean.signature n g)
+    : p.FanInAtMost 2 := by
   induction p with
   | empty => trivial
   | gate p line ih => exact And.intro ih (by cases line.op <;> simp)
 
 /-- Every De Morgan circuit has fan-in at most two. -/
-theorem Circuit.fanInAtMost_two {n o : ℕ} (c : Circuit Boolean.signature n o) :
-    c.FanInAtMost 2 :=
+theorem Circuit.fanInAtMost_two {n o : ℕ} (c : Circuit Boolean.signature n o) : c.FanInAtMost 2 :=
   c.program.fanInAtMost_two
 
 end Cslib.Circuits

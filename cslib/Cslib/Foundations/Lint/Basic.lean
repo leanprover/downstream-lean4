@@ -24,10 +24,11 @@ public meta def topNamespace : Batteries.Tactic.Lint.Linter where
     let env ← getEnv
     if ← isImplicitReducible declName then return none
     let nss := env.getNamespaces
-    let top := nss.fold (init := (∅ : NameSet)) fun tot n =>
-      match n.components with
-      | r::_::_ => tot.insert r
-      | _ => tot
+    let top :=
+      nss.fold (init := (∅ : NameSet)) fun tot n =>
+        match n.components with
+        | r :: _ :: _ => tot.insert r
+        | _ => tot
     if top.contains declName.components[0]! then
       return none
     else

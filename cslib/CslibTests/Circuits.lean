@@ -34,8 +34,7 @@ def nandResultTwice : Line nandSignature 2 1 where
   op := .nand
   wires := fun _ => Wire.gate 0
 
-def andProgram : Program nandSignature 2 2 :=
-  .gate (.gate .empty nandInputs) nandResultTwice
+def andProgram : Program nandSignature 2 2 := .gate (.gate .empty nandInputs) nandResultTwice
 
 -- Recording each line's gate count distinguishes the two traversal directions.
 example : andProgram.foldl (fun {k} acc _ => k :: acc) [] = [1, 0] := rfl
@@ -103,8 +102,7 @@ example : swap.depth = 0 := rfl
 
 example (select : Fin 3 → Fin 2) : (Circuit.wiring nandSignature select).depth = 0 := by simp
 
-example (select : Fin 3 → Fin 2) : (Circuit.wiring nandSignature select).FanInAtMost 0 := by
-  simp
+example (select : Fin 3 → Fin 2) : (Circuit.wiring nandSignature select).FanInAtMost 0 := by simp
 
 example (x : Fin 2 → Bool) : swap.eval nandInterpretation x 0 = x 1 := by simp [swap]
 
@@ -117,8 +115,7 @@ example : duplicateFirst.eval nandInterpretation trueFalse 1 = true := rfl
 
 example : duplicateFirst.size = 0 := rfl
 
-example : duplicateFirst.Computes nandInterpretation fun x _ => x 0 :=
-  Circuit.wiring_computes _ _
+example : duplicateFirst.Computes nandInterpretation fun x _ => x 0 := Circuit.wiring_computes _ _
 
 example : (Circuit.id nandSignature 2).Computes nandInterpretation fun x => x := by
   intro x
@@ -145,8 +142,7 @@ def truthLine : Line constantSignature 0 0 where
   op := .truth
   wires := Fin.elim0
 
-def truthProgram : Program constantSignature 0 1 :=
-  .gate .empty truthLine
+def truthProgram : Program constantSignature 0 1 := .gate .empty truthLine
 
 def truthCircuit : Circuit constantSignature 0 1 where
   program := truthProgram
@@ -159,15 +155,17 @@ example : truthCircuit.FanInAtMost 0 := by decide
 example : truthCircuit.depth = 1 := rfl
 
 -- A depth bound for selected outputs follows from the public maximum characterization.
-example {σ : Signature} {n m k : Nat} (c : Circuit σ n m) (select : Fin k → Fin m) :
-    (⟨c.program, c.outputs ∘ select⟩ : Circuit σ n k).depth ≤ c.depth := by
+example {σ : Signature} {n m k : Nat} (c : Circuit σ n m) (select : Fin k → Fin m)
+    : (⟨c.program, c.outputs ∘ select⟩ : Circuit σ n k).depth ≤ c.depth := by
   apply (Circuit.depth_le_iff _).mpr
   intro j
   exact c.outputDepths_le_depth (select j)
 
 -- The line bound accounts for constant gates even though their argument bounds are vacuous.
-example {σ : Signature} {n g : Nat} (line : Line σ n g) (h : σ.Arity line.op = 0)
-    (depths : Wire n g → Nat) : line.depth depths = 1 := by
+example
+    {σ : Signature} {n g : Nat}
+    (line : Line σ n g) (h : σ.Arity line.op = 0) (depths : Wire n g → Nat)
+    : line.depth depths = 1 := by
   apply Nat.le_antisymm
   · apply (line.depth_le_add_one_iff depths).mpr
     intro j

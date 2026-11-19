@@ -80,18 +80,18 @@ structure Params (Pid Var : Type*) where
 attribute [local grind .] Params.alice_neq_bob
 
 /-- Computes the public DH message from a private exponent. -/
-def computePublicMessage (p : ℕ) (g : ZMod p) (privateExp : ℕ) : ZMod p :=
-  g ^ privateExp
+def computePublicMessage (p : ℕ) (g : ZMod p) (privateExp : ℕ) : ZMod p := g ^ privateExp
 
 /-- Computes the shared secret key from a private exponent and the other party's public message. -/
-def computeSharedSecret (p : ℕ) (msg : ZMod p) (privateExp : ℕ) : ZMod p :=
-  msg ^ privateExp
+def computeSharedSecret (p : ℕ) (msg : ZMod p) (privateExp : ℕ) : ZMod p := msg ^ privateExp
 
-/-- Correctness of the DH computations: the encryption keys independently computed by the two
-participants are the same. -/
-theorem computePublicMessage_computeSharedSecret_eq (p : ℕ) (g : ZMod p) (a b : ℕ) :
-    computeSharedSecret p (computePublicMessage p g b) a =
-    computeSharedSecret p (computePublicMessage p g a) b := by
+/--
+Correctness of the DH computations: the encryption keys independently computed by the two
+participants are the same.
+-/
+theorem computePublicMessage_computeSharedSecret_eq (p : ℕ) (g : ZMod p) (a b : ℕ)
+    : computeSharedSecret p (computePublicMessage p g b) a
+      = computeSharedSecret p (computePublicMessage p g a) b := by
   simp only [computePublicMessage, computeSharedSecret]
   rw [← pow_mul, mul_comm, pow_mul]
 
@@ -100,10 +100,14 @@ theorem computePublicMessage_computeSharedSecret_eq (p : ℕ) (g : ZMod p) (a b 
 variable {Pid Var : Type*} (params : Params Pid Var)
 
 /-- Function identifiers used in DH. -/
-inductive FunId | computePublicMessage | computeSharedSecret
+inductive FunId
+  | computePublicMessage
+  | computeSharedSecret
 
 /-- Value type for DH. -/
-inductive Params.Val | nat (n : ℕ) | zMod (z : ZMod params.p)
+inductive Params.Val
+  | nat (n : ℕ)
+  | zMod (z : ZMod params.p)
 
 /-- Alice's expression for computing the public message. -/
 abbrev aliceComputeMesg : Expr Var params.Val FunId :=
@@ -139,8 +143,10 @@ def bob : Process Pid Var params.Val FunId params.SelLabel params.ProcName :=
 
 /-! ## Semantics -/
 
-/-- Implementation of local function call evaluation.
-Calls with a mismatched modulus are rejected. -/
+/--
+Implementation of local function call evaluation.
+Calls with a mismatched modulus are rejected.
+-/
 def funEval : FunCallEval FunId params.Val
   | .computePublicMessage, [.nat p, .zMod g, .nat privateExp], v =>
     p = params.p ∧ v = .zMod (computePublicMessage params.p g privateExp)
@@ -193,7 +199,8 @@ proof_wanted net_completeTraces :
 /-- The LTS of network configurations. -/
 abbrev Params.cfgLts {SelLabel ProcName : Type*} :=
   Cfg.lts (Pid := Pid) (Var := Var) (SelLabel := SelLabel) (ProcName := ProcName)
-    (fun _ => False) (funEval params)
+    (fun _ => False)
+    (funEval params)
 
 /- Functional correctness of the Diffie-Hellman protocol over complete executions. -/
 proof_wanted net_fun_correct

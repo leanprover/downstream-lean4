@@ -26,19 +26,22 @@ Inputs are provided in registers 0, 1, ..., n-1 and output is read from register
 
 namespace Cslib.URM
 
-/-- A program `p` computes a partial function `f : (Fin n → ℕ) → Part ℕ` if for any input,
+/--
+A program `p` computes a partial function `f : (Fin n → ℕ) → Part ℕ` if for any input,
 `eval p inputs = f inputs` as partial values. This captures both:
 - The program halts iff the function is defined on that input
 - When both are defined, the program's output equals the function's value
 
-Note: Inputs are provided in registers 0, 1, ..., n-1 and output is read from register 0. -/
+Note: Inputs are provided in registers 0, 1, ..., n-1 and output is read from register 0.
+-/
 def Computes (n : ℕ) (p : Program) (f : (Fin n → ℕ) → Part ℕ) : Prop :=
   ∀ inputs : Fin n → ℕ, eval p (List.ofFn inputs) = f inputs
 
-/-- A partial function `f : (Fin n → ℕ) → Part ℕ` is URM-computable if there exists a URM program
-that computes it. -/
-def Computable (n : ℕ) (f : (Fin n → ℕ) → Part ℕ) : Prop :=
-  ∃ p : Program, Computes n p f
+/--
+A partial function `f : (Fin n → ℕ) → Part ℕ` is URM-computable if there exists a URM program
+that computes it.
+-/
+def Computable (n : ℕ) (f : (Fin n → ℕ) → Part ℕ) : Prop := ∃ p : Program, Computes n p f
 
 end Cslib.URM
 

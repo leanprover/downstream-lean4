@@ -27,14 +27,15 @@ namespace Cslib.Computability.Turing.SingleTape
 
 open Automata
 
-/-- A (single-tape) Nondeterministic Turing Machine (NTM) is a nondeterministic automaton equipped
-with a set of accepting halting states. -/
-structure SingleTapeNTM (State Symbol : Type*)
-    extends NA State (TrLabel Symbol) where
+/--
+A (single-tape) Nondeterministic Turing Machine (NTM) is a nondeterministic automaton equipped
+with a set of accepting halting states.
+-/
+structure SingleTapeNTM (State Symbol : Type*) extends NA State (TrLabel Symbol) where
   /-- The set of accepting states. -/
   accept : Set State
   /-- Proof that all accepting states are halting states. -/
-  accept_halting (hmem : s ∈ accept) : ¬∃ μ s', Tr s μ s'
+  accept_halting (hmem : s ∈ accept) : ¬ ∃ μ s', Tr s μ s'
 
 variable {State Symbol : Type*}
 
@@ -42,17 +43,20 @@ namespace SingleTapeNTM
 
 variable [DecidableEq Symbol]
 
-/-- An NTM yields a small-step operational semantics on configurations, which codifies an execution
-step. This formalises the 'yields' relation from [Sipser2013]. -/
-def Yields (m : SingleTapeNTM State Symbol)
-    (c c' : Cfg State Symbol) : Prop :=
+/--
+An NTM yields a small-step operational semantics on configurations, which codifies an execution
+step. This formalises the 'yields' relation from [Sipser2013].
+-/
+def Yields (m : SingleTapeNTM State Symbol) (c c' : Cfg State Symbol) : Prop :=
   ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape
 
 @[scoped grind =]
-theorem yields_tr {m : SingleTapeNTM State Symbol} :
-    m.Yields c c' ↔ ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape := by rfl
+theorem yields_tr {m : SingleTapeNTM State Symbol}
+    : m.Yields c c' ↔ ∃ μ, m.Tr c.state μ c'.state ∧ μ.applyToTape c.tape = c'.tape := by
+  rfl
 
-/-- Multistep execution of an NTM, defined as the reflexive and transitive closure of one-step
+/--
+Multistep execution of an NTM, defined as the reflexive and transitive closure of one-step
 execution.
 -/
 def MYields (m : SingleTapeNTM State Symbol) := Relation.ReflTransGen m.Yields
@@ -61,9 +65,9 @@ open scoped LTS LTS.MTr TrLabel
 
 /-- Characterisation of executions in terms of multistep transitions. -/
 @[scoped grind =]
-theorem mYields_mTr {m : SingleTapeNTM State Symbol} :
-    m.MYields c c' ↔ ∃ μs, m.MTr c.state μs c'.state ∧
-    μs.foldl TrLabel.applyToTape (some c.tape) = c'.tape := by
+theorem mYields_mTr {m : SingleTapeNTM State Symbol}
+    : m.MYields c c'
+      ↔ ∃ μs, m.MTr c.state μs c'.state ∧ μs.foldl TrLabel.applyToTape (some c.tape) = c'.tape := by
   apply Iff.intro <;> intro h
   case mp =>
     induction h using Relation.ReflTransGen.head_induction_on
@@ -86,7 +90,7 @@ theorem mYields_mTr {m : SingleTapeNTM State Symbol} :
       case stepL sb htr hmtr =>
         have hat : ∀ (μ : TrLabel Symbol) t, (μ.applyToTape t).isSome → t.isSome := by grind
         have ⟨tb, htb⟩ : ∃ tb, μ.applyToTape c.tape = some tb := by grind [Option.isSome_iff_exists]
-        let cb := {state := sb, tape := tb : Cfg State Symbol}
+        let cb := { state := sb, tape := tb : Cfg State Symbol }
         have hmyields : m.MYields cb c' := by grind
         apply Relation.ReflTransGen.head (b := cb) (by grind)
         simp only [MYields] at hmyields
@@ -94,8 +98,8 @@ theorem mYields_mTr {m : SingleTapeNTM State Symbol} :
 
 /-- An NTM is an acceptor of finite lists of symbols. -/
 instance : Acceptor (SingleTapeNTM State Symbol) Symbol where
-    Accepts (m : SingleTapeNTM State Symbol) (xs : List Symbol) :=
-  ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MYields (Cfg.mk₁ s xs) c'
+  Accepts (m : SingleTapeNTM State Symbol) (xs : List Symbol) :=
+    ∃ s ∈ m.start, ∃ c', c'.state ∈ m.accept ∧ m.MYields (Cfg.mk₁ s xs) c'
 
 /-- The NTM `m` accepts `xs` in `n` execution steps. -/
 def AcceptsInSteps (m : SingleTapeNTM State Symbol) (xs : List Symbol) (n : ℕ) : Prop :=
@@ -107,14 +111,14 @@ def AcceptsInAtMostSteps (m : SingleTapeNTM State Symbol) (xs : List Symbol) (n 
 
 /-- An NTM is a transducer of finite lists of symbols. -/
 instance : Transducer (SingleTapeNTM State Symbol) Symbol Symbol where
-    Translates (m : SingleTapeNTM State Symbol) (xs ys : List Symbol) :=
-  ∃ s ∈ m.start, ∃ c',
-    c'.state ∈ m.accept ∧
-    m.MYields (Cfg.mk₁ s xs) c' ∧
-    /- The following condition on output deviates from textbooks, in order to have the same
-    criterion as for deterministic TMs. We might want to revisit this in the future.
-    -/
-    c'.tape = Turing.BiTape.mk₁ ys
+  Translates (m : SingleTapeNTM State Symbol) (xs ys : List Symbol) :=
+    ∃ s ∈ m.start, ∃ c',
+      c'.state ∈ m.accept ∧ m.MYields (Cfg.mk₁ s xs) c'
+        /-
+        The following condition on output deviates from textbooks, in order to have the same
+        criterion as for deterministic TMs. We might want to revisit this in the future.
+        -/
+        ∧ c'.tape = Turing.BiTape.mk₁ ys
 
 end SingleTapeNTM
 

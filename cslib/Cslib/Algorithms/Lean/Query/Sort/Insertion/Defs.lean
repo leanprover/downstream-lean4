@@ -24,7 +24,6 @@ abbrev orderedInsert (x : α) (xs : List α) : FreeM (LEQuery α) (List α) :=
   xs.orderedInsertM LEQuery.ask x
 
 /-- Sort a list using insertion sort with comparison queries. -/
-abbrev insertionSort (xs : List α) : FreeM (LEQuery α) (List α) :=
-  xs.insertionSortM LEQuery.ask
+abbrev insertionSort (xs : List α) : FreeM (LEQuery α) (List α) := xs.insertionSortM LEQuery.ask
 
 end Cslib.Query

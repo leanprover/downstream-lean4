@@ -92,7 +92,8 @@ abbrev HasType (τ : Ty Base) : LProposition Var := (Typing (Var := Var) [] · �
 /-- A term is a value. -/
 abbrev IsValue : LProposition Var := Term.Value (Var := Var)
 
-/-- The proposition satisfied by every term.
+/--
+The proposition satisfied by every term.
 
 Consequently, `◇IsTerm` expresses the existence of an accessible term.
 -/
@@ -100,7 +101,8 @@ abbrev IsTerm : LProposition Var := fun _ : Term Var => True
 
 /-! ## A generic modal principle -/
 
-/-- The abstract modal core of the standard `safety = progress + preservation` argument.
+/--
+The abstract modal core of the standard `safety = progress + preservation` argument.
 
 Suppose that whenever `φ₁` holds:
 
@@ -111,24 +113,25 @@ Then either `φ₃` already holds or some successor satisfies `φ₂`.
 -/
 theorem safety_of_preservation_progress
     {φ₁ φ₂ φ₃ φ₄ : Proposition (τUnimodal α) Atom}
-    (hpres : ⇓Modal[m,w ⊨ φ₁ → □φ₂]) (hprog : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₄]) :
-    ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₂] := by
+    (hpres : ⇓Modal[m,w ⊨ φ₁ → □φ₂]) (hprog : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₄])
+    : ⇓Modal[m,w ⊨ φ₁ → φ₃ ∨ ◇φ₂] := by
   have : ⇓Modal[m, w ⊨ □φ₂ ∧ ◇φ₄ → ◇φ₂] := by grind only [modal]
   grind only [modal]
 
 /-! ## Modal lifting of progress and preservation -/
 
 /-- Modal view of single step typing preservation. -/
-theorem preservation_singleStepModel_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[singleStepModel, t ⊨ HasType τ → □HasType τ] := by
+theorem preservation_singleStepModel_modal (τ : Ty Base) (t : Term Var)
+    : ⇓Modal[singleStepModel, t ⊨ HasType τ → □HasType τ] := by
   classical
   exact ((Satisfies.unimodalOfPredicates_preserves_iff (τ := (τUnimodal (Term Var))) (· ⭢βᶠ ·)).mpr
-    (FullBeta.preservation (τ := τ))) t
+      (FullBeta.preservation (τ := τ)))
+    t
 
 omit [HasFresh Var] in
 /-- Modal view of single step progress. -/
-theorem progress_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[singleStepModel,t ⊨ HasType τ → IsValue ∨ ◇IsTerm] := by
+theorem progress_modal (τ : Ty Base) (t : Term Var)
+    : ⇓Modal[singleStepModel,t ⊨ HasType τ → IsValue ∨ ◇IsTerm] := by
   rw [Satisfies.imp_iff_imp]
   intro ht
   rcases FullBeta.progress ht <;> grind [singleStepModel]
@@ -140,26 +143,27 @@ STLC-specific reasoning is required.
 -/
 
 /-- Modal view of multistep typing preservation. -/
-theorem preservation_multiStep_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[multiStepModel, t ⊨ HasType τ → □HasType τ] :=
+theorem preservation_multiStep_modal (τ : Ty Base) (t : Term Var)
+    : ⇓Modal[multiStepModel, t ⊨ HasType τ → □HasType τ] :=
   Satisfies.unimodalOfPredicates_preserves_reflTransGen (preservation_singleStepModel_modal τ ·) t
 
 /-- Modal view that preservation and progress give single step safety. -/
-theorem type_safety_singleStep_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[singleStepModel,t ⊨ HasType τ → IsValue ∨ ◇HasType τ] :=
+theorem type_safety_singleStep_modal (τ : Ty Base) (t : Term Var)
+    : ⇓Modal[singleStepModel,t ⊨ HasType τ → IsValue ∨ ◇HasType τ] :=
   safety_of_preservation_progress (preservation_singleStepModel_modal τ t) (progress_modal τ t)
 
 /-- Single step safety, viewed as an atomic property of terms. -/
-abbrev IsSingleStepSafe (τ : Ty Base) : LProposition Var :=
-  fun t : Term Var => ⇓Modal[singleStepModel,t ⊨ IsValue ∨ ◇HasType τ]
+abbrev IsSingleStepSafe (τ : Ty Base) : LProposition Var := fun t : Term Var =>
+  ⇓Modal[singleStepModel,t ⊨ IsValue ∨ ◇HasType τ]
 
-/-- Modal type safety for finite executions.
+/--
+Modal type safety for finite executions.
 
 The outer `□` is interpreted in `multiStepModel`, whereas `IsSingleStepSafe` reifies a
 modal judgement in `singleStepModel`.
 -/
-theorem type_safety_modal (τ : Ty Base) (t : Term Var) :
-    ⇓Modal[multiStepModel,t ⊨ HasType τ → □IsSingleStepSafe τ] := by
+theorem type_safety_modal (τ : Ty Base) (t : Term Var)
+    : ⇓Modal[multiStepModel,t ⊨ HasType τ → □IsSingleStepSafe τ] := by
   have hpres := preservation_multiStep_modal (Var := Var) τ t
   have hsafety : ⇓Modal[multiStepModel,t ⊨ □(HasType τ → IsSingleStepSafe τ)] := by
     rw [Satisfies.box_iff_forall (τ := τUnimodal (Term Var))]
@@ -167,25 +171,20 @@ theorem type_safety_modal (τ : Ty Base) (t : Term Var) :
     grind only [singleStepModel, multiStepModel, modal,
       type_safety_singleStep_modal (Var := Var) τ t']
   -- Axiom K instantiated for single step type safety
-  have hk : ⇓Modal[multiStepModel,t ⊨
+  have hk
+      : ⇓Modal[multiStepModel,t ⊨
         □(HasType τ → IsSingleStepSafe τ) → (□HasType τ → □IsSingleStepSafe τ)] :=
     Satisfies.der_of_axiom (Satisfies.unimodal_k multiStepModel.toFrame _ _)
   grind only [modal]
 
-/-- Type safety: if a term is well-typed, any term it can reach is either a value or can progress.
+/--
+Type safety: if a term is well-typed, any term it can reach is either a value or can progress.
 -/
-theorem type_safety {t t' : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ)
-    (hsteps : t ↠βᶠ t') : t'.Value ∨ ∃ t'', t' ⭢βᶠ t'' ∧ [] ⊢ t'' ∶ τ := by
+theorem type_safety {t t' : Term Var} {τ : Ty Base} (ht : [] ⊢ t ∶ τ) (hsteps : t ↠βᶠ t')
+    : t'.Value ∨ ∃ t'', t' ⭢βᶠ t'' ∧ [] ⊢ t'' ∶ τ := by
   -- We use `grind only` on purpose to test that the passed theorems are sufficient.
-  grind only [
-    _=_ singleStepModel_rel_iff,
-    _=_ multiStepModel_rel_iff,
-    singleStepModel,
-    multiStepModel,
-    modal,
-    type_safety_modal (Var := Var) τ t,
-    Satisfies.box_iff_forall,
-    Satisfies.diamond_iff_exists
-  ]
+  grind only [_=_ singleStepModel_rel_iff, _=_ multiStepModel_rel_iff, singleStepModel,
+    multiStepModel, modal, type_safety_modal (Var := Var) τ t, Satisfies.box_iff_forall,
+    Satisfies.diamond_iff_exists]
 
 end CslibTests.LambdaCalculus.Stlc.Modal

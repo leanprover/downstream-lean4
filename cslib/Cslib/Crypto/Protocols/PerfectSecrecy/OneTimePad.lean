@@ -36,18 +36,20 @@ namespace Cslib.Crypto.Protocols.PerfectSecrecy
 
 open Cslib.Probability.PMF
 
-/-- The one-time pad over `l`-bit strings. Encryption and decryption
-are XOR ([KatzLindell2020], Construction 2.9). -/
-noncomputable def otp (l : ℕ) :
-    EncScheme (BitVec l) (BitVec l) (BitVec l) :=
-  .ofPure (uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by
-    simp [xor_cancel_left]
+/--
+The one-time pad over `l`-bit strings. Encryption and decryption
+are XOR ([KatzLindell2020], Construction 2.9).
+-/
+noncomputable def otp (l : ℕ) : EncScheme (BitVec l) (BitVec l) (BitVec l) :=
+  .ofPure (uniformOfFintype _) (· ^^^ ·) (· ^^^ ·) fun k m => by simp [xor_cancel_left]
 
-/-- The ciphertext distribution of the OTP is uniform, regardless of the
+/--
+The ciphertext distribution of the OTP is uniform, regardless of the
 message: masking with a uniform key is the permutation `Equiv.xor` of the
-uniform distribution. -/
-theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l) :
-    (otp l).ciphertextDist m = uniformOfFintype (BitVec l) := by
+uniform distribution.
+-/
+theorem otp_ciphertextDist_eq_uniform (l : ℕ) (m : BitVec l)
+    : (otp l).ciphertextDist m = uniformOfFintype (BitVec l) := by
   have h : (fun k : BitVec l => PMF.pure (k ^^^ m)) = (PMF.pure ∘ ⇑(Equiv.xor m)) :=
     congrArg (PMF.pure ∘ ·) xor_right_eq
   change (uniformOfFintype (BitVec l)).bind (fun k => PMF.pure (k ^^^ m)) = _

@@ -21,8 +21,8 @@ the representation of a relation algebra.
 
 namespace Cslib
 
-instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)] :
-    RelationAlgebra (∀ i, β i) where
+instance Pi.instRelationAlgebra {ι : Type*} {β : ι → Type*} [∀ i, RelationAlgebra (β i)]
+    : RelationAlgebra (∀ i, β i) where
   sup_mul a b c := funext fun i => RelationAlgebra.sup_mul (a i) (b i) (c i)
   star_sup a b := funext fun i => RelationAlgebra.star_sup (a i) (b i)
   tarski a b i := RelationAlgebra.tarski (a i) (b i)
@@ -42,8 +42,7 @@ def pi (f : ∀ i, RelationAlgebraHom α (β i)) : RelationAlgebraHom α (∀ i,
   map_star' a := funext fun i => map_star (f i) a
 
 @[simp]
-theorem pi_apply (f : ∀ i, RelationAlgebraHom α (β i)) (a : α) (i : ι) : pi f a i = f i a :=
-  rfl
+theorem pi_apply (f : ∀ i, RelationAlgebraHom α (β i)) (a : α) (i : ι) : pi f a i = f i a := rfl
 
 variable (β) in
 /-- The `RelationAlgebraHom` into a single fiber. -/
@@ -56,12 +55,13 @@ def eval (i : ι) : RelationAlgebraHom (∀ i, β i) (β i) where
   map_star' _ := rfl
 
 @[simp]
-theorem eval_apply (i : ι) (b : ∀ i, β i) : eval β i b = b i :=
-  rfl
+theorem eval_apply (i : ι) (b : ∀ i, β i) : eval β i b = b i := rfl
 
 variable (α β) in
-/-- The equivalence between products of `RelationAlgebraHom` and the `RelationAlgebraHom` into a
-  product that is given by composition of `eval`. -/
+/--
+The equivalence between products of `RelationAlgebraHom` and the `RelationAlgebraHom` into a
+product that is given by composition of `eval`.
+-/
 def piEquiv : (∀ i, RelationAlgebraHom α (β i)) ≃ RelationAlgebraHom α (∀ i, β i) where
   toFun := pi
   invFun f i := (eval β i).comp f

@@ -21,7 +21,7 @@ example : p [Act.τ]⭢ₙ (pre (Act.name 1) nil) := by constructor
 
 example : p [[Act.τ, Act.name 1]]↠ₙ nil :=
   calc
-    (p [Act.τ]⭢ₙ (pre (Act.name 1) nil)) := by constructor
+    ( p [Act.τ]⭢ₙ (pre (Act.name 1) nil) ) := by constructor
     _ [Act.name 1]⭢ₙ nil := by constructor
 
 end CslibTests

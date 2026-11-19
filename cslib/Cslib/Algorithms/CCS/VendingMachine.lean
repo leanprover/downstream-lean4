@@ -64,8 +64,7 @@ def vendingDefs : Constant → Option (Process String Constant)
 abbrev ltsD := CCS.lts (defs := vendingDefs)
 
 /-- VM can perform a coin action. -/
-example : ltsD.Tr vm Coin `(CCS| (Tea. (const .vm)) + (Coffee. (const .vm))) :=
-  Tr.const rfl Tr.pre
+example : ltsD.Tr vm Coin `(CCS| (Tea. (const .vm)) + (Coffee. (const .vm))) := Tr.const rfl Tr.pre
 
 /-! ## Nondeterministic vending machine -/
 
@@ -83,13 +82,9 @@ theorem vm_ltsD_ltsND_not_bisim : ¬(vm ~[ltsD, ltsND] vm) := by
   rintro ⟨r, hr, hbisim⟩
   let p₁ := `(CCS| (Tea. const Constant.vm) + (Coffee. const Constant.vm))
   let q₁ := `(CCS| Tea. const Constant.vm)
-  have ltsD_vm_deterministic : ltsD.DeterministicStateLabel vm Coin := by
-    grind
+  have ltsD_vm_deterministic : ltsD.DeterministicStateLabel vm Coin := by grind
   have h : r p₁ q₁ :=
-    match_deterministic
-      hbisim hr
-      ltsD_vm_deterministic
-      (.const rfl .pre)
+    match_deterministic hbisim hr ltsD_vm_deterministic (.const rfl .pre)
       (.const rfl (.choiceL .pre))
   have hp₁q₁ : p₁ ~[ltsD, ltsND] q₁ := by grind
   have hp₁coffee : ltsD.Tr p₁ Coffee (.const .vm) := .choiceR .pre
@@ -118,7 +113,7 @@ theorem vm_modelD_choiceAfterCoin : ⇓HML[modelD,vm ⊨ choiceAfterCoin] := by
   have hcoffee : ltsD.Tr `(CCS| (Tea. const .vm) + (Coffee. const .vm)) Coffee vm := .choiceR .pre
   grind [hml_dynBox_iff_forall, hml_dynDiamond_iff_exists]
 
-theorem vm_modelND_not_choiceAfterCoin : ¬⇓HML[modelND,vm ⊨ choiceAfterCoin] := by
+theorem vm_modelND_not_choiceAfterCoin : ¬ ⇓HML[modelND,vm ⊨ choiceAfterCoin] := by
   have hcoin : ltsND.Tr vm Coin `(CCS| Tea. const .vm) := .const rfl (.choiceL .pre)
   grind [hml_dynBox_iff_forall, hml_dynDiamond_iff_exists]
 

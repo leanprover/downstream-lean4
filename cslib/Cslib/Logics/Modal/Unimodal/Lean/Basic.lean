@@ -31,8 +31,8 @@ open Model Relation
 open scoped InferenceSystem Satisfies Proposition Frame
 
 /-- Under `Model.unimodalOfPredicates r`, `P → □P` is an axiom iff `r` preserves `P`. -/
-theorem Satisfies.unimodalOfPredicates_preserves_iff {P : α → Prop} (r : α → α → Prop) :
-    (∀ a, ⇓Modal[Model.unimodalOfPredicates (τ := τ) r,a ⊨ P → □P]) ↔ Preserves r P := by
+theorem Satisfies.unimodalOfPredicates_preserves_iff {P : α → Prop} (r : α → α → Prop)
+    : (∀ a, ⇓Modal[Model.unimodalOfPredicates (τ := τ) r,a ⊨ P → □P]) ↔ Preserves r P := by
   constructor
   case mp =>
     intro h a₁ a₂ hr hPa₁
@@ -41,17 +41,16 @@ theorem Satisfies.unimodalOfPredicates_preserves_iff {P : α → Prop} (r : α �
     simp only [Satisfies.box_iff_forall] at h
     specialize h a₂
     grind only [modal]
-  case mpr =>
-    grind [Preserves]
+  case mpr => grind [Preserves]
 
-/-- Invariants are preserved by the reflexive and transitive closure of the accessibility relation.
+/--
+Invariants are preserved by the reflexive and transitive closure of the accessibility relation.
 -/
 @[scoped grind ., modal .]
 theorem Satisfies.unimodalOfPredicates_preserves_reflTransGen
-    {r : α → α → Prop} {P : α → Prop}
-    (h : ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) r,a ⊨ P → □P]) :
-    ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) (Relation.ReflTransGen r),a ⊨ P → □P] := by
-  simpa only [Satisfies.unimodalOfPredicates_preserves_iff,
-    Relation.preserves_reflTransGen_iff] using h
+    {r : α → α → Prop} {P : α → Prop} (h : ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) r,a ⊨ P → □P])
+    : ∀ a, ⇓Modal[unimodalOfPredicates (τ := τ) (Relation.ReflTransGen r),a ⊨ P → □P] := by
+  simpa only [Satisfies.unimodalOfPredicates_preserves_iff, Relation.preserves_reflTransGen_iff]
+    using h
 
 end Cslib.Logic.Modal

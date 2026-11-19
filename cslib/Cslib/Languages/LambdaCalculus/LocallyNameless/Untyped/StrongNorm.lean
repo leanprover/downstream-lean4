@@ -28,8 +28,7 @@ open FullBeta Relation
 attribute [grind =] Finset.union_singleton
 
 /-- A single β-reduction step preserves strong normalization. -/
-lemma sn_step (t_st_t' : t ⭢βᶠ t') (sn_t : SN FullBeta t) : SN FullBeta t' :=
-  sn_t.of_rel t_st_t'
+lemma sn_step (t_st_t' : t ⭢βᶠ t') (sn_t : SN FullBeta t) : SN FullBeta t' := sn_t.of_rel t_st_t'
 
 /-- Multiple β-reduction steps also preserve strong normalization. -/
 lemma sn_steps (t_st_t' : t ↠βᶠ t') (sn_t : SN FullBeta t) : SN FullBeta t' :=
@@ -41,11 +40,14 @@ lemma sn_fvar {x : Var} : SN FullBeta (fvar x) := by
   rw [SN_iff_SN_of_rel]
   grind only [cases Xi, cases Beta]
 
-/-- An application is strongly normalizing if the left and right terms are strongly normalizing,
-    as well as all possible future top level abstraction application beta reductions -/
-lemma sn_app (t s : Term Var) (sn_t : SN FullBeta t) (sn_s : SN FullBeta s)
-    (hβ : ∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN FullBeta (t' ^ s')) :
-    SN FullBeta (t.app s) := by
+/--
+An application is strongly normalizing if the left and right terms are strongly normalizing,
+as well as all possible future top level abstraction application beta reductions
+-/
+lemma sn_app
+    (t s : Term Var) (sn_t : SN FullBeta t) (sn_s : SN FullBeta s)
+    (hβ : ∀ {t' s' : Term Var}, t ↠βᶠ t'.abs → s ↠βᶠ s' → SN FullBeta (t' ^ s'))
+    : SN FullBeta (t.app s) := by
   induction sn_t generalizing s with
   | intro t ht ih_t =>
     induction sn_s with
@@ -55,33 +57,36 @@ lemma sn_app (t s : Term Var) (sn_t : SN FullBeta t) (sn_s : SN FullBeta s)
       cases hstep with
       | base h => cases h; grind
       | appL _ h_s_red => grind [Relation.ReflTransGen.head]
-      | appR _ h_t_red => apply ih_t _ h_t_red _ (SN.intro hs)
-                          grind [Relation.ReflTransGen.head]
+      | appR _ h_t_red =>
+        apply ih_t _ h_t_red _ (SN.intro hs)
+        grind [Relation.ReflTransGen.head]
 
 /-- The left side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_left (M N : Term Var) (lc_N : Term.LC N) (sn_MN : SN FullBeta (M.app N)) :
-    SN FullBeta M := by
+lemma sn_app_left (M N : Term Var) (lc_N : Term.LC N) (sn_MN : SN FullBeta (M.app N))
+    : SN FullBeta M := by
   refine sn_MN.onFun_of_image (f := (·.app N)) |>.of_le fun _ _ => ?_
   exact Xi.appR lc_N
 
 /-- The right side of a strongly normalizing application is strongly normalizing. -/
-lemma sn_app_right (M N : Term Var) (lc_M : Term.LC M) (sn_MN : SN FullBeta (M.app N)) :
-    SN FullBeta N := by
+lemma sn_app_right (M N : Term Var) (lc_M : Term.LC M) (sn_MN : SN FullBeta (M.app N))
+    : SN FullBeta N := by
   refine sn_MN.onFun_of_image (f := M.app) |>.of_le fun _ _ => ?_
   exact Xi.appL lc_M
 
-/-- A neutral term is a term of the form v t₁ … t_n where
-    v is a variable and t₁ … t_n are strongly normalizing terms. -/
+/--
+A neutral term is a term of the form v t₁ … t_n where
+v is a variable and t₁ … t_n are strongly normalizing terms.
+-/
 @[scoped grind]
 inductive Neutral : Term Var → Prop
-/-- Just a bound variable is neutral. -/
-| bvar : ∀ n, Neutral (bvar n)
-/-- Just a free variable is neutral. -/
-| fvar : ∀ x, Neutral (fvar x)
-/-- Applying a strongly normalizing term to a neutral term yields a neutral term. -/
-| app : ∀ t1 t2, Neutral t1 → SN FullBeta t2 → Neutral (app t1 t2)
+  /-- Just a bound variable is neutral. -/
+  | bvar : ∀ n, Neutral (bvar n)
+  /-- Just a free variable is neutral. -/
+  | fvar : ∀ x, Neutral (fvar x)
+  /-- Applying a strongly normalizing term to a neutral term yields a neutral term. -/
+  | app : ∀ t1 t2, Neutral t1 → SN FullBeta t2 → Neutral (app t1 t2)
 
---attribute [scoped grind .] Neutral.bvar Neutral.fvar Neutral.app
+-- attribute [scoped grind .] Neutral.bvar Neutral.fvar Neutral.app
 
 /-- Neutral terms only reduce to other neutral terms in a single step -/
 lemma neutral_step (Hneut : Neutral t) (Hstep : t ⭢βᶠ t') : Neutral t' := by
@@ -101,8 +106,9 @@ lemma sn_neutral (Hneut : Neutral t) : SN FullBeta t := by
     grind only [cases Xi]
 
 /-- A lambda abstraction is strongly normalizing if its body is strongly normalizing. -/
-lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullBeta (M ^ N))
-    (lc_N : LC N) : SN FullBeta (abs M) := by
+lemma sn_abs
+    [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullBeta (M ^ N)) (lc_N : LC N)
+    : SN FullBeta (abs M) := by
   generalize h : (M ^ N) = M_open at sn_MN
   induction sn_MN generalizing M N with
   | intro =>
@@ -112,15 +118,18 @@ lemma sn_abs [DecidableEq Var] [HasFresh Var] {M N : Term Var} (sn_MN : SN FullB
     | abs _ H => grind [step_open_cong_l _ _ _ _ H]
     | base _ => contradiction
 
-/-- A term of the form λ M N P_1 … P_n is strongly normalizing if
-      1. N is strongly normalizing,
-      1. M ^ N P₁ … Pₙ is strongly normalizing,
-      1. N is locally closed,
-      1. M ^ N P₁ … Pₙ is locally closed -/
-lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
-    (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps))
-    (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps)) :
-    SN FullBeta (multiApp (M.abs.app N) Ps) := by
+/--
+A term of the form λ M N P_1 … P_n is strongly normalizing if
+  1. N is strongly normalizing,
+  1. M ^ N P₁ … Pₙ is strongly normalizing,
+  1. N is locally closed,
+  1. M ^ N P₁ … Pₙ is locally closed
+-/
+lemma sn_abs_app_multiApp
+    [DecidableEq Var] [HasFresh Var]
+    {Ps} {M N : Term Var} (sn_N : SN FullBeta N) (sn_MNPs : SN FullBeta (multiApp (M ^ N) Ps))
+    (lc_N : LC N) (lc_MNPs : LC (multiApp (M ^ N) Ps))
+    : SN FullBeta (multiApp (M.abs.app N) Ps) := by
   induction Ps using List.reverseRecOn with
   | nil =>
     apply sn_app
@@ -146,7 +155,8 @@ lemma sn_abs_app_multiApp [DecidableEq Var] [HasFresh Var] {Ps} {M N : Term Var}
             · grind [multiApp_steps_lc]
         refine sn_steps ?_ sn_MNPs
         rw [multiApp_tail]
-        · calc ((M ^ N).multiApp Ps).app P
+        · calc
+            ((M ^ N).multiApp Ps).app P
             _ ↠βᶠ ((M ^ N).multiApp Ps).app P' := by grind
             _ ↠βᶠ Q'.abs.app P' := redex_app_l_cong (.trans innerSteps h_st2) (by grind)
             _ ↠βᶠ Q' ^ P' := by

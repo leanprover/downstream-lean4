@@ -53,18 +53,16 @@ def run' (da : DA State Symbol) (xs : ωSequence Symbol) : ℕ → State
 def run (da : DA State Symbol) (xs : ωSequence Symbol) : ωSequence State := da.run' xs
 
 @[simp, scoped grind =]
-theorem run_zero {da : DA State Symbol} {xs : ωSequence Symbol} :
-    da.run xs 0 = da.start :=
+theorem run_zero {da : DA State Symbol} {xs : ωSequence Symbol} : da.run xs 0 = da.start := rfl
+
+@[simp, scoped grind =]
+theorem run_succ {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ}
+    : da.run xs (n + 1) = da.tr (da.run xs n) (xs n) := by
   rfl
 
 @[simp, scoped grind =]
-theorem run_succ {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
-    da.run xs (n + 1) = da.tr (da.run xs n) (xs n) := by
-  rfl
-
-@[simp, scoped grind =]
-theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ} :
-    da.mtr da.start (xs.extract 0 n) = da.run xs n := by
+theorem mtr_extract_eq_run {da : DA State Symbol} {xs : ωSequence Symbol} {n : ℕ}
+    : da.mtr da.start (xs.extract 0 n) = da.run xs n := by
   induction n
   case zero => rfl
   case succ n h_ind => grind
@@ -76,14 +74,15 @@ structure FinAcc (State Symbol : Type*) extends DA State Symbol where
 
 namespace FinAcc
 
-/-- A `DA.FinAcc` accepts a string if its multistep transition function maps the start state and
+/--
+A `DA.FinAcc` accepts a string if its multistep transition function maps the start state and
 the string to an accept state.
 
-This is the standard string recognition performed by DFAs in the literature. -/
+This is the standard string recognition performed by DFAs in the literature.
+-/
 @[simp, scoped grind =]
 instance : Acceptor (DA.FinAcc State Symbol) Symbol where
-  Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) :=
-    a.mtr a.start xs ∈ a.accept
+  Accepts (a : DA.FinAcc State Symbol) (xs : List Symbol) := a.mtr a.start xs ∈ a.accept
 
 end FinAcc
 
@@ -97,8 +96,7 @@ namespace Buchi
 /-- An infinite run is accepting iff accepting states occur infinitely many times. -/
 @[simp, scoped grind =]
 instance : ωAcceptor (Buchi State Symbol) Symbol where
-  Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) :=
-    ∃ᶠ k in atTop, a.run xs k ∈ a.accept
+  Accepts (a : Buchi State Symbol) (xs : ωSequence Symbol) := ∃ᶠ k in atTop, a.run xs k ∈ a.accept
 
 end Buchi
 
@@ -109,12 +107,13 @@ structure Muller (State Symbol : Type*) extends DA State Symbol where
 
 namespace Muller
 
-/-- An infinite run is accepting iff the set of states that occur infinitely many times
-is one of the sets in `accept`. -/
+/--
+An infinite run is accepting iff the set of states that occur infinitely many times
+is one of the sets in `accept`.
+-/
 @[simp, scoped grind =]
 instance : ωAcceptor (Muller State Symbol) Symbol where
-  Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) :=
-    (a.run xs).infOcc ∈ a.accept
+  Accepts (a : Muller State Symbol) (xs : ωSequence Symbol) := (a.run xs).infOcc ∈ a.accept
 
 end Muller
 

@@ -27,17 +27,20 @@ open _root_.Language RightCongruence
 variable {Symbol : Type*} {State : Type}
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
-/-- Given a Buchi automaton `na`, two finite words `u` and `v` are Buchi-congruent
+/--
+Given a Buchi automaton `na`, two finite words `u` and `v` are Buchi-congruent
 according to `na` iff for every pair of states `s` and `t` of `na`, both of the
 following two conditions hold:
 (1) `u` can move `na` from `s` to `t` iff `v` can move `na` from `s` to `t`;
 (2) `u` can move `na` from `s` to `t` via an accepting states iff `v` can move `na`
-from `s` to `t` via an accepting states. -/
+from `s` to `t` via an accepting states.
+-/
 @[implicit_reducible]
 def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
   eq.r u v :=
-    ∀ s t, (u ∈ na.pairLang s t ↔ v ∈ na.pairLang s t) ∧
-      (u ∈ na.pairViaLang na.accept s t ↔ v ∈ na.pairViaLang na.accept s t)
+    ∀ s t,
+      (u ∈ na.pairLang s t ↔ v ∈ na.pairLang s t)
+        ∧ (u ∈ na.pairViaLang na.accept s t ↔ v ∈ na.pairViaLang na.accept s t)
   eq.iseqv.refl := by grind
   eq.iseqv.symm := by grind
   eq.iseqv.trans := by grind
@@ -46,14 +49,18 @@ def BuchiCongruence (na : Buchi State Symbol) : RightCongruence Symbol where
       <= LTS.pairViaLang_append_pairLang, <= LTS.pairLang_append_pairViaLang]
 
 open scoped Classical in
-/-- `BuchiCongrParam` is a parameterization of the equivalence classes of `na.BuchiCongruence`
-using the type `State → State → Prop × Prop`, which is finite if `State` is. -/
-noncomputable def BuchiCongrParam (na : Buchi State Symbol)
-    (f : State → State → Prop × Prop) : Quotient na.BuchiCongruence.eq :=
-  if h : ∃ u, ∀ s t, ((f s t).1 ↔ u ∈ na.pairLang s t) ∧
-      ((f s t).2 ↔ u ∈ na.pairViaLang na.accept s t)
-  then ⟦ Classical.choose h ⟧
-  else ⟦ [] ⟧
+/--
+`BuchiCongrParam` is a parameterization of the equivalence classes of `na.BuchiCongruence`
+using the type `State → State → Prop × Prop`, which is finite if `State` is.
+-/
+noncomputable def BuchiCongrParam (na : Buchi State Symbol) (f : State → State → Prop × Prop)
+    : Quotient na.BuchiCongruence.eq :=
+  if h
+      : ∃ u, ∀ s t,
+        ((f s t).1 ↔ u ∈ na.pairLang s t) ∧ ((f s t).2 ↔ u ∈ na.pairViaLang na.accept s t) then
+    ⟦ Classical.choose h ⟧
+  else
+    ⟦ [] ⟧
 
 variable {na : Buchi State Symbol}
 
@@ -61,12 +68,13 @@ variable {na : Buchi State Symbol}
 lemma buchiCongrParam_surjective : Surjective na.BuchiCongrParam := by
   intro q
   let f s t := (q.out ∈ na.pairLang s t, q.out ∈ na.pairViaLang na.accept s t)
-  have h : ∃ u, ∀ s t, ((f s t).1 ↔ u ∈ na.pairLang s t) ∧
-        ((f s t).2 ↔ u ∈ na.pairViaLang na.accept s t) := by
+  have h
+      : ∃ u, ∀ s t,
+        ((f s t).1 ↔ u ∈ na.pairLang s t) ∧ ((f s t).2 ↔ u ∈ na.pairViaLang na.accept s t) := by
     use q.out
     grind
   use f
-  simp only [BuchiCongrParam, h, ↓reduceDIte]
+  simp only [BuchiCongrParam, h, ↓ reduceDIte]
   rw [← Quotient.out_eq q]
   apply Quotient.sound
   intro s t
@@ -76,14 +84,17 @@ lemma buchiCongrParam_surjective : Surjective na.BuchiCongrParam := by
 theorem buchiCongruence_fin_index [Finite State] : Finite (Quotient na.BuchiCongruence.eq) :=
   Finite.of_surjective na.BuchiCongrParam buchiCongrParam_surjective
 
-/-- If `xl` and `yl` belong to the same equivalence class of `na.BuchiCongruence`
+/--
+If `xl` and `yl` belong to the same equivalence class of `na.BuchiCongruence`
 and `xl` can move `na` from state `s` to state `t`, then so can `yl` and, furthermore,
-if `xl` makes `na` go through an accepting state of `na`, then so can `yl`. -/
+if `xl` makes `na` go through an accepting state of `na`, then so can `yl`.
+-/
 lemma buchiCongruence_transfer
     {a : Quotient na.BuchiCongruence.eq} {xl yl : List Symbol} {s t : State}
     (hc : xl ∈ na.BuchiCongruence.eqvCls a) (hc' : yl ∈ na.BuchiCongruence.eqvCls a)
-    (hp : xl ∈ na.pairLang s t) : ∃ sl, na.Execution s yl t sl ∧
-      ( xl ∈ na.pairViaLang na.accept s t → ∃ r ∈ na.accept, r ∈ sl ) := by
+    (hp : xl ∈ na.pairLang s t)
+    : ∃ sl,
+      na.Execution s yl t sl ∧ (xl ∈ na.pairViaLang na.accept s t → ∃ r ∈ na.accept, r ∈ sl) := by
   have h_eq : na.BuchiCongruence.eq xl yl := by
     apply Quotient.exact
     #adaptation_note
@@ -101,26 +112,30 @@ lemma buchiCongruence_transfer
   · use LTS.Execution.of_mTr (l.mp hp) |>.choose
     grind
 
-/-- `na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
+/--
+`na.buchiFamily` is a family of ω-languages indexed by a pair of equivalence classes
 of `na.BuchiCongruence` which will turn out to saturate the ω-language accepted by `na`
-and cover all possible ω-sequences. -/
-def buchiFamily [Inhabited Symbol] (na : Buchi State Symbol) :
-    Quotient na.BuchiCongruence.eq × Quotient na.BuchiCongruence.eq → ωLanguage Symbol
+and cover all possible ω-sequences.
+-/
+def buchiFamily [Inhabited Symbol] (na : Buchi State Symbol)
+    : Quotient na.BuchiCongruence.eq × Quotient na.BuchiCongruence.eq → ωLanguage Symbol
   | (a, b) => na.BuchiCongruence.eqvCls a * (na.BuchiCongruence.eqvCls b)^ω
 
-theorem mem_buchiFamily [Inhabited Symbol]
-    {xs : ωSequence Symbol} {a b : Quotient na.BuchiCongruence.eq} :
-    xs ∈ na.buchiFamily (a, b) ↔ ∃ xl, ∃ xls : ωSequence (List Symbol),
-      xl ∈ na.BuchiCongruence.eqvCls a ∧ (∀ k, xls k ∈ na.BuchiCongruence.eqvCls b - 1) ∧
-      xl ++ω xls.flatten = xs := by
+theorem mem_buchiFamily
+    [Inhabited Symbol] {xs : ωSequence Symbol} {a b : Quotient na.BuchiCongruence.eq}
+    : xs ∈ na.buchiFamily (a, b)
+      ↔ ∃ xl, ∃ xls : ωSequence (List Symbol),
+        xl ∈ na.BuchiCongruence.eqvCls a ∧ (∀ k, xls k ∈ na.BuchiCongruence.eqvCls b - 1)
+          ∧ xl ++ω xls.flatten = xs := by
   grind [buchiFamily]
 
 open Finset in
-/-- `na.buchiFamily` is a cover if `na` has only finitely many states.
+/--
+`na.buchiFamily` is a cover if `na` has only finitely many states.
 This theorem uses the Ramsey theorem for infinite graphs and does not depend on any details
-of `na.BuchiCongruence` other than that it is of finite index. -/
-theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
-    ⨆ i, na.buchiFamily i = ⊤ := by
+of `na.BuchiCongruence` other than that it is of finite index.
+-/
+theorem buchiFamily_cover [Inhabited Symbol] [Finite State] : ⨆ i, na.buchiFamily i = ⊤ := by
   apply mem_ext
   intro xs
   have : Finite (Quotient na.BuchiCongruence.eq) := buchiCongruence_fin_index
@@ -156,13 +171,13 @@ theorem buchiFamily_cover [Inhabited Symbol] [Finite State] :
 
 -- This intermediate result is split out of the proof of `buchiCongruence_saturation` below
 -- because that proof was too big and kept exceeding the default `maxHeartbeats`.
-private lemma frequently_via_accept [Inhabited Symbol]
+private lemma frequently_via_accept
+    [Inhabited Symbol]
     {xl : List Symbol} {xls : ωSequence (List Symbol)} {ss : ωSequence State}
     (h_acc : ∃ᶠ (k : ℕ) in atTop, ss k ∈ na.accept)
-    (h_exec : na.OmegaExecution ss (xl ++ω xls.flatten))
-    (h_xls_p : ∀ (k : ℕ), 0 < (xls k).length) :
-    ∃ᶠ (k : ℕ) in atTop, xls k ∈ na.pairViaLang na.accept
-      (ss (xl.length + xls.cumLen k)) (ss (xl.length + xls.cumLen (k + 1))) := by
+    (h_exec : na.OmegaExecution ss (xl ++ω xls.flatten)) (h_xls_p : ∀ (k : ℕ), 0 < (xls k).length)
+    : ∃ᶠ (k : ℕ) in atTop, xls k ∈ na.pairViaLang na.accept
+        (ss (xl.length + xls.cumLen k)) (ss (xl.length + xls.cumLen (k + 1))) := by
   have hm : StrictMono (xl.length + xls.cumLen ·) := by grind [StrictMono, cumLen_strictMono]
   apply Frequently.mono <| frequently_in_strictMono hm h_acc
   rintro n ⟨k, _, _⟩
@@ -181,8 +196,8 @@ private lemma frequently_via_accept [Inhabited Symbol]
   · grind only [!List.take_append_drop]
 
 /-- `na.buchiFamily` saturates the ω-language accepted by `na`. -/
-theorem buchiFamily_saturation [Inhabited Symbol] :
-    Saturates (fun i ↦ (na.buchiFamily i).toSet) (language na).toSet := by
+theorem buchiFamily_saturation [Inhabited Symbol]
+    : Saturates (fun i ↦ (na.buchiFamily i).toSet) (language na).toSet := by
   -- first we introduce two ωSequences of symbols with the form `x := xl ++ω xls.flatten` and
   -- `y := yl ++ω yls.flatten`, Buchi-congruent and such that `x` is accepted by `na` along the
   -- state sequence `ss`.
@@ -224,9 +239,14 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
     rw [this, (h_yls_e 0).start]
   -- use our witness: the start state is `ss 0 ∈ na.start` by `h_init`, and we can join the
   -- head and tail executions (for `yl` and `yls`) using `OmegaExecution.prepend_execution`.
-  refine ⟨sl ++ω (ωSequence.map List.dropLast sls).flatten.tail,
-    ⟨by rwa [get_append_left _ _ _ h_yl_e.length_ss_pos, h_yl_e.start],
-    (LTS.OmegaExecution.flatten_execution' h_yls_e h_yls_p).prepend_execution h_yl_e h_fst⟩, ?_⟩
+  refine ⟨
+    sl ++ω (ωSequence.map List.dropLast sls).flatten.tail,
+    ⟨
+      by rwa [get_append_left _ _ _ h_yl_e.length_ss_pos, h_yl_e.start],
+      (LTS.OmegaExecution.flatten_execution' h_yls_e h_yls_p).prepend_execution h_yl_e h_fst
+    ⟩,
+    ?_
+  ⟩
   -- it remains to show the witness satisfies the acceptance condition
   rw [frequently_atTop]
   intro n
@@ -238,9 +258,11 @@ theorem buchiFamily_saturation [Inhabited Symbol] :
   rw [← sl.dropLast_append_getLast h_yl_e.ss_ne_nil, append_append_ωSequence,
     singleton_append_ωSequence, h_yl_e.getLast, ← h_fst, cons_head_tail]
   -- up to some messing around with indices, we use the same witness for `y`
-  refine ⟨sl.dropLast.length + yls.cumLen m + k,
+  refine ⟨
+    sl.dropLast.length + yls.cumLen m + k,
     by lia [(cumLen_strictMono h_yls_p).add_le_nat m 0],
-    mem_of_eq_of_mem ?_ h_acc⟩
+    mem_of_eq_of_mem ?_ h_acc
+  ⟩
   rw [add_assoc, get_append_right]
   obtain (hk | rfl) : k < (yls m).length ∨ k = (yls m).length := by
     rwa [(h_yls_e m).length, k.lt_succ_iff, k.le_iff_lt_or_eq] at hklen

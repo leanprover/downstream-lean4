@@ -20,7 +20,8 @@ namespace Cslib.Logic.Modal
 /--
 The `modal` grind set is designed to quickly resolve goals that can be derived from modal reasoning
 without unfolding the underlying Lean semantics of satisfaction for modalities. Use this in
-combination with modal axioms for more powerful proof search. -/
+combination with modal axioms for more powerful proof search.
+-/
 register_grind_attr modal
 
 end Cslib.Logic.Modal

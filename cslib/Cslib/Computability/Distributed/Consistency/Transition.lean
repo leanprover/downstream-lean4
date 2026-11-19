@@ -31,23 +31,24 @@ inductive Transition (State Operation Value Message Process : Type*)
   /-- Initialization transition. -/
   | init : State → Set Message → Transition State Operation Value Message Process
   /-- Operation call. -/
-  | call : Operation → State → State → Set Message →
-    Transition State Operation Value Message Process
+  | call
+    : Operation → State → State → Set Message → Transition State Operation Value Message Process
   /-- Operation call + return transition. -/
-  | callret : Operation → State → State → Set Message → Value →
-    Transition State Operation Value Message Process
+  | callret
+    : Operation → State → State → Set Message → Value
+      → Transition State Operation Value Message Process
   /-- Message receive transition. -/
-  | recv : Message → State → State → Set Message →
-    Transition State Operation Value Message Process
+  | recv : Message → State → State → Set Message → Transition State Operation Value Message Process
   /-- Message receive + return transition. -/
-  | recvret : Message → State → State → Set Message → Value →
-    Transition State Operation Value Message Process
+  | recvret
+    : Message → State → State → Set Message → Value
+      → Transition State Operation Value Message Process
   /-- Process step transition. -/
-  | step : Process → State → State → Set Message →
-    Transition State Operation Value Message Process
+  | step : Process → State → State → Set Message → Transition State Operation Value Message Process
   /-- Process step + return transition. -/
-  | stepret : Process → State → State → Set Message → Value →
-    Transition State Operation Value Message Process
+  | stepret
+    : Process → State → State → Set Message → Value
+      → Transition State Operation Value Message Process
 
 namespace Transition
 
@@ -70,30 +71,40 @@ def proc : Transition State Operation Value Message Process → Option Process
 
 /-- The previous state of a transition. -/
 def pre : Transition State Operation Value Message Process → Option State
-  | call _ s _ _ | callret _ s _ _ _
-  | recv _ s _ _ | recvret _ s _ _ _
-  | step _ s _ _ | stepret _ s _ _ _ => some s
+  | call _ s _ _
+  | callret _ s _ _ _
+  | recv _ s _ _
+  | recvret _ s _ _ _
+  | step _ s _ _
+  | stepret _ s _ _ _ =>
+    some s
   | _ => none
 
 /-- The next state of a transition. -/
 def post : Transition State Operation Value Message Process → Option State
   | init s' _
-  | call _ _ s' _ | callret _ _ s' _ _
-  | recv _ _ s' _ | recvret _ _ s' _ _
-  | step _ _ s' _ | stepret _ _ s' _ _ => some s'
+  | call _ _ s' _
+  | callret _ _ s' _ _
+  | recv _ _ s' _
+  | recvret _ _ s' _ _
+  | step _ _ s' _
+  | stepret _ _ s' _ _ =>
+    some s'
 
 /-- The set of messages sent by a transition. -/
 def snd : Transition State Operation Value Message Process → Set Message
   | init _ ms
-  | call _ _ _ ms | callret _ _ _ ms _
-  | recv _ _ _ ms | recvret _ _ _ ms _
-  | step _ _ _ ms | stepret _ _ _ ms _ => ms
+  | call _ _ _ ms
+  | callret _ _ _ ms _
+  | recv _ _ _ ms
+  | recvret _ _ _ ms _
+  | step _ _ _ ms
+  | stepret _ _ _ ms _ =>
+    ms
 
 /-- The value returned by a transition. -/
 def rval : Transition State Operation Value Message Process → Option Value
-  | callret _ _ _ _ v
-  | recvret _ _ _ _ v
-  | stepret _ _ _ _ v => some v
+  | callret _ _ _ _ v | recvret _ _ _ _ v | stepret _ _ _ _ v => some v
   | _ => none
 
 end Transition

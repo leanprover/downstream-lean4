@@ -28,12 +28,13 @@ variable {Var : Type u} {Base : Type v} [DecidableEq Var] [HasFresh Var]
 open LambdaCalculus.LocallyNameless.Stlc
 open scoped Term
 
-/-- A set of terms is called saturated if it
+/--
+A set of terms is called saturated if it
 
-    1. only contains locally closed terms,
-    2. only contains strongly normalizing terms,
-    3. contains all neutral locally closed terms, and
-    4. is closed under top-level β-reduction of the form (λ M) N P₁ … Pₙ → M ^ N P₁ … Pₙ.
+1. only contains locally closed terms,
+2. only contains strongly normalizing terms,
+3. contains all neutral locally closed terms, and
+4. is closed under top-level β-reduction of the form (λ M) N P₁ … Pₙ → M ^ N P₁ … Pₙ.
 -/
 @[scoped grind]
 structure Saturated (S : Set (Term Var)) : Prop where
@@ -42,12 +43,13 @@ structure Saturated (S : Set (Term Var)) : Prop where
   neutal_lc : ∀ M, Neutral M → LC M → M ∈ S
   multiApp : ∀ M N P, LC N → SN FullBeta N → multiApp (M ^ N) P ∈ S → multiApp (M.abs.app N) P ∈ S
 
-/-- The semantic map maps each type to a corresponding saturated set of terms.
-    For the strong normalization proof to work, we must ensure that
-    Γ ⊢ t ∶ τ implies that t is in the set of terms corresponding to τ.
+/--
+The semantic map maps each type to a corresponding saturated set of terms.
+For the strong normalization proof to work, we must ensure that
+Γ ⊢ t ∶ τ implies that t is in the set of terms corresponding to τ.
 
-    Strong normalization later follows from the fact that terms in saturated
-    sets are strongly normalizing.
+Strong normalization later follows from the fact that terms in saturated
+sets are strongly normalizing.
 -/
 @[simp, scoped grind =]
 def semanticMap : Ty Base → Set (Term Var)
@@ -68,8 +70,10 @@ lemma semanticMap_saturated (τ : Ty Base) : @Saturated Var (semanticMap τ) := 
     · intro M N P _ _ _ s _
       grind [ih₂.multiApp M N (P ++ [s]), multiApp_tail]
 
-/-- The `entailsContext` predicate ensures that each variable in the context
-    is mapped to a term in the corresponding semantic map. -/
+/--
+The `entailsContext` predicate ensures that each variable in the context
+is mapped to a term in the corresponding semantic map.
+-/
 abbrev entailsContext (E : Term.Env Var) (Γ : Context Var (Ty Base)) :=
   ∀ {x τ}, ⟨x, τ⟩ ∈ Γ → (multiSubst E (fvar x)) ∈ semanticMap τ
 
@@ -80,23 +84,28 @@ lemma entailsContext_empty {Γ : Context Var (Ty Base)} : entailsContext [] Γ :
 
 open scoped Context in
 omit [HasFresh Var] in
-/-- The `entailsContext` predicate is preserved when extending the context
-    with a new variable, provided the new variable is fresh and its
-    substitution is in the corresponding semantic map. -/
-lemma entailsContext_cons (E : Term.Env Var) (Γ : Context Var (Ty Base))
-    (x : Var) (τ : Ty Base) (sub : Term Var)
-    (h_fresh : x ∉ E.dom ∪ E.fv ∪ Γ.dom)
-    (h_mem : sub ∈ semanticMap τ) :
-    entailsContext E Γ → entailsContext (⟨ x, sub ⟩ :: E) (⟨ x, τ ⟩ :: Γ) := by
+/--
+The `entailsContext` predicate is preserved when extending the context
+with a new variable, provided the new variable is fresh and its
+substitution is in the corresponding semantic map.
+-/
+lemma entailsContext_cons
+    (E : Term.Env Var) (Γ : Context Var (Ty Base)) (x : Var) (τ : Ty Base) (sub : Term Var)
+    (h_fresh : x ∉ E.dom ∪ E.fv ∪ Γ.dom) (h_mem : sub ∈ semanticMap τ)
+    : entailsContext E Γ → entailsContext (⟨x, sub⟩ :: E) (⟨x, τ⟩ :: Γ) := by
   grind [multiSubst_fvar_fresh, subst_fresh, multiSubst_preserves_not_fvar]
 
-/-- The `entails` predicate states that a term `t` is
-    semantically valid with respect to a context `Γ` and a type `τ` -/
+/--
+The `entails` predicate states that a term `t` is
+semantically valid with respect to a context `Γ` and a type `τ`
+-/
 abbrev entails (Γ : Context Var (Ty Base)) (t : Term Var) (τ : Ty Base) :=
-    ∀ E, envLC E → entailsContext E Γ → multiSubst E t ∈ semanticMap τ
+  ∀ E, envLC E → entailsContext E Γ → multiSubst E t ∈ semanticMap τ
 
-/-- The `soundness` lemma states that if a term `t` has type `τ` in context `Γ`,
-    then `t` is semantically valid with respect to `Γ` and `τ` -/
+/--
+The `soundness` lemma states that if a term `t` has type `τ` in context `Γ`,
+then `t` is semantically valid with respect to `Γ` and `τ`
+-/
 lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : entails Γ t τ := by
   induction derivation_t with
   | var Γ xσ_mem_Γ => grind
@@ -107,13 +116,15 @@ lemma soundness {Γ : Context Var (Ty Base)} (derivation_t : Γ ⊢ t ∶ τ) : 
     have := sat_semMap_τ.multiApp (multiSubst E t) s []
     let := multiSubst E t
     have ⟨x, _⟩ := fresh_exists <| E.dom ∪ free_union [fv, Context.dom, Env.fv] Var
-    have := IH (x := x) (E := ⟨x,s⟩ :: E)
+    have := IH (x := x) (E := ⟨x, s⟩ :: E)
     grind [multiSubst_abs, entailsContext_cons, multiSubst_open_var]
   | app => grind [multiSubst_app]
 
-/-- Using soundness and the fact that the empty context
-    is entailed by any environment, we can conclude that
-    a well-typed term is strongly normalizing. -/
+/--
+Using soundness and the fact that the empty context
+is entailed by any environment, we can conclude that
+a well-typed term is strongly normalizing.
+-/
 theorem strong_norm {t : Term Var} {τ : Ty Base} (der : Γ ⊢ t ∶ τ) : SN FullBeta t := by
   apply (semanticMap_saturated τ).sn
   apply (soundness der [] (by grind) entailsContext_empty)

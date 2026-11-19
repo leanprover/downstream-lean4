@@ -51,12 +51,16 @@ namespace Cslib.Automata
 
 variable {State Symbol : Type*}
 
-/-- A nondeterministic two-way automaton: a transition relation that reads an input symbol and
-moves the input head, together with a set of initial and a set of accepting states. -/
+/--
+A nondeterministic two-way automaton: a transition relation that reads an input symbol and
+moves the input head, together with a set of initial and a set of accepting states.
+-/
 structure TwoWayNA (State Symbol : Type*) where
-  /-- The transition relation. `Tr q x m q'` means that, while reading the symbol `x`, the
+  /--
+  The transition relation. `Tr q x m q'` means that, while reading the symbol `x`, the
   automaton attempts to transition from state `q` to state `q'` and move its head according to
-  `m`. -/
+  `m`.
+  -/
   Tr (q : State) (x : Symbol) (m : SignType) (q' : State) : Prop
   /-- The set of initial states of the automaton. -/
   start : Set State
@@ -70,35 +74,38 @@ structure TwoWayNACfg (State Symbol : Type*) where
   input : List Symbol
   /-- The state of the automaton. -/
   state : State
-  /-- The input head position of the automaton: it can be on any symbol of the input or on the
-  position one step to the right of the input. -/
+  /--
+  The input head position of the automaton: it can be on any symbol of the input or on the
+  position one step to the right of the input.
+  -/
   pos : Fin (input.length + 1)
 
 /-- This defines the set of initial configurations on a specific input. -/
-def TwoWayNACfg.IsInitialForInput (a : TwoWayNA State Symbol) (c : TwoWayNACfg State Symbol)
-    (input : List Symbol) : Prop :=
+def TwoWayNACfg.IsInitialForInput
+    (a : TwoWayNA State Symbol) (c : TwoWayNACfg State Symbol) (input : List Symbol)
+    : Prop :=
   c.state ∈ a.start ∧ c.pos = 0 ∧ c.input = input
 
 /-- If a configuration is a accepting. -/
 def TwoWayNACfg.IsAccepting (a : TwoWayNA State Symbol) (c : TwoWayNACfg State Symbol) : Prop :=
   c.state ∈ a.accept ∧ c.pos = Fin.last _
 
-/-- Returns a nondeterministic finite acceptor on the configurations as states, accepting exactly
-the runs of the two-way automaton on `input` that end in an accepting configuration. -/
-def TwoWayNA.toCfgNA {State Symbol : Type*} (a : TwoWayNA State Symbol)
-    (input : List Symbol) :
-    NA.FinAcc (TwoWayNACfg State Symbol) (Symbol × SignType) where
+/--
+Returns a nondeterministic finite acceptor on the configurations as states, accepting exactly
+the runs of the two-way automaton on `input` that end in an accepting configuration.
+-/
+def TwoWayNA.toCfgNA {State Symbol : Type*} (a : TwoWayNA State Symbol) (input : List Symbol)
+    : NA.FinAcc (TwoWayNACfg State Symbol) (Symbol × SignType) where
   Tr
     | c, (x, m), c' =>
-      c.input = c'.input ∧
-      -- This also enforces that `c`'s input head position has to be inside the word.
-      some x = c.input[c.pos]? ∧
-      a.Tr c.state x m c'.state ∧
-      -- By doing input head position arithmetic and comparison in the integers, we get the
-      -- desired restrictions since `0 ≤ c'.pos < n + 1` and `0 ≤ c.pos < n`:
-      -- The input head after the transition cannot be left of the word but it is fine to be
-      -- one position right of the word (in which case no further transition is possible).
-      (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
+      c.input = c'.input
+        -- This also enforces that `c`'s input head position has to be inside the word.
+        ∧ some x = c.input[c.pos]? ∧ a.Tr c.state x m c'.state
+        -- By doing input head position arithmetic and comparison in the integers, we get the
+        -- desired restrictions since `0 ≤ c'.pos < n + 1` and `0 ≤ c.pos < n`:
+        -- The input head after the transition cannot be left of the word but it is fine to be
+        -- one position right of the word (in which case no further transition is possible).
+        ∧ (c'.pos : ℤ) = (c.pos : ℤ) + (m.cast : ℤ)
   start := { c | c.IsInitialForInput a input }
   accept := { c | c.IsAccepting a }
 
@@ -108,25 +115,27 @@ instance : Acceptor (TwoWayNA State Symbol) Symbol where
     ∃ μs, Acceptor.Accepts (a.toCfgNA input) μs
 
 /-- Any reachable state of `a.toCfgNA input` contains the original input. -/
-lemma TwoWayNA.toCfgNA_input_eq {State Symbol : Type*} (a : TwoWayNA State Symbol)
-    (input : List Symbol) :
-    (a.toCfgNA input).TrInv (fun c => c.input = input) := by
+lemma TwoWayNA.toCfgNA_input_eq
+    {State Symbol : Type*} (a : TwoWayNA State Symbol) (input : List Symbol)
+    : (a.toCfgNA input).TrInv (fun c => c.input = input) := by
   intro c μ c' h_tr rfl
   simp_all [TwoWayNA.toCfgNA]
 
 /-- A configuration running on `input` is the one determined by its state and head position. -/
-theorem TwoWayNACfg.eta {input : List Symbol} {c : TwoWayNACfg State Symbol}
-    (h : c.input = input) (h' : (c.pos : ℕ) < input.length + 1) :
-    ({ input := input, pos := ⟨c.pos, h'⟩, state := c.state } : TwoWayNACfg State Symbol) = c := by
+theorem TwoWayNACfg.eta
+    {input : List Symbol} {c : TwoWayNACfg State Symbol}
+    (h : c.input = input) (h' : (c.pos : ℕ) < input.length + 1)
+    : ({ input := input, pos := ⟨c.pos, h'⟩, state := c.state } : TwoWayNACfg State Symbol)
+      = c := by
   cases c
   subst h
   rfl
 
 /-- A step reads the symbol at the head position, which therefore lies inside the input. -/
-theorem TwoWayNA.getElem_of_tr {a : TwoWayNA State Symbol} {input : List Symbol}
-    {c c' : TwoWayNACfg State Symbol} {x : Symbol} {m : SignType}
-    (htr : (a.toCfgNA input).Tr c (x, m) c') (hc : c.input = input) :
-    ∃ h : (c.pos : ℕ) < input.length, input[(c.pos : ℕ)] = x := by
+theorem TwoWayNA.getElem_of_tr
+    {a : TwoWayNA State Symbol} {input : List Symbol} {c c' : TwoWayNACfg State Symbol} {x : Symbol}
+    {m : SignType} (htr : (a.toCfgNA input).Tr c (x, m) c') (hc : c.input = input)
+    : ∃ h : (c.pos : ℕ) < input.length, input[(c.pos : ℕ)] = x := by
   obtain ⟨-, hx, -, -⟩ := htr
   subst hc
   exact List.getElem?_eq_some_iff.mp hx.symm

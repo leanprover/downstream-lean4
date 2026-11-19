@@ -43,15 +43,20 @@ def interAcc (j : Bool) (acc : (i : Bool) → Set (State i)) : Set ((Π i, State
 open scoped Classical in
 /-- The transition function of the history state. -/
 @[scoped grind =, nolint unusedArguments]
-noncomputable def histTrans (acc : (i : Bool) → Set (State i))
-    (s : (Π i, State i) × Bool) (_ : Symbol) (_ : Π i, State i) : Bool :=
-  if s ∈ interAcc false acc then true else
-  if s ∈ interAcc true acc then false else s.snd
+noncomputable def histTrans
+    (acc : (i : Bool) → Set (State i)) (s : (Π i, State i) × Bool) (_ : Symbol) (_ : Π i, State i)
+    : Bool :=
+  if s ∈ interAcc false acc then
+    true
+  else if s ∈ interAcc true acc then
+    false
+  else
+    s.snd
 
 /-- The intersection automaton. -/
 @[scoped grind =]
-noncomputable def interNA (na : (i : Bool) → NA (State i) Symbol)
-    (acc : (i : Bool) → Set (State i)) : NA ((Π i, State i) × Bool) Symbol :=
+noncomputable def interNA (na : (i : Bool) → NA (State i) Symbol) (acc : (i : Bool) → Set (State i))
+    : NA ((Π i, State i) × Bool) Symbol :=
   (iProd na).addHist histStart (histTrans acc)
 
 /-- The overall accepting condition of the intersection automaton. -/
@@ -61,11 +66,14 @@ def interAccept (acc : (i : Bool) → Set (State i)) : Set ((Π i, State i) × B
 
 variable {na : (i : Bool) → NA (State i) Symbol} {acc : (i : Bool) → Set (State i)}
 
-/-- If the intersection automaton sees one accepting condition infinitely many times,
-then it sees the other accepting condition infinitely many times as well. -/
-lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
-    {i : Bool} (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc) :
-    ∃ᶠ k in atTop, ss k ∈ interAcc (!i) acc := by
+/--
+If the intersection automaton sees one accepting condition infinitely many times,
+then it sees the other accepting condition infinitely many times as well.
+-/
+lemma inter_freq_acc_freq_acc
+    {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)} {i : Bool}
+    (h_run : (interNA na acc).Run xs ss) (h_inf : ∃ᶠ k in atTop, ss k ∈ interAcc i acc)
+    : ∃ᶠ k in atTop, ss k ∈ interAcc (!i) acc := by
   have (k : ℕ) := (h_run.trans k).right
   apply frequently_leadsTo_frequently h_inf
   apply leadsTo_trans (q := {s | s.snd = !i})
@@ -75,30 +83,33 @@ lemma inter_freq_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, 
     · apply Frequently.mono h_inf
       grind
 
-/-- If the intersection automaton sees the accepting conditions of both component automata
-infinitely many times, then its own accepting condition also happens infinitely many times. -/
-lemma inter_freq_comp_acc_freq_acc {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
+/--
+If the intersection automaton sees the accepting conditions of both component automata
+infinitely many times, then its own accepting condition also happens infinitely many times.
+-/
+lemma inter_freq_comp_acc_freq_acc
+    {xs : ωSequence Symbol} {ss : ωSequence ((Π i, State i) × Bool)}
     (h_run : (interNA na acc).Run xs ss)
     (h_inf_f : ∃ᶠ k in atTop, ss k ∈ {s | s.fst false ∈ acc false})
-    (h_inf_t : ∃ᶠ k in atTop, ss k ∈ {s | s.fst true ∈ acc true}) :
-    ∃ᶠ k in atTop, ss k ∈ interAccept acc := by
+    (h_inf_t : ∃ᶠ k in atTop, ss k ∈ {s | s.fst true ∈ acc true})
+    : ∃ᶠ k in atTop, ss k ∈ interAccept acc := by
   have (k : ℕ) := (h_run.trans k).right
   have h_univ : ∃ᶠ k in atTop, ss k ∈ univ := by simp [atTop_neBot]
-  have (b : Bool) : interAcc b acc = {⟨_, b'⟩ | b' = b} ∩ {⟨p,_⟩ | p b ∈ acc b} := by
-    ext; grind
-  have : {⟨_, b⟩ : (Π i, State i) × Bool | b = false}ᶜ = {⟨_, b⟩ | b = true} := by
-    ext; grind
+  have (b : Bool) : interAcc b acc = {⟨_, b'⟩ | b' = b} ∩ {⟨p,_⟩ | p b ∈ acc b} := by ext; grind
+  have : {⟨_, b⟩ : (Π i, State i) × Bool | b = false}ᶜ = {⟨_, b⟩ | b = true} := by ext; grind
   apply frequently_leadsTo_frequently h_univ
-  apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false}) <;>
-  grind [until_frequently_leadsTo_and, univ_inter]
+  apply leadsTo_cases_or (q := {⟨_, b⟩ | b = false})
+    <;> grind [until_frequently_leadsTo_and, univ_inter]
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
-/-- The language accepted by the intersection automaton is the intersection of
-the languages accepted by the two component automata. -/
+/--
+The language accepted by the intersection automaton is the intersection of
+the languages accepted by the two component automata.
+-/
 @[simp, scoped grind =]
-theorem inter_language_eq :
-    language (Buchi.mk (interNA na acc) (interAccept acc)) =
-    ⨅ i, language (Buchi.mk (na i) (acc i)) := by
+theorem inter_language_eq
+    : language (Buchi.mk (interNA na acc) (interAccept acc))
+      = ⨅ i, language (Buchi.mk (na i) (acc i)) := by
   apply mem_ext
   intro xs
   simp only [ωLanguage.mem_iInf]

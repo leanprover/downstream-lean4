@@ -67,11 +67,11 @@ inductive Choreography (Pid Var Val FunId SelLabel ProcName : Type*) where
   /-- The terminated choreography. -/
   | nil
   /-- Do `prf` and continue as `c`. -/
-  | pre (prf : Prefix Pid Var Val FunId SelLabel)
-    (c : Choreography Pid Var Val FunId SelLabel ProcName)
+  | pre
+    (prf : Prefix Pid Var Val FunId SelLabel) (c : Choreography Pid Var Val FunId SelLabel ProcName)
   /-- Conditional: `p` evaluates `e` to choose between `c₁` and `c₂`. -/
-  | cond (p : Pid) (e : Expr Var Val FunId)
-    (c₁ c₂ : Choreography Pid Var Val FunId SelLabel ProcName)
+  | cond
+    (p : Pid) (e : Expr Var Val FunId) (c₁ c₂ : Choreography Pid Var Val FunId SelLabel ProcName)
   /-- Call the procedure `proc`. -/
   | call (proc : ProcName) (ps : List Pid)
 

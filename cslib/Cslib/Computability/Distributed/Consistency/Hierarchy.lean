@@ -30,15 +30,14 @@ namespace Cslib.DistributedConsistency
 
 open Relation AbstractExecution
 
-variable {Event Operation Value Session : Type*}
-  {d : ReplicatedDataType Event Operation Value}
+variable
+  {Event Operation Value Session : Type*} {d : ReplicatedDataType Event Operation Value}
   {a : AbstractExecution Event Operation Value Session}
 
-instance isTrans_ar : IsTrans Event a.ar :=
-  ⟨a.ar_strict_total_order.trans⟩
+instance isTrans_ar : IsTrans Event a.ar := ⟨a.ar_strict_total_order.trans⟩
 
-lemma so_iff_se_rb (s : Session) (x y : Event) :
-    a.so s x y ↔ a.se x = s ∧ a.se y = s ∧ a.rb x y := by
+lemma so_iff_se_rb (s : Session) (x y : Event)
+    : a.so s x y ↔ a.se x = s ∧ a.se y = s ∧ a.rb x y := by
   simp only [BaseHistory.so, restrict]
   grind
 
@@ -46,8 +45,8 @@ lemma so_le_rb (s : Session) : a.so s ≤ a.rb := by
   intro x y
   simp [so_iff_se_rb]
 
-lemma se_rval_eq_none {s : Session} {x : Event} (h1 : a.se x = s) (h2 : a.rval x = none) :
-    {y | a.se y = s} = {y | a.se y = s ∧ a.rb y x } ∪ {x} := by
+lemma se_rval_eq_none {s : Session} {x : Event} (h1 : a.se x = s) (h2 : a.rval x = none)
+    : {y | a.se y = s} = {y | a.se y = s ∧ a.rb y x } ∪ {x} := by
   ext y
   apply Iff.intro
   · intro h_se
@@ -59,33 +58,31 @@ lemma se_rval_eq_none {s : Session} {x : Event} (h1 : a.se x = s) (h2 : a.rval x
       grind [so_iff_se_rb]
   · grind
 
-lemma singleOrder_vis_ar_rval_ne_none (h : a.SingleOrder) (x y : Event) :
-    (a.vis x y → a.ar x y) ∧ (a.ar x y → a.rval x ≠ none → a.vis x y) := by
+lemma singleOrder_vis_ar_rval_ne_none (h : a.SingleOrder) (x y : Event)
+    : (a.vis x y → a.ar x y) ∧ (a.ar x y → a.rval x ≠ none → a.vis x y) := by
   obtain ⟨_, _, _⟩ := h
   grind
 
-lemma singleOrder_realTime_imp_readMyWrites
-    (h1 : a.SingleOrder) (h2 : a.RealTime) : a.ReadMyWrites := by
+lemma singleOrder_realTime_imp_readMyWrites (h1 : a.SingleOrder) (h2 : a.RealTime)
+    : a.ReadMyWrites := by
   rintro s x y h_so
   have h_so_ar : a.so s ≤ a.ar := by grind [RealTime, so_le_rb]
-  grind [singleOrder_vis_ar_rval_ne_none, a.rb_rval_ne_none,
-    so_le_rb s x y h_so, h_so_ar x y h_so]
+  grind [singleOrder_vis_ar_rval_ne_none, a.rb_rval_ne_none, so_le_rb s x y h_so, h_so_ar x y h_so]
 
-theorem linearizability_imp_sequentialConsistency
-    (h : a.Linearizability d) : a.SequentialConsistency d := by
+theorem linearizability_imp_sequentialConsistency (h : a.Linearizability d)
+    : a.SequentialConsistency d := by
   grind [Linearizability, SequentialConsistency, singleOrder_realTime_imp_readMyWrites]
 
-lemma readMyWrites_imp_hb_le_trans_vis
-    (h : a.ReadMyWrites) : a.hb ≤ TransGen a.vis := by
+lemma readMyWrites_imp_hb_le_trans_vis (h : a.ReadMyWrites) : a.hb ≤ TransGen a.vis := by
   apply TransGen.mono
   rintro x y (_ | ⟨s, _⟩)
   · assumption
   · apply h s
     assumption
 
-lemma singleOrder_readMyWrites_imp_causalArbitration
-    (h1 : a.SingleOrder) (h2 : a.ReadMyWrites) : a.CausalArbitration := by
---  intro s
+lemma singleOrder_readMyWrites_imp_causalArbitration (h1 : a.SingleOrder) (h2 : a.ReadMyWrites)
+    : a.CausalArbitration := by
+  --  intro s
   suffices TransGen a.vis ≤ a.ar by grind [CausalArbitration, readMyWrites_imp_hb_le_trans_vis h2]
   have h_ar : TransGen a.ar = a.ar := by exact transGen_eq_self
   rw [← h_ar]
@@ -94,29 +91,25 @@ lemma singleOrder_readMyWrites_imp_causalArbitration
   intro _ _ _
   grind
 
-lemma causalVisibility_imp_readMyWrites
-    (h : a.CausalVisibility) : a.ReadMyWrites := by
+lemma causalVisibility_imp_readMyWrites (h : a.CausalVisibility) : a.ReadMyWrites := by
   intro s x y h_so
   exact h x y <| TransGen.single (Or.inr ⟨s, h_so⟩)
 
-lemma causalVisibility_imp_monotonicReads
-    (h : a.CausalVisibility) : a.MonotonicReads := by
+lemma causalVisibility_imp_monotonicReads (h : a.CausalVisibility) : a.MonotonicReads := by
   intro s x y z h_vis h_so
   exact h x z <| TransGen.tail (TransGen.single (Or.inl h_vis)) (Or.inr ⟨s, h_so⟩)
 
-lemma causalVisibility_imp_noCircularCausality
-    (h : a.CausalVisibility) : a.NoCircularCausality :=
+lemma causalVisibility_imp_noCircularCausality (h : a.CausalVisibility) : a.NoCircularCausality :=
   acyclic_le h a.vis_acyclic
 
-lemma singleOrder_readMyWrites_imp_causalVisibility
-    (h1 : a.SingleOrder) (h2 : a.ReadMyWrites) : a.CausalVisibility := by
+lemma singleOrder_readMyWrites_imp_causalVisibility (h1 : a.SingleOrder) (h2 : a.ReadMyWrites)
+    : a.CausalVisibility := by
   suffices TransGen a.vis ≤ a.vis by grind [CausalVisibility, readMyWrites_imp_hb_le_trans_vis h2]
   suffices IsTrans Event a.vis by grind
   obtain ⟨_, _, _⟩ := h1
   grind [IsTrans, isTrans_ar]
 
-lemma singleOrder_imp_eventualVisibility
-    (h : a.SingleOrder) : a.EventualVisibility := by
+lemma singleOrder_imp_eventualVisibility (h : a.SingleOrder) : a.EventualVisibility := by
   intro x s
   by_cases a.rval x = none
   · have h_rb : ∀ y, ¬ a.rb x y := by grind [a.rb_rval_ne_none]
@@ -137,14 +130,14 @@ lemma singleOrder_imp_eventualVisibility
       have : a.ar y x := by grind [a.ar_strict_total_order.trichotomous]
       grind [singleOrder_vis_ar_rval_ne_none]
 
-theorem sequentialConsistency_imp_causalConsistency
-    (h : a.SequentialConsistency d) : a.CausalConsistency d := by
+theorem sequentialConsistency_imp_causalConsistency (h : a.SequentialConsistency d)
+    : a.CausalConsistency d := by
   grind [SequentialConsistency, CausalConsistency, Causality, singleOrder_imp_eventualVisibility,
     singleOrder_readMyWrites_imp_causalArbitration, singleOrder_readMyWrites_imp_causalVisibility]
 
-theorem causalConsistency_imp_basicEventualConsistency
-    (h : a.CausalConsistency d) : a.BasicEventualConsistency d := by
-  grind [CausalConsistency, BasicEventualConsistency,
-    Causality, causalVisibility_imp_noCircularCausality]
+theorem causalConsistency_imp_basicEventualConsistency (h : a.CausalConsistency d)
+    : a.BasicEventualConsistency d := by
+  grind [CausalConsistency, BasicEventualConsistency, Causality,
+    causalVisibility_imp_noCircularCausality]
 
 end Cslib.DistributedConsistency

@@ -29,8 +29,7 @@ namespace Cslib.Circuits.Boolean
 /-- Every Boolean function has a De Morgan circuit. -/
 instance : interpretation.IsComplete where
   exists_computes_single f := by
-    obtain ⟨c, hc, -⟩ :=
-      (Lupanov.synthesis (d := 0) (s := 1) f Nat.one_pos).exists_circuit
+    obtain ⟨c, hc, -⟩ := (Lupanov.synthesis (d := 0) (s := 1) f Nat.one_pos).exists_circuit
     exact ⟨c, hc⟩
 
 end Cslib.Circuits.Boolean

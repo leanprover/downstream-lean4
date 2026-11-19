@@ -36,8 +36,9 @@ example : (abs y (var x)).subst x (app (var y) (var z)) = (abs w (app (var y) (v
   decide
 
 -- section 5.3.4 of TAPL
-example : (abs y (app (var x) (var y))).subst x (app (var y) (var z)) =
-    (abs w (app (app (var y) (var z)) (var w))) := by
+example
+    : (abs y (app (var x) (var y))).subst x (app (var y) (var z))
+      = (abs w (app (app (var y) (var z)) (var w))) := by
   simp only [subst, vars, rename]
   decide
 

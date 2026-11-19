@@ -26,8 +26,10 @@ every element has only a finite number of predecessors, i.e., a `LocallyFiniteOr
 
 open Function Relation Set
 
-/-- An enumeration as a `LinearOrder` in which every element has only a finite number of
-predecessors, i.e., a `LocallyFiniteOrderBot`. -/
+/--
+An enumeration as a `LinearOrder` in which every element has only a finite number of
+predecessors, i.e., a `LocallyFiniteOrderBot`.
+-/
 class Enumeration (α : Type*) extends LinearOrder α, LocallyFiniteOrderBot α
 
 namespace Enumeration
@@ -36,8 +38,9 @@ variable {α : Type*} [Enumeration α]
 
 open Classical in
 /-- The restriction of an enumeration to a subtype is still an enumeration. -/
-noncomputable instance instEnumerationSubtype (p : α → Prop) : Enumeration {x // p x} :=
-  { (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with }
+noncomputable instance instEnumerationSubtype (p : α → Prop) : Enumeration {x // p x} := {
+  (inferInstance : LinearOrder _), (inferInstance : LocallyFiniteOrderBot _) with
+}
 
 /-- An enumeration is a `LocallyFiniteOrder`. -/
 instance : LocallyFiniteOrder α :=
@@ -50,15 +53,13 @@ noncomputable instance : PredOrder α := LinearLocallyFiniteOrder.predOrder α
 noncomputable instance : SuccOrder α := LinearLocallyFiniteOrder.succOrder α
 
 /-- `lt` is a strict total order. -/
-theorem lt_isStrictTotalOrder : IsStrictTotalOrder α LT.lt :=
-  inferInstance
+theorem lt_isStrictTotalOrder : IsStrictTotalOrder α LT.lt := inferInstance
 
 /-- Every element has only a finite number of predecessors under `lt`. -/
 theorem lt_finite_predecessors (a : α) : (predecessors LT.lt a).Finite :=
   (Finset.Iio a).finite_toSet.subset fun _ hx => Finset.mem_Iio.mpr hx
 
 /-- `lt` is a well-founded order. -/
-theorem lt_wellFounded : WellFounded (α := α) LT.lt :=
-  wellFounded_lt
+theorem lt_wellFounded : WellFounded (α := α) LT.lt := wellFounded_lt
 
 end Enumeration

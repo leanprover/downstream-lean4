@@ -45,12 +45,14 @@ namespace Cslib.MachineLearning.PACLearning
 
 variable {α : Type*} {β : Type*}
 
-/-- *The version-space meet law.* The version space of an appended sample is the
+/--
+*The version-space meet law.* The version space of an appended sample is the
 intersection of the version spaces of the two parts: constraints accumulate by
-intersection. -/
-theorem versionSpace_append {m n : ℕ} (C : ConceptClass α β)
-    (S : LabeledSample α β m) (T : LabeledSample α β n) :
-    VersionSpace C (Fin.append S T) = VersionSpace C S ∩ VersionSpace C T := by
+intersection.
+-/
+theorem versionSpace_append
+    {m n : ℕ} (C : ConceptClass α β) (S : LabeledSample α β m) (T : LabeledSample α β n)
+    : VersionSpace C (Fin.append S T) = VersionSpace C S ∩ VersionSpace C T := by
   ext h
   constructor
   · intro hh
@@ -67,45 +69,51 @@ theorem versionSpace_append {m n : ℕ} (C : ConceptClass α β)
     · rw [Fin.append_right]
       exact hT j
 
-/-- The family of all version spaces of a concept class, over labeled samples of every
-size. -/
+/--
+The family of all version spaces of a concept class, over labeled samples of every
+size.
+-/
 def VersionSpaces (C : ConceptClass α β) : Set (ConceptClass α β) :=
   {V | ∃ (m : ℕ) (S : LabeledSample α β m), V = VersionSpace C S}
 
 /-- Membership in the version-space family unfolds to a witnessing sample. -/
-theorem mem_versionSpaces_iff {C V : ConceptClass α β} :
-    V ∈ VersionSpaces C ↔ ∃ (m : ℕ) (S : LabeledSample α β m), V = VersionSpace C S :=
+theorem mem_versionSpaces_iff {C V : ConceptClass α β}
+    : V ∈ VersionSpaces C ↔ ∃ (m : ℕ) (S : LabeledSample α β m), V = VersionSpace C S :=
   Iff.rfl
 
 /-- The whole class is a version space (of the empty sample) which means the family has top `C`. -/
 theorem self_mem_versionSpaces (C : ConceptClass α β) : C ∈ VersionSpaces C :=
   ⟨0, Fin.elim0, (versionSpace_empty_sample C Fin.elim0).symm⟩
 
-/-- The version-space family is closed under intersection (append the witnessing
-samples). -/
-theorem inter_mem_versionSpaces {C U V : ConceptClass α β}
-    (hU : U ∈ VersionSpaces C) (hV : V ∈ VersionSpaces C) :
-    U ∩ V ∈ VersionSpaces C := by
+/--
+The version-space family is closed under intersection (append the witnessing
+samples).
+-/
+theorem inter_mem_versionSpaces
+    {C U V : ConceptClass α β} (hU : U ∈ VersionSpaces C) (hV : V ∈ VersionSpaces C)
+    : U ∩ V ∈ VersionSpaces C := by
   obtain ⟨m, S, rfl⟩ := hU
   obtain ⟨n, T, rfl⟩ := hV
   exact ⟨m + n, Fin.append S T, (versionSpace_append C S T).symm⟩
 
-/-- Every version space is a subset of the class: the family lives in the powerset
-of `C`. -/
-theorem versionSpaces_subset_powerset (C : ConceptClass α β) :
-    VersionSpaces C ⊆ 𝒫 C := by
+/--
+Every version space is a subset of the class: the family lives in the powerset
+of `C`.
+-/
+theorem versionSpaces_subset_powerset (C : ConceptClass α β) : VersionSpaces C ⊆ 𝒫 C := by
   rintro V ⟨m, S, rfl⟩
   exact versionSpace_subset C S
 
 /-- A finite concept class has finitely many version spaces. -/
-theorem versionSpaces_finite {C : ConceptClass α β} (hC : C.Finite) :
-    (VersionSpaces C).Finite :=
+theorem versionSpaces_finite {C : ConceptClass α β} (hC : C.Finite) : (VersionSpaces C).Finite :=
   hC.finite_subsets.subset (versionSpaces_subset_powerset C)
 
-/-- A finite concept class has at most `2 ^ C.ncard` version spaces: the lattice embeds
-in the powerset. -/
-theorem versionSpaces_ncard_le {C : ConceptClass α β} (hC : C.Finite) :
-    (VersionSpaces C).ncard ≤ 2 ^ C.ncard :=
+/--
+A finite concept class has at most `2 ^ C.ncard` version spaces: the lattice embeds
+in the powerset.
+-/
+theorem versionSpaces_ncard_le {C : ConceptClass α β} (hC : C.Finite)
+    : (VersionSpaces C).ncard ≤ 2 ^ C.ncard :=
   (ncard_le_ncard (versionSpaces_subset_powerset C) hC.finite_subsets).trans_eq
     (ncard_powerset C hC)
 

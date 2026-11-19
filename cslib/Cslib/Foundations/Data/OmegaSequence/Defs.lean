@@ -60,22 +60,23 @@ def take : ℕ → ωSequence α → List α
   | n + 1, s => List.cons (head s) (take n (tail s))
 
 /-- Get the list containing the elements of `xs` from position `m` to `n - 1`. -/
-def extract (xs : ωSequence α) (m n : ℕ) : List α :=
-  take (n - m) (xs.drop m)
+def extract (xs : ωSequence α) (m n : ℕ) : List α := take (n - m) (xs.drop m)
 
 /-- Prepend an element to an ω-sequence. -/
 def cons (a : α) (s : ωSequence α) : ωSequence α
   | 0 => a
   | n + 1 => s n
 
-@[inherit_doc] scoped infixr:67 " ::ω " => cons
+@[inherit_doc]
+scoped infixr:67 " ::ω " => cons
 
 /-- Append an ω-sequence to a list. -/
 def appendωSequence : List α → ωSequence α → ωSequence α
   | [], s => s
   | List.cons a l, s => a ::ω appendωSequence l s
 
-@[inherit_doc] infixl:65 " ++ω " => appendωSequence
+@[inherit_doc]
+infixl:65 " ++ω " => appendωSequence
 
 /-- The constant ω-sequence: `ωSequence n (ωSequence.const a) = a`. -/
 def const (a : α) : ωSequence α := fun (_ : ℕ) => a
@@ -83,10 +84,12 @@ def const (a : α) : ωSequence α := fun (_ : ℕ) => a
 /-- Apply a function `f` to all elements of an ω-sequence `s`. -/
 def map (f : α → β) (s : ωSequence α) : ωSequence β := fun n => f (s n)
 
-/-- Zip two ω-sequences using a binary operation:
-`ωSequence n (ωSequence.zip f s₁ s₂) = f (ωSequence s₁) (ωSequence s₂)`. -/
-def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : ωSequence δ :=
-  fun n => f (s₁ n) (s₂ n)
+/--
+Zip two ω-sequences using a binary operation:
+`ωSequence n (ωSequence.zip f s₁ s₂) = f (ωSequence s₁) (ωSequence s₂)`.
+-/
+def zip (f : α → β → δ) (s₁ : ωSequence α) (s₂ : ωSequence β) : ωSequence δ := fun n =>
+  f (s₁ n) (s₂ n)
 
 /-- Iterates of a function as an ω-sequence. -/
 def iterate (f : α → α) (a : α) : ωSequence α := fun n => f^[n] a

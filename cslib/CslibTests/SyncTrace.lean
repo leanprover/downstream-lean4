@@ -17,8 +17,7 @@ open Cslib FLTS
 
 def countdown : FLTS ℕ Unit := ⟨fun s₁ _ => s₁ - 1⟩
 
-theorem countdown_mtr (s₁ : ℕ) (μs : List Unit) :
-    countdown.mtr s₁ μs = s₁ - μs.length := by
+theorem countdown_mtr (s₁ : ℕ) (μs : List Unit) : countdown.mtr s₁ μs = s₁ - μs.length := by
   induction μs using List.reverseRecOn with
   | nil => simp
   | append_singleton μs μ ih =>

@@ -7,8 +7,7 @@ open Cslib
 @[reduction_sys "ₙ", grind]
 def PredReduction (a b : ℕ) : Prop := a = b + 1
 
-lemma single_step : 5 ⭢ₙ 4 := by
-  grind
+lemma single_step : 5 ⭢ₙ 4 := by grind
 
 -- `Trans` instances allow us to switch between single and multistep reductions in a `calc` block
 lemma multiple_step : 5 ↠ₙ 1 := by
@@ -28,17 +27,15 @@ variable {Var : Type}
 @[reduction_sys "β", simp]
 def term_rel : Term Var → Term Var → Prop := fun _ _ ↦ True
 
-example (a b : Term Var) : a ⭢β b := by
-  simp
+example (a b : Term Var) : a ⭢β b := by simp
 
 -- check that a "canonical" notation also works
 @[reduction_sys, grind]
 def PredReduction' (a b : ℕ) : Prop := a = b + 1
 
-example : 5 ⭢ 4 := by
-  grind
+example : 5 ⭢ 4 := by grind
 
---check that namespaces are respected
+-- check that namespaces are respected
 
 /-- info: CslibTests.PredReduction (a b : ℕ) : Prop -/
 #guard_msgs in

@@ -28,10 +28,8 @@ def Divergent [HasTau Label] (lts : LTS State Label) (s : State) : Prop :=
 
 /-- If a trace is divergent, then any 'suffix' is also divergent. -/
 @[scoped grind ⇒]
-theorem divergentTrace_drop
-    [HasTau Label] {μs : ωSequence Label}
-    (h : DivergentTrace μs) (n : ℕ) :
-    DivergentTrace (μs.drop n) := by
+theorem divergentTrace_drop [HasTau Label] {μs : ωSequence Label} (h : DivergentTrace μs) (n : ℕ)
+    : DivergentTrace (μs.drop n) := by
   intro m
   simp only [DivergentTrace] at h
   simp only [ωSequence.get_fun, ωSequence.drop]
@@ -39,6 +37,6 @@ theorem divergentTrace_drop
 
 /-- An LTS is divergence-free if it has no divergent state. -/
 class DivergenceFree [HasTau Label] (lts : LTS State Label) where
-  divergence_free : ¬∃ s, lts.Divergent s
+  divergence_free : ¬ ∃ s, lts.Divergent s
 
 end Cslib.LTS

@@ -34,35 +34,40 @@ variable {α : Type}
 
 /-! ## Evaluation -/
 
-/-- Evaluating the query-based merge agrees with `List.merge` using the relation supplied
-by the oracle. -/
-@[simp] theorem eval_merge (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List α) :
-    (merge xs ys).eval oracle = xs.merge ys (fun a b => oracle (.le a b)) :=
+/--
+Evaluating the query-based merge agrees with `List.merge` using the relation supplied
+by the oracle.
+-/
+@[simp]
+theorem eval_merge (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List α)
+    : (merge xs ys).eval oracle = xs.merge ys (fun a b => oracle (.le a b)) :=
   Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_listMergeM xs ys]
 
-/-- Evaluating query-based merge sort agrees with `List.mergeSort` using the relation
+/--
+Evaluating query-based merge sort agrees with `List.mergeSort` using the relation
 supplied by the oracle.
 
 This is the essential correctness statement: it identifies the query program as *the*
 merge sort operation, so correctness properties (permutation, sortedness, stability)
-transfer directly from the `List.mergeSort` API rather than being restated here. -/
-@[simp] theorem eval_mergeSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
-    (mergeSort xs).eval oracle = xs.mergeSort (fun a b => oracle (.le a b)) :=
+transfer directly from the `List.mergeSort` API rather than being restated here.
+-/
+@[simp]
+theorem eval_mergeSort (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α)
+    : (mergeSort xs).eval oracle = xs.mergeSort (fun a b => oracle (.le a b)) :=
   Id.pure_injective <| by simp [FreeM.isMonadHom_pure_eval oracle |>.map_listMergeSortM xs]
 
 /-! ## Correctness, transferred from the `List.mergeSort` API -/
 
-theorem mergeSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
-    (mergeSort xs).eval oracle ~ xs := by
+theorem mergeSort_perm (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α)
+    : (mergeSort xs).eval oracle ~ xs := by
   rw [eval_mergeSort]
   exact List.mergeSort_perm xs _
 
 theorem mergeSort_sorted
     (r : α → α → Prop) [DecidableRel r] [Std.Total r] [IsTrans α r]
-    (oracle : {ι : Type} → LEQuery α ι → ι)
-    (horacle : ∀ a b, oracle (.le a b) = decide (r a b))
-    (xs : List α) :
-    ((mergeSort xs).eval oracle).Pairwise r := by
+    (oracle : {ι : Type} → LEQuery α ι → ι) (horacle : ∀ a b, oracle (.le a b) = decide (r a b))
+    (xs : List α)
+    : ((mergeSort xs).eval oracle).Pairwise r := by
   rw [eval_mergeSort]
   refine (List.pairwise_mergeSort ?_ ?_ xs).imp (by simp [horacle])
   · intro a b c hab hbc
@@ -74,47 +79,48 @@ theorem mergeSort_sorted
 
 /-! ## Query count simp lemmas -/
 
-theorem countQueries_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α) :
-    (merge ([] : List α) ys).countQueries oracle = 0 := by
+theorem countQueries_merge_nil_left (oracle : {ι : Type} → LEQuery α ι → ι) (ys : List α)
+    : (merge ([] : List α) ys).countQueries oracle = 0 := by
   simp
 
-theorem countQueries_merge_nil_right (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α) :
-    (merge xs ([] : List α)).countQueries oracle = 0 := by
+theorem countQueries_merge_nil_right (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α)
+    : (merge xs ([] : List α)).countQueries oracle = 0 := by
   simp
 
-theorem countQueries_merge_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
-    (x : α) (xs' : List α) (y : α) (ys' : List α) :
-    (merge (x :: xs') (y :: ys')).countQueries oracle =
-      1 + if oracle (.le x y)
-      then (merge xs' (y :: ys')).countQueries oracle
-      else (merge (x :: xs') ys').countQueries oracle := by
+theorem countQueries_merge_cons_cons
+    (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) (xs' : List α) (y : α) (ys' : List α)
+    : (merge (x :: xs') (y :: ys')).countQueries oracle
+      = 1
+        + if oracle (.le x y) then
+            (merge xs' (y :: ys')).countQueries oracle
+          else
+            (merge (x :: xs') ys').countQueries oracle := by
   simp
 
-theorem countQueries_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι) :
-    (mergeSort (α := α) []).countQueries oracle = 0 := by
+theorem countQueries_mergeSort_nil (oracle : {ι : Type} → LEQuery α ι → ι)
+    : (mergeSort (α := α) []).countQueries oracle = 0 := by
   simp
 
-theorem countQueries_mergeSort_singleton (oracle : {ι : Type} → LEQuery α ι → ι) (x : α) :
-    (mergeSort [x]).countQueries oracle = 0 := by
+theorem countQueries_mergeSort_singleton (oracle : {ι : Type} → LEQuery α ι → ι) (x : α)
+    : (mergeSort [x]).countQueries oracle = 0 := by
   simp
 
 open List (split) in
-@[simp] theorem countQueries_mergeSort_cons_cons (oracle : {ι : Type} → LEQuery α ι → ι)
-    (x y : α) (zs : List α) :
-    (mergeSort (x :: y :: zs)).countQueries oracle =
-      (mergeSort (x :: y :: zs).split.1).countQueries oracle +
-      ((mergeSort (x :: y :: zs).split.2).countQueries oracle +
-       (merge ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))
-              ((x :: y :: zs).split.2.mergeSort fun a b => oracle (.le a b))).countQueries
-         oracle) := by
+@[simp]
+theorem countQueries_mergeSort_cons_cons
+    (oracle : {ι : Type} → LEQuery α ι → ι) (x y : α) (zs : List α)
+    : (mergeSort (x :: y :: zs)).countQueries oracle
+      = (mergeSort (x :: y :: zs).split.1).countQueries oracle
+        + ((mergeSort (x :: y :: zs).split.2).countQueries oracle + (merge
+          ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))
+          ((x :: y :: zs).split.2.mergeSort fun a b => oracle (.le a b))).countQueries oracle) := by
   simp only [List.mergeSortM, List.splitInTwo_fst, List.splitInTwo_snd]
   simp
 
 /-! ## Query count proofs -/
 
-theorem merge_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
-    (xs ys : List α) :
-    (merge xs ys).countQueries oracle ≤ xs.length + ys.length := by
+theorem merge_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι) (xs ys : List α)
+    : (merge xs ys).countQueries oracle ≤ xs.length + ys.length := by
   induction xs, ys using List.mergeM.induct (α := α) with
   | case1 ys => simp
   | case2 xs => simp
@@ -122,12 +128,14 @@ theorem merge_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
     simp only [countQueries_merge_cons_cons, List.length_cons]
     split <;> simp_all <;> omega
 
-/-- The key arithmetic inequality for the merge sort recurrence:
-    `⌈n/2⌉ * clog(⌈n/2⌉) + ⌊n/2⌋ * clog(⌊n/2⌋) + n ≤ n * clog(n)`. -/
-private theorem mergeSort_bound (n : ℕ) (hn : 2 ≤ n) :
-    ((n + 1) / 2) * Nat.clog 2 ((n + 1) / 2) +
-      (n / 2 * Nat.clog 2 (n / 2) + ((n + 1) / 2 + n / 2)) ≤
-      n * Nat.clog 2 n := by
+/--
+The key arithmetic inequality for the merge sort recurrence:
+`⌈n/2⌉ * clog(⌈n/2⌉) + ⌊n/2⌋ * clog(⌊n/2⌋) + n ≤ n * clog(n)`.
+-/
+private theorem mergeSort_bound (n : ℕ) (hn : 2 ≤ n)
+    : ((n + 1) / 2) * Nat.clog 2 ((n + 1) / 2)
+        + (n / 2 * Nat.clog 2 (n / 2) + ((n + 1) / 2 + n / 2))
+      ≤ n * Nat.clog 2 n := by
   have hclog := Nat.clog_of_one_lt (by omega : (1 : Nat) < 2) hn
   have hceil : Nat.clog 2 ((n + 1) / 2) + 1 ≤ Nat.clog 2 n := le_of_eq hclog.symm
   have hfloor : Nat.clog 2 (n / 2) + 1 ≤ Nat.clog 2 n :=
@@ -136,15 +144,16 @@ private theorem mergeSort_bound (n : ℕ) (hn : 2 ≤ n) :
   have h1 := Nat.mul_le_mul_left ((n + 1) / 2) hceil
   have h2 := Nat.mul_le_mul_left (n / 2) hfloor
   rw [Nat.mul_succ] at h1 h2
-  calc _ = ((n + 1) / 2 * Nat.clog 2 ((n + 1) / 2) + (n + 1) / 2) +
-           (n / 2 * Nat.clog 2 (n / 2) + n / 2) := by omega
+  calc
+    _ = ((n + 1) / 2 * Nat.clog 2 ((n + 1) / 2) + (n + 1) / 2)
+        + (n / 2 * Nat.clog 2 (n / 2) + n / 2) := by
+      omega
     _ ≤ (n + 1) / 2 * Nat.clog 2 n + n / 2 * Nat.clog 2 n := Nat.add_le_add h1 h2
     _ = ((n + 1) / 2 + n / 2) * Nat.clog 2 n := (Nat.add_mul ..).symm
     _ = n * Nat.clog 2 n := by rw [hsum]
 
-theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι)
-    (xs : List α) :
-    (mergeSort xs).countQueries oracle ≤ xs.length * Nat.clog 2 xs.length := by
+theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι) (xs : List α)
+    : (mergeSort xs).countQueries oracle ≤ xs.length * Nat.clog 2 xs.length := by
   induction xs using List.mergeSortM.induct (α := α) with
   | case1 => simp [mergeSort]
   | case2 x => simp [mergeSort]
@@ -152,11 +161,12 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
     subst halves
     simp only [List.splitInTwo_fst, List.splitInTwo_snd] at ih_l ih_r
     simp only [countQueries_mergeSort_cons_cons]
-    have hml := merge_countQueries_le oracle
-      ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))
-      ((x :: y :: zs).split.2.mergeSort fun a b => oracle (.le a b))
-    rw [List.length_mergeSort, List.length_mergeSort,
-        List.split_fst_length_eq, List.split_snd_length_eq] at hml
+    have hml :=
+      merge_countQueries_le oracle ((x :: y :: zs).split.1.mergeSort fun a b => oracle (.le a b))
+        ((x :: y :: zs).split.2.mergeSort fun a b => oracle (.le a b))
+    rw [List.length_mergeSort, List.length_mergeSort, List.split_fst_length_eq,
+        List.split_snd_length_eq]
+      at hml
     rw [List.split_fst_length_eq] at ih_l
     rw [List.split_snd_length_eq] at ih_r
     exact Nat.le_trans (Nat.add_le_add ih_l (Nat.add_le_add ih_r hml))
@@ -164,8 +174,8 @@ theorem mergeSort_countQueries_le (oracle : {ι : Type} → LEQuery α ι → ι
 
 /-! ## UpperBound and IsSort instances -/
 
-theorem mergeSort_upperBound :
-    UpperBound (mergeSort (α := α)) List.length (fun n => n * Nat.clog 2 n) :=
+theorem mergeSort_upperBound
+    : UpperBound (mergeSort (α := α)) List.length (fun n => n * Nat.clog 2 n) :=
   UpperBound.of_pointwise
     (fun _ _ h => Nat.mul_le_mul h (Nat.clog_mono_right 2 h))
     fun oracle xs => mergeSort_countQueries_le oracle xs

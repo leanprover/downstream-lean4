@@ -28,36 +28,41 @@ variable {Var : Type u}
 /-- `LcAt k M` is satisfied when all bound indices of M are smaller than `k`. -/
 @[simp, scoped grind =]
 def LcAt (k : ℕ) : Term Var → Bool
-| bvar i => i < k
-| fvar _ => true
-| app t₁ t₂ => LcAt k t₁ && LcAt k t₂
-| abs t => LcAt (k + 1) t
+  | bvar i => i < k
+  | fvar _ => true
+  | app t₁ t₂ => LcAt k t₁ && LcAt k t₂
+  | abs t => LcAt (k + 1) t
 
 /-- `depth` counts the maximum number of the lambdas that are enclosing variables. -/
 @[simp, scoped grind =]
 def depth : Term Var → ℕ
-| bvar _ => 0
-| fvar _ => 0
-| app t₁ t₂ => max (depth t₁) (depth t₂)
-| abs t => depth t + 1
+  | bvar _ => 0
+  | fvar _ => 0
+  | app t₁ t₂ => max (depth t₁) (depth t₂)
+  | abs t => depth t + 1
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
 @[elab_as_elim]
-protected lemma ind_on_depth (P : Term Var → Prop) (bvar : ∀ i, P (bvar i)) (fvar : ∀ x, P (fvar x))
-    (app : ∀ M N, P M → P N → P (app M N))
+protected lemma ind_on_depth
+    (P : Term Var → Prop)
+    (bvar : ∀ i, P (bvar i)) (fvar : ∀ x, P (fvar x)) (app : ∀ M N, P M → P N → P (app M N))
     (abs : ∀ M, P M → (∀ N, N.depth ≤ M.depth → P N) → P M.abs)
-    (M : Term Var) : P M := by
-  induction h : M.depth using Nat.strong_induction_on generalizing M with | _ n ih
+    (M : Term Var)
+    : P M := by
+  induction h : M.depth using Nat.strong_induction_on generalizing M with
+  | _ n ih
   induction M with
   | abs M' => apply abs M' <;> grind
   | bvar | fvar => grind
   | app => apply app <;> grind only [depth, = max_def]
 
-/-- The depth of the lambda expression doesn't change by opening at i-th bound variable
- for some free variable. -/
- @[simp, scoped grind =]
-lemma depth_openRec_fvar_eq_depth (M : Term Var) (x : Var) (i : ℕ) :
-    (M⟦i ↝ fvar x⟧).depth = M.depth := by
+/--
+The depth of the lambda expression doesn't change by opening at i-th bound variable
+for some free variable.
+-/
+@[simp, scoped grind =]
+lemma depth_openRec_fvar_eq_depth (M : Term Var) (x : Var) (i : ℕ)
+    : (M⟦i ↝ fvar x⟧).depth = M.depth := by
   induction M generalizing i <;> grind
 
 /-- The depth of the lambda expression doesn't change by opening for some free variable. -/
@@ -68,8 +73,8 @@ lemma lcAt_le (M : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) : LcAt j 
   induction M generalizing i j <;> grind
 
 @[simp, scoped grind =]
-theorem lcAt_openRec_iff_lcAt (M N : Term Var) (i : ℕ) (h : LcAt i N) :
-    LcAt i (M⟦i ↝ N⟧) = LcAt (i + 1) M := by
+theorem lcAt_openRec_iff_lcAt (M N : Term Var) (i : ℕ) (h : LcAt i N)
+    : LcAt i (M⟦i ↝ N⟧) = LcAt (i + 1) M := by
   induction M generalizing i with
   | bvar _ => grind
   | fvar _ => grind
@@ -82,20 +87,20 @@ theorem lcAt_open_fvar_iff_lcAt (M : Term Var) (x : Var) : LcAt 0 (M ^ fvar x) =
 
 /-- Locally closed terms. -/
 inductive LC : Term Var → Prop
-| fvar (x : Var)  : LC (fvar x)
-| abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
-| app {l r} : l.LC → r.LC → LC (app l r)
+  | fvar (x : Var) : LC (fvar x)
+  | abs (L : Finset Var) (e : Term Var) : (∀ x ∉ L, LC (e ^ fvar x)) → LC (abs e)
+  | app {l r} : l.LC → r.LC → LC (app l r)
 
 attribute [scoped grind .] LC.fvar LC.app
 
 /-- Values are irreducible terms. -/
 inductive Value : Term Var → Prop
-| abs (e : Term Var) : e.abs.LC → e.abs.Value
+  | abs (e : Term Var) : e.abs.LC → e.abs.Value
 
 /-- `IsAbs m` holds when `m` is an abstraction. -/
 @[scoped grind]
 inductive IsAbs : Term Var → Prop
-| abs (m : Term Var) : IsAbs (abs m)
+  | abs (m : Term Var) : IsAbs (abs m)
 
 instance (m : Term Var) : Decidable (IsAbs m) := by
   cases m
@@ -106,39 +111,41 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 /-- `M` is `LcAt 0` if and only if `M` is locally closed. -/
 theorem lcAt_iff_LC (M : Term Var) [HasFresh Var] : LcAt 0 M ↔ M.LC := by
   induction M using LambdaCalculus.LocallyNameless.Untyped.Term.ind_on_depth with
-    | abs =>
-      constructor
-      · grind [LC.abs ∅]
-      · intros h2
-        rcases h2 with ⟨⟩|⟨L,_,_⟩
-        grind [fresh_exists L]
-    | fvar => grind
-    | bvar =>
-      constructor
-      · grind
-      · grind only [cases LC]
-    | app =>
-      constructor
-      · grind
-      · grind only [cases LC, LcAt]
+  | abs =>
+    constructor
+    · grind [LC.abs ∅]
+    · intros h2
+      rcases h2 with ⟨⟩ | ⟨L, _, _⟩
+      grind [fresh_exists L]
+  | fvar =>
+    grind
+  | bvar =>
+    constructor
+    · grind
+    · grind only [cases LC]
+  | app =>
+    constructor
+    · grind
+    · grind only [cases LC, LcAt]
 
 instance [HasFresh Var] (t : Term Var) : Decidable t.LC := by
   rw [← lcAt_iff_LC]
   infer_instance
 
 /- Opening for some term at i-th bound variable increments `LcAt` by one -/
-lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) :
-    LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
+lemma lcAt_openRec_lcAt (M N : Term Var) (i : ℕ) : LcAt i (M⟦i ↝ N⟧) → LcAt (i + 1) M := by
   induction M generalizing i <;> grind
 
-/- When `M ^ N` is locally closed, then `M.abs` is locally closed. This is proven by translating LC
-   to LcAt, applying lcAt_openRec_lcAt, then translating back to LC -/
+/-
+When `M ^ N` is locally closed, then `M.abs` is locally closed. This is proven by translating LC
+to LcAt, applying lcAt_openRec_lcAt, then translating back to LC
+-/
 lemma open_abs_lc [HasFresh Var] {M N : Term Var} (hlc : LC (M ^ N)) : LC (M.abs) := by
   rw [← lcAt_iff_LC] at *
   exact lcAt_openRec_lcAt _ _ _ hlc
 
-lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M) :
-    M⟦j ↝ N⟧ = M := by
+lemma lcAt_openRec_above_lcAt (M N : Term Var) (i j : ℕ) (h : i ≤ j) (lc : LcAt i M)
+    : M⟦j ↝ N⟧ = M := by
   induction M generalizing i j <;> grind
 
 end Cslib.LambdaCalculus.LocallyNameless.Untyped.Term

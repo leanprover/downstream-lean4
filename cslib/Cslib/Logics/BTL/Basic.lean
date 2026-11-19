@@ -37,7 +37,7 @@ inductive Direction where
   | F
   /-- Into the past. -/
   | P
-  deriving DecidableEq
+deriving DecidableEq
 
 export Direction (F P)
 
@@ -48,14 +48,13 @@ abbrev τBTL : PFunctor := PFunctor.mkUnary Direction
 abbrev Proposition Atom := Modal.Proposition τBTL Atom
 
 @[scoped grind =, modal =]
-theorem Proposition.always_eq_not_future_not (φ : Proposition Atom) :
-    (d[F]φ) = ¬d⟨F⟩¬φ := rfl
+theorem Proposition.always_eq_not_future_not (φ : Proposition Atom) : (d[F]φ) = ¬d⟨F⟩¬φ := rfl
 
 @[scoped grind =, modal =]
-theorem Proposition.hasAlwaysBeen_eq_not_past_not (φ : Proposition Atom) :
-    (d[P]φ) = ¬d⟨P⟩¬φ := rfl
+theorem Proposition.hasAlwaysBeen_eq_not_past_not (φ : Proposition Atom) : (d[P]φ) = ¬d⟨P⟩¬φ := rfl
 
-/-- A temporal model consists of an accessibility relation and a valuation at each world.
+/--
+A temporal model consists of an accessibility relation and a valuation at each world.
 
 No order properties are imposed on the relation. In particular, the modalities include
 the present only when the relation is reflexive at the current world, and the flow of time is
@@ -67,7 +66,8 @@ structure Model World Atom where
   /-- Valuation of atoms at each world. -/
   v : World → Atom → Prop
 
-/-- The bidirectional frame of a temporal model.
+/--
+The bidirectional frame of a temporal model.
 
 This definition guarantees by construction that the future and past accessibility relations are
 inverse of each other. Modally, this is witnessed by `btl_future_past_prop` and
@@ -85,12 +85,14 @@ def Model.toModal (m : Model World Atom) : Modal.Model World τBTL Atom := ⟨m.
 theorem Model.toModal_toFrame (m : Model World Atom) : m.toModal.toFrame = m.toFrame := rfl
 
 @[simp, scoped grind =, modal =]
-theorem Model.toFrame_future_iff (m : Model World Atom) (w w' : World) :
-    m.toFrame.diagonal F w w' ↔ m.r w w' := Iff.rfl
+theorem Model.toFrame_future_iff (m : Model World Atom) (w w' : World)
+    : m.toFrame.diagonal F w w' ↔ m.r w w' :=
+  Iff.rfl
 
 @[simp, scoped grind =, modal =]
-theorem Model.toFrame_past_iff (m : Model World Atom) (w w' : World) :
-    m.toFrame.diagonal P w w' ↔ m.r w' w := Iff.rfl
+theorem Model.toFrame_past_iff (m : Model World Atom) (w w' : World)
+    : m.toFrame.diagonal P w w' ↔ m.r w' w :=
+  Iff.rfl
 
 /-- Shortcut for `Modal[BTL.Model.toModal m,w ⊨ φ]`. -/
 scoped notation "BTL[" m "," w " ⊨ " φ "]" => Modal[BTL.Model.toModal m,w ⊨ φ]
@@ -122,16 +124,18 @@ theorem Satisfies.btl_future_always_iff : ⇓BTL[m,w ⊨ d[F]φ] ↔ ∀ w', m.r
   Satisfies.dynBox_iff_forall
 
 @[scoped grind =]
-theorem Satisfies.btl_past_always_iff :
-    ⇓BTL[m,w ⊨ d[P]φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] := Satisfies.dynBox_iff_forall
+theorem Satisfies.btl_past_always_iff : ⇓BTL[m,w ⊨ d[P]φ] ↔ ∀ w', m.r w' w → ⇓BTL[m,w' ⊨ φ] :=
+  Satisfies.dynBox_iff_forall
 
 @[modal ⇒]
-theorem Satisfies.btl_future_sometime_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ]) :
-    ⇓BTL[m,w ⊨ d⟨F⟩φ] := btl_future_sometime_iff.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_future_sometime_intro (hr : m.r w w') (h : ⇓BTL[m,w' ⊨ φ])
+    : ⇓BTL[m,w ⊨ d⟨F⟩φ] :=
+  btl_future_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
-theorem Satisfies.btl_past_sometime_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ]) :
-    ⇓BTL[m,w ⊨ d⟨P⟩φ] := btl_past_sometime_iff.mpr ⟨w', hr, h⟩
+theorem Satisfies.btl_past_sometime_intro (hr : m.r w' w) (h : ⇓BTL[m,w' ⊨ φ])
+    : ⇓BTL[m,w ⊨ d⟨P⟩φ] :=
+  btl_past_sometime_iff.mpr ⟨w', hr, h⟩
 
 @[modal ⇒]
 theorem Satisfies.btl_future_always_elim (h : ⇓BTL[m,w ⊨ d[F]φ]) (hr : m.r w w') : ⇓BTL[m,w' ⊨ φ] :=

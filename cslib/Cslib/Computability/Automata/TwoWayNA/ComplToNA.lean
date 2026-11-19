@@ -79,18 +79,23 @@ namespace TwoWayNA
 
 /-! ## Vardi's condition of non-acceptance -/
 
-/-- Every step of `a` on `input` out of a state that `cert` attaches to the head position lands in a
+/--
+Every step of `a` on `input` out of a state that `cert` attaches to the head position lands in a
 state that `cert` attaches to the new head position. The conjunct on the input restricts the
-invariant to the configurations that run on `input`. -/
-def IsStepClosed (a : TwoWayNA State Symbol) (input : List Symbol)
-    (cert : ωSequence (Set State)) : Prop :=
+invariant to the configurations that run on `input`.
+-/
+def IsStepClosed (a : TwoWayNA State Symbol) (input : List Symbol) (cert : ωSequence (Set State))
+    : Prop :=
   (a.toCfgNA input).TrInv (fun c => c.input = input ∧ c.state ∈ cert c.pos)
 
-/-- A family of subsets of the state set, one for every position of the input head on `input`,
+/--
+A family of subsets of the state set, one for every position of the input head on `input`,
 which contains all initial states, is closed under the transitions of `a`, and contains no
-accepting state at the position just past the end of the input. -/
-structure IsRejectionCert (a : TwoWayNA State Symbol) (input : List Symbol)
-    (cert : ωSequence (Set State)) : Prop where
+accepting state at the position just past the end of the input.
+-/
+structure IsRejectionCert
+    (a : TwoWayNA State Symbol) (input : List Symbol) (cert : ωSequence (Set State))
+    : Prop where
   /-- Every initial state occurs at the initial head position. -/
   start_mem : ∀ s ∈ a.start, s ∈ cert 0
   /-- The family is an invariant of the transitions of `a`. -/
@@ -101,27 +106,32 @@ structure IsRejectionCert (a : TwoWayNA State Symbol) (input : List Symbol)
 variable {cert : ωSequence (Set State)}
 
 /-- If a rejection certificate for `input` exists, then `a` does not accept `input`. -/
-theorem IsRejectionCert.not_accepts (hT : a.IsRejectionCert input cert) :
-    ¬ Accepts a input := by
+theorem IsRejectionCert.not_accepts (hT : a.IsRejectionCert input cert) : ¬ Accepts a input := by
   rintro ⟨μs, c, ⟨hstart, hpos, hinput⟩, c', ⟨hacc, hlast⟩, hmtr⟩
-  obtain ⟨hinput', hmem⟩ := LTS.mtrInv_of_trInv hT.step_closed c μs c' hmtr
-    ⟨hinput, by simpa [hpos] using hT.start_mem c.state hstart⟩
+  obtain ⟨hinput', hmem⟩ :=
+    LTS.mtrInv_of_trInv hT.step_closed c μs c' hmtr
+      ⟨hinput, by simpa [hpos] using hT.start_mem c.state hstart⟩
   rw [hlast, Fin.val_last, hinput'] at hmem
   exact hT.accept_notMem c'.state hmem hacc
 
-/-- The set of states that `a` can be in while its head sits at position `i` of `input`, having
-started in an initial configuration. -/
-def reachable (a : TwoWayNA State Symbol) (input : List Symbol) : ωSequence (Set State) :=
-  fun i => {q | ∃ c, c.IsInitialForInput a input ∧
-      ∃ h : i < input.length + 1,
-      (a.toCfgNA input).CanReach c { input := input, pos := ⟨i, h⟩, state := q } }
+/--
+The set of states that `a` can be in while its head sits at position `i` of `input`, having
+started in an initial configuration.
+-/
+def reachable (a : TwoWayNA State Symbol) (input : List Symbol) : ωSequence (Set State) := fun i =>
+  {q | ∃ c, c.IsInitialForInput a input ∧
+    ∃ h : i < input.length + 1,
+    (a.toCfgNA input).CanReach c { input := input, pos := ⟨i, h⟩, state := q } }
 
 /-- If `a` does not accept `input`, then its reachable states form a rejection certificate. -/
-theorem isRejectionCert_reachable (h : ¬ Accepts a input) :
-    a.IsRejectionCert input (a.reachable input) where
-  start_mem s hs :=
-    ⟨{ input := input, pos := ⟨0, Nat.succ_pos _⟩, state := s },
-      ⟨hs, Fin.ext (by simp), rfl⟩, Nat.succ_pos _, LTS.CanReach.refl _ _⟩
+theorem isRejectionCert_reachable (h : ¬ Accepts a input)
+    : a.IsRejectionCert input (a.reachable input) where
+  start_mem s hs := ⟨
+    { input := input, pos := ⟨0, Nat.succ_pos _⟩, state := s },
+    ⟨hs, Fin.ext (by simp), rfl⟩,
+    Nat.succ_pos _,
+    LTS.CanReach.refl _ _
+  ⟩
   step_closed c μ c' htr := by
     rintro ⟨hc_input, c₀, hstart, hlt, hreach⟩
     have hc'_input : c'.input = input := a.toCfgNA_input_eq input c μ c' htr hc_input
@@ -135,36 +145,43 @@ theorem isRejectionCert_reachable (h : ¬ Accepts a input) :
     exact h ⟨μs, c₀, hstart, _, ⟨hacc, Fin.ext (by simp)⟩, hmtr⟩
 
 /-- A two-way automaton rejects an input exactly when a rejection certificate for it exists. -/
-theorem not_accepts_iff_exists_isRejectionCert (a : TwoWayNA State Symbol)
-    (input : List Symbol) :
-    ¬ Accepts a input ↔ ∃ T, a.IsRejectionCert input T :=
+theorem not_accepts_iff_exists_isRejectionCert (a : TwoWayNA State Symbol) (input : List Symbol)
+    : ¬ Accepts a input ↔ ∃ T, a.IsRejectionCert input T :=
   ⟨fun h => ⟨_, isRejectionCert_reachable h⟩, by rintro ⟨_, hT⟩; exact hT.not_accepts⟩
 
 /-! ## Localising the closure condition -/
 
-/-- Every move of `a` out of a state in `cur` while reading `x` lands in `left`, in `cur` or in
+/--
+Every move of `a` out of a state in `cur` while reading `x` lands in `left`, in `cur` or in
 `right`, according to whether it moves the head to the left, keeps it in place, or moves it to the
-right. -/
+right.
+-/
 def LocalOK (a : TwoWayNA State Symbol) (x : Symbol) (left cur right : Set State) : Prop :=
-  ∀ q ∈ cur, ∀ m q', a.Tr q x m q' →
-    q' ∈ match m with | .neg => left | .zero => cur | .pos => right
+  ∀ q ∈ cur, ∀ m q',
+    a.Tr q x m q'
+      → q' ∈ match m with
+        | .neg => left
+        | .zero => cur
+        | .pos => right
 
-/-- Closure of `cert` under the transitions of `a` is the same as local consistency of `cert` at
-every position carrying an input symbol. -/
-theorem isStepClosed_iff_localOK :
-    a.IsStepClosed input cert ↔
-      ∀ i : Fin input.length,
+/--
+Closure of `cert` under the transitions of `a` is the same as local consistency of `cert` at
+every position carrying an input symbol.
+-/
+theorem isStepClosed_iff_localOK
+    : a.IsStepClosed input cert
+      ↔ ∀ i : Fin input.length,
         a.LocalOK input[i] ((Set.univ ::ω cert) i) (cert i) (cert (i + 1)) := by
   constructor
   · intro hcl i q hq m q' htr
     have hlt : (i : ℕ) < input.length := i.isLt
     cases m with
     | zero =>
-      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.zero)
-        ⟨input, q', ⟨i, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
+      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.zero) ⟨input, q', ⟨i, by omega⟩⟩
+        ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
     | pos =>
-      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.pos)
-        ⟨input, q', ⟨i + 1, by omega⟩⟩ ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
+      exact (hcl ⟨input, q, ⟨i, by omega⟩⟩ (input[i], SignType.pos) ⟨input, q', ⟨i + 1, by omega⟩⟩
+        ⟨rfl, by simp, htr, by simp⟩ ⟨rfl, hq⟩).2
     | neg =>
       obtain ⟨iv, hiv⟩ := i
       obtain _ | j := iv
@@ -192,25 +209,30 @@ theorem isStepClosed_iff_localOK :
 
 /-! ## The finite acceptor for the complement -/
 
-/-- The nondeterministic finite acceptor that guesses a rejection certificate `cert` for `a` while
+/--
+The nondeterministic finite acceptor that guesses a rejection certificate `cert` for `a` while
 scanning the input, keeping the pair `(cert (i - 1), cert i)` in its state after reading `i`
 symbols.
-Reading the symbol at position `i` guesses `cert (i + 1)` and checks local consistency at `i`. -/
+Reading the symbol at position `i` guesses `cert (i + 1)` and checks local consistency at `i`.
+-/
 def complToNA (a : TwoWayNA State Symbol) : NA.FinAcc (Set State × Set State) Symbol where
   Tr
     | (prev, cur), x, (prev', cur') => prev' = cur ∧ a.LocalOK x prev cur cur'
   start := {(prev, cur) | prev = Set.univ ∧ a.start ⊆ cur}
   accept := {(_, cur) | ∀ s ∈ cur, s ∉ a.accept}
 
-/-- An accepting multistep transition of `a.complToNA` out of `(left, cur)` over `xs` is the same
+/--
+An accepting multistep transition of `a.complToNA` out of `(left, cur)` over `xs` is the same
 thing as a certificate starting with `left` and `cur` that is locally consistent at every position
-of `xs` and has no accepting state at the position just past `xs`. -/
-theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol)
-    (left cur : Set State) :
-    (∃ f ∈ a.complToNA.accept, a.complToNA.MTr (left, cur) xs f) ↔
-      ∃ cert : ωSequence (Set State), cert 0 = left ∧ cert 1 = cur ∧
-        (∀ i, ∀ hi : i < xs.length, a.LocalOK xs[i] (cert i) (cert (i + 1)) (cert (i + 2))) ∧
-          ∀ s ∈ cert (xs.length + 1), s ∉ a.accept := by
+of `xs` and has no accepting state at the position just past `xs`.
+-/
+theorem exists_accepting_mTr_iff
+    (a : TwoWayNA State Symbol) (xs : List Symbol) (left cur : Set State)
+    : (∃ f ∈ a.complToNA.accept, a.complToNA.MTr (left, cur) xs f)
+      ↔ ∃ cert : ωSequence (Set State),
+        cert 0 = left ∧ cert 1 = cur
+          ∧ (∀ i, ∀ hi : i < xs.length, a.LocalOK xs[i] (cert i) (cert (i + 1)) (cert (i + 2)))
+          ∧ ∀ s ∈ cert (xs.length + 1), s ∉ a.accept := by
   induction xs generalizing left cur with
   | nil =>
     constructor
@@ -226,22 +248,26 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol)
       rw [LTS.MTr.cons_iff] at hmtr
       obtain ⟨⟨m₁, m₂⟩, ⟨rfl, hlocal⟩, hmtr⟩ := hmtr
       obtain ⟨cert, h0, h1, hloc, hacc⟩ := (ih m₁ m₂).mp ⟨f, hf, hmtr⟩
-      have hstep : ∀ i, ∀ hi : i < (x :: xs).length, a.LocalOK (x :: xs)[i]
-          ((left ::ω cert) i) ((left ::ω cert) (i + 1)) ((left ::ω cert) (i + 2)) := by
+      have hstep
+          : ∀ i, ∀ hi : i < (x :: xs).length,
+            a.LocalOK (x :: xs)[i] ((left ::ω cert) i) ((left ::ω cert) (i + 1))
+              ((left ::ω cert) (i + 2)) := by
         intro i hi
         obtain _ | i := i
         · simpa [h0, h1] using hlocal
         · simpa using hloc i (by simpa using hi)
       exact ⟨left ::ω cert, rfl, by simpa using h0, hstep, by simpa using hacc⟩
     · rintro ⟨cert, h0, h1, hloc, hacc⟩
-      have hstep : ∀ i, ∀ hi : i < xs.length,
-          a.LocalOK xs[i] (cert.tail i) (cert.tail (i + 1)) (cert.tail (i + 2)) := by
+      have hstep
+          : ∀ i, ∀ hi : i < xs.length,
+            a.LocalOK xs[i] (cert.tail i) (cert.tail (i + 1)) (cert.tail (i + 2)) := by
         intro i hi
         have h := hloc (i + 1) (by simpa using hi)
         rw [List.getElem_cons_succ] at h
         simpa [ωSequence.get_tail, Nat.add_right_comm] using h
-      obtain ⟨f, hf, hmtr⟩ := (ih cur (cert 2)).mpr
-        ⟨cert.tail, by simpa using h1, by simp [ωSequence.get_tail], hstep, by simpa using hacc⟩
+      obtain ⟨f, hf, hmtr⟩ :=
+        (ih cur (cert 2)).mpr
+          ⟨cert.tail, by simpa using h1, by simp [ωSequence.get_tail], hstep, by simpa using hacc⟩
       have hlocal : a.LocalOK x left cur (cert 2) := by
         have h := hloc 0 (by simp)
         rw [List.getElem_cons_zero] at h
@@ -249,8 +275,8 @@ theorem exists_accepting_mTr_iff (a : TwoWayNA State Symbol) (xs : List Symbol)
       exact ⟨f, hf, LTS.MTr.cons_iff.mpr ⟨(cur, cert 2), ⟨rfl, hlocal⟩, hmtr⟩⟩
 
 /-- `a.complToNA` accepts exactly the words that `a` rejects. -/
-theorem accepts_complToNA_iff (a : TwoWayNA State Symbol) (input : List Symbol) :
-    Accepts a.complToNA input ↔ ¬ Accepts a input := by
+theorem accepts_complToNA_iff (a : TwoWayNA State Symbol) (input : List Symbol)
+    : Accepts a.complToNA input ↔ ¬ Accepts a input := by
   rw [not_accepts_iff_exists_isRejectionCert]
   constructor
   · rintro ⟨s, ⟨hs, hstart⟩, f, hf, hmtr⟩
@@ -258,20 +284,31 @@ theorem accepts_complToNA_iff (a : TwoWayNA State Symbol) (input : List Symbol) 
     have hcert : Set.univ ::ω cert.tail = cert := by
       rw [← hs, ← h0]
       exact ωSequence.eta cert
-    have hstep : ∀ i : Fin input.length,
-        a.LocalOK input[i] ((Set.univ ::ω cert.tail) i) (cert.tail i) (cert.tail (i + 1)) :=
-      fun i => by simpa [hcert, ωSequence.get_tail] using hloc i i.isLt
-    exact ⟨cert.tail,
-      { start_mem := by
+    have hstep
+        : ∀ i : Fin input.length,
+          a.LocalOK input[i] ((Set.univ ::ω cert.tail) i) (cert.tail i)
+            (cert.tail (i + 1)) := fun i => by
+      simpa [hcert, ωSequence.get_tail] using hloc i i.isLt
+    exact ⟨
+      cert.tail,
+      {
+        start_mem := by
           intro q hq
           simpa [h1] using hstart hq
         step_closed := isStepClosed_iff_localOK.mpr hstep
-        accept_notMem := by simpa using hacc }⟩
+        accept_notMem := by simpa using hacc
+      }
+    ⟩
   · rintro ⟨cert, hCert⟩
     have hloc := isStepClosed_iff_localOK.mp hCert.step_closed
-    obtain ⟨f, hf, hmtr⟩ := (exists_accepting_mTr_iff a input Set.univ (cert 0)).mpr
-      ⟨Set.univ ::ω cert, rfl, rfl, fun i hi => by simpa using hloc ⟨i, hi⟩,
-        by simpa using hCert.accept_notMem⟩
+    obtain ⟨f, hf, hmtr⟩ :=
+      (exists_accepting_mTr_iff a input Set.univ (cert 0)).mpr ⟨
+        Set.univ ::ω cert,
+        rfl,
+        rfl,
+        fun i hi => by simpa using hloc ⟨i, hi⟩,
+        by simpa using hCert.accept_notMem
+      ⟩
     exact ⟨(Set.univ, cert 0), ⟨rfl, hCert.start_mem⟩, f, hf, hmtr⟩
 
 /-- `a.complToNA` recognises the complement of the language of `a`. -/

@@ -34,36 +34,44 @@ noncomputable def chooseFLTS (lts : LTS State Label) [h : lts.Total] : FLTS Stat
   tr s μ := Classical.choose <| h.total s μ
 
 /-- The FLTS chosen by `chooseFLTS` always provides legal transitions. -/
-theorem Total.chooseFLTS (lts : LTS State Label) [h : lts.Total] (s : State) (μ : Label) :
-    lts.Tr s μ (lts.chooseFLTS.tr s μ) :=
+theorem Total.chooseFLTS (lts : LTS State Label) [h : lts.Total] (s : State) (μ : Label)
+    : lts.Tr s μ (lts.chooseFLTS.tr s μ) :=
   Classical.choose_spec <| h.total s μ
 
-/-- `chooseOmegaExecution` builds an infinite execution of a total LTS from any starting state
-and over any infinite sequence of labels. -/
-noncomputable def chooseOmegaExecution (lts : LTS State Label) [lts.Total]
-    (s : State) (μs : ωSequence Label) : ℕ → State
+/--
+`chooseOmegaExecution` builds an infinite execution of a total LTS from any starting state
+and over any infinite sequence of labels.
+-/
+noncomputable def chooseOmegaExecution
+    (lts : LTS State Label) [lts.Total] (s : State) (μs : ωSequence Label)
+    : ℕ → State
   | 0 => s
   | n + 1 => lts.chooseFLTS.tr (lts.chooseOmegaExecution s μs n) (μs n)
 
-/-- If a LTS is total, then there exists an infinite execution from any starting state and
-over any infinite sequence of labels. -/
-theorem Total.omegaExecution_exists [h : lts.Total] (s : State) (μs : ωSequence Label) :
-    ∃ ss, lts.OmegaExecution ss μs ∧ ss 0 = s := by
+/--
+If a LTS is total, then there exists an infinite execution from any starting state and
+over any infinite sequence of labels.
+-/
+theorem Total.omegaExecution_exists [h : lts.Total] (s : State) (μs : ωSequence Label)
+    : ∃ ss, lts.OmegaExecution ss μs ∧ ss 0 = s := by
   use lts.chooseOmegaExecution s μs
   grind [chooseOmegaExecution, Total.chooseFLTS]
 
-/-- If a LTS is total, then any finite execution can be extended to an infinite execution,
-provided that the label type is inbabited. -/
-theorem Total.extend_omegaExecution [Inhabited Label] [ht : lts.Total]
-    {μl : List Label} {s t : State} (hm : lts.MTr s μl t) :
-    ∃ μs ss, lts.OmegaExecution ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
+/--
+If a LTS is total, then any finite execution can be extended to an infinite execution,
+provided that the label type is inbabited.
+-/
+theorem Total.extend_omegaExecution
+    [Inhabited Label] [ht : lts.Total] {μl : List Label} {s t : State} (hm : lts.MTr s μl t)
+    : ∃ μs ss, lts.OmegaExecution ss (μl ++ω μs) ∧ ss 0 = s ∧ ss μl.length = t := by
   let μs : ωSequence Label := .const default
   obtain ⟨ss', ho, h0⟩ := Total.omegaExecution_exists (h := ht) t μs
   grind [OmegaExecution.append hm ho h0]
 
 /-- `totalize` constructs a total LTS from any given LTS by adding a sink state. -/
 def totalize (lts : LTS State Label) : LTS (Option State) Label where
-  Tr s' μ t' := match s', t' with
+  Tr s' μ t' :=
+    match s', t' with
     | some s, some t => lts.Tr s μ t
     | _, none => True
     | none, some _ => False
@@ -75,8 +83,8 @@ instance (lts : LTS State Label) : lts.totalize.Total where
     simp [totalize]
 
 /-- In `totalize`, there is no finite execution from the sink state to any non-sink state. -/
-theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State} :
-    ¬ lts.totalize.MTr (none) μs (some t) := by
+theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State}
+    : ¬ lts.totalize.MTr (none) μs (some t) := by
   induction μs with
   | nil => simp
   | cons μ μs ih =>
@@ -85,21 +93,24 @@ theorem totalize.no_sink_to_nonsink {μs : List Label} {t : State} :
     · exact ih hmtr
     · exact htr
 
-/-- In `totalize`, the transitions between non-sink states correspond exactly to
-the transitions in the original LTS. -/
+/--
+In `totalize`, the transitions between non-sink states correspond exactly to
+the transitions in the original LTS.
+-/
 @[simp]
-theorem totalize.nonsink_tr_iff {μ : Label} {s t : State} :
-    lts.totalize.Tr (some s) μ (some t) ↔ lts.Tr s μ t := by
+theorem totalize.nonsink_tr_iff {μ : Label} {s t : State}
+    : lts.totalize.Tr (some s) μ (some t) ↔ lts.Tr s μ t := by
   simp [totalize]
 
-/-- In `totalize`, the multistep transitions between non-sink states correspond exactly to
-the multistep transitions in the original LTS. -/
+/--
+In `totalize`, the multistep transitions between non-sink states correspond exactly to
+the multistep transitions in the original LTS.
+-/
 @[simp]
-theorem totalize.nonsink_mtr_iff {μs : List Label} {s t : State} :
-    lts.totalize.MTr (some s) μs (some t) ↔ lts.MTr s μs t := by
+theorem totalize.nonsink_mtr_iff {μs : List Label} {s t : State}
+    : lts.totalize.MTr (some s) μs (some t) ↔ lts.MTr s μs t := by
   induction μs generalizing s with
   | nil => simp
-  | cons μ μs ih =>
-    simp [MTr.cons_iff, Option.exists, no_sink_to_nonsink, ih]
+  | cons μ μs ih => simp [MTr.cons_iff, Option.exists, no_sink_to_nonsink, ih]
 
 end Cslib.LTS

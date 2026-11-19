@@ -32,8 +32,8 @@ open Enumeration Relation
 variable {Event State Operation Value Message Process Role : Type*} [Enumeration Event]
 
 /-- Concrete execution structure. -/
-structure ConcreteExecution (Event State Operation Value Message Process Role : Type*)
-    [Enumeration Event] where
+structure ConcreteExecution
+    (Event State Operation Value Message Process Role : Type*) [Enumeration Event] where
   /-- `tr` assigns each event its transition. -/
   tr : Event → Transition State Operation Value Message Process
   /-- `role` assigns each event its role id. -/
@@ -74,8 +74,8 @@ abbrev isReturn (x : Event) := (exec.tr x).rval.isSome
 
 open Classical in
 /-- Projecting a concrete execution on a role to obtain a trajectory. -/
-noncomputable def trajectory (r : Role) :
-    Trajectory {x : Event // exec.role x = r} State Operation Value Message Process where
+noncomputable def trajectory (r : Role)
+    : Trajectory {x : Event // exec.role x = r} State Operation Value Message Process where
   tr := Subtype.restrict (fun x ↦ exec.role x = r) exec.tr
 
 /-- The return event of an event according to its role's trajectory. -/
@@ -90,17 +90,20 @@ noncomputable def callOf (x : Event) : Option Event :=
 structure WellFormed : Prop where
   /-- Projecting the concrete execution on each role produces a well-formed trajectory. -/
   trajectory_wellFormed (r : Role) : (exec.trajectory r).WellFormed
-  /-- If a message from event `x` is delivered to event `y`, then `x` strictly precedes `y`
-  and the message received by `y` is sent by `x`. -/
-  del_snd_lt_rcv (x y : Event) : exec.del x y → x < y ∧
-    ∃ m, exec.rcv y = some m ∧ m ∈ exec.snd x
+  /--
+  If a message from event `x` is delivered to event `y`, then `x` strictly precedes `y`
+  and the message received by `y` is sent by `x`.
+  -/
+  del_snd_lt_rcv (x y : Event) : exec.del x y → x < y ∧ ∃ m, exec.rcv y = some m ∧ m ∈ exec.snd x
   /-- An event can be delivered a message from at most one other event. -/
   del_sender_unique (x1 x2 y : Event) : exec.del x1 y → exec.del x2 y → x1 = x2
 
-/-- Lemma 7.1 of [Burckhardt2014]: if all calls return immediately,
-then the concrete execution is return well-formed. -/
-theorem isCall_eq_isReturn_returnWellFormed (h : exec.isCall = exec.isReturn) (r : Role) :
-    (exec.trajectory r).ReturnWellFormed :=
+/--
+Lemma 7.1 of [Burckhardt2014]: if all calls return immediately,
+then the concrete execution is return well-formed.
+-/
+theorem isCall_eq_isReturn_returnWellFormed (h : exec.isCall = exec.isReturn) (r : Role)
+    : (exec.trajectory r).ReturnWellFormed :=
   (exec.trajectory r).isCall_eq_isReturn_returnWellFormed (funext fun x ↦ congrFun h x.val)
 
 /-- A history contains only call events. -/
@@ -139,13 +142,14 @@ theorem rb_strict_order : IsStrictOrder exec.HistoryEvent exec.baseHistory.rb :=
     exact ⟨z1, hz1, h1.trans (lt_of_le_of_lt (exec.self_le_returnOf hz2) h2)⟩
 
 theorem rb_pred_finite (x : exec.HistoryEvent) : (predecessors exec.baseHistory.rb x).Finite := by
-  refine ((lt_finite_predecessors x.val).preimage
-    Subtype.val_injective.injOn).subset ?_
+  refine ((lt_finite_predecessors x.val).preimage Subtype.val_injective.injOn).subset ?_
   rintro y ⟨z, hz, hlt⟩
   exact lt_of_le_of_lt (exec.self_le_returnOf hz) hlt
 
-theorem not_rb {x y : exec.HistoryEvent} {z : Event}
-    (hxy : ¬ exec.baseHistory.rb x y) (hx : exec.returnOf x.val = some z) : y ≤ z := by
+theorem not_rb
+    {x y : exec.HistoryEvent} {z : Event}
+    (hxy : ¬ exec.baseHistory.rb x y) (hx : exec.returnOf x.val = some z)
+    : y ≤ z := by
   exact not_lt.mp fun h ↦ hxy ⟨z, hx, h⟩
 
 theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
@@ -157,22 +161,25 @@ theorem rb_interval_order : IsIntervalOrder exec.baseHistory.rb := by
     have h4 : y1.val ≤ z2 := exec.not_rb hn.2 hz2
     exact lt_irrefl z1 (h1.trans (h4.trans_lt (h2.trans_le h3)))
 
-theorem rb_rval_ne_none {x y : exec.HistoryEvent}
-    (h : exec.baseHistory.rb x y) : exec.baseHistory.rval x ≠ none := by
+theorem rb_rval_ne_none {x y : exec.HistoryEvent} (h : exec.baseHistory.rb x y)
+    : exec.baseHistory.rval x ≠ none := by
   obtain ⟨z, hz, -⟩ := h
   have := exec.isReturn_returnOf hz
   simp_all [baseHistory, Option.isSome_iff_ne_none]
 
-theorem rb_of_lt (hwf : exec.WellFormed) {x y : exec.HistoryEvent}
-    (hr : exec.role x.val = exec.role y.val) (hlt : x.val < y.val) : exec.baseHistory.rb x y := by
-  obtain ⟨z, hz, hxz, hzy⟩ := (hwf.trajectory_wellFormed (exec.role x.val)).call_return_call
-    ⟨x.val, rfl⟩ ⟨y.val, hr.symm⟩ hlt x.prop y.prop
+theorem rb_of_lt
+    (hwf : exec.WellFormed)
+    {x y : exec.HistoryEvent} (hr : exec.role x.val = exec.role y.val) (hlt : x.val < y.val)
+    : exec.baseHistory.rb x y := by
+  obtain ⟨z, hz, hxz, hzy⟩ :=
+    (hwf.trajectory_wellFormed (exec.role x.val)).call_return_call ⟨x.val, rfl⟩ ⟨y.val, hr.symm⟩ hlt
+      x.prop y.prop
   obtain ⟨w, hw, hwz⟩ := (exec.trajectory _).returnOf_le hz hxz
   refine ⟨w.val, ?_, lt_of_le_of_lt hwz hzy⟩
   simp [returnOf, hw]
 
-theorem so_strict_total_order (hwf : exec.WellFormed) (r : Role) :
-    IsStrictTotalOrder {x : exec.HistoryEvent | exec.baseHistory.se x = r}
+theorem so_strict_total_order (hwf : exec.WellFormed) (r : Role)
+    : IsStrictTotalOrder {x : exec.HistoryEvent | exec.baseHistory.se x = r}
       (exec.baseHistory.so r) := by
   have hso := exec.rb_strict_order
   refine { trichotomous := ?_, irrefl := ?_, trans := ?_ }
@@ -186,10 +193,12 @@ theorem so_strict_total_order (hwf : exec.WellFormed) (r : Role) :
   · rintro a b c ⟨ha, -, h1⟩ ⟨-, hc, h2⟩
     exact ⟨ha, hc, hso.trans _ _ _ h1 h2⟩
 
-/-- The history extracted from a concrete execution by restriction to call events
-is a well-defined history. -/
-noncomputable def history (hwf : exec.WellFormed) :
-    History exec.HistoryEvent Operation Value Role where
+/--
+The history extracted from a concrete execution by restriction to call events
+is a well-defined history.
+-/
+noncomputable def history (hwf : exec.WellFormed)
+    : History exec.HistoryEvent Operation Value Role where
   bh := exec.baseHistory
   rb_strict_order := exec.rb_strict_order
   rb_pred_finite := exec.rb_pred_finite

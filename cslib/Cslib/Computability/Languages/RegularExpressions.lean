@@ -26,16 +26,17 @@ open Set Computability
 variable {α : Type*}
 
 @[simp]
-theorem mem_sum_matches' (rs : List (RegularExpression α)) (x : List α) :
-    x ∈ rs.sum.matches' ↔ ∃ r ∈ rs, x ∈ r.matches' := by
+theorem mem_sum_matches' (rs : List (RegularExpression α)) (x : List α)
+    : x ∈ rs.sum.matches' ↔ ∃ r ∈ rs, x ∈ r.matches' := by
   induction rs with
   | nil => simp
   | cons head tail ih =>
     simp only [List.sum_cons, matches', Language.mem_add, ih, List.mem_cons, exists_eq_or_imp]
 
-theorem iSup_matches' {I : Type*} [Finite I] {s : Set I} {l : I → Language α}
-    (h : ∀ i ∈ s, ∃ r : RegularExpression α, l i = r.matches') :
-    ∃ r : RegularExpression α, (⨆ i ∈ s, l i) = r.matches' := by
+theorem iSup_matches'
+    {I : Type*} [Finite I]
+    {s : Set I} {l : I → Language α} (h : ∀ i ∈ s, ∃ r : RegularExpression α, l i = r.matches')
+    : ∃ r : RegularExpression α, (⨆ i ∈ s, l i) = r.matches' := by
   generalize h_n : s.ncard = n
   induction n generalizing s
   case zero =>

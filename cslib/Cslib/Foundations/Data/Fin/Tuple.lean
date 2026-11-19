@@ -27,22 +27,22 @@ theorem castAdd_ne_natAdd (i : Fin m) (j : Fin n) : castAdd n i ≠ natAdd m j :
   Fin.ne_of_lt ((castAdd_lt n i).trans_le (Nat.le_add_right m j))
 
 /-- Post-composition commutes with `Fin.append`. -/
-theorem comp_append (f : α → β) (a : Fin m → α) (b : Fin n → α) :
-    f ∘ append a b = append (f ∘ a) (f ∘ b) := by
+theorem comp_append (f : α → β) (a : Fin m → α) (b : Fin n → α)
+    : f ∘ append a b = append (f ∘ a) (f ∘ b) := by
   funext i
   cases i using addCases <;> simp
 
 /-- Updating an entry of the left tuple is updating the appended tuple at `castAdd`. -/
-theorem append_update_left (a : Fin m → α) (b : Fin n → α) (i : Fin m) (x : α) :
-    append (Function.update a i x) b = Function.update (append a b) (castAdd n i) x := by
+theorem append_update_left (a : Fin m → α) (b : Fin n → α) (i : Fin m) (x : α)
+    : append (Function.update a i x) b = Function.update (append a b) (castAdd n i) x := by
   funext l
   cases l using addCases with
   | left j => simp [Function.update_apply]
   | right j => simp [Function.update_of_ne (castAdd_ne_natAdd i j).symm]
 
 /-- Updating an entry of the right tuple is updating the appended tuple at `natAdd`. -/
-theorem append_update_right (a : Fin m → α) (b : Fin n → α) (i : Fin n) (x : α) :
-    append a (Function.update b i x) = Function.update (append a b) (natAdd m i) x := by
+theorem append_update_right (a : Fin m → α) (b : Fin n → α) (i : Fin n) (x : α)
+    : append a (Function.update b i x) = Function.update (append a b) (natAdd m i) x := by
   funext l
   cases l using addCases with
   | left j => simp [Function.update_of_ne (castAdd_ne_natAdd j i)]

@@ -57,7 +57,9 @@ lemma body_let : (let' t₁ t₂).LC ↔ t₁.LC ∧ t₂.body := by
 @[scoped grind _=_]
 lemma body_case : (case t₁ t₂ t₃).LC ↔ t₁.LC ∧ t₂.body ∧ t₃.body := by
   constructor <;> intro h
-  case mp => cases h with | case L t₁_lc h₂ h₃ => exact ⟨t₁_lc, ⟨L, h₂⟩, ⟨L, h₃⟩⟩
+  case mp =>
+    cases h with
+    | case L t₁_lc h₂ h₃ => exact ⟨t₁_lc, ⟨L, h₂⟩, ⟨L, h₃⟩⟩
   case mpr =>
     obtain ⟨_, ⟨_, _⟩, ⟨_, _⟩⟩ := h
     grind [LC.case <| free_union Var]
@@ -81,8 +83,7 @@ inductive Value : Term Var → Prop
   | inr : Value t₁ → Value (inr t₁)
 
 @[grind →]
-lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by
-  induction val <;> grind
+lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by induction val <;> grind
 
 /-- The call-by-value reduction relation. -/
 @[grind, reduction_sys "βᵛ"]
@@ -108,9 +109,8 @@ lemma Red.lc {t t' : Term Var} (red : t ⭢βᵛ t') : t.LC ∧ t'.LC := by
     split_ands
     · grind
     · cases lc
-      grind [
-        fresh_exists <| free_union [fvTm, fvTy] Var, substTm_lc,
-        substTy_lc, openTm_substTm_intro, openTy_substTy_intro]
+      grind [fresh_exists <| free_union [fvTm, fvTy] Var, substTm_lc, substTy_lc,
+        openTm_substTm_intro, openTy_substTy_intro]
   all_goals grind
 
 end Term

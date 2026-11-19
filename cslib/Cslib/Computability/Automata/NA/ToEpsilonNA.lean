@@ -20,8 +20,10 @@ namespace Cslib.Automata.NA
 
 variable {State Symbol : Type*}
 
-/-- `NA` is a special case of `εNA`, through `LTS.mapHom` and `Language.Hom.reduceOption`: the
-transitions on `some x` are the runs of the `NA` on `[x]`, and the ε-transitions are self-loops. -/
+/--
+`NA` is a special case of `εNA`, through `LTS.mapHom` and `Language.Hom.reduceOption`: the
+transitions on `some x` are the runs of the `NA` on `[x]`, and the ε-transitions are self-loops.
+-/
 def toEpsilonNA (a : NA State Symbol) : εNA State Symbol where
   toLTS := a.toLTS.mapHom Language.Hom.reduceOption
   start := a.start
@@ -29,14 +31,16 @@ def toEpsilonNA (a : NA State Symbol) : εNA State Symbol where
 namespace FinAcc
 
 /-- `NA.FinAcc` is a special case of `εNA.FinAcc`. -/
-def toEpsilonNAFinAcc (a : NA.FinAcc State Symbol) : εNA.FinAcc State Symbol :=
-  { a.toEpsilonNA with accept := a.accept }
+def toEpsilonNAFinAcc (a : NA.FinAcc State Symbol) : εNA.FinAcc State Symbol := {
+  a.toEpsilonNA with
+  accept := a.accept
+}
 
 open Acceptor in
 /-- The `εNA.FinAcc` constructed from an `NA.FinAcc` has the same language. -/
 @[simp]
-theorem toEpsilonNAFinAcc_language_eq {a : NA.FinAcc State Symbol} :
-    language a.toEpsilonNAFinAcc = language a := by
+theorem toEpsilonNAFinAcc_language_eq {a : NA.FinAcc State Symbol}
+    : language a.toEpsilonNAFinAcc = language a := by
   ext xs
   rw [εNA.FinAcc.mem_language_iff, mem_language]
   constructor

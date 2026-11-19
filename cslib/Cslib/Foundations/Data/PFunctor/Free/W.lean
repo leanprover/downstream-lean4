@@ -33,30 +33,31 @@ def W.toFreeM : P.W → P.FreeM α
   | ⟨a, cont⟩ => .liftBind a fun b => W.toFreeM (cont b)
 
 @[simp]
-theorem FreeM.toWOfIsEmpty_lift_bind [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α) :
-    toWOfIsEmpty ((lift a).bind (α := no_index (P.B a)) cont) =
-      W.mk (.mk a fun b => toWOfIsEmpty (cont b)) := rfl
+theorem FreeM.toWOfIsEmpty_lift_bind [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α)
+    : toWOfIsEmpty ((lift a).bind (α := no_index (P.B a)) cont)
+      = W.mk (.mk a fun b => toWOfIsEmpty (cont b)) :=
+  rfl
 
 @[simp]
-theorem FreeM.toWOfIsEmpty_lift_bind' {α : Type uB} [IsEmpty α] (a : P.A)
-    (cont : P.B a → P.FreeM α) :
-    toWOfIsEmpty (Bind.bind (α := no_index (P.B a)) (lift a) cont) =
-      W.mk (.mk a fun b => toWOfIsEmpty (cont b)) := rfl
+theorem FreeM.toWOfIsEmpty_lift_bind' {α : Type uB} [IsEmpty α] (a : P.A) (cont : P.B a → P.FreeM α)
+    : toWOfIsEmpty (Bind.bind (α := no_index (P.B a)) (lift a) cont)
+      = W.mk (.mk a fun b => toWOfIsEmpty (cont b)) :=
+  rfl
 
 @[simp]
-theorem W.toFreeM_mk (a : P.A) (cont : P.B a → P.W) :
-    toFreeM (α := α) (W.mk (.mk a cont)) =
-      (FreeM.lift a).bind (fun b => toFreeM (cont b)) := rfl
+theorem W.toFreeM_mk (a : P.A) (cont : P.B a → P.W)
+    : toFreeM (α := α) (W.mk (.mk a cont)) = (FreeM.lift a).bind (fun b => toFreeM (cont b)) :=
+  rfl
 
 @[simp]
-theorem FreeM.toWOfIsEmpty_toFreeM [IsEmpty α] (x : P.W) :
-    toWOfIsEmpty (W.toFreeM (α := α) x) = x := by
+theorem FreeM.toWOfIsEmpty_toFreeM [IsEmpty α] (x : P.W)
+    : toWOfIsEmpty (W.toFreeM (α := α) x) = x := by
   induction x with
   | mk a cont ih => exact congrArg (WType.mk a) (funext ih)
 
 @[simp]
-theorem W.toFreeM_toWOfIsEmpty [IsEmpty α] (x : P.FreeM α) :
-    toFreeM (FreeM.toWOfIsEmpty x) = x := by
+theorem W.toFreeM_toWOfIsEmpty [IsEmpty α] (x : P.FreeM α)
+    : toFreeM (FreeM.toWOfIsEmpty x) = x := by
   induction x with
   | pure a => exact isEmptyElim a
   | lift_bind a cont ih => exact congrArg (FreeM.liftBind a) (funext ih)

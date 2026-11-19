@@ -56,12 +56,11 @@ inductive ParallelReduction : SKI → SKI → Prop
   | red_K (a b : SKI) : ParallelReduction (K ⬝ a ⬝ b) a
   | red_S (a b c : SKI) : ParallelReduction (S ⬝ a ⬝ b ⬝ c) (a ⬝ c ⬝ (b ⬝ c))
   /-- and allows simultaneous reduction of disjoint redexes. -/
-  | par ⦃a a' b b' : SKI⦄ :
-      ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
+  | par ⦃a a' b b' : SKI⦄
+    : ParallelReduction a a' → ParallelReduction b b' → ParallelReduction (a ⬝ b) (a' ⬝ b')
 
 /-- The inclusion `(· ⭢ₚ ·) ≤ (· ↠ ·)`. -/
-theorem ParallelReduction.le_reflTransGen_red :
-    (· ⭢ₚ ·) ≤ (· ↠ ·) := by
+theorem ParallelReduction.le_reflTransGen_red : (· ⭢ₚ ·) ≤ (· ↠ ·) := by
   intro a a' h
   cases h
   case refl => exact Relation.ReflTransGen.refl
@@ -74,8 +73,7 @@ theorem ParallelReduction.le_reflTransGen_red :
   case red_S a b c => exact Relation.ReflTransGen.single (Red.red_S a b c)
 
 /-- The inclusion `(· ⭢ ·) ≤ (· ⭢ₚ ·)`. -/
-theorem Red.le_parallelReduction :
-    (· ⭢ ·) ≤ (· ⭢ₚ ·) := by
+theorem Red.le_parallelReduction : (· ⭢ ·) ≤ (· ⭢ₚ ·) := by
   intro a a' h
   cases h
   case red_S => apply ParallelReduction.red_S
@@ -91,8 +89,8 @@ theorem Red.le_parallelReduction :
     · exact h.le_parallelReduction
 
 /-- The relations `⭢` and `⭢ₚ` have the same reflexive-transitive closure. -/
-theorem reflTransGen_parallelReduction_mRed :
-    ReflTransGen ParallelReduction = ReflTransGen Red := by
+theorem reflTransGen_parallelReduction_mRed
+    : ReflTransGen ParallelReduction = ReflTransGen Red := by
   apply le_antisymm
   · exact reflTransGen_le_of_le ParallelReduction.le_reflTransGen_red
   · exact ReflTransGen.mono Red.le_parallelReduction
@@ -122,12 +120,11 @@ lemma S_irreducible (a : SKI) (h : S ⭢ₚ a) : a = S := by
 
 lemma Sa_irreducible (a c : SKI) (h : (S ⬝ a) ⭢ₚ c) : ∃ a', a ⭢ₚ a' ∧ c = S ⬝ a' := by
   cases h
-  case refl =>
-    exact ⟨a, ParallelReduction.refl a, rfl⟩
+  case refl => exact ⟨a, ParallelReduction.refl a, rfl⟩
   case par b a' h h' => rw [S_irreducible b h]; use a'
 
-lemma Sab_irreducible (a b c : SKI) (h : (S ⬝ a ⬝ b) ⭢ₚ c) :
-    ∃ a' b', a ⭢ₚ a' ∧ b ⭢ₚ b' ∧ c = S ⬝ a' ⬝ b' := by
+lemma Sab_irreducible (a b c : SKI) (h : (S ⬝ a ⬝ b) ⭢ₚ c)
+    : ∃ a' b', a ⭢ₚ a' ∧ b ⭢ₚ b' ∧ c = S ⬝ a' ⬝ b' := by
   cases h
   case refl => use a, b, .refl a, .refl b
   case par c b' hc hb =>
@@ -167,9 +164,7 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
       let ⟨a'', c', h⟩ := Sab_irreducible a c a' ha'
       rw [h.2.2]
       use a'' ⬝ b' ⬝ (c' ⬝ b'), .red_S a'' c' b'
-      apply ParallelReduction.par <;>
-        apply ParallelReduction.par <;>
-        grind
+      apply ParallelReduction.par <;> apply ParallelReduction.par <;> grind
   case red_I =>
     cases h₂
     case refl => use a₁; exact ⟨.refl a₁, .red_I a₁⟩
@@ -186,8 +181,7 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
       rw [h'.2]
       use a₁'
       exact ⟨h'.1, .red_K a₁' c'⟩
-    case red_K =>
-      use a₁; exact ⟨.refl a₁, .refl a₁⟩
+    case red_K => use a₁; exact ⟨.refl a₁, .refl a₁⟩
   case red_S a b c =>
     cases h₂
     case refl =>
@@ -202,15 +196,14 @@ theorem parallelReduction_diamond : Diamond ParallelReduction := by
         · exact .par h.left hc
         · exact .par h.2.1 hc
       · exact .red_S ..
-    case red_S => exact ⟨a ⬝ c ⬝ (b ⬝ c), .refl _, .refl _,⟩
+    case red_S => exact ⟨a ⬝ c ⬝ (b ⬝ c), .refl _, .refl _⟩
 
-theorem join_parallelReduction_equivalence :
-    Equivalence (Join (ReflTransGen ParallelReduction)) :=
+theorem join_parallelReduction_equivalence : Equivalence (Join (ReflTransGen ParallelReduction)) :=
   Confluent.equivalence_join_reflTransGen <| Diamond.to_confluent parallelReduction_diamond
 
 /-- The **Church-Rosser** theorem in its general form. -/
 theorem join_mRed_equivalence : Equivalence (Join (ReflTransGen Red)) := by
-  rw [←reflTransGen_parallelReduction_mRed]
+  rw [← reflTransGen_parallelReduction_mRed]
   exact join_parallelReduction_equivalence
 
 /-- The **Church-Rosser** theorem in the form it is usually stated. -/

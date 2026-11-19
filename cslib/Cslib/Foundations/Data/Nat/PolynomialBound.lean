@@ -26,13 +26,11 @@ namespace Cslib
 open Asymptotics Filter
 
 /-- A function is polynomially bounded if a fixed power eventually bounds its values. -/
-def PolynomiallyBounded (f : ℕ → ℕ) : Prop :=
-  ∃ d : ℕ, f ≤ᶠ[atTop] (· ^ d)
+def PolynomiallyBounded (f : ℕ → ℕ) : Prop := ∃ d : ℕ, f ≤ᶠ[atTop] (· ^ d)
 
 /-- Polynomial growth is equivalent to a big-O bound after casting to the reals. -/
-theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
-    PolynomiallyBounded f ↔
-      ∃ d : ℕ, (fun n => (f n : ℝ)) =O[atTop] (fun n => (n : ℝ) ^ d) := by
+theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ}
+    : PolynomiallyBounded f ↔ ∃ d : ℕ, (fun n => (f n : ℝ)) =O[atTop] (fun n => (n : ℝ) ^ d) := by
   constructor
   · rintro ⟨d, hd⟩
     refine ⟨d, .of_bound' ?_⟩
@@ -46,8 +44,8 @@ theorem polynomiallyBounded_iff_isBigO {f : ℕ → ℕ} :
     exact_mod_cast hn
 
 /-- A polynomial bound can absorb every finite prefix into its constant factor. -/
-theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
-    PolynomiallyBounded f ↔ ∃ c d : ℕ, ∀ n, f n ≤ c * (n + 1) ^ d := by
+theorem polynomiallyBounded_iff_le {f : ℕ → ℕ}
+    : PolynomiallyBounded f ↔ ∃ c d : ℕ, ∀ n, f n ≤ c * (n + 1) ^ d := by
   constructor
   · simp_rw [PolynomiallyBounded, EventuallyLE, eventually_atTop]
     intro ⟨d, m, h⟩
@@ -61,7 +59,8 @@ theorem polynomiallyBounded_iff_le {f : ℕ → ℕ} :
     refine ⟨d + 1, ?_⟩
     filter_upwards [eventually_ge_atTop 1, eventually_ge_atTop (c * 2 ^ d)] with n hn hc
     calc
-      f n ≤ c * (n + 1) ^ d := hf n
+      f n
+        ≤ c * (n + 1) ^ d := hf n
       _ ≤ c * (2 * n) ^ d := by gcongr; lia
       _ = (c * 2 ^ d) * n ^ d := by rw [mul_pow, mul_assoc]
       _ ≤ n * n ^ d := Nat.mul_le_mul_right _ hc

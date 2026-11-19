@@ -24,21 +24,24 @@ def toFLTS (lts : LTS State Label) : FLTS (Set State) Label where
 
 /-- Characterisation of transitions in `LTS.toFLTS` wrt transitions in the original `LTS`. -/
 @[scoped grind =]
-theorem toFLTS_mem_tr {lts : LTS State Label} {S : Set State} {s' : State} {μ : Label} :
-  s' ∈ lts.toFLTS.tr S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
+theorem toFLTS_mem_tr {lts : LTS State Label} {S : Set State} {s' : State} {μ : Label}
+    : s' ∈ lts.toFLTS.tr S μ ↔ ∃ s ∈ S, lts.Tr s μ s' := by
   simp only [LTS.toFLTS, LTS.setImage, Set.mem_iUnion, exists_prop]
   grind
 
-/-- Characterisation of multistep transitions in `LTS.toFLTS` wrt multistep transitions in the
-original `LTS`. -/
+/--
+Characterisation of multistep transitions in `LTS.toFLTS` wrt multistep transitions in the
+original `LTS`.
+-/
 @[scoped grind =]
-theorem toFLTS_mem_mtr {lts : LTS State Label} {S : Set State} {s' : State} {μs : List Label} :
-    s' ∈ lts.toFLTS.mtr S μs ↔ ∃ s ∈ S, lts.MTr s μs s' :=
+theorem toFLTS_mem_mtr {lts : LTS State Label} {S : Set State} {s' : State} {μs : List Label}
+    : s' ∈ lts.toFLTS.mtr S μs ↔ ∃ s ∈ S, lts.MTr s μs s' :=
   ⟨by grind [FLTS.mtr], by grind [FLTS.mtr]⟩
 
 /-- Characterisation of multistep transitions in `LTS.toFLTS` as image transitions in `LTS`. -/
 @[scoped grind =]
-theorem toFLTS_mtr_setImageMultistep {lts : LTS State Label} :
-  lts.toFLTS.mtr = lts.setImageMultistep := by grind
+theorem toFLTS_mtr_setImageMultistep {lts : LTS State Label}
+    : lts.toFLTS.mtr = lts.setImageMultistep := by
+  grind
 
 end Cslib.LTS

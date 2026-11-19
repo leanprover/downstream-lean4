@@ -59,8 +59,8 @@ structure LTS.Morphism (lts₁ lts₂ : LTSCat.{u, v}) : Type (max u v) where
   /-- Mapping of labels of `lts₁` to labels of `lts₂` -/
   labelMap : lts₁.Label → Option lts₂.Label
   /-- Stipulation that `stateMap` preserve transitions -/
-  labelMap_tr (s s' : lts₁.State) (l : lts₁.Label) :
-    lts₁.lts.Tr s l s' → (withIdle lts₂.lts).Tr (stateMap s) (labelMap l) (stateMap s')
+  labelMap_tr (s s' : lts₁.State) (l : lts₁.Label)
+    : lts₁.lts.Tr s l s' → (withIdle lts₂.lts).Tr (stateMap s) (labelMap l) (stateMap s')
 
 /-- The identity LTS morphism. -/
 def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
@@ -68,12 +68,13 @@ def LTS.Morphism.id (lts : LTSCat) : LTS.Morphism lts lts where
   labelMap := pure
   labelMap_tr _ _ _ := _root_.id
 
-/-- Composition of LTS morphisms.
+/--
+Composition of LTS morphisms.
 
 We use Kleisli composition to define this.
 -/
-def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g : LTS.Morphism lts₂ lts₃) :
-    LTS.Morphism lts₁ lts₃ where
+def LTS.Morphism.comp {lts₁ lts₂ lts₃} (f : LTS.Morphism lts₁ lts₂) (g : LTS.Morphism lts₂ lts₃)
+    : LTS.Morphism lts₁ lts₃ where
   stateMap := g.stateMap ∘ f.stateMap
   labelMap := f.labelMap >=> g.labelMap
   labelMap_tr s s' l h := by

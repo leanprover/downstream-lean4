@@ -18,13 +18,15 @@ namespace Cslib.Logic
 
 open scoped InferenceSystem
 
-/-- A logical equivalence `eqv` for an inference system `S` is a congruence on propositions (of type
-`α`) that preserves validity of judgements under any judgemental context. -/
-class LogicalEquivalence S (eqv : α → α → Prop)
+/--
+A logical equivalence `eqv` for an inference system `S` is a congruence on propositions (of type
+`α`) that preserves validity of judgements under any judgemental context.
+-/
+class LogicalEquivalence
+    S (eqv : α → α → Prop)
     [HasContext α] [Congruence eqv] [HasHContext Judgement α] [InferenceSystem S Judgement]
     extends LawfulCongruence eqv where
   /-- Validity is preserved for any judgemental context. -/
-  eqvFillValid (heqv : a ≡[eqv] b) (c : HasHContext.Context Judgement α)
-    (h : S⇓(c<[a])) : S⇓(c<[b])
+  eqvFillValid (heqv : a ≡[eqv] b) (c : HasHContext.Context Judgement α) (h : S⇓(c<[a])) : S⇓(c<[b])
 
 end Cslib.Logic

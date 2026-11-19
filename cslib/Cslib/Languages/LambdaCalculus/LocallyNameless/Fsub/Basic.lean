@@ -43,7 +43,7 @@ inductive Ty (Var : Type*)
   | all : Ty Var → Ty Var → Ty Var
   /-- A sum type. -/
   | sum : Ty Var → Ty Var → Ty Var
-  deriving Inhabited
+deriving Inhabited
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type*)
@@ -74,37 +74,37 @@ inductive Binding (Var : Type*)
   | sub : Ty Var → Binding Var
   /-- Type binding. -/
   | ty : Ty Var → Binding Var
-  deriving Inhabited
+deriving Inhabited
 
 /-- Free variables of a type. -/
 @[scoped grind =]
 def Ty.fv : Ty Var → Finset Var
-| top | bvar _ => {}
-| fvar X => {X}
-| arrow σ τ | all σ τ | sum σ τ => σ.fv ∪ τ.fv
+  | top | bvar _ => {}
+  | fvar X => {X}
+  | arrow σ τ | all σ τ | sum σ τ => σ.fv ∪ τ.fv
 
 /-- Free variables of a binding. -/
 @[scoped grind =]
 def Binding.fv : Binding Var → Finset Var
-| sub σ | ty σ => σ.fv
+  | sub σ | ty σ => σ.fv
 
 /-- Free type variables of a term. -/
 @[scoped grind =]
 def Term.fvTy : Term Var → Finset Var
-| bvar _ | fvar _ => {}
-| abs σ t₁ | tabs σ t₁ | tapp t₁ σ => σ.fv ∪ t₁.fvTy
-| inl t₁ | inr t₁ => t₁.fvTy
-| app t₁ t₂ | let' t₁ t₂ => t₁.fvTy ∪ t₂.fvTy
-| case t₁ t₂ t₃ => t₁.fvTy ∪ t₂.fvTy ∪ t₃.fvTy
+  | bvar _ | fvar _ => {}
+  | abs σ t₁ | tabs σ t₁ | tapp t₁ σ => σ.fv ∪ t₁.fvTy
+  | inl t₁ | inr t₁ => t₁.fvTy
+  | app t₁ t₂ | let' t₁ t₂ => t₁.fvTy ∪ t₂.fvTy
+  | case t₁ t₂ t₃ => t₁.fvTy ∪ t₂.fvTy ∪ t₃.fvTy
 
 /-- Free term variables of a term. -/
 @[scoped grind =]
 def Term.fvTm : Term Var → Finset Var
-| bvar _ => {}
-| fvar x => {x}
-| abs _ t₁ | tabs _ t₁ | tapp t₁ _ | inl t₁ | inr t₁ => t₁.fvTm
-| app t₁ t₂ | let' t₁ t₂ => t₁.fvTm ∪ t₂.fvTm
-| case t₁ t₂ t₃ => t₁.fvTm ∪ t₂.fvTm ∪ t₃.fvTm
+  | bvar _ => {}
+  | fvar x => {x}
+  | abs _ t₁ | tabs _ t₁ | tapp t₁ _ | inl t₁ | inr t₁ => t₁.fvTm
+  | app t₁ t₂ | let' t₁ t₂ => t₁.fvTm ∪ t₂.fvTm
+  | case t₁ t₂ t₃ => t₁.fvTm ∪ t₂.fvTm ∪ t₃.fvTm
 
 /-- A context of bindings. -/
 abbrev Env (Var : Type*) := Context Var (Binding Var)

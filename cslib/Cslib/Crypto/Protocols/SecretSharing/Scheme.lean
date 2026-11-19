@@ -35,9 +35,10 @@ coalitions.
 namespace Cslib.Crypto.Protocols.SecretSharing
 
 /-- The view distribution induced by raw sharing data. -/
-noncomputable def viewDistOf {Secret Randomness Party Share : Type*}
-    (gen : PMF Randomness) (share : Randomness → Secret → Party → Share)
-    (s : Finset Party) (secret : Secret) : PMF (s → Share) :=
+noncomputable def viewDistOf
+    {Secret Randomness Party Share : Type*} (gen : PMF Randomness)
+    (share : Randomness → Secret → Party → Share) (s : Finset Party) (secret : Secret)
+    : PMF (s → Share) :=
   PMF.map (fun r : Randomness => (fun i : s => share r secret i : s → Share)) gen
 
 /--
@@ -61,43 +62,48 @@ structure Scheme (Secret Randomness Party Share : Type*) where
   /-- Authorization is monotone in the coalition. -/
   authorized_mono : Monotone authorized
   /-- Authorized coalitions reconstruct the secret from the restricted view. -/
-  correct :
-    ∀ (r : Randomness) (secret : Secret) (s : Finset Party),
+  correct
+    : ∀ (r : Randomness) (secret : Secret) (s : Finset Party),
       authorized s → reconstruct s (fun i => share r secret i) = secret
   /-- Unauthorized coalitions receive secret-independent view distributions. -/
-  view_indist :
-    ∀ (s : Finset Party), ¬ authorized s → ∀ secret₀ secret₁ : Secret,
-      viewDistOf gen share s secret₀ = viewDistOf gen share s secret₁
+  view_indist
+    : ∀ (s : Finset Party),
+      ¬ authorized s
+        → ∀ secret₀ secret₁ : Secret,
+          viewDistOf gen share s secret₀ = viewDistOf gen share s secret₁
 
 namespace Scheme
 
 variable {Secret Randomness Party Share : Type*}
 
 /-- The restricted shares observed by the coalition `s`. -/
-def view (scheme : Scheme Secret Randomness Party Share) (s : Finset Party)
-    (r : Randomness) (secret : Secret) : s → Share :=
-  fun i => scheme.share r secret i
+def view
+    (scheme : Scheme Secret Randomness Party Share) (s : Finset Party) (r : Randomness)
+    (secret : Secret)
+    : s → Share := fun i =>
+  scheme.share r secret i
 
 @[simp]
-theorem view_apply (scheme : Scheme Secret Randomness Party Share) (s : Finset Party)
-    (r : Randomness) (secret : Secret) (i : s) :
-    scheme.view s r secret i = scheme.share r secret i :=
+theorem view_apply
+    (scheme : Scheme Secret Randomness Party Share)
+    (s : Finset Party)
+    (r : Randomness) (secret : Secret) (i : s)
+    : scheme.view s r secret i = scheme.share r secret i :=
   rfl
 
 /-- Authorized coalitions reconstruct the secret from the restricted view. -/
 theorem reconstruct_view_eq_secret
     (scheme : Scheme Secret Randomness Party Share)
-    (r : Randomness) (secret : Secret) {s : Finset Party}
-    (hs : scheme.authorized s) :
-    scheme.reconstruct s (scheme.view s r secret) = secret :=
+    (r : Randomness) (secret : Secret)
+    {s : Finset Party} (hs : scheme.authorized s)
+    : scheme.reconstruct s (scheme.view s r secret) = secret :=
   scheme.correct r secret s hs
 
 /-- Any sub-coalition of an unauthorized coalition is unauthorized as well. -/
 theorem not_authorized_of_subset
     (scheme : Scheme Secret Randomness Party Share)
-    {s t : Finset Party} (hst : s ⊆ t)
-    (ht : ¬ scheme.authorized t) :
-    ¬ scheme.authorized s :=
+    {s t : Finset Party} (hst : s ⊆ t) (ht : ¬ scheme.authorized t)
+    : ¬ scheme.authorized s :=
   mt (scheme.authorized_mono hst) ht
 
 end Scheme

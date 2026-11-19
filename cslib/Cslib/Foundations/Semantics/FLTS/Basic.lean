@@ -37,7 +37,8 @@ namespace FLTS
 
 variable {State Label : Type*}
 
-/-- Extended transition function.
+/--
+Extended transition function.
 
 Implementation note: compared to [Hopcroft2006], the definition consumes the input list of symbols
 from the left (instead of the right), in order to match the way lists are constructed.
@@ -49,12 +50,12 @@ def mtr (flts : FLTS State Label) (s : State) (μs : List Label) := μs.foldl fl
 theorem mtr_nil_eq {flts : FLTS State Label} {s : State} : flts.mtr s [] = s := rfl
 
 @[simp, scoped grind =]
-theorem mtr_concat_eq {flts : FLTS State Label} {s : State} {μs : List Label} {μ : Label} :
-    flts.mtr s (μs ++ [μ]) = flts.tr (flts.mtr s μs) μ := by
+theorem mtr_concat_eq {flts : FLTS State Label} {s : State} {μs : List Label} {μ : Label}
+    : flts.mtr s (μs ++ [μ]) = flts.tr (flts.mtr s μs) μ := by
   grind
 
-theorem mtr_append_eq {flts : FLTS State Label} {s : State} {μs1 μs2 : List Label} :
-    flts.mtr s (μs1 ++ μs2) = flts.mtr (flts.mtr s μs1) μs2 := by
+theorem mtr_append_eq {flts : FLTS State Label} {s : State} {μs1 μs2 : List Label}
+    : flts.mtr s (μs1 ++ μs2) = flts.mtr (flts.mtr s μs1) μs2 := by
   simp [mtr]
 
 end FLTS

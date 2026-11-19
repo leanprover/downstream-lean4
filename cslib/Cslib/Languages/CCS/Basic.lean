@@ -108,8 +108,7 @@ inductive IsVisible : Act Name → Prop where
 
 /-- If an action is visible, it is not `τ`. -/
 @[scoped grind →, simp]
-theorem isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by
-  cases μ <;> grind
+theorem isVisible_neq_τ {μ : Act Name} (h : μ.IsVisible) : μ ≠ Act.τ := by cases μ <;> grind
 
 /-- Checks that an action is the coaction of another. -/
 @[scoped grind]
@@ -129,7 +128,9 @@ theorem co_isVisible (h : Act.Co μ μ') : μ.IsVisible ∧ μ'.IsVisible := by 
 @[scoped grind =]
 def isCo [DecidableEq Name] (μ μ' : Act Name) : Bool :=
   match μ, μ' with
-  | name a, coname b | coname a, name b => a = b
+  | name a, coname b
+  | coname a, name b =>
+    a = b
   | _, _ => false
 
 theorem isCo_iff [DecidableEq Name] {μ μ' : Act Name} : isCo μ μ' ↔ Co μ μ' := by
@@ -169,14 +170,18 @@ instance : HasContext (Process Name Constant) := ⟨Context.fill⟩
 
 /-- Definition of context filling. -/
 @[scoped grind =]
-theorem context_fill_def (c : Context Name Constant) (p : Process Name Constant) :
-  c<[p] = c.fill p := rfl
+theorem context_fill_def (c : Context Name Constant) (p : Process Name Constant)
+    : c<[p] = c.fill p :=
+  rfl
 
-/-- Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`
-is a complete formalisation of syntactic contexts for CCS. -/
-theorem Context.complete (p : Process Name Constant) :
-    ∃ c : Context Name Constant, p = c<[(Process.nil : Process Name Constant)] ∨
-    ∃ k : Constant, p = c<[(Process.const k : Process Name Constant)] := by
+/--
+Any `Process` can be obtained by filling a `Context` with an atom. This proves that `Context`
+is a complete formalisation of syntactic contexts for CCS.
+-/
+theorem Context.complete (p : Process Name Constant)
+    : ∃ c : Context Name Constant,
+      p = c<[(Process.nil : Process Name Constant)]
+        ∨ ∃ k : Constant, p = c<[(Process.const k : Process Name Constant)] := by
   induction p
   case nil =>
     exists hole

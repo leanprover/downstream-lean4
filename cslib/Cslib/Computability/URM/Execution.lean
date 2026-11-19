@@ -46,7 +46,8 @@ namespace Cslib.URM
 
 variable (p : Program)
 
-/-- Single-step execution relation for URMs.
+/--
+Single-step execution relation for URMs.
 
 Each constructor corresponds to one of the four instruction types:
 - `zero`: Execute `Z n` (set register n to 0)
@@ -57,23 +58,19 @@ Each constructor corresponds to one of the four instruction types:
 -/
 @[grind]
 inductive Step : State → State → Prop where
-  | zero {s : State} {n : ℕ}
-      (h : p[s.pc]? = some (Instr.Z n)) :
-      Step s ⟨s.pc + 1, s.regs.write n 0⟩
-  | succ {s : State} {n : ℕ}
-      (h : p[s.pc]? = some (Instr.S n)) :
-      Step s ⟨s.pc + 1, s.regs.write n (s.regs.read n + 1)⟩
-  | transfer {s : State} {m n : ℕ}
-      (h : p[s.pc]? = some (Instr.T m n)) :
-      Step s ⟨s.pc + 1, s.regs.write n (s.regs.read m)⟩
-  | jump_eq {s : State} {m n q : ℕ}
-      (h : p[s.pc]? = some (Instr.J m n q))
-      (heq : s.regs.read m = s.regs.read n) :
-      Step s ⟨q, s.regs⟩
-  | jump_ne {s : State} {m n q : ℕ}
-      (h : p[s.pc]? = some (Instr.J m n q))
-      (hne : s.regs.read m ≠ s.regs.read n) :
-      Step s ⟨s.pc + 1, s.regs⟩
+  | zero {s : State} {n : ℕ} (h : p[s.pc]? = some (Instr.Z n)) : Step s ⟨s.pc + 1, s.regs.write n 0⟩
+  | succ {s : State} {n : ℕ} (h : p[s.pc]? = some (Instr.S n))
+    : Step s ⟨s.pc + 1, s.regs.write n (s.regs.read n + 1)⟩
+  | transfer {s : State} {m n : ℕ} (h : p[s.pc]? = some (Instr.T m n))
+    : Step s ⟨s.pc + 1, s.regs.write n (s.regs.read m)⟩
+  | jump_eq
+    {s : State} {m n q : ℕ}
+    (h : p[s.pc]? = some (Instr.J m n q)) (heq : s.regs.read m = s.regs.read n)
+    : Step s ⟨q, s.regs⟩
+  | jump_ne
+    {s : State} {m n q : ℕ}
+    (h : p[s.pc]? = some (Instr.J m n q)) (hne : s.regs.read m ≠ s.regs.read n)
+    : Step s ⟨s.pc + 1, s.regs⟩
 
 /-- Multi-step execution: the reflexive-transitive closure of `Step`. -/
 abbrev Steps : State → State → Prop := Relation.ReflTransGen (Step p)
@@ -87,17 +84,19 @@ set_option linter.tacticAnalysis.verifyGrindOnly false in
 theorem deterministic : Relator.RightUnique (Step p) := by grind only [Relator.RightUnique]
 
 /-- A halted state has no successor in the step relation. -/
-theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬Step p s s' := by
+theorem no_step_of_halted {s s' : State} (hhalted : s.isHalted p) : ¬ Step p s s' := by
   grind [State.isHalted]
 
-/-- A single step preserves registers not written to by the current instruction.
+/--
+A single step preserves registers not written to by the current instruction.
 
 This is a fundamental property of URM execution: each instruction modifies at most
-one register (Z, S, T write to one register; J writes to none). -/
-theorem preserves_register {s s' : State} {r : ℕ}
-    (hstep : Step p s s')
-    (hr : ∀ instr, p[s.pc]? = some instr → instr.writesTo ≠ some r) :
-    s'.regs.read r = s.regs.read r := by
+one register (Z, S, T write to one register; J writes to none).
+-/
+theorem preserves_register
+    {s s' : State} {r : ℕ}
+    (hstep : Step p s s') (hr : ∀ instr, p[s.pc]? = some instr → instr.writesTo ≠ some r)
+    : s'.regs.read r = s.regs.read r := by
   cases hstep with
   | zero hinstr | succ hinstr | transfer hinstr =>
     have := hr _ hinstr
@@ -110,8 +109,8 @@ end Step
 /-! ### Step Properties -/
 
 /-- A state is halted iff it is normal (has no successor) in the reduction system. -/
-theorem isHalted_iff_normal {p : Program} {s : State} :
-    s.isHalted p ↔ Relation.Normal (Step p) s := by
+theorem isHalted_iff_normal {p : Program} {s : State}
+    : s.isHalted p ↔ Relation.Normal (Step p) s := by
   constructor
   · intro hhalted ⟨s', hstep⟩
     exact Step.no_step_of_halted hhalted hstep
@@ -141,21 +140,24 @@ namespace Steps
 variable {p : Program}
 
 /-- Multi-step execution preserves registers not written by any executed instruction. -/
-theorem preserves_register {s s' : State} {r : ℕ}
-    (hsteps : Steps p s s')
-    (hr : ∀ instr, instr ∈ p → instr.writesTo ≠ some r) :
-    s'.regs.read r = s.regs.read r := by
+theorem preserves_register
+    {s s' : State} {r : ℕ}
+    (hsteps : Steps p s s') (hr : ∀ instr, instr ∈ p → instr.writesTo ≠ some r)
+    : s'.regs.read r = s.regs.read r := by
   induction hsteps using Relation.ReflTransGen.head_induction_on with
   | refl => rfl
   | head hstep => grind [Step.preserves_register hstep (r := r)]
 
-/-- If two halted states are reachable from the same start, they are equal.
+/--
+If two halted states are reachable from the same start, they are equal.
 
 This follows from confluence: since `Step p` is confluent and both `s₁` and `s₂`
-are normal forms reachable from `init`, they must be equal. -/
-theorem eq_of_halts {init s₁ s₂ : State}
-    (h1 : Steps p init s₁) (hh1 : s₁.isHalted p)
-    (h2 : Steps p init s₂) (hh2 : s₂.isHalted p) : s₁ = s₂ := by
+are normal forms reachable from `init`, they must be equal.
+-/
+theorem eq_of_halts
+    {init s₁ s₂ : State}
+    (h1 : Steps p init s₁) (hh1 : s₁.isHalted p) (h2 : Steps p init s₂) (hh2 : s₂.isHalted p)
+    : s₁ = s₂ := by
   -- Use confluence: both s₁ and s₂ are reachable from init, so they're joinable
   have ⟨w, hw1, hw2⟩ := step_confluent p h1 h2
   -- But s₁ and s₂ are normal forms, so w must equal both
@@ -165,20 +167,21 @@ theorem eq_of_halts {init s₁ s₂ : State}
 
 end Steps
 
-/-- A program halts on given inputs if execution reaches a halted state.
+/--
+A program halts on given inputs if execution reaches a halted state.
 
 This is equivalent to `(Step p).Normalizable (State.init inputs)` —
-see `halts_iff_normalizable`. -/
-def Halts (inputs : List ℕ) : Prop :=
-  ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p
+see `halts_iff_normalizable`.
+-/
+def Halts (inputs : List ℕ) : Prop := ∃ s, Steps p (State.init inputs) s ∧ s.isHalted p
 
 /-- Halting is equivalent to normalizability in the reduction system. -/
-theorem halts_iff_normalizable {p : Program} {inputs : List ℕ} :
-    Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs) := by
+theorem halts_iff_normalizable {p : Program} {inputs : List ℕ}
+    : Halts p inputs ↔ Relation.Normalizable (Step p) (State.init inputs) := by
   grind [Halts, isHalted_iff_normal]
 
 /-- A program diverges on given inputs if it does not halt. -/
-def Diverges (inputs : List ℕ) : Prop := ¬Halts p inputs
+def Diverges (inputs : List ℕ) : Prop := ¬ Halts p inputs
 
 /-- A program halts on given inputs with a specific result in R[0]. -/
 def HaltsWithResult (inputs : List ℕ) (result : ℕ) : Prop :=
@@ -188,8 +191,10 @@ def HaltsWithResult (inputs : List ℕ) (result : ℕ) : Prop :=
 scoped notation:50 p " ↓ " inputs:51 => Halts p inputs
 /-- Notation for divergence: `p ↑ inputs` means program `p` diverges on `inputs`. -/
 scoped notation:50 p " ↑ " inputs:51 => Diverges p inputs
-/-- Notation for halting with result: `p ↓ inputs ≫ result` means program `p` halts on `inputs`
-with `result` in R[0]. -/
+/--
+Notation for halting with result: `p ↓ inputs ≫ result` means program `p` halts on `inputs`
+with `result` in R[0].
+-/
 scoped notation:50 p " ↓ " inputs:51 " ≫ " result:51 => HaltsWithResult p inputs result
 
 namespace HaltsWithResult
@@ -197,8 +202,7 @@ namespace HaltsWithResult
 variable {p : Program}
 
 /-- If a program halts with a result, it halts. -/
-theorem toHalts {inputs : List ℕ} {result : ℕ}
-    (h : p ↓ inputs ≫ result) : p ↓ inputs :=
+theorem toHalts {inputs : List ℕ} {result : ℕ} (h : p ↓ inputs ≫ result) : p ↓ inputs :=
   let ⟨s, hsteps, hhalted, _⟩ := h
   ⟨s, hsteps, hhalted⟩
 
@@ -209,9 +213,9 @@ noncomputable def evalState (inputs : List ℕ) : Part State :=
   ⟨Halts p inputs, fun h => Classical.choose h⟩
 
 /-- Specification: the state from evalState satisfies Steps and isHalted. -/
-theorem evalState_spec {inputs : List ℕ} (h : (evalState p inputs).Dom) :
-    let s := (evalState p inputs).get h
-    Steps p (State.init inputs) s ∧ s.isHalted p :=
+theorem evalState_spec {inputs : List ℕ} (h : (evalState p inputs).Dom)
+    : let s := (evalState p inputs).get h
+      Steps p (State.init inputs) s ∧ s.isHalted p :=
   Classical.choose_spec h
 
 namespace Halts
@@ -219,22 +223,23 @@ namespace Halts
 variable {p : Program}
 
 /-- If a program halts, it halts with the output of the final state. -/
-theorem toHaltsWithResult {inputs : List ℕ} (h : p ↓ inputs) :
-    p ↓ inputs ≫ ((evalState p inputs).get h).regs.output :=
+theorem toHaltsWithResult {inputs : List ℕ} (h : p ↓ inputs)
+    : p ↓ inputs ≫ ((evalState p inputs).get h).regs.output :=
   let s := (evalState p inputs).get h
   let ⟨hsteps, hhalted⟩ := evalState_spec p h
   ⟨s, hsteps, hhalted, rfl⟩
 
 end Halts
 
-/-- Evaluation as a partial function using `Part`.
-Defined when the program halts, returning the value in register 0. -/
-noncomputable def eval (inputs : List ℕ) : Part ℕ :=
-  (evalState p inputs).map (·.regs.output)
+/--
+Evaluation as a partial function using `Part`.
+Defined when the program halts, returning the value in register 0.
+-/
+noncomputable def eval (inputs : List ℕ) : Part ℕ := (evalState p inputs).map (·.regs.output)
 
 /-- A program halts with result `a` iff evaluation returns `Part.some a`. -/
-theorem haltsWithResult_iff_eval {inputs : List ℕ} {result : ℕ} :
-    p ↓ inputs ≫ result ↔ eval p inputs = Part.some result := by
+theorem haltsWithResult_iff_eval {inputs : List ℕ} {result : ℕ}
+    : p ↓ inputs ≫ result ↔ eval p inputs = Part.some result := by
   rw [Part.eq_some_iff, eval, Part.mem_map_iff]
   constructor
   · intro ⟨s, hsteps, hhalted, hresult⟩
@@ -249,8 +254,7 @@ theorem haltsWithResult_iff_eval {inputs : List ℕ} {result : ℕ} :
     exact ⟨s, hget ▸ hspec.1, hget ▸ hspec.2, hresult⟩
 
 /-- Two programs are equivalent if they produce the same result for all inputs. -/
-def ProgramEquiv (p q : Program) : Prop :=
-  ∀ inputs : List ℕ, eval p inputs = eval q inputs
+def ProgramEquiv (p q : Program) : Prop := ∀ inputs : List ℕ, eval p inputs = eval q inputs
 
 /-- Program equivalence is an equivalence relation. -/
 theorem ProgramEquiv.equivalence : Equivalence ProgramEquiv where

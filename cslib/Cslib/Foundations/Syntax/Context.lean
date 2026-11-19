@@ -21,10 +21,13 @@ class HasHContext (α β : Type*) where
   /-- Replaces the hole in the context with a value, resulting in a new value. -/
   fill (c : Context) (b : β) : α
 
-@[inherit_doc] notation:max c "<[" t "]" => HasHContext.fill c t
+@[inherit_doc]
+notation:max c "<[" t "]" => HasHContext.fill c t
 
-/-- Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
-(`Context`). -/
+/--
+Class for types (`α`) that have a canonical notion of homogeneous single-hole contexts
+(`Context`).
+-/
 abbrev HasContext (α : Type*) := HasHContext α α
 
 @[inherit_doc HasHContext.Context]

@@ -46,28 +46,31 @@ def Proposition.IsMLL.rec
     {motive : {a : Proposition Atom} → (h : a.IsMLL) → Sort u}
     (atom : ∀ x : Atom, motive (a := .atom x) (by simp))
     (atomDual : ∀ x : Atom, motive (a := .atomDual x) (by simp))
-    (one : motive (a := .one) (by simp))
-    (bot : motive (a := .bot) (by simp))
+    (one : motive (a := .one) (by simp)) (bot : motive (a := .bot) (by simp))
     (tensor : ∀ (a b : Proposition Atom) {ha : a.IsMLL} {hb : b.IsMLL},
-      motive ha → motive hb → motive (a :=.tensor a b) (by simp [ha,hb]))
+      motive ha → motive hb → motive (a := .tensor a b) (by simp [ha, hb]))
     (parr : ∀ (a b : Proposition Atom) {ha : a.IsMLL} {hb : b.IsMLL},
-      motive ha → motive hb → motive (a := .parr a b) (by simp [ha,hb]))
-    {a : Proposition Atom} (h : a.IsMLL) : motive (a := a) h :=
+      motive ha → motive hb → motive (a := .parr a b) (by simp [ha, hb]))
+    {a : Proposition Atom} (h : a.IsMLL)
+    : motive (a := a) h :=
   match a, h with
   | .atom x, _ => atom x
   | .atomDual x, _ => atomDual x
   | .one, _ => one
   | .bot, _ => bot
   | .tensor a b, ⟨ha, hb⟩ =>
-    tensor a b (ha := ha) (hb := hb)
-      (Proposition.IsMLL.rec atom atomDual one bot tensor parr ha)
+    tensor a b (ha := ha) (hb := hb) (Proposition.IsMLL.rec atom atomDual one bot tensor parr ha)
       (Proposition.IsMLL.rec atom atomDual one bot tensor parr hb)
   | .parr a b, ⟨ha, hb⟩ =>
-      parr a b
-        (Proposition.IsMLL.rec atom atomDual one bot tensor parr ha)
-        (Proposition.IsMLL.rec atom atomDual one bot tensor parr hb)
-  | .zero, h | .top, h | .oplus _ _, h | .with _ _, h
-    | .bang _, h | .quest _, h => nomatch h
+    parr a b (Proposition.IsMLL.rec atom atomDual one bot tensor parr ha)
+      (Proposition.IsMLL.rec atom atomDual one bot tensor parr hb)
+  | .zero, h
+  | .top, h
+  | .oplus _ _, h
+  | .with _ _, h
+  | .bang _, h
+  | .quest _, h =>
+    nomatch h
 
 /-- Duality in MLL stays in MLL. -/
 @[scoped grind →]
@@ -81,10 +84,12 @@ def Proposition.Context.IsMLL : Context Atom → Prop
   | tensorL a b | tensorR a b | parrL a b | parrR a b => a.IsMLL ∧ b.IsMLL
   | _ => False
 
-/-- Filling a multiplicative propositional context with a multiplicative proposition stays in MLL.
+/--
+Filling a multiplicative propositional context with a multiplicative proposition stays in MLL.
 -/
-theorem Proposition.Context.isMLL_fill {c : CLL.Proposition.Context Atom} {a : CLL.Proposition Atom}
-    (hc : c.IsMLL) : (c.fill a).IsMLL ↔ a.IsMLL := by
+theorem Proposition.Context.isMLL_fill
+    {c : CLL.Proposition.Context Atom} {a : CLL.Proposition Atom} (hc : c.IsMLL)
+    : (c.fill a).IsMLL ↔ a.IsMLL := by
   induction c with
   | hole => grind [fill]
   | tensorL | tensorR | parrL | parrR => grind [fill, IsMLL, Proposition.IsMLL]
@@ -112,32 +117,30 @@ def Proof.IsMLL.rec
     (one : @motive {Proposition.one} .one (by simp))
     (bot : ∀ {Γ : Sequent Atom} (p : Proof Γ) {hp : p.IsMLL},
       @motive Γ p hp → @motive (.bot ::ₘ Γ) (.bot p) (by simp [hp]))
-    (tensor : ∀ {a b : Proposition Atom} {Γ Δ : Sequent Atom}
-      (p : Proof (a ::ₘ Γ)) (q : Proof (b ::ₘ Δ)) {hp : p.IsMLL} {hq : q.IsMLL},
-      @motive (a ::ₘ Γ) p hp → @motive (b ::ₘ Δ) q hq →
-      @motive ((a ⊗ b) ::ₘ (Γ + Δ)) (.tensor p q) (by simp [hp, hq]))
-    (parr : ∀ {a b : Proposition Atom} {Γ : Sequent Atom}
-      (p : Proof (a ::ₘ b ::ₘ Γ)) {hp : p.IsMLL},
-      @motive (a ::ₘ b ::ₘ Γ) p hp → @motive ((a ⅋ b) ::ₘ Γ) (.parr p) (by simp [hp]))
-    (cut : ∀ {a : Proposition Atom} {Γ Δ : Sequent Atom}
-      (p : Proof (a ::ₘ Γ)) (q : Proof (a⫠ ::ₘ Δ)) {hp : p.IsMLL} {hq : q.IsMLL},
-      @motive (a ::ₘ Γ) p hp → @motive (a⫠ ::ₘ Δ) q hq →
-      @motive (Γ + Δ) (.cut p q) (by simp [hp, hq]))
-    {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsMLL) : @motive Γ p h :=
+    (tensor : ∀ {a b : Proposition Atom} {Γ Δ : Sequent Atom} (p : Proof (a ::ₘ Γ))
+        (q : Proof (b ::ₘ Δ)) {hp : p.IsMLL} {hq : q.IsMLL},
+      @motive (a ::ₘ Γ) p hp → @motive (b ::ₘ Δ) q hq
+        → @motive ((a ⊗ b) ::ₘ (Γ + Δ)) (.tensor p q) (by simp [hp, hq]))
+    (parr
+      : ∀ {a b : Proposition Atom} {Γ : Sequent Atom} (p : Proof (a ::ₘ b ::ₘ Γ)) {hp : p.IsMLL},
+        @motive (a ::ₘ b ::ₘ Γ) p hp → @motive ((a ⅋ b) ::ₘ Γ) (.parr p) (by simp [hp]))
+    (cut : ∀ {a : Proposition Atom} {Γ Δ : Sequent Atom} (p : Proof (a ::ₘ Γ))
+        (q : Proof (a⫠ ::ₘ Δ)) {hp : p.IsMLL} {hq : q.IsMLL},
+      @motive (a ::ₘ Γ) p hp → @motive (a⫠ ::ₘ Δ) q hq
+        → @motive (Γ + Δ) (.cut p q) (by simp [hp, hq]))
+    {Γ : Sequent Atom} {p : Proof Γ} (h : p.IsMLL)
+    : @motive Γ p h :=
   match p, h with
   | .ax (a := a), hp => @ax a (by simpa)
   | .one, _ => one
   | .bot p (Γ := Γ), hp => @bot Γ p hp (IsMLL.rec ax one bot tensor parr cut (p := p) hp)
   | .tensor (a := a) (b := b) (Γ := Γ) (Δ := Δ) p q, h =>
-    @tensor a b Γ Δ p q h.left h.right
-      (IsMLL.rec ax one bot tensor parr cut h.left)
+    @tensor a b Γ Δ p q h.left h.right (IsMLL.rec ax one bot tensor parr cut h.left)
       (IsMLL.rec ax one bot tensor parr cut h.right)
   | .parr (a := a) (b := b) (Γ := Γ) p, hp =>
-    @parr a b Γ p hp
-      (IsMLL.rec ax one bot tensor parr cut (p := p) hp)
+    @parr a b Γ p hp (IsMLL.rec ax one bot tensor parr cut (p := p) hp)
   | .cut (a := a) (Γ := Γ) (Δ := Δ) p q, h =>
-    @cut a Γ Δ p q h.left h.right
-      (IsMLL.rec ax one bot tensor parr cut h.left)
+    @cut a Γ Δ p q h.left h.right (IsMLL.rec ax one bot tensor parr cut h.left)
       (IsMLL.rec ax one bot tensor parr cut h.right)
 
 open scoped Sequent Proposition in
@@ -145,18 +148,16 @@ open scoped Sequent Proposition in
 theorem Proof.isMLL_sequent {Γ : Sequent Atom} {p : ⇓Γ} (h : p.IsMLL) : Γ.IsMLL := by
   -- This should be simpler, grind seems to have some trouble.
   induction h
-  case ax =>
-    grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
-  case one =>
-    simp [Sequent.IsMLL, Proposition.IsMLL]
+  case ax => grind [Proof.IsMLL, Multiset.insert_eq_cons, Multiset.mem_singleton]
+  case one => simp [Sequent.IsMLL, Proposition.IsMLL]
   case parr | tensor | cut => grind [Proposition.IsMLL, Proof.IsMLL]
   case bot Γ p ih =>
     simp
     grind [Proof.IsMLL]
 
 /-- If a CLL derivation is cut-free and concludes an MLL sequent, then it is an MLL derivation. -/
-theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL)
-    (hp : p.cutFree) : p.IsMLL := by
+theorem Proof.isMLL_cutFree {Γ : Sequent Atom} (p : ⇓Γ) (hΓ : Γ.IsMLL) (hp : p.cutFree)
+    : p.IsMLL := by
   induction p
   case ax => simp_all
   case one => simp

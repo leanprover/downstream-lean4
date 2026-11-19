@@ -43,15 +43,20 @@ structure EncScheme (Message Key Ciphertext : Type*) where
   /-- Deterministic decryption. -/
   dec (key : Key) (ciphertext : Ciphertext) : Message
   /-- Decryption inverts encryption for all keys in the support of `gen`. -/
-  correct : ∀ key, key ∈ gen.support → ∀ message ciphertext,
-    ciphertext ∈ (enc key message).support → dec key ciphertext = message
+  correct
+    : ∀ key,
+      key ∈ gen.support
+        → ∀ message ciphertext,
+          ciphertext ∈ (enc key message).support → dec key ciphertext = message
 
-/-- Build an encryption scheme from deterministic pure encryption/decryption
-where decryption is a left inverse of encryption for every key. -/
-noncomputable def EncScheme.ofPure.{u} {Message Key Ciphertext : Type u} (gen : PMF Key)
-    (enc : Key → Message → Ciphertext) (dec : Key → Ciphertext → Message)
-    (h : ∀ key, Function.LeftInverse (dec key) (enc key)) :
-    EncScheme Message Key Ciphertext where
+/--
+Build an encryption scheme from deterministic pure encryption/decryption
+where decryption is a left inverse of encryption for every key.
+-/
+noncomputable def EncScheme.ofPure.{u}
+    {Message Key Ciphertext : Type u} (gen : PMF Key) (enc : Key → Message → Ciphertext)
+    (dec : Key → Ciphertext → Message) (h : ∀ key, Function.LeftInverse (dec key) (enc key))
+    : EncScheme Message Key Ciphertext where
   gen := gen
   enc key message := PMF.pure (enc key message)
   dec := dec

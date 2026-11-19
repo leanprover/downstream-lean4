@@ -13,21 +13,21 @@ open Cslib.Automata
 /-! A simple elevator. -/
 
 inductive Floor where
-| one
-| two
+  | one
+  | two
 deriving DecidableEq
 
 inductive Direction where
-| up
-| down
+  | up
+  | down
 deriving DecidableEq
 
 def elevator : DA Floor Direction where
   tr
-  | .one, .up => .two
-  | .one, .down => .one
-  | .two, .up => .two
-  | .two, .down => .one
+    | .one, .up => .two
+    | .one, .down => .one
+    | .two, .up => .two
+    | .two, .down => .one
   start := .one
 
 end CslibTests

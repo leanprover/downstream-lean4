@@ -75,10 +75,12 @@ omit [DecidableEq Atom] in
 @[grind =, scoped membership =]
 lemma Proposition.not_eq (A : Proposition Atom) : (A → ⊥) = ¬ A := rfl
 
-/-- Substitute each atom in a proposition for a proposition, possibly changing the atomic
-language. -/
-def Proposition.subst {Atom Atom' : Type*} (f : Atom → Proposition Atom') :
-    Proposition Atom → Proposition Atom'
+/--
+Substitute each atom in a proposition for a proposition, possibly changing the atomic
+language.
+-/
+def Proposition.subst {Atom Atom' : Type*} (f : Atom → Proposition Atom')
+    : Proposition Atom → Proposition Atom'
   | atom x => f x
   | falsum => falsum
   | and A B => (A.subst f) ∧ (B.subst f)

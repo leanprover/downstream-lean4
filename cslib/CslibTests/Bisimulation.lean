@@ -13,22 +13,22 @@ open scoped Ordinal
 
 /- An LTS with two bisimilar states. -/
 private inductive tr1 : ℕ → Char → ℕ → Prop where
--- First process, `1`
-| one2two : tr1 1 'a' 2
-| two2three : tr1 2 'b' 3
-| two2four : tr1 2 'c' 4
--- Second process, `5`
-| five2six : tr1 5 'a' 6
-| six2seven : tr1 6 'b' 7
-| six2eight : tr1 6 'c' 8
+  -- First process, `1`
+  | one2two : tr1 1 'a' 2
+  | two2three : tr1 2 'b' 3
+  | two2four : tr1 2 'c' 4
+  -- Second process, `5`
+  | five2six : tr1 5 'a' 6
+  | six2seven : tr1 6 'b' 7
+  | six2eight : tr1 6 'c' 8
 
 def lts1 := LTS.mk tr1
 
 private inductive Bisim15 : ℕ → ℕ → Prop where
-| oneFive : Bisim15 1 5
-| twoSix : Bisim15 2 6
-| threeSeven : Bisim15 3 7
-| fourEight : Bisim15 4 8
+  | oneFive : Bisim15 1 5
+  | twoSix : Bisim15 2 6
+  | threeSeven : Bisim15 3 7
+  | fourEight : Bisim15 4 8
 
 example : 1 ~[lts1] 5 := by
   exists Bisim15
@@ -52,15 +52,15 @@ example : 1 ~[lts1] 5 := by
     · exists 3; repeat constructor
     · exists 4; repeat constructor
 
-  -- aesop?
-  --   (add simp Bisimulation)
-  --   (add safe constructors Bisim15)
-  --   (add safe cases Bisim15)
-  --   (add safe cases [LTS.mtr])
-  --   (add simp LTS.tr)
-  --   (add safe constructors tr1)
-  --   (add unsafe apply Bisimulation.follow_fst)
-  --   (add unsafe apply Bisimulation.follow_snd)
+-- aesop?
+--   (add simp Bisimulation)
+--   (add safe constructors Bisim15)
+--   (add safe cases Bisim15)
+--   (add safe cases [LTS.mtr])
+--   (add simp LTS.tr)
+--   (add safe constructors tr1)
+--   (add unsafe apply Bisimulation.follow_fst)
+--   (add unsafe apply Bisimulation.follow_snd)
 
 section Heterogeneous
 
@@ -98,8 +98,7 @@ example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := by grin
 example (h : s₁ ≤≥[lts₁,lts₂] s₂) : s₂ ≤≥[lts₂,lts₁] s₁ :=
   SimulationEquiv.symm (State₁ := State₁) (s2 := s₂) h
 
-example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ :=
-  Bisimilarity.symm (State₁ := State₁) h
+example (h : s₁ ~[lts₁,lts₂] s₂) : s₂ ~[lts₂,lts₁] s₁ := Bisimilarity.symm (State₁ := State₁) h
 
 example (h : s₁ ~[lts₁,lts₂;o] s₂) : s₂ ~[lts₂,lts₁;o] s₁ := by
   symm
@@ -111,26 +110,27 @@ example (h : s₁ ~[lts₁,lts₂;ω] s₂) : s₂ ~[lts₂,lts₁;ω] s₁ := b
 
 example (h : s₁ ~[lts₁,lts₂] s₂) : s₁ ~[lts₁,lts₂;ω] s₂ := h.approx ω
 
-example (m n : ℕ) (hmn : m ≤ n) (h : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) :
-    s₁ ~[lts₁,lts₂;(m : Ordinal)] s₂ := h.of_ge_nat hmn
+example (m n : ℕ) (hmn : m ≤ n) (h : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂)
+    : s₁ ~[lts₁,lts₂;(m : Ordinal)] s₂ :=
+  h.of_ge_nat hmn
 
 -- Finite composition remains available across independent state universes.
-example {State₃ : Type*} {lts₃ : LTS State₃ Label} {s₃ : State₃} (n : ℕ)
-    (h₁ : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) (h₂ : s₂ ~[lts₂,lts₃;(n : Ordinal)] s₃) :
-    s₁ ~[lts₁,lts₃;(n : Ordinal)] s₃ := h₁.trans_nat h₂
+example
+    {State₃ : Type*} {lts₃ : LTS State₃ Label} {s₃ : State₃}
+    (n : ℕ) (h₁ : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂) (h₂ : s₂ ~[lts₂,lts₃;(n : Ordinal)] s₃)
+    : s₁ ~[lts₁,lts₃;(n : Ordinal)] s₃ :=
+  h₁.trans_nat h₂
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω] s₂) :
-    s₁ ~[lts₁,lts₂] s₂ := h.bisimilarity_of_omega
+example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω] s₂) : s₁ ~[lts₁,lts₂] s₂ :=
+  h.bisimilarity_of_omega
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] :
-    s₁ ~[lts₁,lts₂;ω] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ := by simp
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : s₁ ~[lts₁,lts₂;ω] s₂ ↔ s₁ ~[lts₁,lts₂] s₂ := by simp
 
 -- Ordinal indices use the same notation, including limits and successors of limits.
 example (h : s₁ ~[lts₁,lts₂;ω] s₂) (n : ℕ) : s₁ ~[lts₁,lts₂;(n : Ordinal)] s₂ :=
   BisimilarityApprox.omega_iff.mp h n
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] : (· ~[lts₁,lts₂;ω] ·) = (· ~[lts₁,lts₂] ·) := by
-  simp
+example [lts₁.ImageFinite] [lts₂.ImageFinite] : (· ~[lts₁,lts₂;ω] ·) = (· ~[lts₁,lts₂] ·) := by simp
 
 example [lts₁.ImageFinite] [lts₂.ImageFinite] : (· ~[lts₁,lts₂;ω + 1] ·) = (· ~[lts₁,lts₂] ·) :=
   BisimilarityApprox.eq_bisimilarity (by exact_mod_cast (lt_add_one ω).le)
@@ -150,8 +150,8 @@ example (h : s₁ ~[lts₁,lts₂] s₂) : s₁ ~[lts₁,lts₂;⊤] s₂ := by
   rw [BisimilarityApprox.top_iff_bisimilarity]
   exact h
 
-example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω + 1] s₂) :
-    s₁ ~[lts₁,lts₂] s₂ := by
+example [lts₁.ImageFinite] [lts₂.ImageFinite] (h : s₁ ~[lts₁,lts₂;ω + 1] s₂)
+    : s₁ ~[lts₁,lts₂] s₂ := by
   rwa [BisimilarityApprox.iff_bisimilarity (by exact_mod_cast (lt_add_one ω).le)] at h
 
 open scoped BisimilarityApprox in
@@ -171,8 +171,10 @@ example : 0 ~[countdownLTS,loopLTS;0] () := by simp
 example : 1 ~[countdownLTS,loopLTS;1] () := by
   rw [← zero_add (1 : WithTop Ordinal), BisimilarityApprox.succ_iff]
   intro μ
-  exact ⟨fun _ _ => ⟨(), trivial, BisimilarityApprox.zero⟩,
-    fun _ _ => ⟨0, rfl, BisimilarityApprox.zero⟩⟩
+  exact ⟨
+    fun _ _ => ⟨(), trivial, BisimilarityApprox.zero⟩,
+    fun _ _ => ⟨0, rfl, BisimilarityApprox.zero⟩
+  ⟩
 
 private theorem countdown_not_approx_two : ¬(1 ~[countdownLTS,loopLTS;2] ()) := by
   intro h
@@ -183,11 +185,10 @@ private theorem countdown_not_approx_two : ¬(1 ~[countdownLTS,loopLTS;2] ()) :=
   lia
 
 -- Both directions of matching matter, including across different state types.
-example : ¬(() ~[loopLTS,countdownLTS;2] 1) :=
-  fun h => countdown_not_approx_two h.symm
+example : ¬(() ~[loopLTS,countdownLTS;2] 1) := fun h => countdown_not_approx_two h.symm
 
-example : ¬ (1 ~[countdownLTS,loopLTS;ω] ()) :=
-  fun h => countdown_not_approx_two (BisimilarityApprox.omega_iff.mp h 2)
+example : ¬(1 ~[countdownLTS,loopLTS;ω] ()) := fun h =>
+  countdown_not_approx_two (BisimilarityApprox.omega_iff.mp h 2)
 
 -- A relation can be a bisimulation up to bisimilarity without itself being a bisimulation.
 -- Soundness gives a bisimulation on its closure and bisimilarity of its related states.
@@ -200,14 +201,16 @@ private theorem completeLTS_bisimilar (s t : Bool) : s ~[completeLTS] t := by
   intro _ _ _ _
   exact ⟨fun _ _ => ⟨false, trivial, trivial⟩, fun _ _ => ⟨false, trivial, trivial⟩⟩
 
-private theorem onlyFalse_closure (s t : Bool) :
-    UpToHomBisimilarity completeLTS completeLTS onlyFalse s t :=
+private theorem onlyFalse_closure (s t : Bool)
+    : UpToHomBisimilarity completeLTS completeLTS onlyFalse s t :=
   ⟨false, completeLTS_bisimilar s false, false, ⟨rfl, rfl⟩, completeLTS_bisimilar false t⟩
 
 private theorem onlyFalse_upTo : IsBisimulationUpTo completeLTS completeLTS onlyFalse := by
   intro _ _ _ _
-  exact ⟨fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
-    fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩⟩
+  exact ⟨
+    fun s _ => ⟨false, trivial, onlyFalse_closure s false⟩,
+    fun t _ => ⟨false, trivial, onlyFalse_closure false t⟩
+  ⟩
 
 example : onlyFalse ≤ (· ~[completeLTS] ·) := onlyFalse_upTo.le_bisimilarity
 

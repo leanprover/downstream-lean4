@@ -17,8 +17,10 @@ namespace Cslib
 
 universe u
 
-/-- A type `α` has a computable `fresh` function if it is always possible, for any finite set
-of `α`, to compute a fresh element not in the set. -/
+/--
+A type `α` has a computable `fresh` function if it is always possible, for any finite set
+of `α`, to compute a fresh element not in the set.
+-/
 class HasFresh (α : Type u) where
   /-- Given a finite set, returns an element not in the set. -/
   fresh : Finset α → α
@@ -27,8 +29,10 @@ class HasFresh (α : Type u) where
 
 attribute [grind <=] HasFresh.fresh_notMem
 
-/-- An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity
-in proofs. -/
+/--
+An existential version of the `HasFresh` typeclass. This is useful for the sake of brevity
+in proofs.
+-/
 theorem HasFresh.fresh_exists {α : Type u} [HasFresh α] (s : Finset α) : ∃ a, a ∉ s :=
   ⟨fresh s, fresh_notMem s⟩
 
@@ -40,8 +44,10 @@ instance HasFresh.to_infinite (α : Type u) [HasFresh α] : Infinite α := by
   rintro ⟨elems, _⟩
   grind [fresh_notMem elems]
 
-/-- All infinite types have an associated (at least noncomputable) fresh function.
-This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`. -/
+/--
+All infinite types have an associated (at least noncomputable) fresh function.
+This, in conjunction with `HasFresh.to_infinite`, characterizes `HasFresh`.
+-/
 noncomputable instance (α : Type u) [Infinite α] : HasFresh α where
   fresh s := Infinite.exists_notMem_finset s |>.choose
   fresh_notMem s := by grind
@@ -50,30 +56,32 @@ open Finset in
 /-- Construct a fresh element from an embedding of `ℕ` using `Nat.find`. -/
 @[implicit_reducible]
 def HasFresh.ofNatEmbed {α : Type u} [DecidableEq α] (e : ℕ ↪ α) : HasFresh α where
-  fresh s := e (Nat.find (p := fun n ↦ e n ∉ s) ⟨(s.preimage e e.2.injOn).max.succ,
-    fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)⟩)
+  fresh s :=
+    e (Nat.find (p := fun n ↦ e n ∉ s) ⟨
+      (s.preimage e e.2.injOn).max.succ,
+      fun h ↦ not_lt_of_ge (le_max <| mem_preimage.2 h) (WithBot.lt_succ _)
+    ⟩)
   fresh_notMem s := Nat.find_spec (p := fun n ↦ e n ∉ s) _
 
 /-- Construct a fresh element given a function `f` with `x < f x`. -/
 @[implicit_reducible]
-def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x) :
-    HasFresh α where
+def HasFresh.ofSucc {α : Type u} [Inhabited α] [SemilatticeSup α] (f : α → α) (hf : ∀ x, x < f x)
+    : HasFresh α where
   fresh s := if hs : s.Nonempty then f (s.sup' hs id) else default
-  fresh_notMem s h := if hs : s.Nonempty
-    then not_le_of_gt (hf (s.sup' hs id)) <| by rw [dite_eq_left hs] at h; exact s.le_sup' id h
-    else hs ⟨_, h⟩
+  fresh_notMem s h :=
+    if hs : s.Nonempty then
+      not_le_of_gt (hf (s.sup' hs id)) <| by rw [dite_eq_left hs] at h; exact s.le_sup' id h
+    else
+      hs ⟨_, h⟩
 
 /-- `ℕ` has a computable fresh function. -/
-instance : HasFresh ℕ :=
-  .ofSucc (· + 1) Nat.lt_add_one
+instance : HasFresh ℕ := .ofSucc (· + 1) Nat.lt_add_one
 
 /-- `ℤ` has a computable fresh function. -/
-instance : HasFresh ℤ :=
-  .ofSucc (· + 1) Int.lt_succ
+instance : HasFresh ℤ := .ofSucc (· + 1) Int.lt_succ
 
 /-- `ℚ` has a computable fresh function. -/
-instance : HasFresh ℚ :=
-  .ofSucc (· + 1) fun x ↦ lt_add_of_pos_right x one_pos
+instance : HasFresh ℚ := .ofSucc (· + 1) fun x ↦ lt_add_of_pos_right x one_pos
 
 /-- If `α` has a computable fresh function, then so does `Finset α`. -/
 instance {α : Type u} [DecidableEq α] [HasFresh α] : HasFresh (Finset α) :=
@@ -104,34 +112,34 @@ structure FreeUnionConfig where
 declare_term_config_elab elabFreeUnionConfig FreeUnionConfig
 
 /--
-  Given a `DecidableEq Var` instance, this elaborator automatically constructs
-  the union of any variables, finite sets of variables, and optionally the
-  results of provided functions mapping to variables. This is configurable with
-  optional boolean boolean arguments `singleton` and `finset`.
+Given a `DecidableEq Var` instance, this elaborator automatically constructs
+the union of any variables, finite sets of variables, and optionally the
+results of provided functions mapping to variables. This is configurable with
+optional boolean boolean arguments `singleton` and `finset`.
 
-  As an example, consider the following:
+As an example, consider the following:
 
-  ```
-  variable (x : ℕ) (xs : Finset ℕ) (var : String)
+```
+variable (x : ℕ) (xs : Finset ℕ) (var : String)
 
-  def f (_ : String) : Finset ℕ := {1, 2, 3}
-  def g (_ : String) : Finset ℕ := {4, 5, 6}
+def f (_ : String) : Finset ℕ := {1, 2, 3}
+def g (_ : String) : Finset ℕ := {4, 5, 6}
 
-  -- info: ∅ ∪ {x} ∪ xs : Finset ℕ
-  #check free_union ℕ
+-- info: ∅ ∪ {x} ∪ xs : Finset ℕ
+#check free_union ℕ
 
-  -- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
-  #check free_union [f, g] ℕ
+-- info: ∅ ∪ {x} ∪ xs ∪ f var ∪ g var : Finset ℕ
+#check free_union [f, g] ℕ
 
-  info: ∅ ∪ xs : Finset ℕ
-  #check free_union -singleton ℕ
+info: ∅ ∪ xs : Finset ℕ
+#check free_union -singleton ℕ
 
-  -- info: ∅ ∪ {x} : Finset ℕ
-  #check free_union -finset ℕ
+-- info: ∅ ∪ {x} : Finset ℕ
+#check free_union -finset ℕ
 
-  -- info: ∅ : Finset ℕ
-  #check free_union -singleton -finset ℕ
-  ```
+-- info: ∅ : Finset ℕ
+#check free_union -singleton -finset ℕ
+```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
 

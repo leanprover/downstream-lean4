@@ -59,8 +59,8 @@ scoped infixl:100 " ⬝ " => app
 /-- Apply a term to a list of terms -/
 def applyList (f : SKI) (xs : List SKI) : SKI := List.foldl (· ⬝ ·) f xs
 
-lemma applyList_concat (f : SKI) (ys : List SKI) (z : SKI) :
-    f.applyList (ys ++ [z]) = f.applyList ys ⬝ z := by
+lemma applyList_concat (f : SKI) (ys : List SKI) (z : SKI)
+    : f.applyList (ys ++ [z]) = f.applyList ys ⬝ z := by
   simp [applyList]
 
 /-- The size of an SKI term is its number of combinators. -/
@@ -86,7 +86,6 @@ inductive Red : SKI → SKI → Prop where
   /-- and tail of an SKI term. -/
   | red_tail (x y y' : SKI) (_ : Red y y') : Red (x ⬝ y) (x ⬝ y')
 
-
 open Red Relation
 
 lemma Red.ne {x y : SKI} : (x ⭢ y) → x ≠ y
@@ -106,21 +105,20 @@ theorem MRed.head {a a' : SKI} (b : SKI) (h : a ↠ a') : (a ⬝ b) ↠ (a' ⬝ 
 theorem MRed.tail (a : SKI) {b b' : SKI} (h : b ↠ b') : (a ⬝ b) ↠ (a ⬝ b') := by
   induction h <;> grind
 
-lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
-    (a ⬝ b) ↠ (a' ⬝ b') :=
+lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') : (a ⬝ b) ↠ (a' ⬝ b') :=
   Trans.simple (MRed.head b ha) (MRed.tail a' hb)
 
 lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b) ↠ (a' ⬝ b') := by
   trans a' ⬝ b <;> grind
 
-theorem join_mRed_head {x x' : SKI} (y : SKI) :
-    Join (ReflTransGen Red) x x' → Join (ReflTransGen Red) (x ⬝ y) (x' ⬝ y)
+theorem join_mRed_head {x x' : SKI} (y : SKI)
+    : Join (ReflTransGen Red) x x' → Join (ReflTransGen Red) (x ⬝ y) (x' ⬝ y)
   | ⟨z, hz, hz'⟩ => ⟨z ⬝ y, MRed.head y hz, MRed.head y hz'⟩
 
 @[deprecated (since := "2026-09-12")] alias mJoin_red_head := join_mRed_head
 
-theorem join_mRed_tail (x : SKI) {y y' : SKI} :
-    Join (ReflTransGen Red) y y' → Join (ReflTransGen Red) (x ⬝ y) (x ⬝ y')
+theorem join_mRed_tail (x : SKI) {y y' : SKI}
+    : Join (ReflTransGen Red) y y' → Join (ReflTransGen Red) (x ⬝ y) (x ⬝ y')
   | ⟨z, hz, hz'⟩ => ⟨x ⬝ z, MRed.tail x hz, MRed.tail x hz'⟩
 
 @[deprecated (since := "2026-09-12")] alias mJoin_red_tail := join_mRed_tail

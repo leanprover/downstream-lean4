@@ -20,73 +20,83 @@ open Cslib.Language Automata Acceptor
 
 variable {Symbol : Type*} {State : Type}
 
-/-- `LTS.pairLang s t` is the language of finite words that can take the LTS
-from state `s` to state `t`. -/
-def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol :=
-  { xs | lts.MTr s xs t }
+/--
+`LTS.pairLang s t` is the language of finite words that can take the LTS
+from state `s` to state `t`.
+-/
+def LTS.pairLang (lts : LTS State Symbol) (s t : State) : Language Symbol := { xs | lts.MTr s xs t }
 
 @[simp, scoped grind =]
-theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol} :
-    xs ∈ lts.pairLang s t ↔ lts.MTr s xs t := Iff.rfl
+theorem LTS.mem_pairLang {lts : LTS State Symbol} {s t : State} {xs : List Symbol}
+    : xs ∈ lts.pairLang s t ↔ lts.MTr s xs t :=
+  Iff.rfl
 
 /-- `LTS.pairLang s t` is a regular language if there are only finitely many states. -/
 @[simp]
-theorem LTS.pairLang_regular [Finite State] {lts : LTS State Symbol} {s t : State} :
-    (lts.pairLang s t).IsRegular := by
+theorem LTS.pairLang_regular [Finite State] {lts : LTS State Symbol} {s t : State}
+    : (lts.pairLang s t).IsRegular := by
   rw [IsRegular.iff_nfa]
   use State, inferInstance, (NA.FinAcc.mk ⟨lts, {s}⟩ {t})
   ext
   simp +instances
 
-/-- `LTS.pairViaLang via s t` is the language of finite words that can take the LTS
-from state `s` to state `t` via a state in `via`. -/
+/--
+`LTS.pairViaLang via s t` is the language of finite words that can take the LTS
+from state `s` to state `t` via a state in `via`.
+-/
 def LTS.pairViaLang (lts : LTS State Symbol) (via : Set State) (s t : State) : Language Symbol :=
   ⨆ r ∈ via, lts.pairLang s r * lts.pairLang r t
 
 @[simp, scoped grind =]
-theorem LTS.mem_pairViaLang {lts : LTS State Symbol} {via : Set State}
-    {s t : State} {xs : List Symbol} : xs ∈ lts.pairViaLang via s t ↔
-      ∃ r ∈ via, ∃ xs1 xs2, lts.MTr s xs1 r ∧ lts.MTr r xs2 t ∧ xs1 ++ xs2 = xs := by
+theorem LTS.mem_pairViaLang
+    {lts : LTS State Symbol} {via : Set State} {s t : State} {xs : List Symbol}
+    : xs ∈ lts.pairViaLang via s t
+      ↔ ∃ r ∈ via, ∃ xs1 xs2, lts.MTr s xs1 r ∧ lts.MTr r xs2 t ∧ xs1 ++ xs2 = xs := by
   simp [LTS.pairViaLang, Language.mem_mul]
 
 /-- `LTS.pairViaLang via s t` is a regular language if there are only finitely many states. -/
 @[simp]
-theorem LTS.pairViaLang_regular [Finite State] {lts : LTS State Symbol}
-    {via : Set State} {s t : State} : (lts.pairViaLang via s t).IsRegular := by
+theorem LTS.pairViaLang_regular
+    [Finite State] {lts : LTS State Symbol} {via : Set State} {s t : State}
+    : (lts.pairViaLang via s t).IsRegular := by
   apply IsRegular.iSup
   grind [Language.IsRegular.mul, LTS.pairLang_regular]
 
-theorem LTS.pairLang_append {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol}
-    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
-    xs1 ++ xs2 ∈ lts.pairLang s0 s2 := by
+theorem LTS.pairLang_append
+    {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol}
+    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2)
+    : xs1 ++ xs2 ∈ lts.pairLang s0 s2 := by
   grind [<= LTS.MTr.comp]
 
-theorem LTS.pairLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
-    (h : xs1 ++ xs2 ∈ lts.pairLang s0 s2) :
-    ∃ s1, xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 := by
+theorem LTS.pairLang_split
+    {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
+    (h : xs1 ++ xs2 ∈ lts.pairLang s0 s2)
+    : ∃ s1, xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 := by
   obtain ⟨r, _, _⟩ := LTS.MTr.split <| LTS.mem_pairLang.mp h
   use r
   grind
 
-theorem LTS.pairViaLang_append_pairLang {lts : LTS State Symbol}
-    {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
-    (h1 : xs1 ∈ lts.pairViaLang via s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2) :
-    xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
+theorem LTS.pairViaLang_append_pairLang
+    {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
+    (h1 : xs1 ∈ lts.pairViaLang via s0 s1) (h2 : xs2 ∈ lts.pairLang s1 s2)
+    : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
   obtain ⟨r, _, _, _, _, _, rfl⟩ := LTS.mem_pairViaLang.mp h1
   apply LTS.mem_pairViaLang.mpr
   use r
   grind [<= LTS.MTr.comp]
 
-theorem LTS.pairLang_append_pairViaLang {lts : LTS State Symbol}
-    {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
-    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairViaLang via s1 s2) :
-    xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
+theorem LTS.pairLang_append_pairViaLang
+    {lts : LTS State Symbol} {s0 s1 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
+    (h1 : xs1 ∈ lts.pairLang s0 s1) (h2 : xs2 ∈ lts.pairViaLang via s1 s2)
+    : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2 := by
   grind [<= LTS.MTr.comp]
 
-theorem LTS.pairViaLang_split {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol}
-    {via : Set State} (h : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2) :
-    ∃ s1, xs1 ∈ lts.pairViaLang via s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2 ∨
-          xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairViaLang via s1 s2 := by
+theorem LTS.pairViaLang_split
+    {lts : LTS State Symbol} {s0 s2 : State} {xs1 xs2 : List Symbol} {via : Set State}
+    (h : xs1 ++ xs2 ∈ lts.pairViaLang via s0 s2)
+    : ∃ s1,
+      xs1 ∈ lts.pairViaLang via s0 s1 ∧ xs2 ∈ lts.pairLang s1 s2
+        ∨ xs1 ∈ lts.pairLang s0 s1 ∧ xs2 ∈ lts.pairViaLang via s1 s2 := by
   obtain ⟨r, h_r, ys1, ys2, h_ys1, h_ys2, h_eq⟩ := LTS.mem_pairViaLang.mp h
   obtain ⟨zs1, rfl, rfl⟩ | ⟨zs2, rfl, rfl⟩ := List.append_eq_append_iff.mp h_eq
   · obtain ⟨s1, _, _⟩ := LTS.MTr.split h_ys2
@@ -101,11 +111,13 @@ namespace Automata.NA.Buchi
 open Set Filter ωSequence ωLanguage ωAcceptor
 
 set_option linter.tacticAnalysis.verifyGrindOnly false in
-/-- The ω-language accepted by a finite-state Büchi automaton is the finite union of ω-languages
-of the form `L * M^ω`, where all `L`s and `M`s are regular languages. -/
+/--
+The ω-language accepted by a finite-state Büchi automaton is the finite union of ω-languages
+of the form `L * M^ω`, where all `L`s and `M`s are regular languages.
+-/
 theorem language_eq_fin_iSup_hmul_omegaPow
-    [Inhabited Symbol] [Finite State] (na : Buchi State Symbol) :
-    language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
+    [Inhabited Symbol] [Finite State] (na : Buchi State Symbol)
+    : language na = ⨆ s ∈ na.start, ⨆ t ∈ na.accept, (na.pairLang s t) * (na.pairLang t t)^ω := by
   apply mem_ext
   intro xs
   simp only [ωAcceptor.mem_language, ωLanguage.mem_iSup, ωLanguage.mem_hmul, LTS.mem_pairLang]
@@ -136,8 +148,8 @@ theorem language_eq_fin_iSup_hmul_omegaPow
       grind only [Language.mem_sub_one, List.eq_nil_iff_length_eq_zero]
     obtain ⟨zss, h_zss, _⟩ := LTS.OmegaExecution.flatten_mTr h_mtr h_pos
     have (n : ℕ) : zss (zls.cumLen n) = t := by grind
-    obtain ⟨xss, _, _, _, _⟩ := LTS.OmegaExecution.append h_yl h_zss
-      (by grind [cumLen_zero (ls := zls)])
+    obtain ⟨xss, _, _, _, _⟩ :=
+      LTS.OmegaExecution.append h_yl h_zss (by grind [cumLen_zero (ls := zls)])
     use xss, by grind [NA.Run]
     apply (drop_frequently_iff_frequently yl.length).mp
     apply frequently_iff_strictMono.mpr

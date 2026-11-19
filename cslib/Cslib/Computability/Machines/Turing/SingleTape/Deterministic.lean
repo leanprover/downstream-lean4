@@ -100,8 +100,10 @@ structure SingleTapeTM Symbol [Inhabited Symbol] [Fintype Symbol] where
   [stateFintype : Fintype State]
   /-- Initial state -/
   (q₀ : State)
-  /-- Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
-  and optionally the new state to transition to afterwards (`none` for halt) -/
+  /--
+  Transition function, mapping a state and a head symbol to a `Stmt` to invoke,
+  and optionally the new state to transition to afterwards (`none` for halt)
+  -/
   (tr : State → Option Symbol → SingleTapeTM.Stmt Symbol × Option State)
 
 namespace SingleTapeTM
@@ -156,38 +158,42 @@ This is to ensure that distinct lists map to distinct initial configurations.
 -/
 def initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨some tm.q₀, BiTape.mk₁ s⟩
 
-/-- The final configuration corresponding to a list in the output alphabet.
+/--
+The final configuration corresponding to a list in the output alphabet.
 (We demand that the head halts at the leftmost position of the output.)
 -/
 def haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) : tm.Cfg := ⟨none, BiTape.mk₁ s⟩
 
-/--
-The space used by a configuration is the space used by its tape.
--/
+/-- The space used by a configuration is the space used by its tape. -/
 def Cfg.spaceUsed (tm : SingleTapeTM Symbol) (cfg : tm.Cfg) : ℕ := cfg.BiTape.spaceUsed
 
 @[scoped grind =]
-lemma Cfg.spaceUsed_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.initCfg s).spaceUsed = max 1 s.length := BiTape.spaceUsed_mk₁ s
+lemma Cfg.spaceUsed_initCfg (tm : SingleTapeTM Symbol) (s : List Symbol)
+    : (tm.initCfg s).spaceUsed = max 1 s.length :=
+  BiTape.spaceUsed_mk₁ s
 
 @[scoped grind =]
-lemma Cfg.spaceUsed_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol) :
-    (tm.haltCfg s).spaceUsed = max 1 s.length := BiTape.spaceUsed_mk₁ s
+lemma Cfg.spaceUsed_haltCfg (tm : SingleTapeTM Symbol) (s : List Symbol)
+    : (tm.haltCfg s).spaceUsed = max 1 s.length :=
+  BiTape.spaceUsed_mk₁ s
 
-lemma Cfg.spaceUsed_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
-    (hstep : tm.step cfg = some cfg') : cfg'.spaceUsed ≤ cfg.spaceUsed + 1 := by
+lemma Cfg.spaceUsed_step
+    {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg) (hstep : tm.step cfg = some cfg')
+    : cfg'.spaceUsed ≤ cfg.spaceUsed + 1 := by
   obtain ⟨_ | q, tape⟩ := cfg
   · simp [step] at hstep
   · simp only [step] at hstep
     generalize hM : tm.tr q tape.head = result at hstep
     obtain ⟨⟨wr, dir⟩, q''⟩ := result
-    cases hstep; cases dir with
+    cases hstep
+    cases dir with
     | none =>
-      simp [Cfg.spaceUsed, BiTape.optionMove];
+      simp [Cfg.spaceUsed, BiTape.optionMove]
       split
       · simp
       · lia
-    | some d => simpa [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM] using
+    | some d =>
+      simpa [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM] using
         BiTape.spaceUsed_move (tape.write wr) d
 
 end Cfg
@@ -219,12 +225,12 @@ This is important for guaranteeing that composition of polynomial time Turing ma
 remains polynomial time, as the input to the second machine
 is bounded by the output length of the first machine.
 -/
-lemma output_length_le_input_length_add_time (tm : SingleTapeTM Symbol) (l l' : List Symbol) (t : ℕ)
-    (h : tm.OutputsWithinTime l l' t) :
-    l'.length ≤ max 1 l.length + t := by
+lemma output_length_le_input_length_add_time
+    (tm : SingleTapeTM Symbol) (l l' : List Symbol) (t : ℕ) (h : tm.OutputsWithinTime l l' t)
+    : l'.length ≤ max 1 l.length + t := by
   obtain ⟨steps, hsteps_le, hevals⟩ := h
-  grind [hevals.apply_le_apply_add (Cfg.spaceUsed tm)
-      fun a b hstep ↦ Cfg.spaceUsed_step a b (Option.mem_def.mp hstep)]
+  grind [hevals.apply_le_apply_add (Cfg.spaceUsed tm) fun a b hstep ↦
+    Cfg.spaceUsed_step a b (Option.mem_def.mp hstep)]
 
 section Computers
 
@@ -249,26 +255,31 @@ def compComputer (tm1 tm2 : SingleTapeTM Symbol) : SingleTapeTM Symbol where
   tr q h :=
     match q with
     -- If we are in the first input machine's states, run that machine ...
-    | .inl ql => match tm1.tr ql h with
+    | .inl ql =>
+      match tm1.tr ql h with
       | (stmt, state) =>
         -- ... taking the same tape action as the first input machine would.
-        (stmt,
+        (
+          stmt,
           match state with
           -- If it halts, transition to the start state of the second input machine
           | none => some (.inr tm2.q₀)
           -- Otherwise continue as normal
-          | _ => Option.map .inl state)
+          | _ => Option.map .inl state
+        )
     -- If we are in the second input machine's states, run that machine ...
     | .inr qr =>
       match tm2.tr qr h with
       | (stmt, state) =>
         -- ... taking the same tape action as the second input machine would.
-        (stmt,
+        (
+          stmt,
           match state with
           -- If it halts, transition to the halting state
           | none => none
           -- Otherwise continue as normal
-          | _ => Option.map .inr state)
+          | _ => Option.map .inr state
+        )
 
 section compComputerLemmas
 
@@ -295,8 +306,10 @@ private def toCompCfg_right : (compComputer tm1 tm2).Cfg :=
 private def initialCfg (input : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨some (Sum.inl tm1.q₀), BiTape.mk₁ input⟩
 
-/-- The intermediate configuration for the composed machine,
-after the first machine halts and the second machine starts. -/
+/--
+The intermediate configuration for the composed machine,
+after the first machine halts and the second machine starts.
+-/
 private def intermediateCfg (intermediate : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨some (Sum.inr tm2.q₀), BiTape.mk₁ intermediate⟩
 
@@ -305,10 +318,12 @@ private def finalCfg (output : List Symbol) : (compComputer tm1 tm2).Cfg :=
   ⟨none, BiTape.mk₁ output⟩
 
 /-- The left converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
-    Option.map (toCompCfg_left tm1 tm2) (tm1.step cfg1) =
-      (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 cfg1) := by
-  cases cfg1 with | mk state BiTape => cases state with
+private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome)
+    : Option.map (toCompCfg_left tm1 tm2) (tm1.step cfg1)
+      = (compComputer tm1 tm2).step (toCompCfg_left tm1 tm2 cfg1) := by
+  cases cfg1 with
+  | mk state BiTape =>
+    cases state with
     | none => grind
     | some q =>
       simp only [step, toCompCfg_left, compComputer]
@@ -319,9 +334,9 @@ private theorem map_toCompCfg_left_step (hcfg1 : cfg1.state.isSome) :
       cases nextState <;> (simp_all; rfl)
 
 /-- The right converting function commutes with steps of the machines. -/
-private theorem map_toCompCfg_right_step :
-    Option.map (toCompCfg_right tm1 tm2) (tm2.step cfg2) =
-      (compComputer tm1 tm2).step (toCompCfg_right tm1 tm2 cfg2) := by
+private theorem map_toCompCfg_right_step
+    : Option.map (toCompCfg_right tm1 tm2) (tm2.step cfg2)
+      = (compComputer tm1 tm2).step (toCompCfg_right tm1 tm2 cfg2) := by
   cases cfg2 with
   | mk state BiTape =>
     cases state with
@@ -339,22 +354,19 @@ runs from start (with Sum.inl state) to Sum.inr tm2.q₀ (the start of the secon
 This takes the same number of steps because the halt transition becomes a transition to the
 second machine.
 -/
-private theorem comp_left_relatesWithinSteps (input intermediate : List Symbol) (t : ℕ)
-    (htm1 :
-      RelatesWithinSteps tm1.TransitionRelation
-        (tm1.initCfg input)
-        (tm1.haltCfg intermediate)
-        t) :
-    RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (initialCfg tm1 tm2 input)
-      (intermediateCfg tm1 tm2 intermediate)
-      t := by
+private theorem comp_left_relatesWithinSteps
+    (input intermediate : List Symbol) (t : ℕ)
+    (htm1
+      : RelatesWithinSteps tm1.TransitionRelation (tm1.initCfg input) (tm1.haltCfg intermediate) t)
+    : RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation (initialCfg tm1 tm2 input)
+      (intermediateCfg tm1 tm2 intermediate) t := by
   simp only [initialCfg, intermediateCfg, initCfg, haltCfg] at htm1 ⊢
   refine RelatesWithinSteps.map (toCompCfg_left tm1 tm2) ?_ htm1
   intro a b hab
   have ha : a.state.isSome := by
     simp only [TransitionRelation, step] at hab
-    cases a with | mk state _ => cases state <;> simp_all
+    cases a with
+    | mk state _ => cases state <;> simp_all
   have h1 := map_toCompCfg_left_step tm1 tm2 a ha
   rw [hab, Option.map_some] at h1
   exact h1.symm
@@ -364,16 +376,12 @@ Simulation for the second phase of the composed computer.
 When the second machine runs from start to halt, the composed machine
 runs from Sum.inr tm2.q₀ to halt.
 -/
-private theorem comp_right_relatesWithinSteps (intermediate output : List Symbol) (t : ℕ)
-    (htm2 :
-      RelatesWithinSteps tm2.TransitionRelation
-        (tm2.initCfg intermediate)
-        (tm2.haltCfg output)
-        t) :
-    RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
-      (intermediateCfg tm1 tm2 intermediate)
-      (finalCfg tm1 tm2 output)
-      t := by
+private theorem comp_right_relatesWithinSteps
+    (intermediate output : List Symbol) (t : ℕ)
+    (htm2
+      : RelatesWithinSteps tm2.TransitionRelation (tm2.initCfg intermediate) (tm2.haltCfg output) t)
+    : RelatesWithinSteps (compComputer tm1 tm2).TransitionRelation
+      (intermediateCfg tm1 tm2 intermediate) (finalCfg tm1 tm2 output) t := by
   simp only [intermediateCfg, finalCfg, initCfg, haltCfg] at htm2 ⊢
   refine RelatesWithinSteps.map (toCompCfg_right tm1 tm2) ?_ htm2
   intro a b hab
@@ -391,8 +399,10 @@ This section defines the notion of time-bounded Turing Machines
 
 section TimeComputable
 
-/-- A Turing machine + a time function +
-a proof it outputs `f` in at most `time(input.length)` steps. -/
+/--
+A Turing machine + a time function +
+a proof it outputs `f` in at most `time(input.length)` steps.
+-/
 structure TimeComputable (f : List Symbol → List Symbol) where
   /-- the underlying bundled SingleTapeTM -/
   tm : SingleTapeTM Symbol
@@ -400,7 +410,6 @@ structure TimeComputable (f : List Symbol → List Symbol) where
   timeBound : ℕ → ℕ
   /-- proof this machine outputs `f` in at most `timeBound(input.length)` steps -/
   outputsFunInTime (a) : tm.OutputsWithinTime a (f a) (timeBound a.length)
-
 
 /-- The identity map on Symbol is computable in constant time. -/
 def TimeComputable.id : TimeComputable (Symbol := Symbol) id where
@@ -422,34 +431,28 @@ this is to ensure that if the first machine returns an output
 which is shorter than the maximum possible length of output for that input size,
 then the time bound for the second machine still holds for that shorter input to the second machine.
 -/
-def TimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : TimeComputable f) (hg : TimeComputable g)
-    (h_mono : Monotone hg.timeBound) :
-    (TimeComputable (g ∘ f)) where
+def TimeComputable.comp
+    {f g : List Symbol → List Symbol}
+    (hf : TimeComputable f) (hg : TimeComputable g) (h_mono : Monotone hg.timeBound)
+    : (TimeComputable (g ∘ f)) where
   tm := compComputer hf.tm hg.tm
   -- perhaps it would be good to track the blow up separately?
   timeBound l := (hf.timeBound l) + hg.timeBound (max 1 l + hf.timeBound l)
   outputsFunInTime a := by
     have hf_outputsFun := hf.outputsFunInTime a
     have hg_outputsFun := hg.outputsFunInTime (f a)
-    simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply,
-      haltCfg] at hg_outputsFun hf_outputsFun ⊢
+    simp only [OutputsWithinTime, initCfg, compComputer_q₀_eq, Function.comp_apply, haltCfg]
+      at hg_outputsFun hf_outputsFun ⊢
     -- The computer reduces a to f a in time hf.timeBound a.length
-    have h_a_reducesTo_f_a :
-        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          (initialCfg hf.tm hg.tm a)
-          (intermediateCfg hf.tm hg.tm (f a))
-          (hf.timeBound a.length) :=
-      comp_left_relatesWithinSteps hf.tm hg.tm a (f a)
-        (hf.timeBound a.length) hf_outputsFun
+    have h_a_reducesTo_f_a : RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
+        (initialCfg hf.tm hg.tm a) (intermediateCfg hf.tm hg.tm (f a)) (hf.timeBound a.length) :=
+      comp_left_relatesWithinSteps hf.tm hg.tm a (f a) (hf.timeBound a.length) hf_outputsFun
     -- The computer reduces f a to g (f a) in time hg.timeBound (f a).length
-    have h_f_a_reducesTo_g_f_a :
-        RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
-          (intermediateCfg hf.tm hg.tm (f a))
-          (finalCfg hf.tm hg.tm (g (f a)))
-          (hg.timeBound (f a).length) :=
-      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a))
-        (hg.timeBound (f a).length) hg_outputsFun
+    have h_f_a_reducesTo_g_f_a : RelatesWithinSteps (compComputer hf.tm hg.tm).TransitionRelation
+        (intermediateCfg hf.tm hg.tm (f a)) (finalCfg hf.tm hg.tm (g (f a)))
+        (hg.timeBound (f a).length) :=
+      comp_right_relatesWithinSteps hf.tm hg.tm (f a) (g (f a)) (hg.timeBound (f a).length)
+        hg_outputsFun
     -- Therefore, the computer reduces a to g (f a) in the sum of those times.
     have h_a_reducesTo_g_f_a := RelatesWithinSteps.trans h_a_reducesTo_f_a h_f_a_reducesTo_g_f_a
     refine RelatesWithinSteps.mono ?_ h_a_reducesTo_g_f_a
@@ -462,15 +465,16 @@ def TimeComputable.comp {f g : List Symbol → List Symbol}
 Convert a `TimeComputable` to one with a monotone time bound, by replacing the time bound `t`
 with `partialSups t`, i.e. `n ↦ max (t 0) ⋯ (t n)`. The underlying machine is unchanged.
 -/
-def TimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
-    (hf : TimeComputable f) : TimeComputable f where
+def TimeComputable.withMonotoneBound {f : List Symbol → List Symbol} (hf : TimeComputable f)
+    : TimeComputable f where
   tm := hf.tm
   timeBound := partialSups hf.timeBound
   outputsFunInTime a :=
     RelatesWithinSteps.mono (le_partialSups hf.timeBound _) (hf.outputsFunInTime a)
 
-lemma TimeComputable.withMonotoneBound_timeBound_monotone {f : List Symbol → List Symbol}
-    (hf : TimeComputable f) : Monotone hf.withMonotoneBound.timeBound :=
+lemma TimeComputable.withMonotoneBound_timeBound_monotone
+    {f : List Symbol → List Symbol} (hf : TimeComputable f)
+    : Monotone hf.withMonotoneBound.timeBound :=
   (partialSups hf.timeBound).monotone
 
 end TimeComputable
@@ -490,8 +494,10 @@ section PolyTimeComputable
 
 open Polynomial
 
-/-- A Turing machine + a polynomial time function +
-a proof it outputs `f` in at most `time(input.length)` steps. -/
+/--
+A Turing machine + a polynomial time function +
+a proof it outputs `f` in at most `time(input.length)` steps.
+-/
 structure PolyTimeComputable (f : List Symbol → List Symbol) extends TimeComputable f where
   /-- a polynomial time bound -/
   poly : Polynomial ℕ
@@ -508,8 +514,9 @@ noncomputable def PolyTimeComputable.id : PolyTimeComputable (Symbol := Symbol) 
 Convert a `PolyTimeComputable` to one with a monotone time bound.
 The polynomial bound is unchanged, since polynomial evaluation over `ℕ` is monotone.
 -/
-noncomputable def PolyTimeComputable.withMonotoneBound {f : List Symbol → List Symbol}
-    (hf : PolyTimeComputable f) : PolyTimeComputable f where
+noncomputable def PolyTimeComputable.withMonotoneBound
+    {f : List Symbol → List Symbol} (hf : PolyTimeComputable f)
+    : PolyTimeComputable f where
   toTimeComputable := hf.toTimeComputable.withMonotoneBound
   poly := hf.poly
   bounds _ := partialSups_le _ _ _ fun k hk => (hf.bounds k).trans (hf.poly.monotone_eval hk)
@@ -520,9 +527,9 @@ A proof that the composition of two polytime computable functions is polytime co
 The time bound of `hg` is first replaced by a monotone one via `withMonotoneBound`,
 so that no monotonicity assumption is required of the caller.
 -/
-noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
-    (hf : PolyTimeComputable f) (hg : PolyTimeComputable g) :
-    PolyTimeComputable (g ∘ f) where
+noncomputable def PolyTimeComputable.comp
+    {f g : List Symbol → List Symbol} (hf : PolyTimeComputable f) (hg : PolyTimeComputable g)
+    : PolyTimeComputable (g ∘ f) where
   toTimeComputable :=
     TimeComputable.comp hf.toTimeComputable hg.withMonotoneBound.toTimeComputable
       hg.toTimeComputable.withMonotoneBound_timeBound_monotone
@@ -531,8 +538,8 @@ noncomputable def PolyTimeComputable.comp {f g : List Symbol → List Symbol}
     simp only [TimeComputable.comp, eval_add, eval_comp, eval_X, eval_one]
     apply add_le_add
     · exact hf.bounds n
-    · exact (hg.toTimeComputable.withMonotoneBound_timeBound_monotone
-        (add_le_add (by omega) (hf.bounds n))).trans (hg.withMonotoneBound.bounds _)
+    · exact (hg.toTimeComputable.withMonotoneBound_timeBound_monotone (add_le_add (by omega)
+        (hf.bounds n))).trans (hg.withMonotoneBound.bounds _)
 
 end PolyTimeComputable
 

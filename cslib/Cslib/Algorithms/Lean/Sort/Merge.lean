@@ -42,28 +42,30 @@ theorem mergeM_right (xs : List α) (le : α → α → m Bool) : mergeM xs [] l
   induction xs with
   | nil => simp
   | cons x xs ih => simp [mergeM]
-@[simp] theorem cons_mergeM_cons (x y : α) (xs ys : List α) (le : α → α → m Bool) :
-    mergeM (x :: xs) (y :: ys) le = do
-      if ← le x y then
-        return x :: (← mergeM xs (y :: ys) le)
-      else
-        return y :: (← mergeM (x :: xs) ys le) := by
+@[simp]
+theorem cons_mergeM_cons (x y : α) (xs ys : List α) (le : α → α → m Bool)
+    : mergeM (x :: xs) (y :: ys) le
+      = do
+        if ← le x y then
+          return x :: (← mergeM xs (y :: ys) le)
+        else
+          return y :: (← mergeM (x :: xs) ys le) := by
   simp [mergeM]
 
-@[simp↓]
-theorem mergeM_pure [LawfulMonad m] (xs ys : List α) (le : α → α → Bool) :
-    mergeM xs ys (fun x y => (pure (le x y) : m Bool)) = pure (merge xs ys le) := by
+@[simp ↓]
+theorem mergeM_pure [LawfulMonad m] (xs ys : List α) (le : α → α → Bool)
+    : mergeM xs ys (fun x y => (pure (le x y) : m Bool)) = pure (merge xs ys le) := by
   fun_induction mergeM with grind [merge]
 
 @[simp]
-theorem idRun_mergeM (xs ys : List α) (le : α → α → Id Bool) :
-    Id.run (mergeM xs ys le) = merge xs ys (fun x y => Id.run <| le x y) :=
+theorem idRun_mergeM (xs ys : List α) (le : α → α → Id Bool)
+    : Id.run (mergeM xs ys le) = merge xs ys (fun x y => Id.run <| le x y) :=
   mergeM_pure _ _ _
 
 @[grind .]
-theorem _root_.Cslib.IsMonadHom.map_listMergeM {f : {β : Type} → m β → n β}
-    (hf : IsMonadHom m n f) (xs ys : List α) (le : α → α → m Bool) :
-    f (mergeM xs ys le) = mergeM xs ys (fun x y => f (le x y)) := by
+theorem _root_.Cslib.IsMonadHom.map_listMergeM
+    {f : {β : Type} → m β → n β} (hf : IsMonadHom m n f) (xs ys : List α) (le : α → α → m Bool)
+    : f (mergeM xs ys le) = mergeM xs ys (fun x y => f (le x y)) := by
   fun_induction mergeM xs ys le with
   | case1 | case2 => grind
   | case3 x xs y ys ihx ihy => simp [hf.map_bind, hf.map_pure, apply_ite f, ihx, ihy]
@@ -78,15 +80,15 @@ def mergeSortM (xs : List α) (le : α → α → m Bool) : m (List α) :=
     mergeM (← mergeSortM lr.1 le) (← mergeSortM lr.2 le) le
 termination_by xs.length
 
-@[simp] theorem mergeSortM_nil (le : α → α → m Bool) : mergeSortM [] le = pure [] := by
-  simp [mergeSortM]
-@[simp] theorem mergeSortM_singleton (a : α) (le : α → α → m Bool) :
-    mergeSortM [a] le = pure [a] := by
+@[simp]
+theorem mergeSortM_nil (le : α → α → m Bool) : mergeSortM [] le = pure [] := by simp [mergeSortM]
+@[simp]
+theorem mergeSortM_singleton (a : α) (le : α → α → m Bool) : mergeSortM [a] le = pure [a] := by
   simp [mergeSortM]
 
-@[simp↓]
-theorem mergeSortM_pure [LawfulMonad m] (xs : List α) (le : α → α → Bool) :
-    mergeSortM xs (fun x y => (pure (le x y) : m Bool)) = pure (mergeSort xs le) := by
+@[simp ↓]
+theorem mergeSortM_pure [LawfulMonad m] (xs : List α) (le : α → α → Bool)
+    : mergeSortM xs (fun x y => (pure (le x y) : m Bool)) = pure (mergeSort xs le) := by
   fun_induction mergeSort with
   | case1 | case2 => simp
   | case3 a b xs le lr _ _ ih1 ih2 =>
@@ -95,14 +97,14 @@ theorem mergeSortM_pure [LawfulMonad m] (xs : List α) (le : α → α → Bool)
     simp
 
 @[simp]
-theorem idRun_mergeSortM (xs : List α) (le : α → α → Id Bool) :
-    Id.run (mergeSortM xs le) = mergeSort xs (fun x y => Id.run <| le x y) :=
+theorem idRun_mergeSortM (xs : List α) (le : α → α → Id Bool)
+    : Id.run (mergeSortM xs le) = mergeSort xs (fun x y => Id.run <| le x y) :=
   mergeSortM_pure _ _
 
 @[grind .]
-theorem _root_.Cslib.IsMonadHom.map_listMergeSortM {f : {β : Type} → m β → n β}
-    (hf : IsMonadHom m n f) (xs : List α) (le : α → α → m Bool) :
-    f (mergeSortM xs le) = mergeSortM xs (fun x y => f (le x y)) := by
+theorem _root_.Cslib.IsMonadHom.map_listMergeSortM
+    {f : {β : Type} → m β → n β} (hf : IsMonadHom m n f) (xs : List α) (le : α → α → m Bool)
+    : f (mergeSortM xs le) = mergeSortM xs (fun x y => f (le x y)) := by
   fun_induction mergeSortM xs le with
   | case1 | case2 => simp [hf.map_pure]
   | case3 a b xs le ih1 ih2 => simp only [mergeSortM, hf.map_bind, ih1, ih2, hf.map_listMergeM, le]

@@ -19,7 +19,7 @@ open scoped Function
 
 /-- A predicate preserved by a relation is also preserved by its reflexive closure. -/
 @[simp, scoped grind =]
-theorem preserves_reflGen_iff : Preserves (ReflGen r) P  ↔ Preserves r P := by grind [Preserves]
+theorem preserves_reflGen_iff : Preserves (ReflGen r) P ↔ Preserves r P := by grind [Preserves]
 
 /-- A predicate preserved by a relation is also preserved by its transitive closure. -/
 @[simp, scoped grind =]
@@ -29,8 +29,10 @@ theorem preserves_transGen_iff : Preserves (TransGen r) P ↔ Preserves r P := b
   · intro _ _ hxy
     induction hxy <;> grind [Preserves]
 
-/-- A predicate is preserved by a relation iff it is preserves by its reflexive and transitive
-closure. -/
+/--
+A predicate is preserved by a relation iff it is preserves by its reflexive and transitive
+closure.
+-/
 @[simp, scoped grind =]
 theorem preserves_reflTransGen_iff : Preserves (ReflTransGen r) P ↔ Preserves r P := by
   constructor <;> intro h

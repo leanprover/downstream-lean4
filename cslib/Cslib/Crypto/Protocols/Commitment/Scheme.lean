@@ -38,63 +38,68 @@ can carry perfect, statistical, or computational security.
 
 namespace Cslib.Crypto.Protocols.Commitment
 
-/-- A noninteractive, unkeyed commitment scheme over message, commitment, and
+/--
+A noninteractive, unkeyed commitment scheme over message, commitment, and
 opening types ([BonehShoup2023], Section 8.12).
 
 Committing is randomized and produces the commitment and opening together,
 since the two may be correlated. Correctness requires that every
 commitment-opening pair the honest committer can output is accepted by the
 verifier; for a `PMF`, this says honest openings verify with probability
-one. -/
+one.
+-/
 structure Scheme (Message Commitment Opening : Type*) where
   /-- Randomized commitment and opening generation. -/
   commit (message : Message) : PMF (Commitment × Opening)
   /-- Deterministic verification of a claimed opening. -/
   verify (message : Message) (commitment : Commitment) (opening : Opening) : Bool
   /-- Every honestly generated commitment-opening pair verifies. -/
-  correct : ∀ message commitment opening,
-    (commitment, opening) ∈ (commit message).support →
-      verify message commitment opening = true
+  correct
+    : ∀ message commitment opening,
+      (commitment, opening) ∈ (commit message).support → verify message commitment opening = true
 
 namespace Scheme
 
 variable {Message Commitment Opening : Type*}
 
 /-- The public commitment distribution obtained by forgetting the opening. -/
-noncomputable def commitmentDist (scheme : Scheme Message Commitment Opening)
-    (message : Message) : PMF Commitment :=
+noncomputable def commitmentDist (scheme : Scheme Message Commitment Opening) (message : Message)
+    : PMF Commitment :=
   (scheme.commit message).map Prod.fst
 
-/-- A commitment lies in the public distribution's support exactly when some
-opening makes the corresponding pair an honest possible output. -/
+/--
+A commitment lies in the public distribution's support exactly when some
+opening makes the corresponding pair an honest possible output.
+-/
 theorem mem_support_commitmentDist_iff
-    (scheme : Scheme Message Commitment Opening) {message : Message}
-    {commitment : Commitment} :
-    commitment ∈ (scheme.commitmentDist message).support ↔
-      ∃ opening, (commitment, opening) ∈ (scheme.commit message).support := by
+    (scheme : Scheme Message Commitment Opening) {message : Message} {commitment : Commitment}
+    : commitment ∈ (scheme.commitmentDist message).support
+      ↔ ∃ opening, (commitment, opening) ∈ (scheme.commit message).support := by
   simp [commitmentDist]
 
 /-- The proposition that an opening is accepted for a commitment and message. -/
-def Accepts (scheme : Scheme Message Commitment Opening) (message : Message)
-    (commitment : Commitment) (opening : Opening) : Prop :=
+def Accepts
+    (scheme : Scheme Message Commitment Opening) (message : Message) (commitment : Commitment)
+    (opening : Opening)
+    : Prop :=
   scheme.verify message commitment opening = true
 
 /-- Every pair in the support of an honest commitment is accepted. -/
-theorem accepts_of_mem_support (scheme : Scheme Message Commitment Opening)
+theorem accepts_of_mem_support
+    (scheme : Scheme Message Commitment Opening)
     {message : Message} {commitment : Commitment} {opening : Opening}
-    (h : (commitment, opening) ∈ (scheme.commit message).support) :
-    scheme.Accepts message commitment opening :=
+    (h : (commitment, opening) ∈ (scheme.commit message).support)
+    : scheme.Accepts message commitment opening :=
   scheme.correct message commitment opening h
 
 /-- Build a commitment scheme from a deterministic commitment generation. -/
-noncomputable def ofPure (commit : Message → Commitment × Opening)
-    (verify : Message → Commitment → Opening → Bool)
-    (correct : ∀ message, verify message (commit message).1 (commit message).2 = true) :
-    Scheme Message Commitment Opening where
+noncomputable def ofPure
+    (commit : Message → Commitment × Opening) (verify : Message → Commitment → Opening → Bool)
+    (correct : ∀ message, verify message (commit message).1 (commit message).2 = true)
+    : Scheme Message Commitment Opening where
   commit message := PMF.pure (commit message)
   verify := verify
-  correct message commitment opening h := by
-    grind [PMF.mem_support_pure_iff]
+  correct message commitment opening h := by grind [PMF.mem_support_pure_iff]
 
 end Scheme
 

@@ -51,10 +51,9 @@ example : ⇓BTL[timeline,2 ⊨ ¬d⟨F⟩⊤] := by
 
 -- The present is not implicitly included.
 example : ⇓BTL[timeline,1 ⊨ ¬d⟨F⟩(() : Unit) ∧ ¬d⟨P⟩(() : Unit)] := by
-  simp only [Satisfies.and_iff_and, Satisfies.not_iff_not,
-    Satisfies.btl_future_sometime_iff, Satisfies.btl_past_sometime_iff, Satisfies.btl_atom_iff]
-  change (¬∃ w, (1 + 1 = w ∧ w < 3) ∧ w = 1) ∧
-    (¬∃ w, (w + 1 = 1 ∧ 1 < 3) ∧ w = 1)
+  simp only [Satisfies.and_iff_and, Satisfies.not_iff_not, Satisfies.btl_future_sometime_iff,
+    Satisfies.btl_past_sometime_iff, Satisfies.btl_atom_iff]
+  change (¬ ∃ w, (1 + 1 = w ∧ w < 3) ∧ w = 1) ∧ (¬ ∃ w, (w + 1 = 1 ∧ 1 < 3) ∧ w = 1)
   grind
 
 -- The relation is not implicitly closed under transitivity.
@@ -69,13 +68,13 @@ example : ⇓BTL[timeline,0 ⊨ d⟨F⟩(d⟨F⟩⊤) ∧ ¬d⟨F⟩¬(() : Unit
     exact h hw.1.symm
 
 -- Temporal propositions support the existing modal automation and equivalence API.
-example (m : BTL.Model World Atom) (hr : m.r w w') (φ : BTL.Proposition Atom)
-    (h : ⇓BTL[m,w' ⊨ φ]) : ⇓BTL[m,w ⊨ d⟨F⟩φ] := by
+example (m : BTL.Model World Atom) (hr : m.r w w') (φ : BTL.Proposition Atom) (h : ⇓BTL[m,w' ⊨ φ])
+    : ⇓BTL[m,w ⊨ d⟨F⟩φ] := by
   rw [Satisfies.btl_future_sometime_iff]
   exact ⟨w', hr, h⟩
 
-example (m : BTL.Model World Atom) (φ : BTL.Proposition Atom) :
-    d[F]φ ≡[Modal.Proposition.Equiv m.toModal] ¬d⟨F⟩¬φ := by
+example (m : BTL.Model World Atom) (φ : BTL.Proposition Atom)
+    : d[F]φ ≡[Modal.Proposition.Equiv m.toModal] ¬d⟨F⟩¬φ := by
   rw [Modal.Proposition.equiv_iff_forall_iff, BTL.Proposition.always_eq_not_future_not]
   intro w
   rfl

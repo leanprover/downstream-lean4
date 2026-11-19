@@ -29,8 +29,10 @@ open Function Set Sum Multiset
 
 variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
-/-- `a.CanReachVia ps s1 s2` means that state `s2` is reachable from state `s1` via a finite
-execution of algorithm `a` in which all messages received have destinations in `ps`. -/
+/--
+`a.CanReachVia ps s1 s2` means that state `s2` is reachable from state `s1` via a finite
+execution of algorithm `a` in which all messages received have destinations in `ps`.
+-/
 def Algorithm.CanReachVia (a : Algorithm P M S) (ps : Set P) (s1 s2 : State P M S) : Prop :=
   Relation.ReflTransGen (fun s t ↦ ∃ x, DestIn ps x ∧ a.lts.Tr s x t) s1 s2
 
@@ -39,8 +41,8 @@ namespace CanReachVia
 variable {a : Algorithm P M S}
 
 /-- Restricted reachability is witnessed by a finite trace whose destinations lie in `ps`. -/
-theorem iff_exists_mTr {ps : Set P} {s s' : State P M S} :
-    a.CanReachVia ps s s' ↔ ∃ xs, a.lts.MTr s xs s' ∧ xs.Forall (DestIn ps) := by
+theorem iff_exists_mTr {ps : Set P} {s s' : State P M S}
+    : a.CanReachVia ps s s' ↔ ∃ xs, a.lts.MTr s xs s' ∧ xs.Forall (DestIn ps) := by
   constructor
   · intro h
     induction h using Relation.ReflTransGen.head_induction_on with
@@ -57,39 +59,45 @@ theorem iff_exists_mTr {ps : Set P} {s s' : State P M S} :
       exact (ih hxs).head ⟨_, hx, htr⟩
 
 /-- `a.CanReachVia ps s s'` implies `a.lts.CanReach s s'` for any `ps`. -/
-theorem canReach {ps : Set P} {s s' : State P M S}
-    (h : a.CanReachVia ps s s') : a.lts.CanReach s s' := by
+theorem canReach {ps : Set P} {s s' : State P M S} (h : a.CanReachVia ps s s')
+    : a.lts.CanReach s s' := by
   obtain ⟨xs, hmtr, _⟩ := iff_exists_mTr.mp h
   exact ⟨xs, hmtr⟩
 
 /-- `a.CanReachVia ps s s` is true for any `ps`. -/
-theorem refl (ps : Set P) (s : State P M S) :
-    a.CanReachVia ps s s := .refl
+theorem refl (ps : Set P) (s : State P M S) : a.CanReachVia ps s s := .refl
 
 /-- Extending `CanReachVia` on the left by one step. -/
-theorem stepL {ps : Set P} {x : Action P M} {s1 s2 s3 : State P M S}
-    (hx : DestIn ps x) (h1 : a.lts.Tr s1 x s2) (h2 : a.CanReachVia ps s2 s3) :
-    a.CanReachVia ps s1 s3 := h2.head ⟨x, hx, h1⟩
+theorem stepL
+    {ps : Set P} {x : Action P M} {s1 s2 s3 : State P M S}
+    (hx : DestIn ps x) (h1 : a.lts.Tr s1 x s2) (h2 : a.CanReachVia ps s2 s3)
+    : a.CanReachVia ps s1 s3 :=
+  h2.head ⟨x, hx, h1⟩
 
 /-- A diamond property for `CanReachVia`. This theorem formalizes Proposition 1 of [Volzer2004]. -/
-theorem diamond {ps : Set P} {s s1 s2 : State P M S}
-    (h1 : a.CanReachVia ps s s1) (h2 : a.CanReachVia psᶜ s s2) :
-    ∃ s', a.CanReachVia psᶜ s1 s' ∧ a.CanReachVia ps s2 s' := by
+theorem diamond
+    {ps : Set P} {s s1 s2 : State P M S} (h1 : a.CanReachVia ps s s1) (h2 : a.CanReachVia psᶜ s s2)
+    : ∃ s', a.CanReachVia psᶜ s1 s' ∧ a.CanReachVia ps s2 s' := by
   refine Relation.DiamondCommute.to_commute ?_ h1 h2
   rintro _ _ _ ⟨x, hx, htr⟩ ⟨y, hy, htr'⟩
   obtain ⟨t, ht, ht'⟩ := Algorithm.tr_diamond hx htr hy htr'
   exact ⟨t, ⟨y, hy, ht⟩, ⟨x, hx, ht'⟩⟩
 
-/-- If inputs `inp1` and `inp2` agree on all processes in `ps` and state `s` is reachable from
+/--
+If inputs `inp1` and `inp2` agree on all processes in `ps` and state `s` is reachable from
 the initial state determined by `inp1` by receiving messages with destinations in `ps` only,
 then there exists a state `s2` that agrees with `s` on the states of all processes and is
 reachable from the initial state determined by `inp2` by receiving messages with destinations
-in `ps` only. This theorem is implicitly used in the proof of Lemma 1 of [Volzer2004]. -/
-theorem subset_inp [Fintype P] {ps : Set P} {inp1 inp2 : P → Bool} {s1 : State P M S}
-    (he : EqOn inp1 inp2 ps) (hr : a.CanReachVia ps (a.start inp1) s1) :
-    ∃ s2, a.CanReachVia ps (a.start inp2) s2 ∧ s2.proc = s1.proc := by
-  suffices ∃ s2, a.CanReachVia ps (a.start inp2) s2 ∧ s2.proc = s1.proc ∧
-      ∀ m, m.dest ∈ ps → s2.msgs.count m = s1.msgs.count m by
+in `ps` only. This theorem is implicitly used in the proof of Lemma 1 of [Volzer2004].
+-/
+theorem subset_inp
+    [Fintype P]
+    {ps : Set P} {inp1 inp2 : P → Bool} {s1 : State P M S}
+    (he : EqOn inp1 inp2 ps) (hr : a.CanReachVia ps (a.start inp1) s1)
+    : ∃ s2, a.CanReachVia ps (a.start inp2) s2 ∧ s2.proc = s1.proc := by
+  suffices ∃ s2,
+      a.CanReachVia ps (a.start inp2) s2 ∧ s2.proc = s1.proc
+        ∧ ∀ m, m.dest ∈ ps → s2.msgs.count m = s1.msgs.count m by
     obtain ⟨s2, hr, hp, _⟩ := this
     exact ⟨s2, hr, hp⟩
   induction hr with

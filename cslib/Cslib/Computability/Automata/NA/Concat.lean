@@ -19,27 +19,33 @@ open Sum ωSequence Acceptor LTS.Execution
 
 variable {Symbol State1 State2 : Type*}
 
-/-- `concat na1 na2` starts by running `na1` and then nondeterministically switches to `na2`
+/--
+`concat na1 na2` starts by running `na1` and then nondeterministically switches to `na2`
 by identifying an accepting state of `na1` with an initial state of `na2`. If `na1` accepts the
 empty word, it may also start running `na2` from the beginning. Once it starts running `na2`,
-it cannot go back to `na1`. -/
+it cannot go back to `na1`.
+-/
 def concat (na1 : FinAcc State1 Symbol) (na2 : NA State2 Symbol) : NA (State1 ⊕ State2) Symbol where
-    Tr s x t := match s, t with
-      | inl s1, inl t1 => na1.Tr s1 x t1
-      | inl s1, inr t2 => ∃ t1, na1.Tr s1 x t1 ∧ t1 ∈ na1.accept ∧ t2 ∈ na2.start
-      | inr s2, inr t2 => na2.Tr s2 x t2
-      | inr _, inl _ => False
-    start := inl '' na1.start ∪ {s | [] ∈ language na1 ∧ s ∈ inr '' na2.start}
+  Tr s x t :=
+    match s, t with
+    | inl s1, inl t1 => na1.Tr s1 x t1
+    | inl s1, inr t2 => ∃ t1, na1.Tr s1 x t1 ∧ t1 ∈ na1.accept ∧ t2 ∈ na2.start
+    | inr s2, inr t2 => na2.Tr s2 x t2
+    | inr _, inl _ => False
+  start := inl '' na1.start ∪ {s | [] ∈ language na1 ∧ s ∈ inr '' na2.start}
 
 variable {na1 : FinAcc State1 Symbol} {na2 : NA State2 Symbol}
 
-lemma concat_start_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (hr : (ss 0).isRight) : [] ∈ language na1 := by
+lemma concat_start_right
+    {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
+    (hc : (concat na1 na2).Run xs ss) (hr : (ss 0).isRight)
+    : [] ∈ language na1 := by
   grind [concat, hc.start]
 
-lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hl : ∀ k ≤ n, (ss k).isLeft) :
-    ∃ s1 t1, na1.MTr s1 (xs.take n) t1 ∧ s1 ∈ na1.start ∧ ss 0 = inl s1 ∧ ss n = inl t1 := by
+lemma concat_run_left
+    {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} (hc : (concat na1 na2).Run xs ss)
+    (n : ℕ) (hl : ∀ k ≤ n, (ss k).isLeft)
+    : ∃ s1 t1, na1.MTr s1 (xs.take n) t1 ∧ s1 ∈ na1.start ∧ ss 0 = inl s1 ∧ ss n = inl t1 := by
   obtain ⟨s1, _⟩ : ∃ s1, s1 ∈ na1.start ∧ ss 0 = inl s1 := by grind [concat, hc.start]
   use s1
   induction n
@@ -50,22 +56,24 @@ lemma concat_run_left {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Stat
       grind [concat, hc.trans n]
     grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
 
-lemma concat_run_left_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hn : 0 < n)
-    (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight) : (xs.take n) ∈ language na1 := by
+lemma concat_run_left_right
+    {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} (hc : (concat na1 na2).Run xs ss)
+    (n : ℕ) (hn : 0 < n) (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight)
+    : (xs.take n) ∈ language na1 := by
   obtain ⟨s1, t1, h_mtr, _⟩ := concat_run_left hc (n - 1) (by grind)
   obtain ⟨t1', h_tr, _⟩ : ∃ t1', na1.Tr t1 (xs (n - 1)) t1' ∧ t1' ∈ na1.accept := by
     grind [concat, hc.trans (n - 1)]
   use s1, by grind, t1', by grind
   grind [LTS.MTr.stepR na1.toLTS h_mtr h_tr]
 
-lemma concat_run_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)}
-    (hc : (concat na1 na2).Run xs ss) (n : ℕ) (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight) :
-    ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
+lemma concat_run_right
+    {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} (hc : (concat na1 na2).Run xs ss)
+    (n : ℕ) (hl : ∀ k < n, (ss k).isLeft) (hr : (ss n).isRight)
+    : ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
   have h2 k : ∃ s2, ss (n + k) = inr s2 := by
-     induction k
-     case zero => grind [isRight_iff]
-     case succ k h_ind => grind [concat, hc.trans (n + k)]
+    induction k
+    case zero => grind [isRight_iff]
+    case succ k h_ind => grind [concat, hc.trans (n + k)]
   choose ss2 h_ss2 using h2
   refine ⟨ss2, Run.mk ?_ ?_, by grind⟩
   · by_cases h_n : n = 0
@@ -74,12 +82,16 @@ lemma concat_run_right {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ Sta
   · intro k
     grind [concat, hc.trans (n + k)]
 
-/-- A run of `concat na1 na2` containing at least one `na2` state is the concatenation of
-an accepting finite run of `na1` followed by a run of `na2`. -/
-theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} {k : ℕ}
-    (hc : (concat na1 na2).Run xs ss) (hr : (ss k).isRight) :
-    ∃ n, n ≤ k ∧ xs.take n ∈ language na1 ∧
-    ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
+/--
+A run of `concat na1 na2` containing at least one `na2` state is the concatenation of
+an accepting finite run of `na1` followed by a run of `na2`.
+-/
+theorem concat_run_proj
+    {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ State2)} {k : ℕ}
+    (hc : (concat na1 na2).Run xs ss) (hr : (ss k).isRight)
+    : ∃ n,
+      n ≤ k ∧ xs.take n ∈ language na1
+        ∧ ∃ ss2, na2.Run (xs.drop n) ss2 ∧ ss.drop n = ss2.map inr := by
   have hr' : ∃ k, (ss k).isRight := by grind
   let n := Nat.find hr'
   have hl (k) (h_k : k < n) := not_isRight.mp <| Nat.find_min hr' h_k
@@ -90,17 +102,20 @@ theorem concat_run_proj {xs : ωSequence Symbol} {ss : ωSequence (State1 ⊕ St
   · exact concat_run_right hc n hl (Nat.find_spec hr')
 
 -- some theory of functional simulations between `LTS` might be useful for results like this.
-private theorem concat_lift_left {s₁ xs s₂ ss} (h : na1.Execution s₁ xs s₂ ss) :
-    (concat na1 na2).Execution (inl s₁) xs (inl s₂) (ss.map inl) := by
+private theorem concat_lift_left {s₁ xs s₂ ss} (h : na1.Execution s₁ xs s₂ ss)
+    : (concat na1 na2).Execution (inl s₁) xs (inl s₂) (ss.map inl) := by
   induction h with
   | refl s => exact .refl (inl s)
   | stepL htr he ih => apply ih.stepL; exact htr
 
-/-- Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
-`concat na1 na2` that is the concatenation of the two runs. -/
-theorem concat_run_exists {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
-    (h1 : xs1 ∈ language na1) (h2 : na2.Run xs2 ss2) :
-    ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
+/--
+Given an accepting finite run of `na1` and a run of `na2`, there exists a run of
+`concat na1 na2` that is the concatenation of the two runs.
+-/
+theorem concat_run_exists
+    {xs1 : List Symbol} {xs2 : ωSequence Symbol} {ss2 : ωSequence State2}
+    (h1 : xs1 ∈ language na1) (h2 : na2.Run xs2 ss2)
+    : ∃ ss, (concat na1 na2).Run (xs1 ++ω xs2) ss ∧ ss.drop xs1.length = ss2.map inr := by
   obtain (rfl | ⟨xs, x, rfl⟩) := xs1.eq_nil_or_concat'
   · refine ⟨ss2.map inr, ⟨?_, h2.trans⟩, rfl⟩
     simpa [concat, h1] using h2.start
@@ -128,12 +143,14 @@ namespace Buchi
 
 open ωAcceptor Filter
 
-/-- The Buchi automaton formed from `concat na1 na2` accepts the ω-language that is
-the concatenation of the language of `na1` and the ω-language of `na2`. -/
+/--
+The Buchi automaton formed from `concat na1 na2` accepts the ω-language that is
+the concatenation of the language of `na1` and the ω-language of `na2`.
+-/
 @[simp]
-theorem concat_language_eq {acc2 : Set State2} :
-    language (Buchi.mk (concat na1 na2) (inr '' acc2)) =
-    language na1 * language (Buchi.mk na2 acc2) := by
+theorem concat_language_eq {acc2 : Set State2}
+    : language (Buchi.mk (concat na1 na2) (inr '' acc2))
+      = language na1 * language (Buchi.mk na2 acc2) := by
   ext xs
   constructor
   · rintro ⟨ss, h_run, h_acc⟩
@@ -154,21 +171,22 @@ namespace FinAcc
 
 /-- `finConcat na1 na2` is the concatenation of the "totalized" versions of `na1` and `na2`. -/
 def finConcat (na1 : FinAcc State1 Symbol) (na2 : FinAcc State2 Symbol)
-  : NA (Option State1 ⊕ Option State2) Symbol :=
+    : NA (Option State1 ⊕ Option State2) Symbol :=
   concat ⟨na1.totalize, some '' na1.accept⟩ na2.totalize
 
 variable {na1 : FinAcc State1 Symbol} {na2 : FinAcc State2 Symbol}
 
 /-- `finConcat na1 na2` is total. -/
 instance : (finConcat na1 na2).Total where
-  total s x := match s with
+  total s x :=
+    match s with
     | inl _ => ⟨inl none, by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
     | inr _ => ⟨inr none, by grind [finConcat, concat, NA.totalize, LTS.totalize]⟩
 
 /-- `finConcat na1 na2` accepts the concatenation of the languages of `na1` and `na2`. -/
-theorem finConcat_language_eq [Inhabited Symbol] :
-    language (FinAcc.mk (finConcat na1 na2) (inr '' (some '' na2.accept))) =
-    language na1 * language na2 := by
+theorem finConcat_language_eq [Inhabited Symbol]
+    : language (FinAcc.mk (finConcat na1 na2) (inr '' (some '' na2.accept)))
+      = language na1 * language na2 := by
   ext xl
   constructor
   · rintro ⟨s, _, t, h_acc, h_mtr⟩
@@ -194,12 +212,13 @@ theorem finConcat_language_eq [Inhabited Symbol] :
     #adaptation_note
     /-- A grind regression found moving to nightly-2026-03-31 (changes from lean#13166) -/
     have h_mtr := LTS.OmegaExecution.extract_mTr h_ωtr (zero_le (a := xl1.length + xl2.length))
-    simp [← append_append_ωSequence, extract_eq_drop_take,
-      take_append_of_le_length, ← List.length_append] at h_mtr
+    simp [← append_append_ωSequence, extract_eq_drop_take, take_append_of_le_length,
+        ← List.length_append]
+      at h_mtr
     have : ss (xl1.length + xl2.length) = (ss.drop xl1.length) xl2.length := by grind
     have : ss (xl1.length + xl2.length) = inr (ss2 xl2.length) := by grind
-    refine ⟨ss 0, ?_, ss (xl1.length + xl2.length), ?_, ?_⟩ <;>
-      grind [finConcat, List.length_append]
+    refine ⟨ss 0, ?_, ss (xl1.length + xl2.length), ?_, ?_⟩
+      <;> grind [finConcat, List.length_append]
 
 end FinAcc
 

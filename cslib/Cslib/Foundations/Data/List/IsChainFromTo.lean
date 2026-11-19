@@ -38,8 +38,10 @@ namespace List
 
 variable {α : Type*} {r : α → α → Prop} {chain : List α} {a b c : α}
 
-/-- A "chain from to" is a list of elements where adjacent elements relate to each other
-(cf. `List.IsChain`) and start and end with specific elements. -/
+/--
+A "chain from to" is a list of elements where adjacent elements relate to each other
+(cf. `List.IsChain`) and start and end with specific elements.
+-/
 structure IsChainFromTo {α : Type*} (r : α → α → Prop) (chain : List α) (a b : α) : Prop where
   isChain : chain.IsChain r
   ne_nil : chain ≠ []
@@ -55,28 +57,27 @@ lemma IsChainFromTo.length_pos (hc : chain.IsChainFromTo r a b) : 0 < chain.leng
 
 /-- The first element of an `r`-chain from `a` to `b` is `a`. -/
 @[scoped grind →]
-lemma IsChainFromTo.getElem_zero (hc : chain.IsChainFromTo r a b) :
-    chain[0]'hc.length_pos = a := by
+lemma IsChainFromTo.getElem_zero (hc : chain.IsChainFromTo r a b) : chain[0]'hc.length_pos = a := by
   rw [List.getElem_zero]
   exact hc.head_eq
 
 /-- The last element of an `r`-chain from `a` to `b` is `b`. -/
 @[scoped grind →]
-lemma IsChainFromTo.getElem_length_sub_one (hc : chain.IsChainFromTo r a b) :
-    chain[chain.length - 1]'(by have := hc.length_pos; lia) = b := by
+lemma IsChainFromTo.getElem_length_sub_one (hc : chain.IsChainFromTo r a b)
+    : chain[chain.length - 1]'(by have := hc.length_pos; lia) = b := by
   rw [List.getElem_length_sub_one_eq_getLast]
   exact hc.getLast_eq
 
 /-- The start and the end of an `r`-chain are reflexively-transitively related by `r`. -/
-theorem IsChainFromTo.reflTransGen (hc : chain.IsChainFromTo r a b) :
-    Relation.ReflTransGen r a b := by
+theorem IsChainFromTo.reflTransGen (hc : chain.IsChainFromTo r a b)
+    : Relation.ReflTransGen r a b := by
   simpa [hc.head_eq, hc.getLast_eq] using
     List.relationReflTransGen_of_exists_isChain chain hc.isChain hc.ne_nil
 
 /-- Create a `List.IsChainFromTo` from a non-empty `List.IsChain`. -/
 theorem IsChain.isChainFromTo_of_ne_nil
-    {chain : List α} (hc : chain.IsChain r) (h_ne_nil : chain ≠ []) :
-    List.IsChainFromTo r chain (chain.head h_ne_nil) (chain.getLast h_ne_nil) :=
+    {chain : List α} (hc : chain.IsChain r) (h_ne_nil : chain ≠ [])
+    : List.IsChainFromTo r chain (chain.head h_ne_nil) (chain.getLast h_ne_nil) :=
   ⟨hc, h_ne_nil, rfl, rfl⟩
 
 /-- A one-element list is an `r`-chain from that element to itself. -/
@@ -85,16 +86,16 @@ lemma isChainFromTo_singleton : List.IsChainFromTo r [a] a a :=
   ⟨List.IsChain.singleton a, by simp, rfl, rfl⟩
 
 /-- Prepend an `r`-related element to the start of the chain. -/
-lemma IsChainFromTo.cons (h : r a b) (hc : chain.IsChainFromTo r b c) :
-    (a :: chain).IsChainFromTo r a c where
+lemma IsChainFromTo.cons (h : r a b) (hc : chain.IsChainFromTo r b c)
+    : (a :: chain).IsChainFromTo r a c where
   isChain := hc.isChain.cons_of_ne_nil hc.ne_nil (hc.head_eq.symm ▸ h)
   ne_nil := cons_ne_nil a chain
   head_eq := head_cons
   getLast_eq := hc.getLast_eq ▸ chain.getLast_cons hc.ne_nil
 
 @[simp, scoped grind =]
-lemma isChainFromTo_pair_iff {a a' b b' : α} :
-    List.IsChainFromTo r [a, b] a' b' ↔ r a b ∧ a = a' ∧ b = b' := by
+lemma isChainFromTo_pair_iff {a a' b b' : α}
+    : List.IsChainFromTo r [a, b] a' b' ↔ r a b ∧ a = a' ∧ b = b' := by
   constructor
   · rintro ⟨hc, _, rfl, rfl⟩
     simpa using hc
@@ -102,48 +103,58 @@ lemma isChainFromTo_pair_iff {a a' b b' : α} :
     constructor <;> simp_all
 
 /-- Removing the head yields a valid chain. -/
-lemma IsChainFromTo.of_cons_cons {x y : α} (hc : (x :: y :: chain).IsChainFromTo r a b) :
-    (y :: chain).IsChainFromTo r y b :=
+lemma IsChainFromTo.of_cons_cons {x y : α} (hc : (x :: y :: chain).IsChainFromTo r a b)
+    : (y :: chain).IsChainFromTo r y b :=
   ⟨hc.isChain.of_cons, cons_ne_nil _ _, head_cons, by grind⟩
 
-/-- Appending a chain and the tail of a second one whose start point equals the end point of the
-first yields a valid chain. -/
-lemma IsChainFromTo.append_tail (hc : chain.IsChainFromTo r a b) {chain' : List α}
-    (hc' : chain'.IsChainFromTo r b c) : (chain ++ chain'.tail).IsChainFromTo r a c where
+/--
+Appending a chain and the tail of a second one whose start point equals the end point of the
+first yields a valid chain.
+-/
+lemma IsChainFromTo.append_tail
+    (hc : chain.IsChainFromTo r a b) {chain' : List α} (hc' : chain'.IsChainFromTo r b c)
+    : (chain ++ chain'.tail).IsChainFromTo r a c where
   isChain := by
     have hb : chain.dropLast ++ [b] = chain :=
       hc.getLast_eq ▸ chain.dropLast_append_getLast hc.ne_nil
-    have hb' : [b] ++ chain'.tail = chain' := by simp [←hc'.head_eq]
-    rw [←hb] at hc ⊢
+    have hb' : [b] ++ chain'.tail = chain' := by simp [← hc'.head_eq]
+    rw [← hb] at hc ⊢
     exact hc.isChain.append_overlap (l₃ := chain'.tail) (hb'.symm ▸ hc'.isChain) (cons_ne_nil b [])
   ne_nil := append_ne_nil_of_left_ne_nil hc.ne_nil _
   head_eq := head_append_left hc.ne_nil |>.trans hc.head_eq
   getLast_eq := by grind
 
 /-- Add an `r`-related element to the end of the chain. -/
-lemma IsChainFromTo.snoc (hc : chain.IsChainFromTo r a b) (h : r b c) :
-    (chain ++ [c]).IsChainFromTo r a c :=
+lemma IsChainFromTo.snoc (hc : chain.IsChainFromTo r a b) (h : r b c)
+    : (chain ++ [c]).IsChainFromTo r a c :=
   append_tail hc (chain' := [b, c]) (by simpa)
 
-/-- Appending a chain, dropping its last element and another chain whose start point equals
-the end point of the first chain yields a valid chain. -/
-lemma IsChainFromTo.append_dropLast (hc : chain.IsChainFromTo r a b) {chain' : List α}
-    (hc' : chain'.IsChainFromTo r b c) : (chain.dropLast ++ chain').IsChainFromTo r a c := by
+/--
+Appending a chain, dropping its last element and another chain whose start point equals
+the end point of the first chain yields a valid chain.
+-/
+lemma IsChainFromTo.append_dropLast
+    (hc : chain.IsChainFromTo r a b) {chain' : List α} (hc' : chain'.IsChainFromTo r b c)
+    : (chain.dropLast ++ chain').IsChainFromTo r a c := by
   convert hc.append_tail hc' using 1
   nth_rw 1 [←chain'.cons_head_tail hc'.ne_nil, hc'.head_eq, append_cons, ←hc.getLast_eq,
     dropLast_concat_getLast hc.ne_nil]
 
-/-- Taking the first `i + 1` elements of a chain yields a chain from the same start point to
-`chain[i]`. -/
-lemma IsChainFromTo.take (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i < chain.length) :
-    (chain.take (i + 1)).IsChainFromTo r a chain[i] := by
+/--
+Taking the first `i + 1` elements of a chain yields a chain from the same start point to
+`chain[i]`.
+-/
+lemma IsChainFromTo.take (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i < chain.length)
+    : (chain.take (i + 1)).IsChainFromTo r a chain[i] := by
   have : chain.take (i + 1) ≠ [] := by grind only [length_nil, min_def, length_take]
   exact ⟨hc.isChain.take _, this, by grind, by grind [chain.getLast_take this]⟩
 
-/-- Dropping the first `i` elements of a chain yields a chain from `chain[i]` to the same end
-point. -/
-lemma IsChainFromTo.drop (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i < chain.length) :
-    (chain.drop i).IsChainFromTo r chain[i] b := by
+/--
+Dropping the first `i` elements of a chain yields a chain from `chain[i]` to the same end
+point.
+-/
+lemma IsChainFromTo.drop (hc : chain.IsChainFromTo r a b) {i : ℕ} (hi : i < chain.length)
+    : (chain.drop i).IsChainFromTo r chain[i] b := by
   have : chain.drop i ≠ [] := ne_nil_iff_length_pos.mpr <| chain.lt_length_drop hi
   refine ⟨hc.isChain.drop _, this, chain.head_drop this, hc.getLast_eq ▸ chain.getLast_drop this⟩
 
@@ -153,7 +164,8 @@ lemma IsChainFromTo.head_induction_on
     (h_refl : ∀ {a : α}, motive (isChainFromTo_singleton (r := r) (a := a)))
     (h_head : ∀ {a b c : α} {chain : List α} (hab : r a b) (hc : chain.IsChainFromTo r b c),
       motive hc → motive (hc.cons hab))
-    {chain : List α} {a b : α} (hc : chain.IsChainFromTo r a b) : motive hc := by
+    {chain : List α} {a b : α} (hc : chain.IsChainFromTo r a b)
+    : motive hc := by
   induction htail : chain.tail generalizing chain a with
   | nil => grind => have : chain = [a]; finish
   | cons a' tail ih =>
@@ -163,24 +175,24 @@ lemma IsChainFromTo.head_induction_on
     exact h_head hrel this (ih this rfl)
 
 /-- Any element of an `r`-chain from `a` to `b` is reflexively-transitively related from `a`. -/
-lemma IsChainFromTo.reflTransGen_of_mem (hc : chain.IsChainFromTo r a b) {x : α} (mem : x ∈ chain) :
-    Relation.ReflTransGen r a x := by
+lemma IsChainFromTo.reflTransGen_of_mem (hc : chain.IsChainFromTo r a b) {x : α} (mem : x ∈ chain)
+    : Relation.ReflTransGen r a x := by
   obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem mem
   exact (hc.take hi).reflTransGen
 
 /-- Any element of an `r`-chain from `a` to `b` is reflexively-transitively related to `b`. -/
-lemma IsChainFromTo.reflTransGen_of_mem' (hc : chain.IsChainFromTo r a b) {x : α}
-    (mem : x ∈ chain) :
-    Relation.ReflTransGen r x b := by
+lemma IsChainFromTo.reflTransGen_of_mem' (hc : chain.IsChainFromTo r a b) {x : α} (mem : x ∈ chain)
+    : Relation.ReflTransGen r x b := by
   obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem mem
   exact (hc.drop hi).reflTransGen
 
-/-- If there is an `r`-chain from `a` to `b` with duplicates, then there is a shorter `r`-chain
-from `a` to `b` (the one that skips the part between the duplicates). -/
+/--
+If there is an `r`-chain from `a` to `b` with duplicates, then there is a shorter `r`-chain
+from `a` to `b` (the one that skips the part between the duplicates).
+-/
 lemma IsChainFromTo.exists_length_lt_of_not_nodup
-    (hc : chain.IsChainFromTo r a b)
-    (h_dup : ¬ chain.Nodup) :
-    ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.length < chain.length := by
+    (hc : chain.IsChainFromTo r a b) (h_dup : ¬chain.Nodup)
+    : ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.length < chain.length := by
   simp only [nodup_iff_getElem?_ne_getElem?, not_forall, not_not] at h_dup
   obtain ⟨i, j, h_ij, h_lt, h_eq⟩ := h_dup
   use chain.take i ++ chain.drop j
@@ -194,8 +206,8 @@ lemma IsChainFromTo.exists_length_lt_of_not_nodup
   · grind
 
 /-- For any `r`-chain from `a` to `b` there is one without duplicates. -/
-lemma IsChainFromTo.exists_nodup (hc : chain.IsChainFromTo r a b) :
-    ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.Nodup := by
+lemma IsChainFromTo.exists_nodup (hc : chain.IsChainFromTo r a b)
+    : ∃ chain' : List α, chain'.IsChainFromTo r a b ∧ chain'.Nodup := by
   induction hn : chain.length using Nat.strong_induction_on generalizing chain with
   | ind n ih =>
     by_cases h_dup : chain.Nodup

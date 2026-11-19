@@ -22,7 +22,6 @@ The main result is `FinAcc.reverse_language_eq`: the language accepted by `na.re
 the statement that `na.reverse` accepts `xs` iff `na` accepts `xs.reverse`.
 -/
 
-
 @[expose] public section
 
 namespace Cslib.Automata.NA
@@ -33,8 +32,10 @@ variable {State Symbol : Type*}
 
 namespace FinAcc
 
-/-- `na.reverse` reverses every transition of `na` and swaps its start and accept states,
-so that it accepts exactly the reversals of the words accepted by `na`. -/
+/--
+`na.reverse` reverses every transition of `na` and swaps its start and accept states,
+so that it accepts exactly the reversals of the words accepted by `na`.
+-/
 def reverse (na : FinAcc State Symbol) : FinAcc State Symbol where
   toLTS := na.toLTS.reverse
   start := na.accept
@@ -56,22 +57,25 @@ theorem reverse_start (na : FinAcc State Symbol) : na.reverse.start = na.accept 
 @[simp, grind =]
 theorem reverse_accept (na : FinAcc State Symbol) : na.reverse.accept = na.start := rfl
 
-/-- The multistep transitions of `na.reverse` are exactly the reversed multistep transitions
-of `na`. -/
+/--
+The multistep transitions of `na.reverse` are exactly the reversed multistep transitions
+of `na`.
+-/
 @[simp]
-theorem reverse_mTr (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State} :
-    na.reverse.MTr s' xs s ↔ na.MTr s xs.reverse s' := LTS.reverse_mTr
+theorem reverse_mTr (na : FinAcc State Symbol) {xs : List Symbol} {s s' : State}
+    : na.reverse.MTr s' xs s ↔ na.MTr s xs.reverse s' :=
+  LTS.reverse_mTr
 
 /-- `na.reverse` accepts a word iff `na` accepts its reversal. -/
 @[simp]
-theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol} :
-    Accepts na.reverse xs ↔ Accepts na xs.reverse := by
+theorem accepts_reverse {na : FinAcc State Symbol} {xs : List Symbol}
+    : Accepts na.reverse xs ↔ Accepts na xs.reverse := by
   grind [Accepts, reverse_mTr]
 
 /-- `na.reverse` accepts exactly the reversals of the words accepted by `na`. -/
 @[simp]
-theorem reverse_language_eq (na : FinAcc State Symbol) :
-    language na.reverse = (language na).reverse := by
+theorem reverse_language_eq (na : FinAcc State Symbol)
+    : language na.reverse = (language na).reverse := by
   ext; simp
 
 end FinAcc

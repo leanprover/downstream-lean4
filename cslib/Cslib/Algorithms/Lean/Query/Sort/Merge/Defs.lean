@@ -28,19 +28,22 @@ public section
 
 namespace List
 
-/-- Split a list into contiguous halves; if the length is odd, the first half is one element
+/--
+Split a list into contiguous halves; if the length is odd, the first half is one element
 longer. This agrees with `List.MergeSort.Internal.splitInTwo`, so that `mergeSort` agrees
-with `List.mergeSort`. -/
-@[expose] def split (xs : List α) : List α × List α :=
+with `List.mergeSort`.
+-/
+@[expose]
+def split (xs : List α) : List α × List α :=
   (xs.take ((xs.length + 1) / 2), xs.drop ((xs.length + 1) / 2))
 
-@[simp] theorem split_fst_length_eq (xs : List α) :
-    (split xs).1.length = (xs.length + 1) / 2 := by
+@[simp]
+theorem split_fst_length_eq (xs : List α) : (split xs).1.length = (xs.length + 1) / 2 := by
   simp [split]
   omega
 
-@[simp] theorem split_snd_length_eq (xs : List α) :
-    (split xs).2.length = xs.length / 2 := by
+@[simp]
+theorem split_snd_length_eq (xs : List α) : (split xs).2.length = xs.length / 2 := by
   simp [split]
   omega
 
@@ -49,12 +52,12 @@ theorem split_fst_append_split_snd (xs : List α) : (split xs).1 ++ (split xs).2
 
 variable [Monad m] (cmp : α → α → m Bool)
 
-theorem splitInTwo_fst (xs : {l : List α // l.length = n}) :
-    (List.MergeSort.Internal.splitInTwo xs).1 = xs.val.split.1 := by
+theorem splitInTwo_fst (xs : {l : List α // l.length = n})
+    : (List.MergeSort.Internal.splitInTwo xs).1 = xs.val.split.1 := by
   simp [split, xs.prop]
 
-theorem splitInTwo_snd (xs : {l : List α // l.length = n}) :
-    (List.MergeSort.Internal.splitInTwo xs).2 = xs.val.split.2 := by
+theorem splitInTwo_snd (xs : {l : List α // l.length = n})
+    : (List.MergeSort.Internal.splitInTwo xs).2 = xs.val.split.2 := by
   simp [split, xs.prop]
 
 end List
@@ -62,11 +65,9 @@ end List
 namespace Cslib.Query
 
 /-- Merge two sorted lists using comparison queries. -/
-abbrev merge (xs ys : List α) : FreeM (LEQuery α) (List α) :=
-  xs.mergeM ys LEQuery.ask
+abbrev merge (xs ys : List α) : FreeM (LEQuery α) (List α) := xs.mergeM ys LEQuery.ask
 
 /-- Sort a list using merge sort with comparison queries. -/
-abbrev mergeSort (xs : List α) : FreeM (LEQuery α) (List α) :=
-  xs.mergeSortM LEQuery.ask
+abbrev mergeSort (xs : List α) : FreeM (LEQuery α) (List α) := xs.mergeSortM LEQuery.ask
 
 end Cslib.Query

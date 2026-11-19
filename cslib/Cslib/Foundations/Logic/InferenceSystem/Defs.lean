@@ -42,12 +42,12 @@ abbrev HasInferenceSystem := InferenceSystem InferenceSystem.Default
 
 namespace InferenceSystem
 
-@[inherit_doc] scoped notation S:90 "⇓" a:90 => InferenceSystem.derivation S a
+@[inherit_doc]
+scoped notation S:90 "⇓" a:90 => InferenceSystem.derivation S a
 
 /-- Rewrites the conclusion of a proof into an equal one. -/
 @[scoped grind =]
-def rwConclusion [InferenceSystem S α] {Γ Δ : α} (h : Γ = Δ) (p : S⇓Γ) : S⇓Δ :=
-  h ▸ p
+def rwConclusion [InferenceSystem S α] {Γ Δ : α} (h : Γ = Δ) (p : S⇓Γ) : S⇓Δ := h ▸ p
 
 /-- `a` is derivable in `S` if it is the conclusion of some derivation. -/
 def DerivableIn S [InferenceSystem S α] (a : α) := Nonempty (S⇓a)
@@ -62,14 +62,15 @@ theorem DerivableIn.fromDerivation [InferenceSystem S α] {a : α} (d : S⇓a) :
 instance [InferenceSystem S α] {a : α} : Coe (S⇓a) (DerivableIn S a) := ⟨DerivableIn.fromDerivation⟩
 
 /-- Extracts (noncomputably) a derivation from the fact that a conclusion is derivable. -/
-noncomputable def DerivableIn.toDerivation [InferenceSystem S α] {a : α} (d : DerivableIn S a) :
-    S⇓a :=
+noncomputable def DerivableIn.toDerivation [InferenceSystem S α] {a : α} (d : DerivableIn S a)
+    : S⇓a :=
   Classical.choice d
 
 noncomputable instance [InferenceSystem S α] {a : α} : Coe (DerivableIn S a) (S⇓a) :=
   ⟨DerivableIn.toDerivation⟩
 
-@[inherit_doc] scoped notation "⇓" a:90 => InferenceSystem.derivation Default a
+@[inherit_doc]
+scoped notation "⇓" a:90 => InferenceSystem.derivation Default a
 
 open Lean Elab PrettyPrinter Delaborator SubExpr in
 /-- Delaborator that hides `InferenceSystem.Default` in uses of the `⇓a` notation. -/

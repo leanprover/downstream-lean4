@@ -23,7 +23,7 @@ open Cslib.Circuits
 inductive ArithmeticOp where
   | zero (tag : Bool)
   | add
-  deriving DecidableEq, Fintype
+deriving DecidableEq, Fintype
 
 abbrev arithmeticSignature : Signature where
   Op := ArithmeticOp
@@ -53,8 +53,7 @@ def addition : Circuit arithmeticSignature 2 1 where
   outputs := fun _ => Wire.gate 0
 
 example : (fun x => x 0 + x 1) ∈ computableFunctions arithmeticInterpretation 2 1 :=
-  (mem_computableFunctions (I := arithmeticInterpretation)).mpr
-    ⟨addition, fun _ => rfl, le_rfl⟩
+  (mem_computableFunctions (I := arithmeticInterpretation)).mpr ⟨addition, fun _ => rfl, le_rfl⟩
 
 def redundant : Circuit arithmeticSignature 0 2 where
   program := .gate (.gate .empty ⟨.zero false, Fin.elim0⟩) ⟨.zero true, Fin.elim0⟩
@@ -66,9 +65,10 @@ example : ¬ redundant.Irredundant arithmeticInterpretation := by
   contradiction
 
 -- Normalization preserves all outputs together over the infinite carrier.
-example : ∃ c : Circuit arithmeticSignature 0 2,
-    (∀ x j, c.eval arithmeticInterpretation x j = 0) ∧
-      c.Irredundant arithmeticInterpretation ∧ c.size ≤ 2 := by
+example
+    : ∃ c : Circuit arithmeticSignature 0 2,
+      (∀ x j, c.eval arithmeticInterpretation x j = 0) ∧ c.Irredundant arithmeticInterpretation
+        ∧ c.size ≤ 2 := by
   obtain ⟨c, hc, hi, hk⟩ := redundant.exists_irredundant arithmeticInterpretation
   refine ⟨c, ?_, hi, hk⟩
   intro x j
@@ -85,14 +85,17 @@ example : Nat.card (Program emptySignature 1 1) = 0 := by
   simp [Program.card, finsum_eq_sum_of_fintype]
 
 example : (fun x : Fin 1 → ℕ => x 0) ∈ computableFunctions emptyInterpretation 1 0 :=
-  (mem_computableFunctions (I := emptyInterpretation)).mpr
-    ⟨Circuit.id emptySignature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
-      le_rfl⟩
+  (mem_computableFunctions (I := emptyInterpretation)).mpr ⟨
+    Circuit.id emptySignature 1,
+    by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
+    le_rfl
+  ⟩
 
-example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).ncard * s.factorial ≤
-    (s + 1) * s ^ s * s := by
-  simpa using card_computableFunctions_mul_factorial_le_of_arity_le emptyInterpretation
-    0 s 0 (fun op => nomatch op)
+example (s : ℕ)
+    : (computableFunctions emptyInterpretation 0 s).ncard * s.factorial ≤ (s + 1) * s ^ s * s := by
+  simpa using
+    card_computableFunctions_mul_factorial_le_of_arity_le emptyInterpretation 0 s 0
+      (fun op => nomatch op)
 
 abbrev nullarySignature : Signature where
   Op := Unit
@@ -100,10 +103,12 @@ abbrev nullarySignature : Signature where
 
 def nullaryInterpretation : Interpretation nullarySignature ℕ := fun _ _ => 0
 
-example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).ncard * s.factorial ≤
-    (s + 1) * (max s 1) ^ s * s := by
-  simpa using card_computableFunctions_mul_factorial_le_of_arity_le nullaryInterpretation
-    0 s 0 (fun _ => le_rfl)
+example (s : ℕ)
+    : (computableFunctions nullaryInterpretation 0 s).ncard * s.factorial
+      ≤ (s + 1) * (max s 1) ^ s * s := by
+  simpa using
+    card_computableFunctions_mul_factorial_le_of_arity_le nullaryInterpretation 0 s 0
+      (fun _ => le_rfl)
 
 abbrev binarySignature : Signature where
   Op := Unit
@@ -111,16 +116,16 @@ abbrev binarySignature : Signature where
 
 def nandInterpretation : Interpretation binarySignature Bool := fun _ x => !(x 0 && x 1)
 
-example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool,
-    ∀ c : Circuit binarySignature n 1,
+example
+    : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Bool) → Bool, ∀ c : Circuit binarySignature n 1,
       c.Computes nandInterpretation (single f) → 2 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function nandInterpretation (fun _ => le_rfl)
 
 def ternaryInterpretation : Interpretation binarySignature (Fin 3) := fun _ x => x 0 + x 1
 
-example : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3,
-    ∀ c : Circuit binarySignature n 1,
+example
+    : ∃ N : ℕ, ∀ n ≥ N, ∃ f : (Fin n → Fin 3) → Fin 3, ∀ c : Circuit binarySignature n 1,
       c.Computes ternaryInterpretation (single f) → 3 ^ n / (n : ℝ) < (c.size : ℝ) := by
   simpa [Nat.card_eq_fintype_card] using
     Shannon.exists_hard_function ternaryInterpretation (fun _ => le_rfl)

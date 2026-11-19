@@ -40,7 +40,7 @@ attribute [local grind] Tr
 
 @[local grind]
 private inductive ParNil : Process Name Constant → Process Name Constant → Prop where
-| parNil : ParNil (par p nil) p
+  | parNil : ParNil (par p nil) p
 
 /-- P | 𝟎 ~ P -/
 @[simp, scoped grind .]
@@ -57,7 +57,7 @@ theorem bisimilarity_par_nil : (par p nil) ~[lts (defs := defs)] p := by
 
 @[local grind]
 private inductive ParComm : Process Name Constant → Process Name Constant → Prop where
-| parComm : ParComm (par p q) (par q p)
+  | parComm : ParComm (par p q) (par q p)
 
 /-- P | Q ~ Q | P -/
 @[scoped grind .]
@@ -83,8 +83,7 @@ private inductive ParAssoc : Process Name Constant → Process Name Constant →
   | id : ParAssoc p p
 
 /-- P | (Q | R) ~ (P | Q) | R -/
-theorem bisimilarity_par_assoc :
-    (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
+theorem bisimilarity_par_assoc : (par p (par q r)) ~[lts (defs := defs)] (par (par p q) r) := by
   use ParAssoc, ParAssoc.assoc
   intro s1 s2 hr μ
   apply And.intro <;> cases hr
@@ -152,8 +151,7 @@ theorem bisimilarity_choice_nil : (choice p nil) ~[lts (defs := defs)] p := by
   grind
 
 /-- P + P ~ P -/
-theorem bisimilarity_choice_idem :
-    (choice p p) ~[lts (defs := defs)] p := by
+theorem bisimilarity_choice_idem : (choice p p) ~[lts (defs := defs)] p := by
   apply HomBisimilarity.of_image_eq
   ext μ s
   unfold LTS.image lts
@@ -167,8 +165,8 @@ theorem bisimilarity_choice_comm : (choice p q) ~[lts (defs := defs)] (choice q 
   grind
 
 /-- P + (Q + R) ~ (P + Q) + R -/
-theorem bisimilarity_choice_assoc :
-    (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r) := by
+theorem bisimilarity_choice_assoc
+    : (choice p (choice q r)) ~[lts (defs := defs)] (choice (choice p q) r) := by
   apply HomBisimilarity.of_image_eq
   ext μ s
   unfold LTS.image lts
@@ -176,12 +174,12 @@ theorem bisimilarity_choice_assoc :
 
 @[local grind]
 private inductive PreBisim : Process Name Constant → Process Name Constant → Prop where
-| pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
-| bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
+  | pre : (p ~[lts (defs := defs)] q) → PreBisim (pre μ p) (pre μ q)
+  | bisim : (p ~[lts (defs := defs)] q) → PreBisim p q
 
 /-- P ~ Q → μ.P ~ μ.Q -/
-theorem bisimilarity_congr_pre :
-    (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
+theorem bisimilarity_congr_pre
+    : (p ~[lts (defs := defs)] q) → (pre μ p) ~[lts (defs := defs)] (pre μ q) := by
   intro hpq
   exists @PreBisim _ _ defs
   constructor
@@ -195,12 +193,12 @@ theorem bisimilarity_congr_pre :
 
 @[local grind]
 private inductive ResBisim : Process Name Constant → Process Name Constant → Prop where
-| res : (p ~[lts (defs := defs)] q) → ResBisim (res a p) (res a q)
+  | res : (p ~[lts (defs := defs)] q) → ResBisim (res a p) (res a q)
 -- | bisim : (p ~[lts (defs := defs)] q) → ResBisim p q
 
 /-- P ~ Q → (ν a) P ~ (ν a) Q -/
-theorem bisimilarity_congr_res :
-    (p ~[lts (defs := defs)] q) → (res a p) ~[lts (defs := defs)] (res a q) := by
+theorem bisimilarity_congr_res
+    : (p ~[lts (defs := defs)] q) → (res a p) ~[lts (defs := defs)] (res a q) := by
   intro hpq
   refine ⟨@ResBisim Name Constant defs, .res hpq, ?_⟩
   intro s1 s2 hr μ
@@ -219,12 +217,12 @@ theorem bisimilarity_congr_res :
         exact ⟨_, .res hn hn' htr', .res h'⟩
 
 private inductive ChoiceBisim : Process Name Constant → Process Name Constant → Prop where
-| choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
-| bisim : (p ~[lts (defs := defs)] q) → ChoiceBisim p q
+  | choice : (p ~[lts (defs := defs)] q) → ChoiceBisim (choice p r) (choice q r)
+  | bisim : (p ~[lts (defs := defs)] q) → ChoiceBisim p q
 
 /-- P ~ Q → P + R ~ Q + R -/
-theorem bisimilarity_congr_choice :
-    (p ~[lts (defs := defs)] q) → (choice p r) ~[lts (defs := defs)] (choice q r) := by
+theorem bisimilarity_congr_choice
+    : (p ~[lts (defs := defs)] q) → (choice p r) ~[lts (defs := defs)] (choice q r) := by
   intro hpq
   refine ⟨@ChoiceBisim Name Constant defs, .choice hpq, ?_⟩
   intro s1 s2 hr μ
@@ -254,11 +252,11 @@ theorem bisimilarity_congr_choice :
 
 @[local grind]
 private inductive ParBisim : Process Name Constant → Process Name Constant → Prop where
-| par : (p ~[lts (defs := defs)] q) → ParBisim (par p r) (par q r)
+  | par : (p ~[lts (defs := defs)] q) → ParBisim (par p r) (par q r)
 
 /-- P ~ Q → P | R ~ Q | R -/
-theorem bisimilarity_congr_par :
-    (p ~[lts (defs := defs)] q) → (par p r) ~[lts (defs := defs)] (par q r) := by
+theorem bisimilarity_congr_par
+    : (p ~[lts (defs := defs)] q) → (par p r) ~[lts (defs := defs)] (par q r) := by
   intro hpq
   refine ⟨@ParBisim Name Constant defs, .par hpq, ?_⟩
   intro s1 s2 hr μ
@@ -270,7 +268,8 @@ theorem bisimilarity_congr_par :
       | parL htr =>
         obtain ⟨q', htr', h'⟩ := h.follow_fst htr
         exact ⟨_, .parL htr', .par h'⟩
-      | parR htr => exact ⟨_, .parR htr, .par h⟩
+      | parR htr =>
+        exact ⟨_, .parR htr, .par h⟩
       | com hco htrp htrr =>
         obtain ⟨q', htr', h'⟩ := h.follow_fst htrp
         exact ⟨_, .com hco htr' htrr, .par h'⟩
@@ -279,28 +278,30 @@ theorem bisimilarity_congr_par :
       | parL htr =>
         obtain ⟨p', htr', h'⟩ := h.follow_snd htr
         exact ⟨_, .parL htr', .par h'⟩
-      | parR htr => exact ⟨_, .parR htr, .par h⟩
+      | parR htr =>
+        exact ⟨_, .parR htr, .par h⟩
       | com hco htrq htrr =>
         obtain ⟨p', htr', h'⟩ := h.follow_snd htrq
         exact ⟨_, .com hco htr' htrr, .par h'⟩
 
 /-- Bisimilarity is a congruence in CCS. -/
 theorem bisimilarity_is_congruence
-    (p q : Process Name Constant) (c : Context Name Constant) (h : p ~[lts (defs := defs)] q) :
-    (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
+    (p q : Process Name Constant) (c : Context Name Constant) (h : p ~[lts (defs := defs)] q)
+    : (c.fill p) ~[lts (defs := defs)] (c.fill q) := by
   induction c with
   | parR r c _ =>
     calc
-      _ ~[lts (defs := defs)] (c.fill p |>.par r)  := by grind
-      _ ~[lts (defs := defs)] (c.fill q |>.par r)  := by grind [bisimilarity_congr_par]
+      _ ~[lts (defs := defs)] (c.fill p |>.par r) := by grind
+      _ ~[lts (defs := defs)] (c.fill q |>.par r) := by grind [bisimilarity_congr_par]
       _ ~[lts (defs := defs)] (c.parR r |>.fill q) := by grind
   | choiceR r c _ =>
     calc
-      _ ~[lts (defs := defs)] (c.fill p |>.choice r)  := by grind [bisimilarity_choice_comm]
-      _ ~[lts (defs := defs)] (c.fill q |>.choice r)  := by grind [bisimilarity_congr_choice]
+      _ ~[lts (defs := defs)] (c.fill p |>.choice r) := by grind [bisimilarity_choice_comm]
+      _ ~[lts (defs := defs)] (c.fill q |>.choice r) := by grind [bisimilarity_congr_choice]
       _ ~[lts (defs := defs)] (c.choiceR r |>.fill q) := by grind [bisimilarity_choice_comm]
-  | _ => grind [bisimilarity_congr_pre, bisimilarity_congr_par,
-                bisimilarity_congr_choice, bisimilarity_congr_res]
+  | _ =>
+    grind [bisimilarity_congr_pre, bisimilarity_congr_par, bisimilarity_congr_choice,
+      bisimilarity_congr_res]
 
 instance : Congruence (· ~[lts (defs := defs)] ·) := ⟨⟩
 

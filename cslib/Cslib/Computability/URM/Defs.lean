@@ -33,7 +33,8 @@ namespace Cslib.URM
 
 /-! ## Instructions -/
 
-/-- URM instructions.
+/--
+URM instructions.
 - `Z n`: Set register n to zero
 - `S n`: Increment register n by one
 - `T m n`: Transfer (copy) the contents of register m to register n
@@ -74,8 +75,10 @@ def maxRegister : Instr → ℕ
   | T m n => max m n
   | J m n _ => max m n
 
-/-- Shift all jump targets in an instruction by `offset`.
-Used when concatenating programs to maintain correct jump destinations. -/
+/--
+Shift all jump targets in an instruction by `offset`.
+Used when concatenating programs to maintain correct jump destinations.
+-/
 @[scoped grind =]
 def shiftJumps (offset : ℕ) : Instr → Instr
   | Z n => Z n
@@ -83,8 +86,10 @@ def shiftJumps (offset : ℕ) : Instr → Instr
   | T m n => T m n
   | J m n q => J m n (q + offset)
 
-/-- Shift all register references in an instruction by `offset`.
-Used to isolate register usage when composing programs. -/
+/--
+Shift all register references in an instruction by `offset`.
+Used to isolate register usage when composing programs.
+-/
 @[scoped grind =]
 def shiftRegisters (offset : ℕ) : Instr → Instr
   | Z n => Z (n + offset)
@@ -96,10 +101,12 @@ end Instr
 
 /-! ## Register Contents -/
 
-/-- Register contents: maps register indices to natural number contents.
+/--
+Register contents: maps register indices to natural number contents.
 
 Uses the functional representation `ℕ → ℕ` for efficiency with rewrites,
-following the advice from the `grind` tactic documentation. -/
+following the advice from the `grind` tactic documentation.
+-/
 abbrev Regs := ℕ → ℕ
 
 namespace Regs
@@ -116,8 +123,10 @@ def read (σ : Regs) (n : ℕ) : ℕ := σ n
 @[scoped grind =]
 def write (σ : Regs) (n : ℕ) (v : ℕ) : Regs := Function.update σ n v
 
-/-- Initialize registers with input values in registers 0, 1, ..., k-1.
-Registers beyond the inputs are initialized to 0. -/
+/--
+Initialize registers with input values in registers 0, 1, ..., k-1.
+Registers beyond the inputs are initialized to 0.
+-/
 @[scoped grind =]
 def ofInputs (inputs : List ℕ) : Regs := fun n => inputs.getD n 0
 
@@ -136,21 +145,22 @@ namespace Program
 
 /-- The maximum register index referenced by any instruction in the program. -/
 @[scoped grind =]
-def maxRegister (p : Program) : ℕ :=
-  p.foldl (fun acc instr => max acc instr.maxRegister) 0
+def maxRegister (p : Program) : ℕ := p.foldl (fun acc instr => max acc instr.maxRegister) 0
 
-/-- Shift all jump targets in a program by `offset`.
+/--
+Shift all jump targets in a program by `offset`.
 Used when concatenating programs: the second program's jumps must be adjusted
-by the length of the first program. -/
+by the length of the first program.
+-/
 @[scoped grind =]
-def shiftJumps (p : Program) (offset : ℕ) : Program :=
-  p.map (Instr.shiftJumps offset)
+def shiftJumps (p : Program) (offset : ℕ) : Program := p.map (Instr.shiftJumps offset)
 
-/-- Shift all register references in a program by `offset`.
-Used to isolate register usage when composing programs. -/
+/--
+Shift all register references in a program by `offset`.
+Used to isolate register usage when composing programs.
+-/
 @[scoped grind =]
-def shiftRegisters (p : Program) (offset : ℕ) : Program :=
-  p.map (Instr.shiftRegisters offset)
+def shiftRegisters (p : Program) (offset : ℕ) : Program := p.map (Instr.shiftRegisters offset)
 
 end Program
 
@@ -165,8 +175,10 @@ structure State where
 
 namespace State
 
-/-- Initial state for a program with given inputs.
-The program counter starts at 0, and inputs are loaded into registers 0, 1, .... -/
+/--
+Initial state for a program with given inputs.
+The program counter starts at 0, and inputs are loaded into registers 0, 1, ....
+-/
 @[scoped grind =]
 def init (inputs : List ℕ) : State := ⟨0, Regs.ofInputs inputs⟩
 

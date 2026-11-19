@@ -31,16 +31,18 @@ def Proposition.Equiv (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ At
 instance : Congruence (Proposition.Equiv m) := ⟨⟩
 
 @[scoped grind =]
-theorem Proposition.equiv_def (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ Atom) :
-    (φ₁.Equiv m φ₂) ↔ φ₁ ≡[Equiv m] φ₂ := by rfl
+theorem Proposition.equiv_def (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ Atom)
+    : (φ₁.Equiv m φ₂) ↔ φ₁ ≡[Equiv m] φ₂ := by
+  rfl
 
 @[scoped grind ⇒, modal ⇒]
 theorem Proposition.equiv_iff_forall_der (m : Model World τ Atom) (φ₁ φ₂ : Proposition τ Atom)
-    : (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by rfl
+    : (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁ ↔ φ₂] := by
+  rfl
 
 @[scoped grind ⇒, modal ⇒]
-theorem Proposition.equiv_iff_forall_iff {m : Model World τ Atom} {φ₁ φ₂ : Proposition τ Atom} :
-    (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
+theorem Proposition.equiv_iff_forall_iff {m : Model World τ Atom} {φ₁ φ₂ : Proposition τ Atom}
+    : (φ₁ ≡[Equiv m] φ₂) ↔ ∀ (w : World), ⇓Modal[m,w ⊨ φ₁] ↔ ⇓Modal[m,w ⊨ φ₂] := by
   grind [=_ Satisfies.iff_iff_iff]
 
 /-- A class of models, defined as a set. -/
@@ -57,21 +59,25 @@ abbrev Proposition.UEquiv {World : Type*} (φ₁ φ₂ : Proposition τ Atom) :=
   EquivWithin (World := World) Set.univ φ₁ φ₂
 
 @[scoped grind =]
-theorem Proposition.equivWithin_def (S : ModelClass World τ Atom) (φ₁ φ₂ : Proposition τ Atom) :
-    φ₁.EquivWithin S φ₂ ↔ (φ₁ ≡[EquivWithin S] φ₂) := by rfl
+theorem Proposition.equivWithin_def (S : ModelClass World τ Atom) (φ₁ φ₂ : Proposition τ Atom)
+    : φ₁.EquivWithin S φ₂ ↔ (φ₁ ≡[EquivWithin S] φ₂) := by
+  rfl
 
 @[scoped grind ⇒, modal ⇒]
-theorem Proposition.equivWithin_iff_forall_iff :
-    (φ₁ ≡[EquivWithin S] φ₂) ↔ ∀ m ∈ S, φ₁ ≡[Equiv m] φ₂ := by rfl
+theorem Proposition.equivWithin_iff_forall_iff
+    : (φ₁ ≡[EquivWithin S] φ₂) ↔ ∀ m ∈ S, φ₁ ≡[Equiv m] φ₂ := by
+  rfl
 
 @[scoped grind ⇒]
-theorem Proposition.equiv_of_EquivWithin {S : ModelClass World τ Atom} (h : φ₁ ≡[EquivWithin S] φ₂)
-    (m : Model World τ Atom) (hm : m ∈ S) : φ₁ ≡[Equiv m] φ₂ := h m hm
+theorem Proposition.equiv_of_EquivWithin
+    {S : ModelClass World τ Atom} (h : φ₁ ≡[EquivWithin S] φ₂) (m : Model World τ Atom) (hm : m ∈ S)
+    : φ₁ ≡[Equiv m] φ₂ :=
+  h m hm
 
 /-- Logical equivalence preserves validity. -/
-theorem Proposition.equivWithin_valid (S : ModelClass World τ Atom)
-    (φ₁ φ₂ : Proposition τ Atom) (h : φ₁ ≡[EquivWithin S] φ₂) :
-    (φ₁.valid S ↔ φ₂.valid S) := by
+theorem Proposition.equivWithin_valid
+    (S : ModelClass World τ Atom) (φ₁ φ₂ : Proposition τ Atom) (h : φ₁ ≡[EquivWithin S] φ₂)
+    : (φ₁.valid S ↔ φ₂.valid S) := by
   grind
 
 /-- A proposition map missing a particular case (index). -/
@@ -84,31 +90,34 @@ inductive Proposition.Context (τ : PFunctor) (Atom : Type u) where
   | not (c : Context τ Atom)
   | andL (c : Context τ Atom) (φ : Proposition τ Atom)
   | andR (φ : Proposition τ Atom) (c : Context τ Atom)
-  | triangle (op : τ.A) (i : τ.B op) (c : Context τ Atom)
-    (φs : PropositionMap.Without τ Atom op i)
+  | triangle (op : τ.A) (i : τ.B op) (c : Context τ Atom) (φs : PropositionMap.Without τ Atom op i)
 
 /-- Replaces a hole in a propositional context with a proposition. -/
 @[scoped grind =]
-def Proposition.Context.fill {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*}
-    (c : Context τ Atom) (φ : Proposition τ Atom) :=
+def Proposition.Context.fill
+    {τ : PFunctor} [τ.DecidableEqChildren]
+    {Atom : Type*} (c : Context τ Atom) (φ : Proposition τ Atom) :=
   match c with
   | hole => φ
   | not c => .not (c.fill φ)
   | andL c φ' => (c.fill φ).and φ'
   | andR φ' c => φ'.and (c.fill φ)
-  | .triangle op i c φs => .triangle op fun j =>
-    if h : j = i then
-      c.fill φ
-    else
-      φs ⟨j, h⟩
+  | .triangle op i c φs =>
+    .triangle op fun j =>
+      if h : j = i then
+        c.fill φ
+      else
+        φs ⟨j, h⟩
 
-instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} :
-    HasContext (Proposition τ Atom) := ⟨Proposition.Context.fill⟩
+instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} : HasContext (Proposition τ Atom) :=
+  ⟨Proposition.Context.fill⟩
 
 @[scoped grind =]
-lemma Proposition.Context.fill_def {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*}
-    {c : HasContext.Context (Proposition τ Atom)} {φ : Proposition τ Atom} :
-  c.fill φ = c<[φ] := rfl
+lemma Proposition.Context.fill_def
+    {τ : PFunctor} [τ.DecidableEqChildren]
+    {Atom : Type*} {c : HasContext.Context (Proposition τ Atom)} {φ : Proposition τ Atom}
+    : c.fill φ = c<[φ] :=
+  rfl
 
 open scoped Proposition Proposition.Context
 
@@ -117,27 +126,22 @@ instance (m : Model World τ Atom) : IsEquiv (Proposition τ Atom) (Proposition.
   rw [← equivalence_iff_isEquiv]
   constructor
   case refl => grind [Proposition.Equiv]
-  case symm =>
-    grind
-  case trans =>
-    grind
+  case symm => grind
+  case trans => grind
 
 /-- Logical equivalence within a class is an equivalence relation. -/
-instance {World Atom} (S : ModelClass World τ Atom) :
-    IsEquiv (Proposition τ Atom) (Proposition.EquivWithin S) := by
+instance {World Atom} (S : ModelClass World τ Atom)
+    : IsEquiv (Proposition τ Atom) (Proposition.EquivWithin S) := by
   rw [← equivalence_iff_isEquiv]
   unfold Proposition.EquivWithin
   constructor
-  case refl =>
-    grind [Proposition.Equiv]
-  case symm =>
-    grind
-  case trans =>
-    grind
+  case refl => grind [Proposition.Equiv]
+  case symm => grind
+  case trans => grind
 
 /-- Logical equivalence is a congruence. -/
-instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} (m : Model World τ Atom) :
-    LawfulCongruence (Proposition.Equiv m) where
+instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} (m : Model World τ Atom)
+    : LawfulCongruence (Proposition.Equiv m) where
   elim ctx φ₁ φ₂ heqv w := by
     induction ctx generalizing w
     case hole => apply heqv
@@ -159,10 +163,9 @@ instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} (m : Model Worl
         · grind
 
 /-- Logical equivalence within a class is a congruence. -/
-instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*}
-    (S : ModelClass World τ Atom) : LawfulCongruence (Proposition.EquivWithin S) where
-  elim ctx _ _ h m hm :=
-    LawfulCongruence.covariant.elim ctx (h m hm)
+instance {τ : PFunctor} [τ.DecidableEqChildren] {Atom : Type*} (S : ModelClass World τ Atom)
+    : LawfulCongruence (Proposition.EquivWithin S) where
+  elim ctx _ _ h m hm := LawfulCongruence.covariant.elim ctx (h m hm)
 
 /-- Judgemental contexts. -/
 structure Judgement.Context (World : Type*) (τ : PFunctor) (Atom : Type*) where
@@ -172,23 +175,25 @@ structure Judgement.Context (World : Type*) (τ : PFunctor) (Atom : Type*) where
   w : World
 
 /-- Fills a judgemental context with a proposition. -/
-def Judgement.Context.fill (c : Judgement.Context World τ Atom) (φ : Proposition τ Atom) :
-    Judgement World τ Atom := Modal[c.m, c.w ⊨ φ]
+def Judgement.Context.fill (c : Judgement.Context World τ Atom) (φ : Proposition τ Atom)
+    : Judgement World τ Atom :=
+  Modal[c.m, c.w ⊨ φ]
 
-instance {World : Type*} {τ : PFunctor} {Atom : Type*} :
-    HasHContext (Judgement World τ Atom) (Proposition τ Atom) := ⟨Judgement.Context.fill⟩
+instance {World : Type*} {τ : PFunctor} {Atom : Type*}
+    : HasHContext (Judgement World τ Atom) (Proposition τ Atom) :=
+  ⟨Judgement.Context.fill⟩
 
 @[scoped grind =]
-lemma Judgement.Context.fill_def {c : Judgement.Context World τ Atom} {φ : Proposition τ Atom} :
-    Modal[c.m,c.w ⊨ φ] = c<[φ] := rfl
+lemma Judgement.Context.fill_def {c : Judgement.Context World τ Atom} {φ : Proposition τ Atom}
+    : Modal[c.m,c.w ⊨ φ] = c<[φ] :=
+  rfl
 
 open scoped Judgement.Context
 
 /-- Logical equivalence for Modal Logic K. That is, no assumptions on models are made. -/
-instance {τ : PFunctor} [τ.DecidableEqChildren] : LogicalEquivalence
-    (α := Proposition τ Atom)
-    (Judgement := Judgement World τ Atom) InferenceSystem.Default
-    (Proposition.EquivWithin (Set.univ (α := Model World τ Atom))) where
+instance {τ : PFunctor} [τ.DecidableEqChildren]
+    : LogicalEquivalence (α := Proposition τ Atom) (Judgement := Judgement World τ Atom)
+      InferenceSystem.Default (Proposition.EquivWithin (Set.univ (α := Model World τ Atom))) where
   eqvFillValid heqv c h := by
     specialize heqv c.m
     grind [=_ Judgement.Context.fill_def]
@@ -197,24 +202,28 @@ section Axiom
 
 /-- Correspondence of equivalence and axiom validity. -/
 @[scoped grind =, modal =]
-theorem Proposition.axiom_iff_forall_equiv (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom) :
-    (Axiom f⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨f, v⟩] φ₂ := Iff.rfl
+theorem Proposition.axiom_iff_forall_equiv (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom)
+    : (Axiom f⇓(φ₁ ↔ φ₂)) ↔ ∀ v, φ₁ ≡[Equiv ⟨f, v⟩] φ₂ :=
+  Iff.rfl
 
 /-- A frame-valid bi-implication induces logical equivalence in every model over that frame. -/
 @[scoped grind ., modal .]
-theorem Proposition.equiv_of_axiom {f : Frame World τ} {φ₁ φ₂ : Proposition τ Atom}
-    (h : Axiom f⇓(φ₁ ↔ φ₂)) (v : World → Atom → Prop) : φ₁ ≡[Equiv ⟨f, v⟩] φ₂ :=
+theorem Proposition.equiv_of_axiom
+    {f : Frame World τ} {φ₁ φ₂ : Proposition τ Atom} (h : Axiom f⇓(φ₁ ↔ φ₂))
+    (v : World → Atom → Prop)
+    : φ₁ ≡[Equiv ⟨f, v⟩] φ₂ :=
   (Proposition.axiom_iff_forall_equiv f φ₁ φ₂).mp h v
 
 /-- A bi-implication is an axiom of `f` iff its sides are equivalent in every model over `f`. -/
 @[scoped grind =, modal =]
 theorem Proposition.axiom_iff_equivWithin_modelsOfFrame
-    (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom) :
-    Axiom f⇓(φ₁ ↔ φ₂) ↔ φ₁ ≡[EquivWithin (modelsOfFrame f)] φ₂ := by grind
+    (f : Frame World τ) (φ₁ φ₂ : Proposition τ Atom)
+    : Axiom f⇓(φ₁ ↔ φ₂) ↔ φ₁ ≡[EquivWithin (modelsOfFrame f)] φ₂ := by
+  grind
 
 /-- Triangle and the negation of the dual nabla are universally logically equivalent. -/
-theorem Proposition.dual_equiv (φs : PropositionMap τ op Atom) :
-    Δ[op]φs ≡[UEquiv (World := World)] ¬∇[op]¬φs := by
+theorem Proposition.dual_equiv (φs : PropositionMap τ op Atom)
+    : Δ[op]φs ≡[UEquiv (World := World)] ¬∇[op]¬φs := by
   -- We use `grind only` as a test that `modal` can lift axioms to logical equivalences
   grind only [modal, Satisfies.dual]
 

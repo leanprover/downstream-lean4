@@ -26,16 +26,17 @@ open scoped PFunctor
 example (A : Type uA) (B : Type uB) : PFunctor.{uA, uB} := A y^ B
 
 /-- Prefix power notation denotes a representable polynomial functor. -/
-example (B : Type uB) : (y^ B : PFunctor.{uA, uB}) = purePower B := rfl
+example (B : Type uB) : (y^B : PFunctor.{uA, uB}) = purePower B := rfl
 
 /-- Addition notation is available when its result universe is fixed by the expected type. -/
-example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) :
-    PFunctor.{max uA₁ uA₂, uB} := P + Q
+example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) : PFunctor.{max uA₁ uA₂, uB} := P + Q
 
-/-- Multiplication notation is likewise available, including for child types in
-different universes. -/
-example (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) :
-    PFunctor.{max uA₁ uA₂, max uB₁ uB₂} := P * Q
+/--
+Multiplication notation is likewise available, including for child types in
+different universes.
+-/
+example (P : PFunctor.{uA₁, uB₁}) (Q : PFunctor.{uA₂, uB₂}) : PFunctor.{max uA₁ uA₂, max uB₁ uB₂} :=
+  P * Q
 
 section elaboration
 
@@ -49,8 +50,10 @@ keeping the named operation alongside the `HAdd` instance. -/
 example (P : PFunctor.{uA₁, uB}) (Q : PFunctor.{uA₂, uB}) : Type (max uA₁ uA₂ uB) :=
   PFunctor.W (P.add Q)
 
-/- The failure is not caused by universe metavariables in `C α`: it also occurs for the sum of
-two polynomial functors with fully determined universes. -/
+/-
+The failure is not caused by universe metavariables in `C α`: it also occurs for the sum of
+two polynomial functors with fully determined universes.
+-/
 /--
 error: Type mismatch
   P + Q
@@ -103,30 +106,28 @@ end simp
 
 example : IsEmpty (0 : PFunctor.{uA, uB}).A := inferInstance
 example : Unique (1 : PFunctor.{uA, uB}).A := inferInstance
-example (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFunctor.{uA, uB}).B a) :=
-  inferInstance
+example (a : (1 : PFunctor.{uA, uB}).A) : IsEmpty ((1 : PFunctor.{uA, uB}).B a) := inferInstance
 
-example (A : Type uA) (a : (C.{uA, uB} A).A) : IsEmpty ((C.{uA, uB} A).B a) :=
-  inferInstance
+example (A : Type uA) (a : (C.{uA, uB} A).A) : IsEmpty ((C.{uA, uB} A).B a) := inferInstance
 example (A : Type uA) (a : (linear.{uA, uB} A).A) : Unique ((linear.{uA, uB} A).B a) :=
   inferInstance
 example (B : Type uB) : Unique (purePower B : PFunctor.{uA, uB}).A := inferInstance
 
-example (A : Type uA) (B : Type uB) (a : A) (x : α) (b : B) :
-    PFunctor.const (P := monomial A B) a x b = x := by simp
+example (A : Type uA) (B : Type uB) (a : A) (x : α) (b : B)
+    : PFunctor.const (P := monomial A B) a x b = x := by
+  simp
 
 example (A : Type uA) : (mkUnary A).DecidableEqChildren := inferInstance
 
 example (A : Type uA) : (linear.{uA, uB} A).Unary := inferInstance
 example : (y : PFunctor.{uA, uB}).Unary := inferInstance
 
-example (A : Type uA) (a : A) (f : (mkUnary A).B a → α) :
-    f = PFunctor.const (P := mkUnary A) a (f default) :=
+example (A : Type uA) (a : A) (f : (mkUnary A).B a → α)
+    : f = PFunctor.const (P := mkUnary A) a (f default) :=
   Unary.fun_eq_const (P := mkUnary A) a f
 
 /-- The `ext` tactic picks up the registered extensionality lemma. -/
-example (P Q : PFunctor.{uA, uB}) (h : P.A = Q.A) (h' : ∀ a, P.B a = Q.B (h ▸ a)) :
-    P = Q := by
+example (P Q : PFunctor.{uA, uB}) (h : P.A = Q.A) (h' : ∀ a, P.B a = Q.B (h ▸ a)) : P = Q := by
   ext x
   · exact h
   · exact h' x

@@ -75,8 +75,7 @@ def toEpsilonNA : (r : RegularExpression α) → FinAcc r.State α
 
 /-- The automaton of a regular expression accepts exactly its language. -/
 @[simp]
-theorem language_toEpsilonNA (r : RegularExpression α) :
-    language r.toEpsilonNA = r.matches' := by
+theorem language_toEpsilonNA (r : RegularExpression α) : language r.toEpsilonNA = r.matches' := by
   induction r with
   | zero => exact FinAcc.language_zero
   | epsilon => exact FinAcc.language_epsilon

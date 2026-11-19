@@ -25,13 +25,13 @@ variable {Symbol : Type v}
 
 /-- The language of an `ωAcceptor` is the set of sequences it `Accepts`. -/
 @[scoped grind .]
-def language [ωAcceptor A Symbol] (a : A) : ωLanguage Symbol :=
-  { xs | Accepts a xs }
+def language [ωAcceptor A Symbol] (a : A) : ωLanguage Symbol := { xs | Accepts a xs }
 
 /-- A string is in the language of an acceptor iff the acceptor accepts it. -/
 @[simp, scoped grind =]
-theorem mem_language [ωAcceptor A Symbol] (a : A) (xs : ωSequence Symbol) :
-  xs ∈ language a ↔ Accepts a xs := Iff.rfl
+theorem mem_language [ωAcceptor A Symbol] (a : A) (xs : ωSequence Symbol)
+    : xs ∈ language a ↔ Accepts a xs :=
+  Iff.rfl
 
 end ωAcceptor
 

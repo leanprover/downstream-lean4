@@ -48,27 +48,24 @@ inductive Network.TrLabel Pid Var Val FunId SelLabel
 variable [DecidableEq Pid]
 
 /-- Symbolic transition relation for networks. -/
-inductive Network.Tr :
-    Network Pid Var Val FunId SelLabel ProcName → TrLabel Pid Var Val FunId SelLabel →
-    Network Pid Var Val FunId SelLabel ProcName → Prop
-  | local
-    (hμ : μ.isInternal) (htr : Process.lts.Tr (n p) μ prP)
-    (hn' : n' = n[p := prP]) :
-    Tr n (TrLabel.local p μ) n'
+inductive Network.Tr
+  : Network Pid Var Val FunId SelLabel ProcName → TrLabel Pid Var Val FunId SelLabel
+    → Network Pid Var Val FunId SelLabel ProcName
+    → Prop
+  | local (hμ : μ.isInternal) (htr : Process.lts.Tr (n p) μ prP) (hn' : n' = n[p := prP])
+    : Tr n (TrLabel.local p μ) n'
   | com
     (hsend : Process.lts.Tr (n p) (.sendValue q e) prP)
-    (hrecv : Process.lts.Tr (n q) (.recvValue p x) prQ)
-    (hn' : n' = n[p := prP][q := prQ]) :
-    Tr n (TrLabel.com p e q x) n'
+    (hrecv : Process.lts.Tr (n q) (.recvValue p x) prQ) (hn' : n' = n[p := prP][q := prQ])
+    : Tr n (TrLabel.com p e q x) n'
   | sel
     (hsend : Process.lts.Tr (n p) (.sendLabel q l) prP)
-    (hrecv : Process.lts.Tr (n q) (.recvLabel p l) prQ)
-    (hn' : n' = n[p := prP][q := prQ]) :
-    Tr n (TrLabel.sel p q l) n'
+    (hrecv : Process.lts.Tr (n q) (.recvLabel p l) prQ) (hn' : n' = n[p := prP][q := prQ])
+    : Tr n (TrLabel.sel p q l) n'
 
 /-- Symbolic LTS of networks. -/
-def Network.lts :
-    LTS (Network Pid Var Val FunId SelLabel ProcName) (TrLabel Pid Var Val FunId SelLabel) :=
+def Network.lts
+    : LTS (Network Pid Var Val FunId SelLabel ProcName) (TrLabel Pid Var Val FunId SelLabel) :=
   ⟨Network.Tr⟩
 
 /-! ## Stores, evaluation, and concrete semantics of networks -/
@@ -80,7 +77,8 @@ structure Cfg (Pid Var Val FunId SelLabel ProcName : Type*) where
   /-- The global store of the configuration. -/
   store : GlobalStore Pid Var Val
 
-/-- Transition labels for network configurations.
+/--
+Transition labels for network configurations.
 
 These labels model what can be observed from execution, and thus hide internal computational
 details.
@@ -91,41 +89,35 @@ inductive Cfg.TrLabel Pid Val SelLabel
   | sel (p : Pid) (q : Pid) (l : SelLabel)
 
 /-- Transition relation for network configurations. -/
-inductive Cfg.Tr [DecidableEq Var] (isTrue : Val → Bool) (Eval : FunCallEval FunId Val) :
-    Cfg Pid Var Val FunId SelLabel ProcName → Cfg.TrLabel Pid Val SelLabel →
-    Cfg Pid Var Val FunId SelLabel ProcName → Prop where
+inductive Cfg.Tr [DecidableEq Var] (isTrue : Val → Bool) (Eval : FunCallEval FunId Val)
+    : Cfg Pid Var Val FunId SelLabel ProcName → Cfg.TrLabel Pid Val SelLabel
+      → Cfg Pid Var Val FunId SelLabel ProcName
+      → Prop where
   -- Internal actions
   | assign
     (htr : Network.lts.Tr cfg.net (.local p (.assign x e)) cfg'.net)
-    (heval : Eval.EvalExpr (cfg.store p) e v)
-    (hstore : cfg'.store = cfg.store[(p, x) := v]) :
-    Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
+    (heval : Eval.EvalExpr (cfg.store p) e v) (hstore : cfg'.store = cfg.store[(p, x) := v])
+    : Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
   | condThen
     (htr : Network.lts.Tr cfg.net (.local p (.condThen e)) cfg'.net)
-    (heval : Eval.EvalExpr (cfg.store p) e v)
-    (hguard : isTrue v)
-    (hstore : cfg'.store = cfg.store) :
-    Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
+    (heval : Eval.EvalExpr (cfg.store p) e v) (hguard : isTrue v) (hstore : cfg'.store = cfg.store)
+    : Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
   | condElse
     (htr : Network.lts.Tr cfg.net (.local p (.condElse e)) cfg'.net)
-    (heval : Eval.EvalExpr (cfg.store p) e v)
-    (hguard : ¬isTrue v)
-    (hstore : cfg'.store = cfg.store) :
-    Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
+    (heval : Eval.EvalExpr (cfg.store p) e v) (hguard : ¬ isTrue v)
+    (hstore : cfg'.store = cfg.store)
+    : Tr isTrue Eval cfg (Cfg.TrLabel.local p) cfg'
   -- Interactions
   | com
-    (htr : Network.lts.Tr cfg.net (.com p e q x) cfg'.net)
-    (heval : Eval.EvalExpr (cfg.store p) e v)
-    (hstore : cfg'.store = cfg.store[(q, x) := v]) :
-    Tr isTrue Eval cfg (Cfg.TrLabel.com p q v) cfg'
-  | sel
-    (htr : Network.lts.Tr cfg.net (.sel p q l) cfg'.net)
-    (hstore : cfg'.store = cfg.store) :
-    Tr isTrue Eval cfg (Cfg.TrLabel.sel p q l) cfg'
+    (htr : Network.lts.Tr cfg.net (.com p e q x) cfg'.net) (heval : Eval.EvalExpr (cfg.store p) e v)
+    (hstore : cfg'.store = cfg.store[(q, x) := v])
+    : Tr isTrue Eval cfg (Cfg.TrLabel.com p q v) cfg'
+  | sel (htr : Network.lts.Tr cfg.net (.sel p q l) cfg'.net) (hstore : cfg'.store = cfg.store)
+    : Tr isTrue Eval cfg (Cfg.TrLabel.sel p q l) cfg'
 
 /-- LTS of network configurations. -/
-def Cfg.lts [DecidableEq Var] (isTrue : Val → Bool) (Eval : FunCallEval FunId Val) :
-    LTS (Cfg Pid Var Val FunId SelLabel ProcName) (Cfg.TrLabel Pid Val SelLabel) :=
+def Cfg.lts [DecidableEq Var] (isTrue : Val → Bool) (Eval : FunCallEval FunId Val)
+    : LTS (Cfg Pid Var Val FunId SelLabel ProcName) (Cfg.TrLabel Pid Val SelLabel) :=
   ⟨Cfg.Tr isTrue Eval⟩
 
 end Cslib.StatefulProcesses

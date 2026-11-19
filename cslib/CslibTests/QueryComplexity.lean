@@ -57,8 +57,10 @@ example : certificateComplexity (orF 3) = 3 := by decide
 /-- A single `true` bit is a certificate for `OR`. -/
 example : certificateComplexityAt (orF 3) ![true, true, true] = 1 := by decide
 
-/-- The size of the smallest certificate at the all zeroes input is the size of the
-whole string. -/
+/--
+The size of the smallest certificate at the all zeroes input is the size of the
+whole string.
+-/
 example : certificateComplexityAt (orF 3) ![false, false, false] = 3 := by decide
 
 /-! ## AND

@@ -28,8 +28,8 @@ open Acceptor in
 open scoped NA.FinAcc LTS LTS.MTr LTS.STr LTS.SMTr in
 /-- Correctness of `toNAFinAcc`. -/
 @[scoped grind =]
-theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
-    language a.toNAFinAcc = language a := by
+theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol}
+    : language a.toNAFinAcc = language a := by
   ext xs
   constructor <;> intro ⟨s, hs, s', hs', h⟩
   · have ⟨sStart, h_sStart, hs⟩ : ∃ i ∈ a.start, s ∈ a.saturate.image i HasTau.τ := by
@@ -38,7 +38,9 @@ theorem toNAFinAcc_language_eq {a : εNA.FinAcc State Symbol} :
     have h_start := (LTS.sTr_τSTr_iff a.toLTS).mp hs
     exact LTS.SMTr.comp (LTS.sMTr_τSTr_iff.mp h_start) (by grind)
   · cases xs with
-    | nil => cases h with | τ tau => exact ⟨s', LTS.tr_setImage hs tau, by grind⟩
+    | nil =>
+      cases h with
+      | τ tau => exact ⟨s', LTS.tr_setImage hs tau, by grind⟩
     | cons x xs => exact ⟨s, by grind [Set.mem_of_mem_of_subset]⟩
 
 end Cslib.Automata.εNA.FinAcc

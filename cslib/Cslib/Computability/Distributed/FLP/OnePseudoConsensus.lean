@@ -22,20 +22,25 @@ open Function Set Multiset Fintype
 
 variable {P M S : Type*} [DecidableEq P] [DecidableEq M]
 
-/-- `a.CanDecideWithout s p b` means that the boolean value `b` is decided on in a state that
+/--
+`a.CanDecideWithout s p b` means that the boolean value `b` is decided on in a state that
 is reachable from `s` without the participation of `p`. In the notation of [Volzer2004], this
-is equivalent to `b ∈ val(p,s)`. -/
-def Algorithm.CanDecideWithout (a : Algorithm P M S)
-    (s : State P M S) (p : P) (b : Bool) : Prop :=
+is equivalent to `b ∈ val(p,s)`.
+-/
+def Algorithm.CanDecideWithout (a : Algorithm P M S) (s : State P M S) (p : P) (b : Bool) : Prop :=
   ∃ s', a.CanReachVia {p}ᶜ s s' ∧ s'.Decided b
 
-/-- `a.Uniform s b` means that for every process `p`, `a.CanDecideWithout s p b` but
-not `a.CanDecideWithout s p !b`. -/
+/--
+`a.Uniform s b` means that for every process `p`, `a.CanDecideWithout s p b` but
+not `a.CanDecideWithout s p !b`.
+-/
 def Algorithm.Uniform (a : Algorithm P M S) (s : State P M S) (b : Bool) : Prop :=
   ∀ p, a.CanDecideWithout s p b ∧ ¬ a.CanDecideWithout s p !b
 
-/-- `a.NonUniform s` means that for each boolean value `b`, there is a process `p`
-such that `a.CanDecideWithout s p b`. -/
+/--
+`a.NonUniform s` means that for each boolean value `b`, there is a process `p`
+such that `a.CanDecideWithout s p b`.
+-/
 def Algorithm.NonUniform (a : Algorithm P M S) (s : State P M S) : Prop :=
   ∀ b, ∃ p, a.CanDecideWithout s p b
 
@@ -44,38 +49,41 @@ namespace OnePseudoConsensus
 variable {a : Algorithm P M S} {inp : P → Bool}
 
 /-- Draw a consequence of `a.PseudoConsensus 1`. -/
-theorem pseudoTermination [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) (p : P) :
-    ∃ s' b, a.CanReachVia {p}ᶜ s s' ∧ s'.Decided b := by
+theorem pseudoTermination
+    [Fintype P] (hpc1 : a.PseudoConsensus 1) {s : State P M S} (hr : a.Reachable inp s) (p : P)
+    : ∃ s' b, a.CanReachVia {p}ᶜ s s' ∧ s'.Decided b := by
   apply hpc1.right inp s hr {p}ᶜ
   simp [Set.ncard_compl {p}]
 
-/-- Assuming `a.PseudoConsensus 1`, for any reachable state of `a` and for any process `p`,
+/--
+Assuming `a.PseudoConsensus 1`, for any reachable state of `a` and for any process `p`,
 there is a boolean value `b` such that `a.CanDecideWithout s p b`. This theorem formalizes
-Proposition 2(a) of [Volzer2004]. -/
-theorem canDecideWithout_exists [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) (p : P) :
-    ∃ b, a.CanDecideWithout s p b := by
+Proposition 2(a) of [Volzer2004].
+-/
+theorem canDecideWithout_exists
+    [Fintype P] (hpc1 : a.PseudoConsensus 1) {s : State P M S} (hr : a.Reachable inp s) (p : P)
+    : ∃ b, a.CanDecideWithout s p b := by
   obtain ⟨s', b, _⟩ := pseudoTermination hpc1 hr p
   use b
   grind [Algorithm.CanDecideWithout]
 
 /-- A state cannot be both uniform and non-uniform. -/
-theorem not_uniform_and_nonUniform {s : State P M S} (b : Bool) :
-    ¬ (a.Uniform s b ∧ a.NonUniform s) := by
+theorem not_uniform_and_nonUniform {s : State P M S} (b : Bool)
+    : ¬(a.Uniform s b ∧ a.NonUniform s) := by
   rintro ⟨_, h_n⟩
   obtain ⟨p, _⟩ := h_n !b
   grind [Algorithm.Uniform]
 
 /-- Assuming `a.PseudoConsensus 1`, any reachable state of `a` is either uniform or non-uniform. -/
-theorem uniform_or_nonUniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) :
-    a.Uniform s false ∨ a.Uniform s true ∨ a.NonUniform s := by
+theorem uniform_or_nonUniform
+    [Fintype P] (hpc1 : a.PseudoConsensus 1) {s : State P M S} (hr : a.Reachable inp s)
+    : a.Uniform s false ∨ a.Uniform s true ∨ a.NonUniform s := by
   by_cases h : a.Uniform s false ∨ a.Uniform s true
   · grind
   · suffices a.NonUniform s by grind
-    simp only [Algorithm.Uniform, not_or, not_forall, not_and, not_not,
-      Bool.not_false, Bool.not_true] at h
+    simp only [Algorithm.Uniform, not_or, not_forall, not_and, not_not, Bool.not_false,
+        Bool.not_true]
+      at h
     obtain ⟨⟨p, _⟩, ⟨q, _⟩⟩ := h
     rintro (_ | _)
     · use q
@@ -85,57 +93,76 @@ theorem uniform_or_nonUniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
       obtain ⟨b, _⟩ := canDecideWithout_exists hpc1 hr p
       grind [Bool.dichotomy b]
 
-/-- Assuming `a.PseudoConsensus 1`, if a reachable state of `a` has decided on a boolean value `b`
-and `a.CanDecideWithout s p b'` for any process `p`, then `b = b'`. -/
-theorem decided_eq_canDecideWithout [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) {b b' : Bool} {p : P}
-    (hd : s.Decided b) (hd' : a.CanDecideWithout s p b') : b = b' := by
+/--
+Assuming `a.PseudoConsensus 1`, if a reachable state of `a` has decided on a boolean value `b`
+and `a.CanDecideWithout s p b'` for any process `p`, then `b = b'`.
+-/
+theorem decided_eq_canDecideWithout
+    [Fintype P]
+    (hpc1 : a.PseudoConsensus 1)
+    {s : State P M S} (hr : a.Reachable inp s)
+    {b b' : Bool} {p : P} (hd : s.Decided b) (hd' : a.CanDecideWithout s p b')
+    : b = b' := by
   obtain ⟨s', hc, _⟩ := hd'
   have hc := CanReachVia.canReach hc
   grind [Algorithm.reachable_stable hr hc, Algorithm.decided_stable hd hc,
     Algorithm.PseudoConsensus, Algorithm.SafeConsensus, State.Agreed]
 
-/-- Assuming `a.PseudoConsensus 1`, if a reachable state of `a` has decided on a boolean value `b`,
-then `s` is uniform for `b`. This theorem formalizes Proposition 2(b) of [Volzer2004]. -/
-theorem decided_imp_uniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) {b : Bool} (hd : s.Decided b) :
-    a.Uniform s b := by
+/--
+Assuming `a.PseudoConsensus 1`, if a reachable state of `a` has decided on a boolean value `b`,
+then `s` is uniform for `b`. This theorem formalizes Proposition 2(b) of [Volzer2004].
+-/
+theorem decided_imp_uniform
+    [Fintype P]
+    (hpc1 : a.PseudoConsensus 1)
+    {s : State P M S} (hr : a.Reachable inp s)
+    {b : Bool} (hd : s.Decided b)
+    : a.Uniform s b := by
   intro p
   obtain ⟨b', _⟩ := canDecideWithout_exists hpc1 hr p
   grind [decided_eq_canDecideWithout hpc1 hr hd]
 
-/-- For any message `m`, if state `s'` is reached from state `s` by receiving `m`, then
+/--
+For any message `m`, if state `s'` is reached from state `s` by receiving `m`, then
 `a.CanDecideWithout s m.dest b` implies `a.CanDecideWithout s' m.dest b` for any `b`.
-This theorem formalizes Proposition 3(b) of [Volzer2004]. -/
-theorem canDecideWithout_dest {s s' : State P M S} {m : Message P M} {b : Bool}
-    (ht : a.lts.Tr s (some m) s')
-    (hd : a.CanDecideWithout s m.dest b) : a.CanDecideWithout s' m.dest b := by
+This theorem formalizes Proposition 3(b) of [Volzer2004].
+-/
+theorem canDecideWithout_dest
+    {s s' : State P M S} {m : Message P M} {b : Bool}
+    (ht : a.lts.Tr s (some m) s') (hd : a.CanDecideWithout s m.dest b)
+    : a.CanDecideWithout s' m.dest b := by
   obtain ⟨t, h_s, h_t⟩ := hd
-  have h_m : a.CanReachVia {m.dest} s s' :=
-    .single ⟨some m, by simp [DestIn], ht⟩
+  have h_m : a.CanReachVia {m.dest} s s' := .single ⟨some m, by simp [DestIn], ht⟩
   obtain ⟨t', h_s', h_t'⟩ := CanReachVia.diamond h_m h_s
   use t', h_s'
   grind [CanReachVia.canReach h_t', Algorithm.decided_stable]
 
-/-- For any message `m`, if state `s'` is reached from state `s` by receiving `m`, then
+/--
+For any message `m`, if state `s'` is reached from state `s` by receiving `m`, then
 `a.CanDecideWithout s' p b` implies `a.CanDecideWithout s p b` for any `b` and any `p ≠ m.dest`.
-This theorem formalizes Proposition 3(a) of [Volzer2004]. -/
-theorem canDecideWithout_nondest {s s' : State P M S} {m : Message P M} {b : Bool}
-    (ht : a.lts.Tr s (some m) s') {p : P} (hn : p ≠ m.dest)
-    (hd' : a.CanDecideWithout s' p b) : a.CanDecideWithout s p b := by
+This theorem formalizes Proposition 3(a) of [Volzer2004].
+-/
+theorem canDecideWithout_nondest
+    {s s' : State P M S} {m : Message P M} {b : Bool} (ht : a.lts.Tr s (some m) s')
+    {p : P} (hn : p ≠ m.dest) (hd' : a.CanDecideWithout s' p b)
+    : a.CanDecideWithout s p b := by
   obtain ⟨t, h_s', h_t⟩ := hd'
   refine ⟨t, ?_, h_t⟩
   have hx : DestIn {p}ᶜ (some m) := by grind [DestIn]
   exact CanReachVia.stepL hx ht h_s'
 
-/-- Assuming `a.PseudoConsensus 1`, if any reachable state `s` of `a` is uniform for `b` and
+/--
+Assuming `a.PseudoConsensus 1`, if any reachable state `s` of `a` is uniform for `b` and
 state `s'` is reached from `s` by receiving a message `m`, then `a.CanDecideWithout s' p b`.
-This theorem formalizes Proposition 3(c) of [Volzer2004]. -/
-theorem canDecideWithout_uniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
+This theorem formalizes Proposition 3(c) of [Volzer2004].
+-/
+theorem canDecideWithout_uniform
+    [Fintype P]
+    (hpc1 : a.PseudoConsensus 1)
     {s s' : State P M S} {m : Message P M} {b : Bool}
-    (hr : a.Reachable inp s) (ht : a.lts.Tr s (some m) s') {p : P}
-    (hd : a.CanDecideWithout s p b) (hdn : ¬ a.CanDecideWithout s p !b) :
-    a.CanDecideWithout s' p b := by
+    (hr : a.Reachable inp s) (ht : a.lts.Tr s (some m) s')
+    {p : P} (hd : a.CanDecideWithout s p b) (hdn : ¬ a.CanDecideWithout s p !b)
+    : a.CanDecideWithout s' p b := by
   by_cases h_card : p = m.dest
   · obtain ⟨rfl⟩ := h_card
     exact canDecideWithout_dest ht hd
@@ -148,27 +175,28 @@ theorem canDecideWithout_uniform [Fintype P] (hpc1 : a.PseudoConsensus 1)
     · grind
     · grind [canDecideWithout_nondest ht h_card h_s', Bool.eq_not_of_ne h_b]
 
-/-- Assuming `a.PseudoConsensus 1`, if any reachable state `s` of `a` that is non-uniform,
+/--
+Assuming `a.PseudoConsensus 1`, if any reachable state `s` of `a` that is non-uniform,
 then for any process `p`, there exists a state `s'` reachable from `s` such that
-`a.CanDecideWithout s' p b` for all `b`. This theorem formalizes Lemma 2 of [Volzer2004]. -/
-theorem nonUniform_step [Fintype P] (hpc1 : a.PseudoConsensus 1)
-    {s : State P M S} (hr : a.Reachable inp s) (hn : a.NonUniform s) (p : P) :
-    ∃ s', a.lts.CanReach s s' ∧ ∀ b, a.CanDecideWithout s' p b := by
+`a.CanDecideWithout s' p b` for all `b`. This theorem formalizes Lemma 2 of [Volzer2004].
+-/
+theorem nonUniform_step
+    [Fintype P]
+    (hpc1 : a.PseudoConsensus 1)
+    {s : State P M S} (hr : a.Reachable inp s) (hn : a.NonUniform s)
+    (p : P)
+    : ∃ s', a.lts.CanReach s s' ∧ ∀ b, a.CanDecideWithout s' p b := by
   obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1 hr p
   obtain ⟨q, t, hreach, hd⟩ := hn !b
   obtain ⟨xs, hpath⟩ := CanReachVia.canReach hreach
   have hend : a.CanDecideWithout t p !b :=
-    (decided_imp_uniform hpc1
-      (Algorithm.reachable_stable hr ⟨xs, hpath⟩) hd p).1
+    (decided_imp_uniform hpc1 (Algorithm.reachable_stable hr ⟨xs, hpath⟩) hd p).1
   clear hn hd hreach q
   induction hpath with
-  | refl =>
-    exact ⟨_, LTS.CanReach.refl _ _, by
-      intro b'; cases b <;> cases b' <;> assumption⟩
+  | refl => exact ⟨_, LTS.CanReach.refl _ _, by intro b'; cases b <;> cases b' <;> assumption⟩
   | @stepL s x u xs t htr hpath ih =>
     by_cases hnb : a.CanDecideWithout s p !b
-    · exact ⟨_, LTS.CanReach.refl _ _, by
-        intro b'; cases b <;> cases b' <;> assumption⟩
+    · exact ⟨_, LTS.CanReach.refl _ _, by intro b'; cases b <;> cases b' <;> assumption⟩
     · have hr' := Algorithm.reachable_stable hr ⟨[x], LTS.MTr.single _ htr⟩
       have hb' : a.CanDecideWithout u p b := by
         cases x with
@@ -181,25 +209,26 @@ section NonUniformInit
 
 variable [Fintype P]
 
-/-- Given a numbering `pn` of processes and `n : ℕ`, `inpN pn n` assigns `true` to the processes
-numbered `0, ..., (n - 1)` and `false` to the rest. -/
-def inpN (pn : P ≃ Fin (card P)) (n : ℕ) : P → Bool :=
-  fun p ↦ if pn p < n then true else false
+/--
+Given a numbering `pn` of processes and `n : ℕ`, `inpN pn n` assigns `true` to the processes
+numbered `0, ..., (n - 1)` and `false` to the rest.
+-/
+def inpN (pn : P ≃ Fin (card P)) (n : ℕ) : P → Bool := fun p ↦ if pn p < n then true else false
 
 omit [DecidableEq P] in
-/-- Assuming `0 < n ≤ card P`, the inputs `inpN pn (n - 1)` and `inpN pn n` agree on all processes
-except the one that is numbered `(n - 1)`. -/
-theorem inpN_eqOn_except_singleton (pn : P ≃ Fin (card P))
-    {n : ℕ} (hn0 : 0 < n) (hnc : n ≤ card P) :
-    EqOn (inpN pn (n - 1)) (inpN pn n) {pn.symm ⟨n - 1, by grind⟩}ᶜ := by
+/--
+Assuming `0 < n ≤ card P`, the inputs `inpN pn (n - 1)` and `inpN pn n` agree on all processes
+except the one that is numbered `(n - 1)`.
+-/
+theorem inpN_eqOn_except_singleton (pn : P ≃ Fin (card P)) {n : ℕ} (hn0 : 0 < n) (hnc : n ≤ card P)
+    : EqOn (inpN pn (n - 1)) (inpN pn n) {pn.symm ⟨n - 1, by grind⟩}ᶜ := by
   intro p h_p
-  suffices pn p ≠ n - 1 by
-    grind [inpN]
+  suffices pn p ≠ n - 1 by grind [inpN]
   intro h
   simp [← h] at h_p
 
-lemma inpN_zero_no_true (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (p : P) :
-    ¬ a.CanDecideWithout (a.start (inpN pn 0)) p true := by
+lemma inpN_zero_no_true (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (p : P)
+    : ¬ a.CanDecideWithout (a.start (inpN pn 0)) p true := by
   rintro ⟨s, h_r, h_b⟩
   have h_s : a.Reachable (inpN pn 0) s := by
     have h_i := Algorithm.reachable_start (a := a) (inp := inpN pn 0)
@@ -207,18 +236,19 @@ lemma inpN_zero_no_true (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (
   obtain ⟨q, h_q⟩ := (hpc1.left (inpN pn 0) s h_s).right true h_b
   simp [inpN] at h_q
 
-/-- Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`false` input
-is uniform for `false`. -/
-theorem inpN_zero_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) :
-    a.Uniform (a.start (inpN pn 0)) false := by
+/--
+Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`false` input
+is uniform for `false`.
+-/
+theorem inpN_zero_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
+    : a.Uniform (a.start (inpN pn 0)) false := by
   intro p
-  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1
-    (Algorithm.reachable_start (inp := inpN pn 0)) p
+  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1 (Algorithm.reachable_start (inp := inpN pn 0)) p
   have hn := inpN_zero_no_true pn hpc1 p
   cases b <;> grind
 
-lemma inpN_card_not_false (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (p : P) :
-    ¬ a.CanDecideWithout (a.start (inpN pn (card P))) p false := by
+lemma inpN_card_not_false (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) (p : P)
+    : ¬ a.CanDecideWithout (a.start (inpN pn (card P))) p false := by
   rintro ⟨s, h_r, h_b⟩
   have h_s : a.Reachable (inpN pn (card P)) s := by
     have h_i := Algorithm.reachable_start (a := a) (inp := inpN pn (card P))
@@ -226,20 +256,24 @@ lemma inpN_card_not_false (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
   obtain ⟨q, h_q⟩ := (hpc1.left (inpN pn (card P)) s h_s).right false h_b
   simp [inpN] at h_q
 
-/-- Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`true` input
-is uniform for `true`. -/
-theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1) :
-    a.Uniform (a.start (inpN pn (card P))) true := by
+/--
+Assuming `a.PseudoConsensus 1`, the initial state determined by the all-`true` input
+is uniform for `true`.
+-/
+theorem inpN_card_uniform (pn : P ≃ Fin (card P)) (hpc1 : a.PseudoConsensus 1)
+    : a.Uniform (a.start (inpN pn (card P))) true := by
   intro p
-  obtain ⟨b, hb⟩ := canDecideWithout_exists hpc1
-    (Algorithm.reachable_start (inp := inpN pn (card P))) p
+  obtain ⟨b, hb⟩ :=
+    canDecideWithout_exists hpc1 (Algorithm.reachable_start (inp := inpN pn (card P))) p
   have hn := inpN_card_not_false pn hpc1 p
   cases b <;> grind
 
-/-- Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an input
-that gives rise to a non-uniform initial state. This theorem formalizes Lemma 1 of [Volzer2004]. -/
-theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
-    ∃ inp : P → Bool, a.NonUniform (a.start inp) := by
+/--
+Assuming `a.PseudoConsensus 1` and there are at least 2 processes, there must exist an input
+that gives rise to a non-uniform initial state. This theorem formalizes Lemma 1 of [Volzer2004].
+-/
+theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P)
+    : ∃ inp : P → Bool, a.NonUniform (a.start inp) := by
   let pn := Fintype.equivFin P
   let uniF (n : ℕ) := ¬ a.Uniform (a.start (inpN pn n)) false
   have h_card : uniF (card P) := by
@@ -254,8 +288,8 @@ theorem nonUniform_inp (hpc1 : a.PseudoConsensus 1) (hc : 2 ≤ card P) :
   have h_n1 : a.Uniform (a.start (inpN pn (n - 1))) false := by grind [Nat.find_min h_uniF]
   have : ¬ a.Uniform (a.start (inpN pn n)) true := by
     obtain ⟨⟨s, h_reach, p, _⟩, _⟩ := h_n1 (pn.symm ⟨n - 1, by grind⟩)
-    obtain ⟨s', h_reach', _⟩ := CanReachVia.subset_inp
-      (inpN_eqOn_except_singleton pn h_n0 h_nc) h_reach
+    obtain ⟨s', h_reach', _⟩ :=
+      CanReachVia.subset_inp (inpN_eqOn_except_singleton pn h_n0 h_nc) h_reach
     have : a.CanDecideWithout (a.start (inpN pn n)) (pn.symm ⟨n - 1, by grind⟩) false := by
       use s', h_reach', p
       grind

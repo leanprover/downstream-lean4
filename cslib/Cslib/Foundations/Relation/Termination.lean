@@ -52,24 +52,27 @@ lemma SN.of_le {r' : α → α → Prop} (hx : SN r x) (h : r' ≤ r) : SN r' x 
 lemma SN.iff_transGen (x : α) : SN (TransGen r) x ↔ SN r x :=
   ⟨fun hx => hx.of_le <| fun _ _ => TransGen.single, transGen⟩
 
-/-- `SN r x` is equivalent to the more elementary definition, that there is no infinite sequence
-of reductions starting with `x`. -/
-theorem SN.iff_isEmpty_chain :
-    SN r x ↔ IsEmpty {f : ℕ → α | f 0 = x ∧ ∀ n, r (f n) (f (n + 1))} :=
+/--
+`SN r x` is equivalent to the more elementary definition, that there is no infinite sequence
+of reductions starting with `x`.
+-/
+theorem SN.iff_isEmpty_chain : SN r x ↔ IsEmpty {f : ℕ → α | f 0 = x ∧ ∀ n, r (f n) (f (n + 1))} :=
   acc_iff_isEmpty_descending_chain
 
-lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x)) :
-    SN (Function.onFun r f) x := InvImage.accessible f hx
+lemma SN.onFun_of_image {r : β → β → Prop} {f : α → β} (hx : SN r (f x))
+    : SN (Function.onFun r f) x :=
+  InvImage.accessible f hx
 
 lemma SN.of_normal (hx : Normal r x) : SN r x := SN.intro fun y hy => (hx ⟨y, hy⟩).elim
 
 theorem SN.normalizable (hx : SN r x) : Normalizable r x := by
-  induction hx with | intro x h ih =>
-  by_cases hy: (∃ y, r x y)
-  · obtain ⟨y, hy⟩ := hy
-    obtain ⟨z, hz, hnormal⟩ := ih y hy
-    exact ⟨z, .head hy hz, hnormal⟩
-  · exists x
+  induction hx with
+  | intro x h ih =>
+    by_cases hy : (∃ y, r x y)
+    · obtain ⟨y, hy⟩ := hy
+      obtain ⟨z, hz, hnormal⟩ := ih y hy
+      exact ⟨z, .head hy hz, hnormal⟩
+    · exists x
 
 lemma Terminating.apply (hr : Terminating r) (x : α) : SN r x := WellFounded.apply hr x
 
@@ -97,21 +100,21 @@ theorem Terminating.of_transGen : Terminating (TransGen r) → Terminating r := 
 theorem Terminating.iff_transGen : Terminating (TransGen r) ↔ Terminating r := by
   simp_rw [iff_forall_sn, SN.iff_transGen]
 
-theorem Terminating.iff_isEmpty_chain :
-    Terminating r ↔ IsEmpty {f : ℕ → α // ∀ n, r (f n) (f (n + 1))} :=
+theorem Terminating.iff_isEmpty_chain
+    : Terminating r ↔ IsEmpty {f : ℕ → α // ∀ n, r (f n) (f (n + 1))} :=
   wellFounded_iff_isEmpty_descending_chain
 
-theorem Terminating.of_le {r' : α → α → Prop} (hr : Terminating r) (h : r' ≤ r) :
-    Terminating r' := by
+theorem Terminating.of_le {r' : α → α → Prop} (hr : Terminating r) (h : r' ≤ r)
+    : Terminating r' := by
   rw [iff_forall_sn] at hr ⊢
   exact fun x => (hr x).of_le h
 
-lemma Terminating.subtype_sn (r : α → α → Prop) :
-    Terminating (α := {x // SN r x}) (fun a b => r a b) :=
+lemma Terminating.subtype_sn (r : α → α → Prop)
+    : Terminating (α := {x // SN r x}) (fun a b => r a b) :=
   iff_forall_sn.mpr fun x => x.property.onFun_of_image
 
-theorem Terminating.to_normalizing (hr : Terminating r) : Normalizing r :=
-  fun x => (hr.apply x).normalizable
+theorem Terminating.to_normalizing (hr : Terminating r) : Normalizing r := fun x =>
+  (hr.apply x).normalizable
 
 @[deprecated (since := "2026-09-03")] alias Terminating.isNormalizing := Terminating.to_normalizing
 
