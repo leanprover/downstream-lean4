@@ -116,6 +116,8 @@ lemma sq_ker_comp_le_ker_compLocalizationAwayAlgHom :
       intro x hx y hy
       simp [hsple hx]
 
+set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
+set_option dsimp.resynthInstances.explicit false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /--
