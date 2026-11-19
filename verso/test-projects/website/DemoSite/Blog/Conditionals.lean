@@ -255,8 +255,6 @@ example : (123123190283102938019238098 * 1234124).toString.length > 14 := by
 [diag] Diagnostics
   [reduction] unfolded reducible declarations (max: 40, num: 1):
     [reduction] outParam ↦ 40
-  [type_class] used instances (max: 49, num: 1):
-    [type_class] Lean.Grind.CommRing.OfCommSemiring.instOfNatQ ↦ 49
   use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 
