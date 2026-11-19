@@ -230,10 +230,12 @@ theorem eq_of_mem {a b : Part α} (ha : a.Dom) (hb : a.get ha ∈ b) : a = b := 
   have hb' : b.Dom := Part.dom_iff_mem.mpr ⟨a.get ha, hb⟩
   rwa [← eq_get_iff_mem hb', eq_iff_of_dom ha hb'] at hb
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[simp]
 theorem none_toOption [Decidable (@none α).Dom] : (none : Part α).toOption = Option.none :=
   dite_eq_right id
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[simp]
 theorem some_toOption (a : α) [Decidable (some a).Dom] : (some a).toOption = Option.some a :=
   dite_eq_left trivial

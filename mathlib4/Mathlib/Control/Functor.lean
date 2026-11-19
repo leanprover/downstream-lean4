@@ -195,10 +195,12 @@ instance lawfulFunctor : LawfulFunctor (Comp F G) where
   id_map := Comp.id_map
   comp_map := Comp.comp_map
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem functor_comp_id {F} [AF : Functor F] [LawfulFunctor F] :
     Comp.functor (G := Id) = AF :=
   @Functor.ext F _ AF (Comp.lawfulFunctor (G := Id)) _ fun _ _ _ _ => rfl
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem functor_id_comp {F} [AF : Functor F] [LawfulFunctor F] : Comp.functor (F := Id) = AF :=
   @Functor.ext F _ AF (Comp.lawfulFunctor (F := Id)) _ fun _ _ _ _ => rfl
 
