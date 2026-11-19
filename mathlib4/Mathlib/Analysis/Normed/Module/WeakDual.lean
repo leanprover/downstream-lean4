@@ -168,6 +168,7 @@ map. -/
 def continuousLinearMapToWeakDual : StrongDual 𝕜 E →L[𝕜] WeakDual 𝕜 E :=
   { StrongDual.toWeakDual with }
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The weak-star topology is coarser than the dual-norm topology. -/
 theorem dual_norm_topology_le_weak_dual_topology :
@@ -207,6 +208,7 @@ variable (𝕜 E) in
 lemma withSeminorms : WithSeminorms (seminormFamily 𝕜 E) :=
   (topDualPairing 𝕜 E).weakBilin_withSeminorms
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- By the Uniform Boundedness Principle, norm-boundedness (the default bornology)
 and pointwise-boundedness (`IsVonNBounded`) coincide on the weak dual of a Banach space. -/
 theorem isBounded_iff_isVonNBounded [CompleteSpace E] {s : Set (WeakDual 𝕜 E)} :

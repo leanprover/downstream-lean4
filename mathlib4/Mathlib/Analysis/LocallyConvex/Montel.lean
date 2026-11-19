@@ -96,6 +96,7 @@ private def _root_.LinearEquiv.toCompactConvergenceCLM :
 set_option backward.privateInPublic true in
 set_option backward.privateInPublic.warn false in
 variable (σ E F) in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- If `E` is a Montel space, then the strong topology on `E →L[𝕜] F` coincides with the topology
 of compact convergence.
 
