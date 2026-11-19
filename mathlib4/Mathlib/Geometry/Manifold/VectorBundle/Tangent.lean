@@ -450,6 +450,7 @@ theorem contMDiff_tangentBundleModelSpaceHomeomorph_symm :
   simpa [PartialEquiv.prod] using ⟨rfl, rfl⟩
 
 variable (H I) in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- In the tangent bundle to the model space, the second projection is `C^n`. -/
 lemma contMDiff_snd_tangentBundle_modelSpace :
     ContMDiff I.tangent 𝓘(𝕜, E) n (fun (p : TangentBundle I H) ↦ p.snd) := by
