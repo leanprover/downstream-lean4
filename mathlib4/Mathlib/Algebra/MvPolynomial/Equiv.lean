@@ -629,7 +629,7 @@ theorem finSuccEquiv_comp_C_eq_C {R : Type u} [CommSemiring R] (n : ℕ) :
   rw [RingHom.comp_apply]
   refine
     (MvPolynomial.finSuccEquiv R n).injective
-      (Trans.trans ((MvPolynomial.finSuccEquiv R n).apply_symm_apply _) ?_)
+      (((MvPolynomial.finSuccEquiv R n).apply_symm_apply _).trans ?_)
   simp only [MvPolynomial.finSuccEquiv_apply, MvPolynomial.eval₂Hom_C]
 
 variable {n} {R}
