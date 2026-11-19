@@ -66,11 +66,13 @@ variable {F G}
 theorem map_eq_traverse_id : map (f := t) f = Id.run ∘ traverse (pure ∘ f) :=
   funext fun y => (traverse_eq_map_id f y).symm
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem map_traverse (x : t α) : map f <$> traverse g x = traverse (map f ∘ g) x := by
   rw [map_eq_traverse_id f]
   refine (comp_traverse (pure ∘ f) g x).symm.trans ?_
   congr 1; apply Comp.applicative_comp_id
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem traverse_map (f : β → F γ) (g : α → β) (x : t α) :
     traverse f (g <$> x) = traverse (f ∘ g) x := by
   rw [@map_eq_traverse_id t _ _ _ _ g]

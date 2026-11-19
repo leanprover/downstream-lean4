@@ -455,6 +455,7 @@ protected theorem tendsto_iff_tendstoUniformly {F : ι → α →ᵤ β} {f : α
   rw [(UniformFun.hasBasis_nhds α β f).tendsto_right_iff, TendstoUniformly]
   simp only [mem_ofPred, UniformFun.gen, Function.comp_def]
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in
 /-- The natural bijection between `α → β × γ` and `(α → β) × (α → γ)`, upgraded to a uniform
@@ -482,6 +483,7 @@ protected def uniformEquivProdArrow [UniformSpace γ] : (α →ᵤ β × γ) ≃
 -- the relevant diagram commutes by definition
 variable (α) (δ : ι → Type*) [∀ i, UniformSpace (δ i)]
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The natural bijection between `α → Π i, δ i` and `Π i, α → δ i`, upgraded to a uniform
 isomorphism between `α →ᵤ (Π i, δ i)` and `Π i, α →ᵤ δ i`. -/
@@ -626,6 +628,7 @@ protected theorem topologicalSpace_eq :
   simp only [UniformOnFun.topologicalSpace, UniformSpace.toTopologicalSpace_iInf]
   rfl
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 protected theorem hasBasis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → Set (β × β)}
     (hb : HasBasis (𝓤 β) p s) (S : Set α) :
@@ -890,6 +893,7 @@ protected theorem inf_eq {u₁ u₂ : UniformSpace γ} :
   refine iInf_congr fun i => ?_
   cases i <;> rfl
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If `u` is a uniform structure on `β` and `f : γ → β`, then
 `𝒱(α, γ, 𝔖, comap f u) = comap (fun g ↦ f ∘ g) 𝒱(α, γ, 𝔖, u₁)`. -/
@@ -1063,6 +1067,7 @@ instance [CompleteSpace β] : CompleteSpace (α →ᵤ[𝔖] β) := by
     refine hUc.mem_of_tendsto ((hg x ⟨s, hs, hx⟩).prodMk_nhds tendsto_const_nhds) ?_
     filter_upwards [hV] with g' hg' using hVU (mk_mem_prod hg' hf) _ hx
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The natural bijection between `α → β × γ` and `(α → β) × (α → γ)`, upgraded to a uniform
 isomorphism between `α →ᵤ[𝔖] β × γ` and `(α →ᵤ[𝔖] β) × (α →ᵤ[𝔖] γ)`. -/
@@ -1091,6 +1096,7 @@ protected def uniformEquivProdArrow [UniformSpace γ] :
 
 set_option backward.isDefEq.respectTransparency false in
 variable (𝔖) (δ : ι → Type*) [∀ i, UniformSpace (δ i)] in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- The natural bijection between `α → Π i, δ i` and `Π i, α → δ i`, upgraded to a uniform
 isomorphism between `α →ᵤ[𝔖] (Π i, δ i)` and `Π i, α →ᵤ[𝔖] δ i`. -/
 protected def uniformEquivPiComm : (α →ᵤ[𝔖] ((i : ι) → δ i)) ≃ᵤ ((i : ι) → α →ᵤ[𝔖] δ i) :=
@@ -1129,6 +1135,7 @@ alias isClosed_setOf_continuous := isClosed_setOfPred_continuous
 
 set_option backward.isDefEq.respectTransparency false in
 variable (𝔖) in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_eq_inf_precomp_of_cover {δ₁ δ₂ : Type*} (φ₁ : δ₁ → α) (φ₂ : δ₂ → α)
     (𝔗₁ : Set (Set δ₁)) (𝔗₂ : Set (Set δ₂))
     (h_image₁ : MapsTo (φ₁ '' ·) 𝔗₁ 𝔖) (h_image₂ : MapsTo (φ₂ '' ·) 𝔗₂ 𝔖)
@@ -1156,6 +1163,7 @@ theorem uniformSpace_eq_inf_precomp_of_cover {δ₁ δ₂ : Type*} (φ₁ : δ�
 
 set_option backward.isDefEq.respectTransparency false in
 variable (𝔖) in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_eq_iInf_precomp_of_cover {δ : ι → Type*} (φ : Π i, δ i → α)
     (𝔗 : ∀ i, Set (Set (δ i))) (h_image : ∀ i, MapsTo (φ i '' ·) (𝔗 i) 𝔖)
     (h_preimage : ∀ i, MapsTo (φ i ⁻¹' ·) 𝔖 (𝔗 i))

@@ -93,6 +93,7 @@ variable (R) in
 scoped instance : TopologicalSpace (MvPowerSeries σ R) :=
   inferInstanceAs <| TopologicalSpace ((σ →₀ ℕ) → R)
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 theorem instTopologicalSpace_mono (σ : Type*) {R : Type*} {t u : TopologicalSpace R} (htu : t ≤ u) :
     @instTopologicalSpace σ R t ≤ @instTopologicalSpace σ R u := by

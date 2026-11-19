@@ -262,6 +262,7 @@ variable (R)
 def rayOfNeZero (v : M) (h : v ≠ 0) : Module.Ray R M :=
   ⟦(RayVector.equiv R M).symm ⟨v, h⟩⟧
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- An induction principle for `Module.Ray`, used as `induction x using Module.Ray.ind`. -/
 theorem Module.Ray.ind {C : Module.Ray R M → Prop} (h : ∀ (v) (hv : v ≠ 0), C (rayOfNeZero R v hv))
     (x : Module.Ray R M) : C x :=

@@ -179,6 +179,7 @@ which fails to unify with `(succStruct I κ).prop f✝`.
 Potential fix: mark `Arrow` and `Arrow.Hom` implicit-reducible, then remove
 `instanceSearchTypes false`.
 -/
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.defeqAttrib.useBackward true in

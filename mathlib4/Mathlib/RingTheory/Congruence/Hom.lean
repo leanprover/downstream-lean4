@@ -381,6 +381,7 @@ def quotientQuotientEquivQuotient (c d : RingCon M) (h : c ≤ d) :
     c.quotientQuotientEquivQuotient d h ↑(x : c.Quotient) = x :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[simp] theorem quotientQuotientEquivQuotient_symm_mk (c d : RingCon M) (h : c ≤ d) (x : M) :
     (c.quotientQuotientEquivQuotient d h).symm ⟦x⟧ = ⟦⟦x⟧⟧ :=
   rfl
@@ -619,6 +620,7 @@ theorem quotientQuotientEquivQuotientₐ_coe_coe {c d : RingCon M} (h : c ≤ d)
     quotientQuotientEquivQuotientₐ R h ↑(x : c.Quotient) = x :=
   quotientQuotientEquivQuotientₐ_mk_mk R h x
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[simp]
 theorem quotientQuotientEquivQuotientₐ_symm_mk {c d : RingCon M} (h : c ≤ d) (x : M) :
     (quotientQuotientEquivQuotientₐ R h).symm ⟦x⟧ = ⟦⟦x⟧⟧ :=

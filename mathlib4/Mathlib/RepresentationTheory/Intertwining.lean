@@ -531,6 +531,7 @@ can go as well: `asModule` being implicit-reducible, the `instModuleAsModule._au
 becomes implicit-reducible as well. The reason for this is that `instModuleAsModule`'s definition
 uses `inferInstanceAs`, which wraps the instance's fields into wrappers to encapsulate defeq abuse.
 -/
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- An intertwining map is the same thing as a linear map over the group ring. -/

@@ -103,6 +103,7 @@ lemma extensiveTopology.isLocallySurjective_iff [FinitaryExtensive C]
         ∀ (X : C), Function.Surjective (f.hom.app (op X)) :=
   extensiveTopology.presheafIsLocallySurjective_iff _ f.hom
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in
 lemma regularTopology.isLocallySurjective_sheaf_of_types [Preregular C] [FinitaryPreExtensive C]

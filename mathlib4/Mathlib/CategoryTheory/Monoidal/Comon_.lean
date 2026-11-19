@@ -222,6 +222,7 @@ def mkIso {M N : Comon C} (f : M.X ≅ N.X) (f_counit : f.hom ≫ ε[N.X] = ε[M
   have : IsComonHom f.hom := ⟨f_counit, f_comul⟩
   ⟨⟨f.hom⟩, ⟨f.inv⟩, by cat_disch, by cat_disch⟩
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 @[simps]

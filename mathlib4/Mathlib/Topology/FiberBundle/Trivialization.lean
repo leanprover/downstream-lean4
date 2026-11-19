@@ -314,6 +314,7 @@ noncomputable def restrictPreimage (e : Pretrivialization F proj) {s : Set B}
     ⟨⟨e.invFun ⟨z, f⟩, Set.mem_preimage.mpr <| (e.proj_symm_apply' hzb).symm ▸ hzs⟩⟩
   e.restrictPreimage' s
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- Extend the total space of a pretrivialization from the preimage of a set to the whole space. -/
 @[simps invFun source target baseSet]
 noncomputable def domExtend {s : Set B} (e : Pretrivialization F fun z : proj ⁻¹' s ↦ proj z)
@@ -687,6 +688,7 @@ variable [∀ x, Nonempty (E x)]
 protected noncomputable def symm (e : Trivialization F (π F E)) (b : B) (y : F) : E b :=
   e.toPretrivialization.symm b y
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem symm_apply (e : Trivialization F (π F E)) {b : B} (hb : b ∈ e.baseSet) (y : F) :
     e.symm b y =
       cast (congr_arg E (e.symm_coe_proj hb)) (e.toOpenPartialHomeomorph.symm (b, y)).snd :=
@@ -820,6 +822,7 @@ protected def restrOpen (e : Trivialization F proj) (s : Set B) (hs : IsOpen s) 
   target_eq := by simp [target_eq, prod_univ]
   proj_toFun p hp := e.proj_toFun p hp.1
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- The restriction of a trivialization to a subset of the base. -/
 @[simps! apply source target baseSet]
 noncomputable def restrictPreimage' (e : Trivialization F proj) (s : Set B)

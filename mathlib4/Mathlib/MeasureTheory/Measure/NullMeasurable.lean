@@ -471,6 +471,7 @@ theorem _root_.Measurable.congr_ae {α β} [MeasurableSpace α] [MeasurableSpace
 
 namespace Measure
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- Given a measure we can complete it to a (complete) measure on all null measurable sets. -/
 def completion {_ : MeasurableSpace α} (μ : Measure α) :
     MeasureTheory.Measure (NullMeasurableSpace α μ) where
