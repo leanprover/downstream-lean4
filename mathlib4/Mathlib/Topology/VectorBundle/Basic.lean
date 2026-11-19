@@ -238,10 +238,12 @@ theorem linearMapAt_apply (e : Trivialization F (π F E)) [e.IsLinear R] {b : B}
     e.linearMapAt R b y = if b ∈ e.baseSet then (e ⟨b, y⟩).2 else 0 := by
   rw [coe_linearMapAt]
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem linearMapAt_def_of_mem (e : Trivialization F (π F E)) [e.IsLinear R] {b : B}
     (hb : b ∈ e.baseSet) : e.linearMapAt R b = e.linearEquivAt R b hb :=
   dite_eq_left hb
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem linearMapAt_def_of_notMem (e : Trivialization F (π F E)) [e.IsLinear R] {b : B}
     (hb : b ∉ e.baseSet) : e.linearMapAt R b = 0 :=
   dite_eq_right hb
