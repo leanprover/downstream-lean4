@@ -232,6 +232,7 @@ section LinearOrder
 
 variable [LinearOrder α] {l : List α} {a m : α}
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 @[to_dual]

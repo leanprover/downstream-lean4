@@ -896,6 +896,7 @@ variable {x y}
 theorem sum_mk : sum (mk L) = List.sum (L.map fun x => cond x.2 x.1 (-x.1)) :=
   rfl
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[simp]
 theorem sum.of {x : α} : sum (of x) = x :=
   @prod.of _ (_) _

@@ -197,6 +197,7 @@ noncomputable def equivalence : C ≌ ShrinkHoms C where
 instance : (functor C).IsEquivalence := (equivalence C).isEquivalence_functor
 instance : (inverse C).IsEquivalence := (equivalence C).isEquivalence_inverse
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 instance {T : Type u} [Unique T] : Unique (ShrinkHoms.{u} T) where
   default := ShrinkHoms.toShrinkHoms (default : T)
   uniq _ := congr(ShrinkHoms.fromShrinkHoms $(Unique.uniq ..))

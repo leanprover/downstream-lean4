@@ -215,6 +215,7 @@ def lift {α : Type*} (f : M → α) (h : ∀ a b, mk a = mk b → f a = f b) :
     MulArchimedeanClass M → α :=
   Quotient.lift f fun _ _ h' ↦ h _ _ <| mk_eq_mk.mpr h'
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[to_additive (attr := simp)]
 theorem lift_mk {α : Type*} (f : M → α) (h : ∀ a b, mk a = mk b → f a = f b)
     (a : M) : lift f h (mk a) = f a := by
@@ -228,6 +229,7 @@ def lift₂ {α : Type*} (f : M → M → α)
     MulArchimedeanClass M → MulArchimedeanClass M → α :=
   Quotient.lift₂ f fun _ _ _ _ h₁ h₂ ↦ h _ _ _ _ (mk_eq_mk.mpr h₁) (mk_eq_mk.mpr h₂)
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 @[to_additive (attr := simp)]
 theorem lift₂_mk {α : Type*} (f : M → M → α)
     (h : ∀ a₁ b₁ a₂ b₂, mk a₁ = mk b₁ → mk a₂ = mk b₂ → f a₁ a₂ = f b₁ b₂)

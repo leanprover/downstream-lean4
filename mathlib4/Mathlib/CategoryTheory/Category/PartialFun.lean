@@ -107,6 +107,7 @@ def pointedToPartialFun : Pointed.{u} ⥤ PartialFun where
     rintro rfl
     exact ⟨fun h => hc.symm <| g.map_point ▸ congr(g $h), hc.symm⟩
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
