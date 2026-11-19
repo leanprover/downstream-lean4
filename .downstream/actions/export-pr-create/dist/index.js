@@ -25052,9 +25052,10 @@ function runIn(cwd) {
 }
 function captureIn(cwd) {
   const run2 = runIn(cwd);
-  return async function(cmd, args) {
+  return async function(cmd, args, options) {
     let stdout = "";
     await run2(cmd, args, {
+      ...options,
       listeners: { stdout: (data) => stdout += data.toString() }
     });
     return stdout.trim();
@@ -25102,6 +25103,16 @@ function getInputOpt(name, parser) {
 }
 function parseBool(input) {
   return input.trim().toLowerCase() === "true";
+}
+function parseReplacements(input) {
+  const result = [];
+  for (const line of input.split("\n")) {
+    if (line.trim() === "") continue;
+    const i = line.indexOf(" -> ");
+    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
+    result.push([line.slice(0, i), line.slice(i + " -> ".length)]);
+  }
+  return result;
 }
 function parseRepo(input) {
   const match = /^([^/]+)\/([^/]+)$/.exec(input);
@@ -25161,16 +25172,6 @@ function parseMethod(input) {
   );
   return input;
 }
-function parseLakefileEdits(input) {
-  const edits = [];
-  for (const line of input.split("\n")) {
-    if (line.trim() === "") continue;
-    const i = line.indexOf(" -> ");
-    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
-    edits.push([line.slice(0, i), line.slice(i + " -> ".length)]);
-  }
-  return edits;
-}
 var subrepo = getInput2("subrepo");
 var buildReportPath = getInput2("build-report-path");
 var clonePath = getInput2("clone-path");
@@ -25189,7 +25190,7 @@ var prBody = getInputOpt("pr-body");
 var prExplanation = getInputOpt("pr-explanation");
 var updateToolchains = getInput2("update-toolchains", parseBool);
 var toolchainInteresting = getInput2("toolchain-interesting", parseBool);
-var lakefileEdits = getInputOpt("lakefile-edits", parseLakefileEdits) ?? [];
+var lakefileEdits = getInputOpt("lakefile-edits", parseReplacements) ?? [];
 var lakefileInteresting = getInput2("lakefile-interesting", parseBool);
 var updateManifests = getInput2("update-manifests", parseBool);
 var manifestInteresting = getInput2("manifest-interesting", parseBool);
