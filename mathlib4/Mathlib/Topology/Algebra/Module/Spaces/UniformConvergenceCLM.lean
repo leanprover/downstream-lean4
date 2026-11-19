@@ -121,6 +121,7 @@ instance instTopologicalSpace [TopologicalSpace F] [IsTopologicalAddGroup F] (�
   (@UniformOnFun.topologicalSpace E F (IsTopologicalAddGroup.rightUniformSpace F) 𝔖).induced
     (DFunLike.coe : (E →SLᵤ[σ, 𝔖] F) → (E →ᵤ[𝔖] F))
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem topologicalSpace_eq [UniformSpace F] [IsUniformAddGroup F] (𝔖 : Set (Set E)) :
     instTopologicalSpace σ F 𝔖 = TopologicalSpace.induced (UniformOnFun.ofFun 𝔖 ∘ DFunLike.coe)
       (UniformOnFun.topologicalSpace E F 𝔖) := by
@@ -400,11 +401,13 @@ theorem completeSpace [UniformSpace F] [IsUniformAddGroup F] [ContinuousSMul �
 
 variable {𝔖₁ 𝔖₂ : Set (Set E)}
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_mono [UniformSpace F] [IsUniformAddGroup F] (h : 𝔖₂ ⊆ 𝔖₁) :
     instUniformSpace σ F 𝔖₁ ≤ instUniformSpace σ F 𝔖₂ := by
   simp_rw [uniformSpace_eq]
   exact UniformSpace.comap_monotone (UniformOnFun.mono (le_refl _) h)
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem topologicalSpace_mono [TopologicalSpace F] [IsTopologicalAddGroup F] (h : 𝔖₂ ⊆ 𝔖₁) :
     instTopologicalSpace σ F 𝔖₁ ≤ instTopologicalSpace σ F 𝔖₂ := by
   let := IsTopologicalAddGroup.rightUniformSpace F

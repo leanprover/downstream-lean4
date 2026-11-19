@@ -163,6 +163,7 @@ theorem restrictNormalHom_continuous (L : IntermediateField k K) [Normal k L] :
     exact SetLike.coe_eq_coe.mp this
   · exact ⟨IntermediateField.fixingSubgroup_isOpen (IntermediateField.lift L'), congrFun rfl⟩
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 lemma algEquivToLimit_continuous : Continuous (algEquivToLimit k K) := by
   rw [continuous_induced_rng]

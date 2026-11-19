@@ -49,6 +49,7 @@ def Extension : Type :=
   GaloisField p (Module.finrank (ZMod p) k * n)
   deriving Field, Finite, Algebra (ZMod p), FiniteDimensional (ZMod p)
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem finrank_zmod_extension [Algebra (ZMod p) k] :
     Module.finrank (ZMod p) (Extension k p n) = Module.finrank (ZMod p) k * n := by
   let := ZMod.algebra k p
