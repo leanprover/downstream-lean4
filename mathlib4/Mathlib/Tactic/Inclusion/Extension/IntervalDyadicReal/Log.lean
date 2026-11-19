@@ -95,13 +95,14 @@ theorem go_spec (num den a b : ℕ) :
 
 theorem den_ne_zero (num den n : ℕ) (hden : den ≠ 0) :
     (smallArtanh num den n).2 ≠ 0 := by
-  rw [smallArtanh, (go_spec num den 0 n).2.1]
+  simp only [smallArtanh]
+  rw [(go_spec num den 0 n).2.1]
   simpa [hden] using prod_ne_zero_iff.mpr fun j _ => by positivity
 
 theorem spec (num den n : ℕ) :
     letI X := smallArtanh num den n
     (X.1 : ℝ) / X.2 = ∑ k ∈ range n, (num / den : ℝ) ^ (2 * k + 1) / (2 * k + 1) := by
-  rw [smallArtanh]
+  simp only [smallArtanh]
   rcases eq_or_ne den 0 with rfl | hden; · simp
   rw [(go_spec num den 0 n).2.1, (go_spec num den 0 n).2.2]
   push_cast
