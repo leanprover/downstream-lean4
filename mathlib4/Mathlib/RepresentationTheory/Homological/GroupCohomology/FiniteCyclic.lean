@@ -46,6 +46,7 @@ namespace Rep.FiniteCyclicGroup
 variable {k G : Type u} [CommRing k] [CommGroup G] [Fintype G] (A : Rep k G) (g : G)
   (hg : ∀ x, x ∈ Subgroup.zpowers g)
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in

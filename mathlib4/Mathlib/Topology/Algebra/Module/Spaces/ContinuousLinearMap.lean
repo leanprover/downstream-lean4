@@ -232,6 +232,7 @@ def postcomp [IsTopologicalAddGroup F] [IsTopologicalAddGroup G] [ContinuousCons
   __ := postcompUniformConvergenceCLM { S | IsVonNBounded 𝕜₁ S } L
 
 variable (σ F) in
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 lemma toUniformConvergenceCLM_continuous [IsTopologicalAddGroup F]
     [ContinuousConstSMul 𝕜₂ F]
     (𝔖 : Set (Set E)) (h : 𝔖 ⊆ {S | IsVonNBounded 𝕜₁ S}) :
@@ -385,6 +386,7 @@ variable [UniformSpace F] [IsUniformAddGroup F] [Module 𝕜 F]
   (𝕜' : Type*) [NontriviallyNormedField 𝕜'] [NormedAlgebra 𝕜' 𝕜]
   [Module 𝕜' E] [IsScalarTower 𝕜' 𝕜 E] [Module 𝕜' F] [IsScalarTower 𝕜' 𝕜 F]
 
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 theorem isUniformEmbedding_restrictScalars :
     IsUniformEmbedding (restrictScalars 𝕜' : (E →L[𝕜] F) → (E →L[𝕜'] F)) := by

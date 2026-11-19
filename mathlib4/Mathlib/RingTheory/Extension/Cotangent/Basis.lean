@@ -270,6 +270,7 @@ over `P.toExtension.Ring`, which is again not defeq to the assigned value, for t
 Potential fix: make `Algebra.Generators.toExtension` implicit-reducible.
 Then both backward compatibility options can go.
 -/
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 /-- The basis on the cotangent space of the constructed presentation. -/
@@ -304,6 +305,7 @@ again not defeq to the assigned value.
 Potential fix: make `Algebra.Generators.toExtension` implicit-reducible.
 Then both backward compatibility options can go.
 -/
+set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency.types false in
 set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 lemma basis_inr [Nontrivial S] (i : σ) :
