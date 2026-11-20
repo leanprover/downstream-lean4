@@ -25052,9 +25052,10 @@ function runIn(cwd) {
 }
 function captureIn(cwd) {
   const run2 = runIn(cwd);
-  return async function(cmd, args) {
+  return async function(cmd, args, options) {
     let stdout = "";
     await run2(cmd, args, {
+      ...options,
       listeners: { stdout: (data) => stdout += data.toString() }
     });
     return stdout.trim();
@@ -25077,16 +25078,17 @@ var Repo = class {
   }
 };
 async function findPrFor(octo, repo, branchName, options = {}) {
-  const { state = "all", headOwner = repo.owner } = options;
+  const { state = "all", headRepo = repo } = options;
   const { data } = await octo.rest.pulls.list({
     ...repo,
-    head: `${headOwner}:${branchName}`,
+    head: `${headRepo.owner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
-    per_page: 1
+    per_page: 100
   });
-  return data[0];
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr2) => pr2.head.repo?.full_name.toLowerCase() === fullName);
 }
 
 // actions/lib/input.ts
@@ -25101,6 +25103,16 @@ function getInputOpt(name, parser) {
 }
 function parseBool(input) {
   return input.trim().toLowerCase() === "true";
+}
+function parseReplacements(input) {
+  const result = [];
+  for (const line of input.split("\n")) {
+    if (line.trim() === "") continue;
+    const i = line.indexOf(" -> ");
+    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
+    result.push([line.slice(0, i), line.slice(i + " -> ".length)]);
+  }
+  return result;
 }
 function parseRepo(input) {
   const match = /^([^/]+)\/([^/]+)$/.exec(input);
@@ -25160,16 +25172,6 @@ function parseMethod(input) {
   );
   return input;
 }
-function parseLakefileEdits(input) {
-  const edits = [];
-  for (const line of input.split("\n")) {
-    if (line.trim() === "") continue;
-    const i = line.indexOf(" -> ");
-    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
-    edits.push([line.slice(0, i), line.slice(i + " -> ".length)]);
-  }
-  return edits;
-}
 var subrepo = getInput2("subrepo");
 var buildReportPath = getInput2("build-report-path");
 var clonePath = getInput2("clone-path");
@@ -25188,7 +25190,7 @@ var prBody = getInputOpt("pr-body");
 var prExplanation = getInputOpt("pr-explanation");
 var updateToolchains = getInput2("update-toolchains", parseBool);
 var toolchainInteresting = getInput2("toolchain-interesting", parseBool);
-var lakefileEdits = getInputOpt("lakefile-edits", parseLakefileEdits) ?? [];
+var lakefileEdits = getInputOpt("lakefile-edits", parseReplacements) ?? [];
 var lakefileInteresting = getInput2("lakefile-interesting", parseBool);
 var updateManifests = getInput2("update-manifests", parseBool);
 var manifestInteresting = getInput2("manifest-interesting", parseBool);
@@ -25232,7 +25234,7 @@ function isBuildReportGreen(report) {
 async function findExportPr(config) {
   return await findPrFor(targetOcto, config.targetRepo, config.prBranch, {
     state: "open",
-    headOwner: config.prRepo.owner
+    headRepo: config.prRepo
   });
 }
 async function cloneDownstreamRepo() {
@@ -25314,12 +25316,14 @@ async function isInterestingExport(onto) {
   info(`Export changes ${changedPaths.length} interesting file(s).`);
   return changedPaths.length > 0;
 }
-async function runExport(onto) {
+async function runExport(onto, downstreamSha) {
   info(`Exporting ${subrepo} onto ${onto}...`);
   await cRun(scriptPath("export.py"), [
     ...[".", subrepo],
     ...["--onto", onto],
-    ...["--message", prTitle],
+    ...["--message", `${prTitle}
+
+downstream-sha: ${downstreamSha}`],
     ...updateToolchains ? ["--update-toolchains"] : [],
     ...lakefileEdits.flatMap(([p, r]) => ["--edit-lakefile", p, r]),
     ...updateManifests ? ["--update-manifests"] : []
@@ -25347,8 +25351,8 @@ async function updateSubrepo(config, sha) {
   if (exitCode !== 0) return null;
   return await cCapture("git", ["rev-parse", "HEAD"]);
 }
-async function exportSameBranch(config, sha) {
-  const updatedSha = await updateSubrepo(config, sha);
+async function exportSameBranch(config, downstreamSha) {
+  const updatedSha = await updateSubrepo(config, downstreamSha);
   if (updatedSha === null)
     exit(
       `Subrepo ${subrepo} is outdated (upstream has relevant changes since the last update), stopping.`,
@@ -25361,7 +25365,7 @@ async function exportSameBranch(config, sha) {
     sourceToken,
     baseCommit.sha
   );
-  return await runExport(baseSha);
+  return await runExport(baseSha, downstreamSha);
 }
 function excludePathspecs() {
   return filePathspecs("glob", {
@@ -25410,18 +25414,15 @@ async function exportTargetBranch(config, sha) {
   await cRun("git", ["switch", "--detach", targetSha]);
   await mergeSource(baseSha, `chore: merge '${baseCommit.rev}'`);
   const mergeSha = await cCapture("git", ["rev-parse", "HEAD"]);
+  info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
+  await pushToRepo(
+    config.targetRepo,
+    targetToken,
+    mergeSha,
+    config.targetBranch
+  );
   await cRun("git", ["switch", "--detach", sha]);
-  const interesting = await runExport(mergeSha);
-  if (interesting && pr) {
-    info(`Pushing merge commit ${mergeSha} to ${config.targetBranch}...`);
-    await pushToRepo(
-      config.targetRepo,
-      targetToken,
-      mergeSha,
-      config.targetBranch
-    );
-  }
-  return interesting;
+  return await runExport(mergeSha, sha);
 }
 async function createExportPr(config, buildReport) {
   info(
@@ -25436,6 +25437,9 @@ async function createExportPr(config, buildReport) {
   if (prExplanation) body += `
 
 ${prExplanation}`;
+  body += `
+
+downstream-sha: ${buildReport.commit_sha}`;
   info(
     `Creating export PR against ${config.targetRepo.fullName}:${config.targetBranch}...`
   );
@@ -25443,8 +25447,11 @@ ${prExplanation}`;
     ...config.targetRepo,
     base: config.targetBranch,
     head: `${config.prRepo.owner}:${config.prBranch}`,
+    // Required for cross-repo PRs when both repos have the same owner.
+    head_repo: config.prRepo.fullName,
     title: prTitle,
-    body
+    body,
+    maintainer_can_modify: false
   });
   notice(`Created export PR #${data.number}: ${data.html_url}`);
   return data.number;

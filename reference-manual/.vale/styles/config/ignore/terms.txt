@@ -79,10 +79,13 @@ elaborator
 elaborator's
 elaborators
 enum
+entailment
+entailments
 equational
 executable's
 extensional
 extensionality
+fieldless
 fixpoint
 fixpoints
 functor
@@ -114,6 +117,7 @@ letterlike
 linearization
 linearize
 linearizing
+linter's
 logics
 lookup
 lookups
@@ -249,6 +253,7 @@ unregistering
 uploader
 upvote
 VC
+vcgen
 VCs
 walkthrough
 workspace's

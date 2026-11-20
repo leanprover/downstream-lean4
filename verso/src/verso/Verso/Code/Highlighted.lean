@@ -10,6 +10,7 @@ import Std.Data.HashMap
 public import SubVerso.Highlighting
 public import Verso.Doc
 import Verso.Method
+import Verso.Output.Html.Markdown
 public import Verso.Output.Html
 import Verso.Output.TeX
 meta import Verso.Instances.Deriving
@@ -85,6 +86,20 @@ end SubVerso.Highlighting
 
 namespace Verso.Code
 
+/--
+Creates a SubVerso highlighting context with a fresh signature cache.
+
+By default, the context has no identifier mapping, doesn't allow definition sites, omits unparsed
+text, and doesn't suppress any namespaces.
+-/
+public def mkHighlightingContext
+    (ids : HashMap Lean.Lsp.RefIdent Lean.Lsp.RefIdent := {})
+    (definitionsPossible : Bool := false)
+    (includeUnparsed : Bool := false)
+    (suppressNamespaces : List Lean.Name := []) :
+    BaseIO Context := do
+  return { ids, definitionsPossible, includeUnparsed, suppressNamespaces, sigCache := ← IO.mkRef {} }
+
 namespace Hover
 public structure Dedup (α) extends BEq α, Hashable α where
   nextId : Nat := 0
@@ -123,8 +138,18 @@ public def IdSupply.unique (supply : IdSupply) (base := "--verso-unique") : Stri
 public structure State (α) where
   dedup : Dedup α
   idSupply : IdSupply
+  /--
+  {open State}
 
-public def State.empty [BEq α] [Hashable α] : State α := ⟨{}, {}⟩
+  The hover IDs of the token kinds seen so far, to be looked up in {name}`dedup` by the token kinds'
+  hover memoization keys.
+  -/
+  tokenHovers : HashMap String (Option Nat)
+
+public def State.empty [BEq α] [Hashable α] : State α where
+  dedup := {}
+  idSupply := {}
+  tokenHovers := {}
 
 public instance [BEq α] [Hashable α] : EmptyCollection (State α) where
   emptyCollection := .empty
@@ -149,10 +174,10 @@ public instance : ToJson CodeLink where
   toJson l := json%{"short": $l.shortDescription, "long": $l.description, "href": $l.href}
 
 public def CodeLink.inlineHtml (link : CodeLink) (text : Html) : Html :=
-  {{<a href={{link.href}} title={{link.description}}>{{text}}</a>}}
+  html%{<a href={link.href} title={link.description}>{text}</a>}
 
 public def CodeLink.menuHtml (link : CodeLink) : Html :=
-  {{<a href={{link.href}} title={{link.description}}>{{link.shortDescription}}</a>}}
+  html%{<a href={link.href} title={link.description}>{link.shortDescription}</a>}
 
 public def CodeLink.manyHtml (links : Array CodeLink) (text : Html) : Html :=
   if h : links.size = 1 then
@@ -396,7 +421,7 @@ public defmethod Highlighted.trimOneTrailingNl : Highlighted → Highlighted
   | .tactics i s e hl => .tactics i s e (trimOneTrailingNl hl)
   | .span i hl => .span i (trimOneTrailingNl hl)
 
-public partial defmethod Highlighted.containsNewline : (t : Highlighted) → Bool
+public defmethod Highlighted.containsNewline : (t : Highlighted) → Bool
   | .text s => s.contains '\n'
   | .unparsed s => s.contains '\n'
   | .seq xs => xs.any containsNewline
@@ -404,7 +429,12 @@ public partial defmethod Highlighted.containsNewline : (t : Highlighted) → Boo
   | .tactics _ _ _ hl => hl.containsNewline
   | .span _ hl => hl.containsNewline
 
-defmethod Token.Kind.hover? (tok : Token.Kind) : HighlightHtmlM g (Option Nat) :=
+/-- Renders a docstring's Markdown for display in a hover. -/
+def docstringHtml (markdown : String) : Html :=
+  html%{<div class="docstring">{Markdown.toHtml markdown (math := true)}</div>}
+
+/-- Renders a token kind's hover and adds it to the hover table, returning its ID. -/
+defmethod Token.Kind.addHover? (tok : Token.Kind) : HighlightHtmlM g (Option Nat) :=
   match tok with
   | .const _n sig doc _ sigFmt =>
     let docs :=
@@ -412,42 +442,42 @@ defmethod Token.Kind.hover? (tok : Token.Kind) : HighlightHtmlM g (Option Nat) :
       | none => .empty
       | some txt => separatedDocs txt
     match sigFmt with
-    | some fmt => some <$> addHover {{ <code data-rich-format={{fmt}}>{{sig}}</code> {{docs}} }}
-    | none => some <$> addHover {{ <code>{{sig}}</code> {{docs}} }}
+    | some fmt => some <$> addHover html%{<code data-rich-format={fmt}>{sig}</code>{docs}}
+    | none => some <$> addHover html%{<code>{sig}</code>{docs}}
   | .anonCtor _n sig doc sigFmt =>
     let docs :=
       match doc with
       | none => .empty
       | some txt => separatedDocs txt
     match sigFmt with
-    | some fmt => some <$> addHover {{ <code data-rich-format={{fmt}}>{{sig}}</code> {{docs}} }}
-    | none => some <$> addHover {{ <code>{{sig}}</code> {{docs}} }}
+    | some fmt => some <$> addHover html%{<code data-rich-format={fmt}>{sig}</code>{docs}}
+    | none => some <$> addHover html%{<code>{sig}</code>{docs}}
   | .option optName _declName doc =>
     let docs := match doc with
       | none => .empty
       | some txt => separatedDocs txt
-    some <$> addHover {{ <code>{{toString optName}}</code> {{docs}} }}
+    some <$> addHover html%{<code>{toString optName}</code>{docs}}
   | .keyword _ _ none => pure none
-  | .keyword _ _ (some doc) => some <$> addHover {{<code class="docstring">{{doc}}</code>}}
+  | .keyword _ _ (some doc) => some <$> addHover (docstringHtml doc)
   | .var _ type tyFmt =>
     match tyFmt with
-    | some fmt => some <$> addHover {{ <code data-rich-format={{fmt}}>{{type}}</code> }}
-    | none => some <$> addHover {{ <code>{{type}}</code> }}
+    | some fmt => some <$> addHover html%{<code data-rich-format={fmt}>{type}</code>}
+    | none => some <$> addHover html%{<code>{type}</code>}
   | .str (some s) _ =>
-    some <$> addHover {{ <code><span class="literal string">{{s.quote}}</span>" : String"</code>}}
+    some <$> addHover html%{<code><span class="literal string">{s.quote}</span> : String</code>}
   | .str none _ => pure none
   | .char c =>
-    some <$> addHover {{ <code><span class="literal char">{{s!"{repr c}"}}</span>" : Char"</code>}}
+    some <$> addHover html%{<code><span class="literal char">{s!"{repr c}"}</span> : Char</code>}
   | .withType t =>
-    some <$> addHover {{ <code>{{t}}</code> }}
+    some <$> addHover html%{<code>{t}</code>}
   | .num (some t) _ =>
-    some <$> addHover {{ <code>{{t}}</code> }}
+    some <$> addHover html%{<code>{t}</code>}
   | .sort (some doc) =>
-    some <$> addHover {{<code class="docstring">{{doc}}</code>}}
+    some <$> addHover (docstringHtml doc)
   | .levelConst i =>
-    some <$> addHover {{<code class="docstring">s!"The universe level {i}"</code>}}
+    some <$> addHover (docstringHtml (s!"The universe level {i}"))
   | .levelVar x =>
-    some <$> addHover {{<code class="docstring">s!"The universe parameter {x}"</code>}}
+    some <$> addHover (docstringHtml (s!"The universe parameter {x}"))
   | .levelOp op =>
     let doc? :=
       match op with
@@ -457,11 +487,42 @@ defmethod Token.Kind.hover? (tok : Token.Kind) : HighlightHtmlM g (Option Nat) :
         some "The impredicative maximum of two universes:\n\n * `imax u 0 = 0`\n * `imax u (v+1) = max u (v+1)`"
       | _ => none
     doc?.mapM fun doc =>
-     addHover {{<code class="docstring">{{doc}}</code>}}
+     addHover (docstringHtml doc)
   | _ => pure none
 where
   separatedDocs txt :=
-    {{<span class="sep"/><code class="docstring">{{txt}}</code>}}
+    html%{<span class="sep"/>{docstringHtml txt}}
+
+/--
+Returns a string that determines a token kind's hover. Token kinds with the same key have the same
+hover.
+
+The key is the token kind's JSON encoding without the fields that never affect a hover:
+ * the occurrence tags of keywords and other syntax atoms
+ * whether a constant's occurrence is a definition site.
+-/
+defmethod Token.Kind.hoverMemoKey (tok : Token.Kind) : String :=
+  let tok : Token.Kind :=
+    match tok with
+    | .keyword n _ doc => .keyword n none doc
+    | .delim n _ doc => .delim n none doc
+    | .operator n _ doc => .operator n none doc
+    | .bracket n _ doc => .bracket n none doc
+    | .separator n _ doc => .separator n none doc
+    | .const n sig doc _ sigFmt => .const n sig doc false sigFmt
+    | k => k
+  (Lean.toJson tok).compress
+
+/--
+Returns the ID of a token kind's hover, if it has one. Token kinds with the same hover memoization
+key share one rendering of their hover.
+-/
+defmethod Token.Kind.hover? (tok : Token.Kind) : HighlightHtmlM g (Option Nat) := do
+  let memoKey := tok.hoverMemoKey
+  if let some hover := (← get).tokenHovers[memoKey]? then return hover
+  let hover ← tok.addHover?
+  modify fun st => { st with tokenHovers := st.tokenHovers.insert memoKey hover }
+  return hover
 
 public defmethod Lean.MessageSeverity.«class» : Lean.MessageSeverity → String
   | .information => "information"
@@ -513,54 +574,57 @@ defmethod Token.htmlContent (tok : Token) : HighlightHtmlM g Html := do
 
 public defmethod Token.toHtml (tok : Token) : HighlightHtmlM g Html := do
   let idAttr ← tok.kind.idAttr
-  let hoverAttr := (← tok.kind.hover?).map (fun i => #[("data-verso-hover", toString i)]) |>.getD #[]
-  tok.kind.addLink {{
-    <span class={{tok.kind.«class» ++ " token"}} data-binding={{tok.kind.data}} {{hoverAttr}} {{idAttr}}>{{← tok.htmlContent}}</span>
-  }}
+  let hoverAttr :=
+    if let some i := (← tok.kind.hover?) then
+      #[("data-verso-hover", toString i)]
+    else #[]
+  tok.kind.addLink html%{
+    <span class={tok.kind.«class» ++ " token"} data-binding={tok.kind.data} {...hoverAttr} {...idAttr}>{← tok.htmlContent}</span>
+  }
 
 public defmethod Highlighted.Goal.toHtml (exprHtml : expr → HighlightHtmlM g Html) (index : Nat) : Highlighted.Goal expr → HighlightHtmlM g Html
   | {name, goalPrefix, hypotheses, conclusion, ..} => do
     let hypsHtml : Html ←
       if hypotheses.size = 0 then pure .empty
-      else pure {{
+      else pure html%{
         <span class="hypotheses">
-          {{← hypotheses.mapM fun
-              | ⟨names, t, _⟩ => do pure {{
+          {← hypotheses.mapM fun
+              | ⟨names, t, _⟩ => do pure html%{
                   <span class="hypothesis">
-                    <span class="name">{{(← names.mapM (·.toHtml)).toList.intersperse {{" "}} }}</span><span class="colon">":"</span>
-                    <span class="type">{{← exprHtml t}}</span>
+                    <span class="name">{(← names.mapM (·.toHtml)).toList.intersperse html%{{" "}} }</span><span class="colon">:</span>
+                    <span class="type">{← exprHtml t}</span>
                   </span>
-                }}
-          }}
+                }
+          }
         </span>
-      }}
-    let conclHtml ← do pure {{
+      }
+    let conclHtml ← do pure html%{
         <span class="conclusion">
-          <span class="prefix">{{goalPrefix}}</span><span class="type">{{← exprHtml conclusion}}</span>
+          <span class="prefix">{goalPrefix}</span><span class="type">{← exprHtml conclusion}</span>
         </span>
-      }}
+      }
     let collapsePolicy := (← options).collapseGoals
     let id ← uniqueId
-    pure {{
+    pure html%{
       <span class="goal">
-        {{ match name with
-          | none => {{
-             {{hypsHtml}}
-             {{conclHtml}}
-            }}
-          | some n => {{
-              <span class="labeled-case" {{openAttr collapsePolicy index}}>
+        { match name with
+          | none => html%{
+             {hypsHtml}
+             {conclHtml}
+            }
+          | some n => html%{
+              <span class="labeled-case" {...openAttr collapsePolicy index}>
                 <label class="case-label">
-                  <input type="checkbox" id={{id}} {{openAttr collapsePolicy index}}/>
-                  <span for={{id}} class="goal-name">{{n}}</span>
+                  <input type="checkbox" id={id} {...openAttr collapsePolicy index}/>
+                  <span for={id} class="goal-name">{n}</span>
                 </label>
-               {{hypsHtml}}
-               {{conclHtml}}
+               {hypsHtml}
+               {conclHtml}
               </span>
-            }}
-        }}
+            }
+        }
       </span>
-    }}
+    }
   where
     openAttr policy index :=
       match policy with
@@ -569,8 +633,8 @@ public defmethod Highlighted.Goal.toHtml (exprHtml : expr → HighlightHtmlM g H
       | .subsequent => if index = 0 then #[("checked", "checked")] else #[]
 
 public partial defmethod Highlighted.MessageContents.toHtml (expandTraces : List Lean.Name) (maxTraceDepth : Nat) (exprHtml : expr → HighlightHtmlM g Html) : Highlighted.MessageContents expr → HighlightHtmlM g Html
-  | .text s => pure {{<span class="text">{{s}}</span>}}
-  | .term e => do return {{<span class="highlighted">{{← exprHtml e}}</span>}}
+  | .text s => pure html%{<span class="text">{s}</span>}
+  | .term e => do return html%{<span class="highlighted">{← exprHtml e}</span>}
   | .append xs => xs.foldlM (init := Html.empty) fun html m =>
       (html ++ ·) <$> m.toHtml expandTraces maxTraceDepth exprHtml
   | .trace cls msg children collapsed => do
@@ -580,12 +644,12 @@ public partial defmethod Highlighted.MessageContents.toHtml (expandTraces : List
       if maxTraceDepth = 0 then pure Html.empty
       else
         let cs ← children.mapM (·.toHtml expandTraces (maxTraceDepth - 1) exprHtml)
-        pure {{<ul class="trace-children">{{cs.map ({{<li>{{·}}</li>}})}}</ul>}}
-      if children.size > 0 then return {{
-        <details class="trace" role="group" {{if collapsed then #[] else #[("open", "open")]}}><summary><span class="trace-class">s!"[{cls}]"</span> " " {{msgHtml}}</summary>{{childHtml}}</details>
-      }} else return {{
-        <span class="trace"><span class="trace-class">s!"[{cls}]"</span> " " {{msgHtml}}</span>
-      }}
+        pure html%{<ul class="trace-children">{cs.map (html%{<li>{·}</li>})}</ul>}
+      if children.size > 0 then return html%{
+        <details class="trace" role="group" {...if collapsed then #[] else #[("open", "open")]}><summary><span class="trace-class">{s!"[{cls}]"}</span> {msgHtml}</summary>{childHtml}</details>
+      } else return html%{
+        <span class="trace"><span class="trace-class">{s!"[{cls}]"}</span> {msgHtml}</span>
+      }
 
   | .goal g => g.toHtml exprHtml 0
 
@@ -649,7 +713,7 @@ public partial defmethod Highlighted.normalize : Highlighted → Highlighted
 
 public partial defmethod Highlighted.toHtml : Highlighted → HighlightHtmlM g Html
   | .token t => t.toHtml
-  | .text str | .unparsed str => pure {{<span class="inter-text">{{str}}</span>}}
+  | .text str | .unparsed str => pure html%{<span class="inter-text">{str}</span>}
   | .span infos hl =>
     if let some cls := spanClass infos then do
       -- A span around a single token shares the token's extent, so the token's documentation
@@ -661,17 +725,17 @@ public partial defmethod Highlighted.toHtml : Highlighted → HighlightHtmlM g H
         if let .token _ := hl then
           takeAttrs #["data-verso-hover", "data-verso-links"] inner
         else (#[], inner)
-      pure {{<span class={{"has-info " ++ cls}} {{spanAttrs}}>
+      pure html%{<span class={"has-info " ++ cls} {...spanAttrs}>
           <span class="hover-container">
-            <span class={{"hover-info messages"}}>
-              {{← infos.mapM fun (s, info) => do return {{
-                <code class={{"verso-message " ++ s.«class»}}>{{← info.toHtml [] 10 toHtml}}</code> }}
-              }}
+            <span class={"hover-info messages"}>
+              {← infos.mapM fun (s, info) => do return html%{
+                <code class={"verso-message " ++ s.«class»}>{← info.toHtml [] 10 toHtml}</code>}
+              }
             </span>
           </span>
-          {{inner}}
+          {inner}
         </span>
-      }}
+      }
     else
       panic! "No highlights!"
       --toHtml hl
@@ -681,48 +745,48 @@ public partial defmethod Highlighted.toHtml : Highlighted → HighlightHtmlM g H
       let checkedAttr :=
         if visibleStates.isVisible startPos endPos then #[("checked", "checked")] else #[]
       let id ← uniqueId (base := s!"tactic-state-{hash info}-{startPos}-{endPos}")
-      pure {{
+      pure html%{
         <span class="tactic">
-          <label for={{id}}>{{← toHtml hl}}</label>
-          <input type="checkbox" class="tactic-toggle" id={{id}} {{checkedAttr}}/>
+          <label for={id}>{← toHtml hl}</label>
+          <input type="checkbox" class="tactic-toggle" id={id} {...checkedAttr}/>
           <span class="tactic-state">
-            {{← if info.isEmpty then
-                pure {{"All goals completed! 🐙"}}
+            {← if info.isEmpty then
+                pure html%{All goals completed! 🐙}
               else
-                info.mapIdxM (fun i x => x.toHtml toHtml i)}}
+                info.mapIdxM (fun i x => x.toHtml toHtml i)}
           </span>
         </span>
-      }}
+      }
     else
       toHtml hl
   | .point s info => do
     let info ← info.toHtml [] 10 toHtml
-    return {{
-      <span class={{"verso-message " ++ s.«class»}}>{{info}}</span>
-    }}
+    return html%{
+      <span class={"verso-message " ++ s.«class»}>{info}</span>
+    }
   | .seq hls => hls.mapM toHtml
 
 public defmethod Highlighted.blockHtml (contextName : String) (code : Highlighted) (trim : Bool := true) (htmlId : Option String := none) : HighlightHtmlM g Html := do
   let code := (if trim then code.trim else code).elideRedundantProofStates
   let idAttr := htmlId.map (fun x => #[("id", x)]) |>.getD #[]
-  pure {{ <code class="hl lean block" "data-lean-context"={{toString contextName}} {{idAttr}}> {{ ← code.toHtml }} </code> }}
+  pure html%{<code class="hl lean block" data-lean-context={toString contextName} {...idAttr}>{ ← code.toHtml }</code>}
 
 public defmethod Highlighted.inlineHtml (contextName : Option String) (code : Highlighted) (trim : Bool := true) (htmlId : Option String := none) : HighlightHtmlM g Html := do
   let code := (if trim then code.trim else code).elideRedundantProofStates
   let idAttr := htmlId.map (fun x => #[("id", x)]) |>.getD #[]
   if let some ctx := contextName then
-    pure {{ <code class="hl lean inline" "data-lean-context"={{toString ctx}} {{idAttr}}> {{ ← code.toHtml }} </code> }}
+    pure html%{<code class="hl lean inline" data-lean-context={toString ctx} {...idAttr}>{ ← code.toHtml }</code>}
   else
-    pure {{ <code class="hl lean inline" {{idAttr}}> {{ ← code.toHtml }} </code> }}
+    pure html%{<code class="hl lean inline" {...idAttr}>{ ← code.toHtml }</code>}
 
 public defmethod Highlighted.Message.toHtml (message : Highlighted.Message) (expandTraces : List Lean.Name) (maxTraceDepth : Nat := 10) : HighlightHtmlM g Html := do
   let contents ← message.contents.toHtml expandTraces maxTraceDepth (·.toHtml)
-  return {{<span class=s!"verso-message">{{contents}}</span>}}
+  return html%{<span class={s!"verso-message"}>{contents}</span>}
 
 public defmethod Highlighted.Message.blockHtml (message : Highlighted.Message) (summarize : Bool) (expandTraces : List Lean.Name := []) (maxTraceDepth : Nat := 10) : HighlightHtmlM g Html := do
   let wrap html :=
-    if summarize then {{<details class=s!"lean-output {message.severity.class}"><summary>"Expand..."</summary><pre class="hl lean">{{html}}</pre></details>}}
-    else {{<pre class=s!"hl lean lean-output {message.severity.class}">{{html}}</pre>}}
+    if summarize then html%{<details class={s!"lean-output {message.severity.class}"}><summary>Expand...</summary><pre class="hl lean">{html}</pre></details>}
+    else html%{<pre class={s!"hl lean lean-output {message.severity.class}"}>{html}</pre>}
   wrap <$> message.toHtml expandTraces (maxTraceDepth := maxTraceDepth)
 
 
@@ -1020,11 +1084,11 @@ severity accent to distinguish them.
 }
 
 .warning .verso-message, .warning .verso-message .token, .warning .verso-message label {
-  color: var(--verso-message-warning-color, black);
+  color: var(--verso-message-warning-color, currentcolor);
 }
 
 .warning .verso-message .case-label:has(input[type=\"checkbox\"])::before {
-  background-color: var(--verso-message-warning-color, black) !important;
+  background-color: var(--verso-message-warning-color, currentcolor) !important;
 }
 
 
@@ -1048,11 +1112,11 @@ severity accent to distinguish them.
 }
 
 .information .verso-message, .information .verso-message .token, .information .verso-message label {
-  color: var(--verso-message-info-color, black);
+  color: var(--verso-message-info-color, currentcolor);
 }
 
 .information .verso-message .case-label:has(input[type=\"checkbox\"])::before {
-  background-color: var(--verso-message-info-color, black) !important;
+  background-color: var(--verso-message-info-color, currentcolor) !important;
 }
 
 .hl.lean div.docstring {
@@ -1495,301 +1559,5 @@ The parameter `highlightJsonPromise` is a JavaScript expression that evaluates t
 that provides the hover content.
 -/
 public def highlightingJs (highlightJsonPromise : String := fetchDocsJson) : String :=
-"
-window.onload = async () => {
-
-    // Don't show hovers inside of closed tactic states
-    function blockedByTactic(elem) {
-      let parent = elem.parentNode;
-      while (parent && \"classList\" in parent) {
-        if (parent.classList.contains(\"tactic\")) {
-          const toggle = parent.querySelector(\":scope > input.tactic-toggle\");
-          if (toggle) {
-            return !toggle.checked;
-          }
-        }
-        parent = parent.parentNode;
-      }
-      return false;
-    }
-
-    // The innermost element under the pointer, used to show only the most specific hover
-    let hoverTarget = null;
-    document.addEventListener('mouseover', (e) => { hoverTarget = e.target; }, true);
-
-    // Visible tippy references; a tooltip is blocked while an unrelated one is visible
-    const visibleTippies = new Set();
-    function blockedByTippy(elem) {
-      for (const ref of visibleTippies) {
-        if (!ref.contains(elem) && !elem.contains(ref)) return true;
-      }
-      return false;
-    }
-
-    // Whether the element's tooltip would have content to show. Content nested in a
-    // collapsed tactic region is covered by the region's proof-state tooltip, whether or
-    // not a tippy instance is currently attached to it.
-    function showsContent(el) {
-      if (!el._tippy) return false;
-      if (el.classList.contains('tactic')) {
-        const toggle = el.querySelector(':scope > input.tactic-toggle');
-        return !!toggle && !toggle.checked;
-      }
-      return (!!el.querySelector('.hover-info') || 'versoHover' in el.dataset) &&
-        !blockedByTactic(el);
-    }
-
-    // The nearest enclosing element whose tooltip has content
-    function innermostShowable(el) {
-      while (el && el.nodeType === Node.ELEMENT_NODE) {
-        if (showsContent(el)) return el;
-        el = el.parentElement;
-      }
-      return null;
-    }
-
-    // Binding highlights via event delegation with cached lookups
-    const bindingCache = new Map(); // context+binding -> [token elements]
-    let highlightedTokens = [];
-    function getBindingTokens(context, binding) {
-      const key = context + \"\\0\" + binding;
-      let tokens = bindingCache.get(key);
-      if (!tokens) {
-        tokens = [];
-        for (const example of document.querySelectorAll(\".hl.lean\")) {
-          if (example.dataset.leanContext == context) {
-            for (const tok of example.querySelectorAll(\".token[data-binding=\\\"\" + CSS.escape(binding) + \"\\\"]\")) {
-              tokens.push(tok);
-            }
-          }
-        }
-        bindingCache.set(key, tokens);
-      }
-      return tokens;
-    }
-    for (const container of document.querySelectorAll(\".hl.lean\")) {
-      container.addEventListener(\"mouseover\", (event) => {
-        const c = event.target.closest(\".token\");
-        if (!c || !c.dataset.binding || c.dataset.binding === \"\" || !container.contains(c)) return;
-        if (blockedByTactic(c)) return;
-        const tokens = getBindingTokens(container.dataset.leanContext, c.dataset.binding);
-        for (const tok of tokens) {
-          tok.classList.add(\"binding-hl\");
-        }
-        highlightedTokens = tokens;
-      });
-      container.addEventListener(\"mouseout\", (event) => {
-        const c = event.target.closest(\".token\");
-        if (!c || !container.contains(c)) return;
-        for (const tok of highlightedTokens) {
-          tok.classList.remove(\"binding-hl\");
-        }
-        highlightedTokens = [];
-      });
-    }
-    /* Render docstrings */
-    if ('undefined' !== typeof marked) {
-        for (const d of document.querySelectorAll(\"code.docstring, pre.docstring\")) {
-            const str = d.innerText;
-            const html = marked.parse(str);
-            const rendered = document.createElement(\"div\");
-            rendered.classList.add(\"docstring\");
-            rendered.innerHTML = html;
-            d.parentNode.replaceChild(rendered, d);
-        }
-    }
-    // Add hovers
-    const versoDocData = await (" ++ highlightJsonPromise ++ ");
-
-    function hideParentTooltips(element) {
-      let parent = element.parentElement;
-      while (parent) {
-        const tippyInstance = parent._tippy;
-        if (tippyInstance) {
-          tippyInstance.hide();
-        }
-        parent = parent.parentElement;
-      }
-    }
-
-    function hideDescendantTooltips(element) {
-      for (const ref of visibleTippies) {
-        if (ref !== element && element.contains(ref)) {
-          ref._tippy.hide();
-        }
-      }
-    }
-
-    // Renders the documentation for a hover ID from the doc table
-    function docHoverContent(hoverId) {
-      const info = document.createElement('span');
-      info.className = 'hover-info';
-      info.style.display = 'block';
-      const data = versoDocData[hoverId];
-      if (data) {
-        info.innerHTML = data;
-        /* Render docstrings - TODO server-side */
-        if ('undefined' !== typeof marked) {
-          for (const d of info.querySelectorAll('code.docstring, pre.docstring')) {
-            const str = d.innerText;
-            const html = marked.parse(str);
-            const rendered = document.createElement('div');
-            rendered.classList.add('docstring');
-            rendered.innerHTML = html;
-            d.parentNode.replaceChild(rendered, d);
-          }
-        }
-      } else {
-        info.innerHTML = 'Failed to load doc ID: ' + hoverId;
-      }
-      return info;
-    }
-
-
-
-
-    const defaultTippyProps = {
-      /* DEBUG -- remove the space: * /
-      onHide(any) { return false; },
-      trigger: \"click\",
-      // */
-      /* theme: \"lean\", */
-      maxWidth: \"none\",
-      appendTo: () => document.body,
-      interactive: true,
-      delay: [100, null],
-      /* ignoreAttributes: true, */
-      followCursor: 'initial',
-      onShow(inst) {
-        const ref = inst.reference;
-        if (ref.className == 'tactic') {
-          const toggle = ref.querySelector(\":scope > input.tactic-toggle\");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-        } else if (ref.querySelector(\".hover-info\") || \"versoHover\" in ref.dataset) {
-          if (blockedByTactic(ref)) { return false };
-        } else { // Nothing to show here!
-          return false;
-        }
-        // Show only the most specific hover under the pointer
-        if (hoverTarget && ref.contains(hoverTarget) && innermostShowable(hoverTarget) !== ref) {
-          return false;
-        }
-        hideParentTooltips(ref);
-        hideDescendantTooltips(ref);
-        if (blockedByTippy(ref)) { return false; }
-      },
-      onShown(inst) { visibleTippies.add(inst.reference); },
-      onHidden(inst) { visibleTippies.delete(inst.reference); },
-      content (tgt) {
-        const content = document.createElement(\"span\");
-        if (tgt.className == 'tactic') {
-          const state = tgt.querySelector(\":scope > .tactic-state\").cloneNode(true);
-          state.style.display = \"block\";
-          content.appendChild(state);
-          content.style.display = \"block\";
-          content.className = \"hl lean popup\";
-        } else {
-          content.className = \"hl lean\";
-          content.style.display = \"block\";
-          content.style.maxHeight = \"300px\";
-          content.style.overflowY = \"auto\";
-          content.style.overflowX = \"hidden\";
-          // Messages come from the inline hover-info; documentation comes from the doc
-          // table. An element with both (a message span sharing a documented token's
-          // extent) shows both in one tooltip.
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(\".hover-info\");
-          if (hoverInfo) {
-            content.appendChild(hoverInfo.cloneNode(true));
-          }
-          if (hoverId) {
-            // TODO stop doing an implicit conversion from string to number here
-            content.appendChild(docHoverContent(hoverId));
-          }
-          if (hoverInfo && hoverId) {
-            content.classList.add('mixed');
-          }
-          const extraLinks = tgt.dataset['versoLinks'] || tgt.parentElement.dataset['versoLinks'];
-          if (extraLinks) {
-            try {
-              const extras = JSON.parse(extraLinks);
-              const links = document.createElement('ul');
-              links.className = 'extra-doc-links';
-              extras.forEach((l) => {
-                const li = document.createElement('li');
-                li.innerHTML = \"<a href=\\\"\" + l['href'] + \"\\\" title=\\\"\" + l.long + \"\\\">\" + l.short + \"</a>\";
-                links.appendChild(li);
-              });
-              content.appendChild(links);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        }
-        return content;
-      }
-    };
-
-
-    document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'lean');
-    });
-    document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'warning message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'info message');
-    });
-    document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'error message');
-    });
-    document.querySelectorAll('.hl.lean .tactic').forEach(element => {
-      element.setAttribute('data-tippy-theme', 'tactic');
-    });
-    // Skip tokens inside closed tactics — they interfere with tactic tippys
-    const closedTactics = new Set();
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle && !toggle.checked) closedTactics.add(tactic);
-    });
-    function isInsideClosedTactic(el) {
-      const tactic = el.closest('.tactic');
-      return tactic && tactic !== el && closedTactics.has(tactic);
-    }
-
-    const tokenSelector = '.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort';
-    tippy(Array.from(document.querySelectorAll(tokenSelector)).filter(el => !isInsideClosedTactic(el)), defaultTippyProps);
-
-    // Create/destroy token tippys when tactic checkbox toggles
-    const tacticTippySelector = '.const.token, .keyword.token, .literal.token, .option.token, .var.token, .typed.token, .has-info, .level-var, .level-const, .level-op, .sort';
-    document.querySelectorAll('.hl.lean .tactic').forEach(tactic => {
-      const toggle = tactic.querySelector(':scope > input.tactic-toggle');
-      if (toggle) toggle.addEventListener('change', () => {
-        if (toggle.checked) {
-          closedTactics.delete(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (!el._tippy) {
-              tippy(el, defaultTippyProps);
-            }
-          });
-        } else {
-          closedTactics.add(tactic);
-          tactic.querySelectorAll(tacticTippySelector).forEach(el => {
-            if (el._tippy) el._tippy.destroy();
-          });
-        }
-        // The toggle changes which element's tooltip belongs to the pointer's position,
-        // but the pointer stays put, so no hover event announces the change. Show the
-        // right tooltip once the click that flipped the toggle has hidden the old one.
-        setTimeout(() => {
-          if (hoverTarget && hoverTarget.isConnected) {
-            const showable = innermostShowable(hoverTarget);
-            if (showable && showable._tippy) showable._tippy.show();
-          }
-        }, 0);
-      });
-  });
-}
-"
+  s!"window.versoLoadDocData = () => ({highlightJsonPromise});\n" ++
+  include_str "../../../../static-web/highlighted-code.js"

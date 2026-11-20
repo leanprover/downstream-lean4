@@ -609,7 +609,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run ⟨default, default, default, default⟩ {} {partContext := ⟨⟨default, default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run default {} {partContext := ⟨⟨default, default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 
@@ -790,4 +790,3 @@ where
 /-- info: some #[] -/
 #guard_msgs in
 #eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…")]
-

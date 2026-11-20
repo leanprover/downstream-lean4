@@ -141,7 +141,7 @@ private def andList (xs : Array Html) : Html :=
   else if h : xs.size = 2 then xs[0] ++ " and " ++ xs[1]
   else
     open Html in
-    (xs.extract 0 (xs.size - 1)).foldr (init := {{" and " {{xs.back}} }}) (· ++ ", " ++ ·)
+    (xs.extract 0 (xs.size - 1)).foldr (init := html%{ and {xs.back}}) (· ++ ", " ++ ·)
 
 /--
 Returns a human-readable formatted list of authors in TeX, panics if the array is empty.
@@ -186,27 +186,27 @@ def Citable.bibHtml [Monad m]
   match c with
   | .inProceedings p =>
     let authors ← andList <$> p.authors.mapM go
-    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{" (" {{·}} ")" }}) |>.getD .empty}} }}
+    return html%{{authors}, {toString p.year}. { link html%{“{← go p.title}”} }. In <em>{← go p.booktitle}.</em>{(← p.series.mapM go).map (html%{ ({·})}) |>.getD .empty}}
   | .article p =>
     let authors ← andList <$> p.authors.mapM go
     let journalDot := if (slugString p.journal).endsWith "." then "" else "."
     let numberInl ← go p.number
     let numberHtml : Html := if (slugString p.number).isEmpty then .empty
-                              else {{"(" {{numberInl}} ")"}}
-    let pagesHtml : Html := p.pages.map (fun (x, y) => {{", pp. " s!"{x}–{y}"}})
+                              else html%{({numberInl})}
+    let pagesHtml : Html := p.pages.map (fun (x, y) => html%{, pp. {toString x}–{toString y}})
                              |>.getD .empty
-    return {{ {{authors}} " (" {{(← p.month.mapM go).map (· ++ {{" "}}) |>.getD .empty}}s!"{p.year}" "). " {{ link {{"“" {{← go p.title}} "”"}} }} ". " <em>{{← go p.journal}}{{journalDot}}</em>" " <strong>{{← go p.volume}}</strong>{{numberHtml}}{{pagesHtml}}"."}}
+    return html%{{authors} ({(← p.month.mapM go).map (· ++ .text " ") |>.getD .empty}{toString p.year}). { link html%{“{← go p.title}”} }. <em>{← go p.journal}{journalDot}</em> <strong>{← go p.volume}</strong>{numberHtml}{pagesHtml}.}
   | .thesis p =>
-    return {{ {{← go p.author}} s!", {p.year}. " <em>{{link (← go p.title)}}</em> ". " {{← go p.degree}} ", " {{← go p.university}} }}
+    return html%{{← go p.author}{s!", {p.year}. "}<em>{link (← go p.title)}</em>. {← go p.degree}, {← go p.university}}
   | .arXiv p =>
     let authors ← andList <$> p.authors.mapM go
-    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". arXiv:" {{p.id}} }}
+    return html%{{authors}{s!", {p.year}. "}{ link html%{“{← go p.title}”} }. arXiv:{p.id}}
 where
-  wrap (content : Html) : Html := {{<span class="citation">{{content}}</span>}}
+  wrap (content : Html) : Html := html%{<span class="citation">{content}</span>}
   link (title : Html) : Html :=
     match c.url with
     | none => title
-    | some u => {{<a href={{u}}>{{title}}</a>}}
+    | some u => html%{<a href={u}>{title}</a>}
 
 open Verso.Doc.TeX in
 open Verso.Output.TeX in
@@ -218,7 +218,7 @@ def Citable.bibTeX (go : Doc.Inline Genre.Manual → TeXT Manual (ReaderT Extens
        \Lean{authors}  ", "
        \Lean{toString p.year} ". "
        \Lean{ link \TeX{ "``" \Lean{← go p.title} "''" } } ". In "
-       \em{ \Lean{ ← go p.booktitle } "." }
+       \emph{ \Lean{ ← go p.booktitle } "." }
        \Lean{ (← p.series.mapM go).map (fun x => \TeX{" (" \Lean{x} ") "}) |>.getD .empty  }
      }
   | .article p =>
@@ -227,15 +227,15 @@ def Citable.bibTeX (go : Doc.Inline Genre.Manual → TeXT Manual (ReaderT Extens
     let numberInl ← go p.number
     let numberTeX : TeX := if (slugString p.number).isEmpty then .empty
                             else \TeX{"(" \Lean{numberInl} ")"}
-    let pagesTeX : TeX := p.pages.map (fun (x, y) => \TeX{", pp.~" \Lean{toString x} "--" \Lean{toString y} })
+    let pagesTeX : TeX := p.pages.map (fun (x, y) => \TeX{", pp." ~ \Lean{toString x} "--" \Lean{toString y} })
                            |>.getD .empty
     return \TeX{
        \Lean{authors}  " ("
        \Lean{ (← p.month.mapM go).map (fun x => \TeX{\Lean{x} " "}) |>.getD .empty  }
        \Lean{toString p.year} "). "
        \Lean{ link \TeX{ "``" \Lean{← go p.title} "''" } } ". "
-       \em{ \Lean{ ← go p.journal } \Lean{journalDot} }
-       "~" \textbf{ \Lean{ ← go p.volume } }
+       \emph{ \Lean{ ← go p.journal } \Lean{journalDot} }
+       ~ \textbf{ \Lean{ ← go p.volume } }
        \Lean{numberTeX}
        \Lean{pagesTeX}
        "."
@@ -244,7 +244,7 @@ def Citable.bibTeX (go : Doc.Inline Genre.Manual → TeXT Manual (ReaderT Extens
     return \TeX{
        \Lean{← go p.author}  ", "
        \Lean{toString p.year} ". "
-       \em{ \Lean{ ← go p.title } } ". "
+       \emph{ \Lean{ ← go p.title } } ". "
        \Lean{← go p.degree} ", "
        \Lean{← go p.university}
      }
@@ -273,23 +273,23 @@ def Citable.inlineHtml [Monad m]
   | .textual =>
     let out : Array Html ← ps.toArray.mapIdxM fun i p => do
       let m ← p.bibHtml go
-      pure <| {{ {{← authorHtml p}} s!" ({p.year})"}} ++ Marginalia.html m s!"{baseId}-{i}"
+      pure <| html%{{← authorHtml p}{s!" ({p.year})"}} ++ Marginalia.html m s!"{baseId}-{i}"
     pure <| andList out
   | .parenthetical =>
     let out : Array Html ← ps.toArray.mapIdxM fun i p => do
       let m ← p.bibHtml go
-      pure <| {{" (" {{← authorHtml p}} s!", {p.year})"}} ++ Marginalia.html m s!"{baseId}-{i}"
+      pure <| html%{ ({← authorHtml p}{s!", {p.year})"}} ++ Marginalia.html m s!"{baseId}-{i}"
     pure <| andList out
   | .here => do
     pure <| andList (← ps.toArray.mapM (·.bibHtml go))
 where
   authorHtml p := open Html in do
     if p.authors.size = 0 then
-      pure {{""}}
+      pure .empty
     else if h : p.authors.size = 1 then
       go <| Bibliography.lastName p.authors[0]
     else if h : p.authors.size > 3 then
-      (· ++ {{" "<em>"et al."</em>}}) <$> go (Bibliography.lastName p.authors[0])
+      (· ++ html%{ <em>et al.</em>}) <$> go (Bibliography.lastName p.authors[0])
     else andList <$> p.authors.mapM (go ∘ Bibliography.lastName)
 
 open Verso.Doc.TeX in
@@ -326,7 +326,7 @@ where
     else if h : p.authors.size = 1 then
       go <| Bibliography.lastName p.authors[0]
     else if h : p.authors.size > 3 then
-      (· ++ \TeX{" " \em{"et al."} }) <$> go (Bibliography.lastName p.authors[0])
+      (· ++ \TeX{" " \emph{"et al."} }) <$> go (Bibliography.lastName p.authors[0])
     else andListTeX <$> p.authors.mapM (go ∘ Bibliography.lastName)
 
 @[implicit_reducible]
@@ -398,10 +398,10 @@ inline_extension Inline.cite (citations : List Citable) (style : Style := .paren
     open Verso.Output.Html Doc.Html.HtmlT in
     some <| fun go id data _content => do -- TODO repurpose "content" for e.g. "page 5"
       match FromJson.fromJson? data with
-      | .error e => reportError s!"Failed to deserialize citation/style: {e}"; return {{""}}
+      | .error e => reportError s!"Failed to deserialize citation/style: {e}"; return .empty
       | .ok (v : Json × Style) =>
         match FromJson.fromJson? v.1 with
-        | .error e => reportError s!"Failed to deserialize citation: {e}"; return {{""}}
+        | .error e => reportError s!"Failed to deserialize citation: {e}"; return .empty
         | .ok (v' : List Citable) => do
           let some link := (← state).externalTags[id]?
             | panic! s!"Untagged citation with data {data}"

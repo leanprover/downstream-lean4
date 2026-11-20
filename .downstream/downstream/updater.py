@@ -114,8 +114,18 @@ class Updater:
             *("restore", "--worktree", f"--source={tree}", "."),
         )
 
-    def fixup_subrepo_toolchain(self, subrepo: Subrepo) -> None:
-        Paths(subrepo.path).override_toolchains_with_symlinks(Paths().toolchain)
+    def fixup_subrepo_toolchain(self, subrepo: Subrepo, source_tree: str) -> None:
+        # The root toolchain will have usually been replaced with a symlink
+        # already at this point, so we need to look at the upstream's original
+        # toolchain file.
+        source_toolchain = run(
+            *("git", "show", f"{source_tree}:lean-toolchain"),
+            capture=True,
+        ).stdout
+
+        Paths(subrepo.path).override_toolchains_with_symlinks(
+            Paths().toolchain, source_toolchain
+        )
 
     def fixup_manifest_dependencies(self, manifest_path: Path) -> None:
         manifest = json.loads(manifest_path.read_text())
@@ -165,8 +175,8 @@ class Updater:
             committed = True
         return CommitStatus(empty=empty, committed=committed)
 
-    def fixup_subrepo_and_stage(self, subrepo: Subrepo) -> None:
-        self.fixup_subrepo_toolchain(subrepo)
+    def fixup_subrepo_and_stage(self, subrepo: Subrepo, source_tree: str) -> None:
+        self.fixup_subrepo_toolchain(subrepo, source_tree)
         self.fixup_subrepo_dependencies(subrepo)
 
         run("git", "add", subrepo.path)
@@ -174,9 +184,9 @@ class Updater:
             run("git", "add", "--force", override_path)
 
     def fixup_subrepo_and_commit(
-        self, subrepo: Subrepo, sha: str, msg: str
+        self, subrepo: Subrepo, sha: str, tree: str, msg: str
     ) -> CommitStatus:
-        self.fixup_subrepo_and_stage(subrepo)
+        self.fixup_subrepo_and_stage(subrepo, tree)
 
         message = "\n".join([
             f"downstream: {msg}",
@@ -195,26 +205,36 @@ class Updater:
         return self.commit(message, allow_empty=base_changed)
 
     def find_latest_base_commit(self, subrepo: Subrepo) -> BaseCommit:
-        message = run(
-            *("git", "log", "-1", "-E"),
+        messages = run(
+            *("git", "log", "-z", "-E"),
             f"--grep=^downstream-repo: {re.escape(subrepo.name)}$",
             "--format=%B",
             capture=True,
         ).stdout
 
-        m_url = re.search(r"^downstream-url: (.+)$", message, re.MULTILINE)
-        m_rev = re.search(r"^downstream-rev: (.+)$", message, re.MULTILINE)
-        m_sha = re.search(r"^downstream-sha: (.+)$", message, re.MULTILINE)
+        # I don't want to rely on the ordering of `downstream-*` tags, so
+        # they're matched here instead of included in the regex above.
+        for message in messages.split("\0"):
+            m_url = re.search(r"^downstream-url: (.+)$", message, re.MULTILINE)
+            m_rev = re.search(r"^downstream-rev: (.+)$", message, re.MULTILINE)
+            m_sha = re.search(r"^downstream-sha: (.+)$", message, re.MULTILINE)
 
-        if not (m_url and m_rev and m_sha):
-            raise ValueError(f"no previous commit found for subrepo {subrepo.name}")
+            if not (m_url and m_rev and m_sha):
+                continue
 
-        return BaseCommit(
-            repo=subrepo.name,
-            url=m_url.group(1).strip(),
-            rev=m_rev.group(1).strip(),
-            sha=m_sha.group(1).strip(),
-        )
+            url = m_url.group(1).strip()
+            rev = m_rev.group(1).strip()
+            if url != subrepo.source_url or rev != subrepo.source_rev:
+                continue
+
+            return BaseCommit(
+                repo=subrepo.name,
+                url=url,
+                rev=rev,
+                sha=m_sha.group(1).strip(),
+            )
+
+        raise ValueError(f"no previous commit found for subrepo {subrepo.name}")
 
     def get_tree_in_head(self, path: str) -> str:
         return run("git", "rev-parse", f"HEAD:{path}", capture=True).stdout.strip()
@@ -231,7 +251,7 @@ class Updater:
                 rev_sha, rev_tree = self.local_sha_tree(sha)
             self.restore_tree_to(rev_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"add repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"add repo {subrepo.name}"
             )
 
     def reset_subrepo(self, subrepo: Subrepo) -> CommitStatus:
@@ -243,7 +263,7 @@ class Updater:
             )
             self.restore_tree_to(rev_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"reset repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"reset repo {subrepo.name}"
             )
 
     # Like reset_subrepo, but from an arbitrary repo and rev, and without
@@ -256,7 +276,7 @@ class Updater:
 
             rev_sha, rev_tree = self.fetch_sha_tree(url, rev)
             self.restore_tree_to(rev_tree, subrepo.path)
-            self.fixup_subrepo_and_stage(subrepo)
+            self.fixup_subrepo_and_stage(subrepo, rev_tree)
 
             msg = f"downstream: import repo {subrepo.name}"
             if source:
@@ -283,7 +303,7 @@ class Updater:
 
             self.restore_tree_to(merged_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"update repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"update repo {subrepo.name}"
             )
 
     def fixup_subrepo(self, subrepo: Subrepo) -> CommitStatus:
@@ -291,8 +311,9 @@ class Updater:
             self.reset()
 
             base_sha = self.find_latest_base_commit(subrepo).sha
+            _, base_tree = self.fetch_sha_tree(subrepo.source_url, base_sha)
             return self.fixup_subrepo_and_commit(
-                subrepo, base_sha, f"fixup repo {subrepo.name}"
+                subrepo, base_sha, base_tree, f"fixup repo {subrepo.name}"
             )
 
     def remove_subrepo(self, path: Path) -> CommitStatus:
@@ -339,14 +360,26 @@ class Updater:
             text = re.sub(pattern, replacement, text, flags=re.MULTILINE)
         lakefile.write_text(text)
 
-    def resolve_sha_placeholders(self, text: str) -> str:
+    def resolve_placeholders(self, text: str) -> str:
         def repl(m: re.Match[str]) -> str:
-            name = m.group(1)
+            name, field = m.group(1), m.group(2)
             if name not in self.subrepos_by_name:
                 raise ValueError(f"unknown repo {name!r} in placeholder {m.group(0)!r}")
-            return self.find_latest_base_commit(self.subrepos_by_name[name]).sha
+            subrepo = self.subrepos_by_name[name]
+            match field:
+                case "source_url":
+                    return subrepo.source_url
+                case "source_rev":
+                    return subrepo.source_rev
+                case "target_url":
+                    return subrepo.target_url
+                case "target_rev":
+                    return subrepo.target_rev
+                case _:
+                    return self.find_latest_base_commit(subrepo).sha
 
-        return re.sub(r"<([^<>\s]+) sha>", repl, text)
+        fields = "source_url|source_rev|target_url|target_rev|sha"
+        return re.sub(rf"<([^<>\s]+) ({fields})>", repl, text)
 
     def export(
         self,
@@ -364,7 +397,7 @@ class Updater:
 
         # Must happen while HEAD is still the downstream commit
         lakefile_edits = [
-            (pattern, self.resolve_sha_placeholders(replacement))
+            (pattern, self.resolve_placeholders(replacement))
             for pattern, replacement in (lakefile_edits or [])
         ]
 
@@ -388,7 +421,8 @@ class Updater:
         )
 
         if update_toolchains:
-            Paths().override_toolchains_with_values(our_toolchain)
+            root_toolchain = Path("lean-toolchain").read_text()
+            Paths().override_toolchains_with_values(root_toolchain, our_toolchain)
 
         if lakefile_edits:
             for lakefile in Paths().lakefiles():
@@ -396,7 +430,7 @@ class Updater:
 
         if update_manifests:
             for manifest in Paths().manifests():
-                run("lake", "update", cwd=manifest.parent)
+                run("lake", "update", "--keep-toolchain", cwd=manifest.parent)
 
         run("git", "add", ".")
         return self.commit(message)

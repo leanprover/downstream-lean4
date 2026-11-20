@@ -6,26 +6,26 @@ Authors: Sofia Rodrigues
 import Verso.Doc.Html
 import VersoBlog
 import VersoWeb.Components.Icon
+import VersoWeb.Util
 
 namespace Verso.Web.Components
 
-open Verso.Output Html
 open Lean (Html)
 open Verso.Genre.Blog Template
 
 def badge (content : String) (variant : String := "primary") : Html :=
-  {{ <span class=s!"badge-{variant}"> {{ content }} </span> }}
+  html%{<span class={s!"badge-{variant}"}>{ content }</span>}
 
 def sectionTitle [MonadStateOf Component.State m] [Monad m] (tag : Option String) (title : String) (subtitle : Option Html) (variant : String := "primary") : m Html := do
   saveCss (include_str "../../static/style/title.css")
 
-  return {{
+  return html%{
     <div class="heading-section">
-      {{ tag <&> (badge · variant) }}
-      <h1 class="heading-title">{{title}}</h1>
-      {{ subtitle <&> ({{<p class="heading-subtitle">{{·}}</p>}})}}
+      { tag <&> (badge · variant) }
+      <h1 class="heading-title">{title}</h1>
+      { subtitle <&> (html%{<p class="heading-subtitle">{·}</p>})}
     </div>
-  }}
+  }
 
 block_component +directive sectionTitle' (tagg : Option String) (title : String) (subtitle : Option String) where
   toHtml _ _ _ _ _ := sectionTitle tagg title subtitle
@@ -40,6 +40,6 @@ block_component +directive header (level : Nat) (title : String) where
   toHtml _ _ _ _ _ := do
     saveCss (include_str "../../static/style/title.css")
 
-    return Html.element s!"h{level}" #[("id", defaultPostName.slugify title)] (.text title)
+    return Html.element s!"h{level}" #[("id", slugifyTitle title)] (.text title)
 
 end Verso.Web.Components

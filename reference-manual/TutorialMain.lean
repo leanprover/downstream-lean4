@@ -14,10 +14,9 @@ open Verso.Genre.Manual
 open Verso.Genre.Tutorial
 open Verso.Genre.Blog (Page)
 
-open Verso.Output.Html in
-def plausible := {{
+def plausible := html%{
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
-  }}
+  }
 
 section
 open Verso.Doc.Elab
@@ -45,7 +44,7 @@ def tutorials : Tutorials where
     { title := #[inlines!"Tactics"],
       titleString := "Tactics"
       description := #[blocks!"These tutorials demonstrate Lean's advanced proof automation."]
-      tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.Grind.IndexMap]
+      tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.MVCGen, %doc Tutorial.Grind.IndexMap]
     }
 
   ]

@@ -157,11 +157,6 @@ instance : Inhabited Tag where
 instance : ToString Tag where
   toString := toString ∘ repr
 
-instance : Coe String Tag where
-  coe := .provided
-
-
-
 /-- When rendering multi-page HTML, should splitting pages follow the depth setting? -/
 inductive HtmlSplitMode where
   | /-- Follow the main setting -/ default
@@ -429,7 +424,7 @@ def freshTag [Monad m] [MonadStateOf TraverseState m] (hint : String) (id : Inte
   let mut numPart : Option Nat := none
   repeat
     let attempt := tagStr strPart numPart
-    if (← get).tags.contains  attempt then
+    if (← get).tags.contains (Tag.internal attempt) then
       numPart := some <| numPart.map (· + 1) |>.getD 0
     else break
   let tag := tagStr strPart numPart
@@ -1601,25 +1596,45 @@ def permalink (id : InternalId) (st : TraverseState) (inline : Bool := true) : H
     -- The names may contain characters with meaning in URLs, such as spaces or ampersands.
     let domain := System.Uri.escapeUri (toString domain)
     let canonicalName := System.Uri.escapeUri canonicalName
-    {{<span class={{classes}}>
-        <a href=s!"/find/?domain={domain}&name={canonicalName}" title="Permalink">"🔗"</a>
+    html%{<span class={classes}>
+        <a href={s!"/find/?domain={domain}&name={canonicalName}"} title="Permalink">🔗</a>
       </span>
-    }}
+    }
 
+/-- A manual heading: its level, the value of its {lit}`id` attribute, and its contents. -/
+structure Heading where
+  /-- The HTML heading level. -/
+  level : Nat
+  /-- The value of the heading's {lit}`id` attribute, when one was registered. -/
+  htmlId : Option Slug
+  /-- The heading contents, including any section number and permalink widget. -/
+  content : Html
+
+/-- Renders the heading element, with its {lit}`id` attribute when it has one. -/
+def Heading.toHtml (heading : Heading) : Html :=
+  let attrs := heading.htmlId.map (fun id => #[("id", id.toString)]) |>.getD #[]
+  .element s!"h{heading.level}" attrs heading.content
+
+/--
+Constructs a manual heading with its registered {lit}`id` attribute, section number, and permalink.
+
+The optional parameters {name}`showNumber` and {name}`showPermalink` control the display of the
+section number and permalink widget, respectively.
+-/
+def partHeading (state : TraverseState) (ctxt : TraverseContext) (id : Option InternalId)
+    (level : Nat) (title : Html) (showNumber : Bool := true) (showPermalink : Bool := true) : Heading :=
+  let numberHtml := if showNumber then sectionHtml ctxt else .empty
+  let permalinkHtml := if showPermalink then id.map (permalink · state) |>.getD .empty else .empty
+  { level,
+    htmlId := id.bind (fun id => state.externalTags[id]?) |>.map (·.htmlId),
+    content := numberHtml ++ title ++ permalinkHtml }
 
 open Verso.Output.Html in
 instance : Html.GenreHtml Manual (ReaderT AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))) where
   part go «meta» txt := do
     let st ← Verso.Doc.Html.HtmlT.state
-    let attrs := meta.id.map (st.htmlId) |>.getD #[]
     let ctxt ← Verso.Doc.Html.HtmlT.context
-    let sectionNumber : Html := sectionHtml ctxt
-    let permalink? m :=
-      if let some id := m.id then permalink id st
-      else .empty
-    let mkHeader lvl content :=
-      .element s!"h{lvl}" attrs (sectionNumber ++ content ++ permalink? «meta»)
-    go txt mkHeader
+    go txt fun level title => (partHeading st ctxt meta.id level title).toHtml
 
   block goI goB b content := do
     let some id := b.id

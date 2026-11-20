@@ -25,7 +25,7 @@ Definitions and results on trace equivalence for `LTS`s.
 
 ## Main statements
 
-- `TraceEq.eqv`: trace equivalence is an equivalence relation (see `Equivalence`).
+- `HomTraceEq.eqv`: homogeneous trace equivalence is an equivalence relation (see `Equivalence`).
 - `Deterministic.isSimulation_traceEq`: in any deterministic `LTS`, trace equivalence is a
   simulation.
 
@@ -55,7 +55,7 @@ Notation for trace equivalence.
 Differently from standard pen-and-paper presentations, we require the LTSs to be mentioned
 explicitly.
 -/
-scoped notation s " ~tr[" lts₁ "," lts₂ "] " s' => TraceEq lts₁ lts₂ s s'
+scoped notation s:max " ~tr[" lts₁ "," lts₂ "] " s':max => TraceEq lts₁ lts₂ s s'
 
 /-- Homogeneous trace equivalence compares states on the same LTS. -/
 abbrev HomTraceEq (lts : LTS State Label) := TraceEq lts lts
@@ -83,7 +83,7 @@ theorem HomTraceEq.eqv : Equivalence (· ~tr[lts] ·) where
   symm := TraceEq.symm
   trans := TraceEq.trans
 
-/-- `calc` support for simulation equivalence. -/
+/-- `calc` support for trace equivalence. -/
 instance : Trans (TraceEq lts₁ lts₂) (TraceEq lts₂ lts₃) (TraceEq lts₁ lts₃) where
   trans := TraceEq.trans
 

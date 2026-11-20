@@ -56,6 +56,13 @@ def envVar.descr : InlineDescr where
     let .arr #[.str var, .bool isDef] := data
       | reportError s!"Couldn't deserialize environment variable info from {data}"; return none
     if isDef then
+      -- Error if this env var is defined anywhere other than here.
+      if let some obj := (← get).getDomainObject? envVarDomain var then
+        -- To avoid spamming every traversal pass, we only check on first registration,
+        -- i.e., when this ID hasn't been stored in the domain yet.
+        unless obj.ids.contains id do
+          let others := obj.ids.toList.filterMap ((← get).externalTags[·]?) |>.map (·.link)
+          reportError s!"Environment variable '{var}' is defined more than once; it is already defined at {", ".intercalate others}"
       let path ← (·.path) <$> read
       let _ ← Verso.Genre.Manual.externalTag id path var
       Index.addEntry id {term := Inline.concat #[.code var, .text " (environment variable)"]}
@@ -79,7 +86,6 @@ r#"
 ]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       let (var, isDef) ←
         match data with
@@ -91,18 +97,18 @@ r#"
           if let some dest := (← read).traverseState.externalTags[id]? then
             if isDef then
               -- TODO find an inline permalink widget that doesn't mess up text flow
-              return {{
-                  <code class="env-var" id={{dest.htmlId.toString}}>s!"{var}"</code>
-              }}
+              return html%{
+                  <code class="env-var" id={dest.htmlId.toString}>{s!"{var}"}</code>
+              }
             else
               let url := dest.link
-              return {{<code class="env-var"><a href={{url}}>s!"{var}"</a></code>}}
+              return html%{<code class="env-var"><a href={url}>{s!"{var}"}</a></code>}
 
-      return {{<code class="env-var">s!"{var}"</code>}}
+      return html%{<code class="env-var">{s!"{var}"}</code>}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let .arr #[.str var, .bool isDef] := info then
       if isDef then
-        pure #[(var, {{<code>{{var}}</code>}}), (s!"{var} (Environment Variable)", {{<code>{{var}}</code>" (Environment Variable)"}})]
+        pure #[(var, html%{<code>{var}</code>}), (s!"{var} (Environment Variable)", html%{<code>{var}</code>{" (Environment Variable)"}})]
       else pure #[]
     else throw s!"Expected a two-element array with a string and a Boolean, got {info}"

@@ -95,7 +95,7 @@ def footer : FooterConfig := {
 Helper to create FRO home navigation item
 -/
 def navFroItem (path : Path) : NavBarItem :=
-  { title := .raw "Home"
+  { title := .text "Home"
   , url := some "/fro"
   , active := path == #["fro"] }
 
@@ -116,15 +116,15 @@ def buildFroNavBarConfig : TemplateM NavBarConfig := do
   let path ← currentPath
 
   let froPathItems (path : Path) : Array NavBarItem := #[
-    { title := .raw "About", url := some "/fro/about", active := path == #["fro", "about"] },
-    { title := .raw "Team", url := some "/fro/team", active := path == #["fro", "team"] },
-    { title := .raw "Roadmap", url := some "/fro/roadmap", active := path == #["fro", "roadmap"] },
-    { title := .raw "Contact", url := some "/fro/contact", active := path == #["fro", "contact"] }
+    { title := .text "About", url := some "/fro/about", active := path == #["fro", "about"] },
+    { title := .text "Team", url := some "/fro/team", active := path == #["fro", "team"] },
+    { title := .text "Roadmap", url := some "/fro/roadmap", active := path == #["fro", "roadmap"] },
+    { title := .text "Contact", url := some "/fro/contact", active := path == #["fro", "contact"] }
   ]
 
   let externalLinks : Array NavBarItem := #[
-    { title := .raw "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
-    { title := .raw "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
+    { title := .text "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
+    { title := .text "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
   ]
 
   let rightItems : Array NavBarItem := #[
@@ -354,7 +354,7 @@ def layoutConfig : LayoutConfig :=
     hasSpecialStyling := fun path => if isFro path then some "fro" else if path.isEmpty then "tutorials" else none,
     renderPostList := fun path html =>
       if isUseCases path then
-        {{ <div class="use-cases-grid"> {{ html }} </div> }}
+        html%{<div class="use-cases-grid">{html}</div>}
       else
         html
   }
@@ -364,12 +364,12 @@ def theme : Theme :=
     { siteName := "Lean Lang", rootTitle := "Lean enables correct, maintainable, and formally verified code", socialMeta, headConfig, variables := colorTheme }
     layoutConfig
     buildFroNavBarConfig
-    {{
+    html%{
       <script async src="https://plausible.io/js/pa-RTua_4FfKHhfAvAc3liZd.js"></script>
       <script>
-        "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-        plausible.init()"
+        {"window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+        plausible.init()"}
       </script>
-    }}
+    }
     (beforeNavBar := .empty)
     (pure footer)
