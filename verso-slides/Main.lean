@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-module
+-- Don't use a module for your slides yet: a missing `import all` leads to docstrings
+-- not showing up in hovers, which can be hard to diagnose.
+
+-- module
 
 import VersoSlides
 import Demo

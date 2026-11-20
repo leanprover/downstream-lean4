@@ -31,6 +31,8 @@ From position `p` the run halts after `p + 1` steps, or after `2` steps if `p = 
 
 * `Turing.MultiTapeTM.rewindInput`: the machine that rewinds the input head.
 * `Turing.MultiTapeTM.runFrom_rewindInput`: its run from the initial state.
+* `Turing.MultiTapeTM.exists_runPath_rewindInput`: its run path inside a machine with `k` work
+  tapes, started on any configuration.
 -/
 
 namespace Turing.MultiTapeTM
@@ -54,9 +56,8 @@ abbrev inputAction (m : SignType) (state : Option RewindState) : Action 0 Symbol
 /-- The rewinding machine. In state `start` it moves the input head left, unconditionally, and
 enters `walk`. In state `walk` it moves left over a symbol; on the first blank it moves right and
 halts. The machine has no work tapes and nothing is output. -/
-public def rewindInput (Symbol : Type*) : MultiTapeTM 0 Symbol RewindState where
-  q₀ := .start
-  tr q inp _ :=
+public def rewindInput (Symbol : Type*) : MultiTapeTM 0 Symbol RewindState :=
+  ofTr .start fun q inp _ =>
     match q, inp with
     | .start, _ => inputAction (-1) (some .walk)
     | .walk, some _ => inputAction (-1) (some .walk)
@@ -71,9 +72,9 @@ lemma step_eq {c : Cfg 0 Symbol RewindState input} {q : RewindState} (hc : c.sta
     (rewindInput Symbol).step c =
       let a := (rewindInput Symbol).tr q c.inputSymbol c.workTapeSymbols
       ⟨a.state, moveInputPos c.inputPos a.inputTape, c.workTapes, c.workTapePos, c.output⟩ := by
-  rw [step_apply_of_state hc]
+  rw [step_of_state hc]
   refine Cfg.ext rfl rfl (Subsingleton.elim _ _) (Subsingleton.elim _ _) ?_
-  dsimp only [rewindInput, Action.apply_output]
+  simp only [rewindInput, tr_ofTr, Action.apply_output]
   split <;> simp
 
 /-- From `walk` at position `p ≤ input.length` the machine halts with the input head at position `1`
@@ -85,10 +86,12 @@ lemma runFrom_walk (p : Fin (input.length + 2)) (hp : p.val ≤ input.length) :
   | zero =>
     obtain rfl : p = 0 := Fin.ext hj
     rw [runFrom, Function.iterate_one, step_eq rfl, inputSymbol_eq_none_of_boundary (.inl rfl)]
+    simp only [rewindInput, tr_ofTr]
     rfl
   | succ j ih =>
     rw [runFrom, Function.iterate_succ_apply, ← runFrom, step_eq rfl,
       inputSymbolInner j (by grind) (by omega)]
+    simp only [rewindInput, tr_ofTr]
     exact ih (moveInputPos p .neg) (by grind [SignType.cast]) (by grind [SignType.cast])
 
 end Rewind
@@ -101,6 +104,27 @@ public theorem runFrom_rewindInput (p : Fin (input.length + 2))
       (p.val - 1 + 2) = ⟨none, 1, tapes, heads, out⟩ := by
   have h : (moveInputPos p .neg).val = p.val - 1 := by grind [SignType.cast]
   rw [runFrom, Function.iterate_succ_apply, Rewind.step_eq rfl, ← runFrom, ← h]
+  simp only [rewindInput, tr_ofTr]
   exact Rewind.runFrom_walk (moveInputPos p .neg) (by omega)
+
+/-- **Rewinding the input inside a machine with `k` work tapes.** Started on any configuration, the
+rewinding machine halts after `p - 1 + 2` steps, where `p` is the position of the input head. The
+input head ends at position `1`; the work tapes, their heads and the output are unchanged, and
+each work tape costs one cell. -/
+public theorem exists_runPath_rewindInput {k : ℕ} {State : Type*}
+    (c : Cfg k Symbol State input) :
+    ∃ p : ((rewindInput Symbol).extendTapes (noTapes k)).RunPath input,
+      p.head = c.withState (some (rewindInput Symbol).q₀) ∧
+      p.last = ⟨none, 1, c.workTapes, c.workTapePos, c.output⟩ ∧
+      p.length = c.inputPos.val - 1 + 2 ∧ p.space ≤ k := by
+  let q := MultiTapeNTM.RunPath.ofDeterministic (rewindInput Symbol)
+    ⟨some (rewindInput Symbol).q₀, c.inputPos, nofun, nofun, c.output⟩ (c.inputPos.val - 1 + 2)
+  have hq : q.last = ⟨none, 1, nofun, nofun, c.output⟩ :=
+    runFrom_rewindInput c.inputPos nofun nofun c.output
+  refine ⟨q.map (embedHom (rewindInput Symbol) (noTapes k) c.workTapes c.workTapePos),
+    by rw [RelSeries.head_map, embedHom_apply, embed_noTapes]; rfl,
+    by simp [hq, embed_noTapes], rfl, ?_⟩
+  simpa [MultiTapeNTM.RunPath.space] using
+    space_map_embedHom_le (rewindInput Symbol) (noTapes k) c.workTapes c.workTapePos q
 
 end Turing.MultiTapeTM

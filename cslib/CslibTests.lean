@@ -1,3 +1,4 @@
+import CslibTests.BTL
 import CslibTests.Bisimulation
 import CslibTests.BooleanCircuits
 import CslibTests.CCS
@@ -11,6 +12,8 @@ import CslibTests.Commitment
 import CslibTests.Complexity.Combinators
 import CslibTests.Congruence
 import CslibTests.DFA
+import CslibTests.DiffieHellman
+import CslibTests.Encoding
 import CslibTests.FreeMonad
 import CslibTests.GrindLint
 import CslibTests.HML
@@ -27,10 +30,14 @@ import CslibTests.Modal.Ideal
 import CslibTests.Modal.Stlc
 import CslibTests.Modal.UnimodalCube
 import CslibTests.MultiTapeComplexity
+import CslibTests.MultiTapeConcatenate
 import CslibTests.PACLearning
 import CslibTests.PFunctor
 import CslibTests.PFunctorFree
 import CslibTests.PRG
+import CslibTests.Query
+import CslibTests.QueryComplexity
 import CslibTests.Reduction
 import CslibTests.StatefulProcesses
+import CslibTests.SyncTrace
 import CslibTests.Synthesis

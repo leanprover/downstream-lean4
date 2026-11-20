@@ -61,8 +61,6 @@ universe u v
 open scoped Pointwise
 open Set
 
-attribute [scoped grind _=_] Set.le_iff_subset
-
 /--
 A phase space is a commutative monoid M equipped with a distinguished subset ⊥.
 This forms the algebraic foundation for interpreting linear logic propositions.
@@ -78,8 +76,8 @@ variable {P : Type*} [PhaseSpace P] {p q : P}
 /-! ## Basic operations -/
 
 /--
-Implication between two setsin a phase space: the set of elements m such that
-for all x ∈ X, we have m * x ∈ Y.
+Implication between two sets in a phase space: the set of elements `m` such that
+for all `x ∈ X`, we have `m * x ∈ Y`.
 -/
 def imp [PhaseSpace M] (X Y : Set M) : Set M := {m | ∀ x ∈ X, m * x ∈ Y}
 
@@ -266,13 +264,8 @@ def carriersInf (S : Set (Fact P)) : Set P :=
   sInf ((fun F : Fact P => (F : Set P)) '' S)
 
 /-- Binary intersections of facts are facts. -/
-lemma inter_isFact_of_isFact {A B : Set P}
-    (hA : isFact A) (hB : isFact B) : isFact (A ∩ B) := by
-  let FA : Fact P := ⟨A, hA⟩
-  let FB : Fact P := ⟨B, hB⟩
-  have h := sInf_isFact (S := ({FA, FB} : Set (Fact P)))
-  simpa [carriersInf, Set.image_pair, sInf_insert, sInf_singleton, inf_eq_inter]
-    using! h
+lemma inter_isFact_of_isFact {A B : Set P} (hA : isFact A) (hB : isFact B) : isFact (A ∩ B) := by
+  simpa using! sInf_isFact (S := {⟨A, hA⟩, ⟨B, hB⟩})
 
 instance : InfSet (Fact P) where
   sInf S := ⟨carriersInf S, sInf_isFact (S := S)⟩
@@ -469,7 +462,7 @@ lemma linImpl_par' {G H K : Fact P} : (G ⊸ H ⅋ K) = (H ⅋ (G ⊸ K)) := by
 @[simp] lemma neg_linImpl_neg {G H : Fact P} : (Gᗮ ⊸ Hᗮ) = (H ⊸ G) := by
   simp [linImpl_of_tensor, tensor_comm]
 
-lemma linImpl_iff_implies {G H : Fact P} : p ∈ G ⊸ H ↔ imp G H p := by
+lemma linImpl_iff_implies {G H : Fact P} : p ∈ G ⊸ H ↔ p ∈ imp G H := by
   rw [← SetLike.mem_coe, linImpl]
   simp only [dualFact_coe, mem_dual, Set.mem_mul, SetLike.mem_coe,
     forall_exists_index, and_imp]

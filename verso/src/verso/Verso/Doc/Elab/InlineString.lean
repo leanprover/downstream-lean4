@@ -6,6 +6,7 @@ Author: David Thrane Christiansen
 module
 import Verso.Doc.Elab.ExpanderAttribute
 public import Lean.KeyedDeclsAttribute
+import Lean.DocString.View
 
 namespace Verso.Doc.Elab
 open Lean
@@ -22,15 +23,17 @@ unsafe def inlineToStringForUnsafe (env : Environment) (x : Name) : Array Inline
 @[implemented_by inlineToStringForUnsafe]
 opaque inlineToStringFor (env : Environment) (x : Name) : Array InlineToString
 
-/-- Heuristically construct a plain string preview of the syntax of an inline element -/
+/--
+Heuristically constructs a plain string preview of the syntax of an inline element.
+
+The preview of `Syntax.missing` is empty. The preview of an inline that has no string conversion is
+empty if the inline contains `Syntax.missing` or has no `InlineView`, and `"<missing>"` otherwise.
+A node that the parser left unfinished has no `InlineView`.
+-/
 public def inlineToString (env : Environment) (inline : Syntax) : String := Id.run do
+  if inline.isMissing then return ""
   let kind := inline.getKind
   let toStr ← inlineToStringFor env kind
   for f in toStr do
     if let some str := f env inline then return str
-
-  dbg_trace "Failed to convert {inline} with {kind}"
-
-  fallback
-where
-  fallback := pure "<missing>"
+  return if inline.hasMissing || (Doc.InlineView.of ⟨inline⟩).isNone then "" else "<missing>"

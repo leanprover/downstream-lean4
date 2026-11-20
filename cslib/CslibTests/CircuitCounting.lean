@@ -11,7 +11,7 @@ import Mathlib.Tactic.DeriveFintype
 /-!
 # Generic circuit counting tests
 
-These tests exercise computable syntax enumeration, semantic counting on an infinite carrier,
+These tests exercise syntax counts, semantic counting on an infinite carrier,
 normalization of distinct symbols with the same interpretation, and empty or nullary signatures.
 The Shannon theorem is also instantiated on the NAND basis and a three-valued carrier.
 -/
@@ -35,10 +35,18 @@ def arithmeticInterpretation : Interpretation arithmeticSignature ℕ
   | .zero _, _ => 0
   | .add, input => input 0 + input 1
 
--- Syntax enumeration computes even with no input wires and operations of mixed arities.
-example : Fintype.card (Line arithmeticSignature 0 0) = 2 := by decide
-example : Fintype.card (Line arithmeticSignature 2 1) = 11 := by decide
-example : Fintype.card (Program arithmeticSignature 0 2) = 6 := by decide
+-- Syntax counts include signatures with no input wires and operations of mixed arities.
+example : Nat.card (Line arithmeticSignature 0 0) = 2 := by
+  rw [Line.card, finsum_eq_sum_of_fintype]
+  decide
+
+example : Nat.card (Line arithmeticSignature 2 1) = 11 := by
+  rw [Line.card, finsum_eq_sum_of_fintype]
+  decide
+
+example : Nat.card (Program arithmeticSignature 0 2) = 6 := by
+  simp only [Program.card, finsum_eq_sum_of_fintype]
+  decide
 
 def addition : Circuit arithmeticSignature 2 1 where
   program := .gate .empty ⟨.add, fun i => Wire.input i⟩
@@ -73,14 +81,15 @@ abbrev emptySignature : Signature where
 
 def emptyInterpretation : Interpretation emptySignature ℕ := fun op => nomatch op
 
-example : Fintype.card (Program emptySignature 1 1) = 0 := by decide
+example : Nat.card (Program emptySignature 1 1) = 0 := by
+  simp [Program.card, finsum_eq_sum_of_fintype]
 
 example : (fun x : Fin 1 → ℕ => x 0) ∈ computableFunctions emptyInterpretation 1 0 :=
   (mem_computableFunctions (I := emptyInterpretation)).mpr
     ⟨Circuit.id emptySignature 1, by simp [Circuit.Computes, funext_iff, Fin.forall_fin_one],
       le_rfl⟩
 
-example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).card * s.factorial ≤
+example (s : ℕ) : (computableFunctions emptyInterpretation 0 s).ncard * s.factorial ≤
     (s + 1) * s ^ s * s := by
   simpa using card_computableFunctions_mul_factorial_le_of_arity_le emptyInterpretation
     0 s 0 (fun op => nomatch op)
@@ -91,7 +100,7 @@ abbrev nullarySignature : Signature where
 
 def nullaryInterpretation : Interpretation nullarySignature ℕ := fun _ _ => 0
 
-example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).card * s.factorial ≤
+example (s : ℕ) : (computableFunctions nullaryInterpretation 0 s).ncard * s.factorial ≤
     (s + 1) * (max s 1) ^ s * s := by
   simpa using card_computableFunctions_mul_factorial_le_of_arity_le nullaryInterpretation
     0 s 0 (fun _ => le_rfl)

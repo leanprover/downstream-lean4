@@ -5,8 +5,10 @@ Author: David Thrane Christiansen
 -/
 module
 
+public import UsersGuide.Releases.Entries.BlogExampleSubprojects
 public import UsersGuide.Releases.Entries.BlogLeanRole
 public import UsersGuide.Releases.Entries.BuildLog
+public import UsersGuide.Releases.Entries.BuildTimeDocstringMarkdown
 public import UsersGuide.Releases.Entries.CodeColorVariables
 public import UsersGuide.Releases.Entries.DevelopmentServer
 public import UsersGuide.Releases.Entries.Diagrams
@@ -16,8 +18,12 @@ public import UsersGuide.Releases.Entries.ExtensionDescriptorVisibility
 public import UsersGuide.Releases.Entries.ExtraStep
 public import UsersGuide.Releases.Entries.FoldingRanges
 public import UsersGuide.Releases.Entries.FullPageSearch
+public import UsersGuide.Releases.Entries.HeadingIds
+public import UsersGuide.Releases.Entries.InlineLeanElaboration
 public import UsersGuide.Releases.Entries.InlineLeanInfoview
+public import UsersGuide.Releases.Entries.LeanHtml
 public import UsersGuide.Releases.Entries.LegacyInlineRoles
+public import UsersGuide.Releases.Entries.LinkFootnoteResolution
 public import UsersGuide.Releases.Entries.LiterateHtmlKatex
 public import UsersGuide.Releases.Entries.LiterateProgramming
 public import UsersGuide.Releases.Entries.ManualMarginalia
@@ -25,7 +31,10 @@ public import UsersGuide.Releases.Entries.MethodInMultiVerso
 public import UsersGuide.Releases.Entries.ReleaseNotesChapter
 public import UsersGuide.Releases.Entries.RoleDiagnostics
 public import UsersGuide.Releases.Entries.SearchPriority
+public import UsersGuide.Releases.Entries.SubprojectRefactor
 public import UsersGuide.Releases.Entries.TestFramework
 public import UsersGuide.Releases.Entries.TestWidget
+public import UsersGuide.Releases.Entries.TeXBlockParagraphs
 public import UsersGuide.Releases.Entries.UpstreamParser
 public import UsersGuide.Releases.Entries.VersionedReleaseNotes
+public import UsersGuide.Releases.Entries.VersoMainInterpret

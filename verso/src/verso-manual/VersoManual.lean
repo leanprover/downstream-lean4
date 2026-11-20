@@ -168,7 +168,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
               if h : objs.size = 1 then
                 let obj := objs[0]
                 let dest := obj.link.link
-                return {{<a href={{dest}} data-verso-remote={{remote}}>{{← content.mapM go}}</a>}}
+                return html%{<a href={dest} data-verso-remote={remote}>{← content.mapM go}</a>}
               else
                 let dests := objs.map (s!" * {·.link.link}") |>.toList |> "\n".intercalate
                 reportError s!"Remote '{remote}' domain '{domain}' contains multiple destinations for '{name}':\n{dests}"
@@ -178,7 +178,7 @@ inline_extension Inline.ref (canonicalName : String) (domain : Option Name) (rem
         -- If any error was logged, just don't emit a link
         content.mapM go
       | .ok {resolvedDestination := some dest, ..} =>
-        pure {{<a href={{dest.link}}>{{← content.mapM go}}</a>}}
+        pure html%{<a href={dest.link}>{← content.mapM go}</a>}
 
 section
 open Lean
@@ -217,13 +217,13 @@ meta def ref : RoleExpanderOf RoleArgs
 block_extension Block.paragraph where
   traverse := fun _ _ _ => pure none
   toTeX :=
-    some <| fun _ go _ _ content => do
+    some <| fun _ go _ _ content => Verso.Doc.TeX.withBlocksNotAsParagraphs do
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ go _ _ content => do
-      pure <| {{<div class="paragraph">{{← content.mapM go}}</div>}}
+      pure <| html%{<div class="paragraph">{← content.mapM go}</div>}
 
 /--
 Indicates that all the block-level elements contained within the directive are a single logical
@@ -343,12 +343,8 @@ def traverseMulti (depth : Nat) (path : Path) (part : Part Manual) : TraverseM (
         pure <| .mk (← title.mapM Manual.traverseInline) titleString «meta» content' subParts'
 
 open Verso.Output.Html in
-def TraverseState.ofConfig (config : HtmlConfig) : TraverseState := Id.run do
-  let mut st : TraverseState := .initialize config.toHtmlAssets
-  for f in config.features do
-    for li in f.licenseInfo do
-      st := st.addLicenseInfo li
-  return st
+def TraverseState.ofConfig (config : HtmlConfig) : TraverseState :=
+  .initialize config.toHtmlAssets
 
 /--
 The monad in which manuals are converted to an output format.
@@ -425,6 +421,7 @@ def emitTeX (config : Config) (text : Part Manual) : EmitM Unit := do
   let frontMatter := frontMatter ++ frontParts
   let (chapters, extra) ← mainMatter.mapM (·.toTeX (m := EmitM) none (opts, {}, state, {})) extra
   let (appendices, extra) ← backMatter.mapM (·.toTeX (m := EmitM) none (opts, {}, state, {})) extra
+  let (title, extra) ← text.titleToTeX (m := EmitM) (opts, {}, state, {}) extra
   let dir := config.destination.join "tex"
   ensureDir dir
   let packages := state.texPackages
@@ -432,7 +429,8 @@ def emitTeX (config : Config) (text : Part Manual) : EmitM Unit := do
   withFile (dir.join "main.tex") .write fun h => do
     if config.verbose then
       IO.println s!"Saving {dir.join "main.tex"}"
-    h.putStrLn (preamble text.titleString authors date packages.toList preambleItems.toList config.twoside)
+    h.putStrLn <|
+      preamble title.asString authors date packages.toList preambleItems.toList config.twoside
     -- \frontmatter is inserted by our hardcoded preamble before the ToC, so it doesn't get inserted
     -- here. If there's any text at the start of the front matter, then we need to clear it to a new
     -- recto page after the ToC
@@ -557,12 +555,12 @@ def relativizeLinks (html : Html) : Html :=
 
 open Output.Html in
 def xref (toc : List Html.Toc) (xrefJson : String) (findJs : String) (state : TraverseState) (config : Config) : Html :=
-  page toc #["find"] "Cross-Reference Redirection" "Cross-Reference Redirection" {{
+  page toc #["find"] "Cross-Reference Redirection" "Cross-Reference Redirection" html%{
     <section>
       <h1 id="title"></h1>
       <div id="message"></div>
     </section>
-  }}
+  }
   state
   config
   (localItems := #[])
@@ -590,22 +588,22 @@ def searchResultsPage (toc : List Html.Toc) (bookTitle : Html) (state : Traverse
   -- `bookTitle` (fourth arg) becomes the `.header-title` content; the `<h1>"Search"</h1>`
   -- below is the page heading inside the main content. `"Search"` is only the `<title>`.
   --
-  page toc #["search"] "Search" bookTitle {{
+  page toc #["search"] "Search" bookTitle html%{
     <section class="search-page">
-      <h1>"Search"</h1>
+      <h1>Search</h1>
       <div data-search-host class="search-page-host"></div>
-      <noscript><p>"This search feature requires JavaScript."</p></noscript>
+      <noscript><p>This search feature requires JavaScript.</p></noscript>
       <div id="search-page-results"></div>
       <script type="module" src="-verso-search/search-page.js"></script>
     </section>
-  }}
+  }
   state config
   (localItems := #[])
   /-
   Start the xref.json download in parallel with script loading. The search page JS can't fetch it
   until it runs, so without the preload the data fetch sits at the tail of the critical path.
   -/
-  (extraHead := {{<link rel="preload" href="xref.json" as="fetch"/>}})
+  (extraHead := html%{<link rel="preload" href="xref.json" as="fetch"/>})
 
 def emitSearchResultsHtml
     (toc : List Html.Toc) (dir : System.FilePath) (bookTitle : Html)
@@ -767,25 +765,27 @@ where
     let definitionIds := state.definitionIds ctxt
     let linkTargets := config.linkTargets state (← readThe AllRemotes)
     let titleHtml ← Html.seq <$> text.title.mapM (Manual.toHtml opts ctxt state definitionIds linkTargets {})
+    let heading :=
+      partHeading state ctxt (text.metadata.bind (·.id)) 1 titleHtml (showNumber := false) (showPermalink := false)
     let introHtml ← Html.seq <$> text.content.mapM (Manual.toHtml opts ctxt state definitionIds linkTargets {})
     let bookToc ← text.subParts.mapM (fun p => toc 0 opts (ctxt.inPart p) state definitionIds linkTargets p)
     let bookTocHtml := open Verso.Output.Html in
-      if bookToc.size > 0 then {{
+      if bookToc.size > 0 then html%{
         <section>
-        <h2>"Table of Contents"</h2>
-        <ol class="section-toc">{{bookToc.map (·.html config.rootTocDepth)}}</ol>
+        <h2>Table of Contents</h2>
+        <ol class="section-toc">{bookToc.map (·.html config.rootTocDepth)}</ol>
         </section>
-      }} else .empty
+      } else .empty
     let contents ←
       Html.seq <$>
       text.subParts.mapM fun p =>
         Manual.toHtml { opts with headerLevel := 2 } (ctxt.inPart p) state definitionIds linkTargets {} p
     let pageContent := open Verso.Output.Html in
-      {{<section>
-          {{Html.titlePage titleHtml authors authorshipNote introHtml}}
-          {{bookTocHtml}}
-          {{contents}}
-        </section>}}
+      html%{<section>
+          {Html.titlePage heading authors authorshipNote introHtml}
+          {bookTocHtml}
+          {contents}
+        </section>}
     let toc := (← text.subParts.mapM (toc 0 opts ctxt state definitionIds linkTargets)).toList
     let thisPageToc : Array Html ← do
       let (errs, items) ← localContents opts ctxt state text
@@ -894,13 +894,8 @@ where
       (root : Bool) (depth : Nat) (dir : System.FilePath) (part : Part Manual) : StateT (State Html) (ReaderT AllRemotes (ReaderT ExtensionImpls (BuildLogT IO))) Unit := do
     let thisFile := part.metadata.bind (·.file) |>.getD (part.titleString.sluggify.toString)
     let dir := if root then dir else dir.join thisFile
-    let sectionNum := sectionHtml ctxt
-    let pageTitleHtml := sectionNum ++ (← Html.seq <$> part.title.mapM (Manual.toHtml opts ctxt state definitionIds linkTargets codeOptions))
-    let titleHtml :=
-      pageTitleHtml ++
-      if let some id := part.metadata.bind (·.id) then
-        permalink id state
-      else .empty
+    let titleHtml ← Html.seq <$> part.title.mapM (Manual.toHtml opts ctxt state definitionIds linkTargets codeOptions)
+    let heading := partHeading state ctxt (part.metadata.bind (·.id)) 1 titleHtml
     let introHtml ← Html.seq <$> part.content.mapM (Manual.toHtml opts ctxt state definitionIds linkTargets codeOptions)
     let contents ←
       if depth == 0 || part.htmlSplit == .never then
@@ -922,20 +917,20 @@ where
     let subToc ← part.subParts.mapM (fun p => toc depth opts (ctxt.inPart p) state definitionIds linkTargets p)
     let pageContent :=
       if root then
-        let subTocHtml := if subToc.size > 0 then {{
+        let subTocHtml := if subToc.size > 0 then html%{
             <section>
-            <h2>"Contents"</h2>
-            <ol class="section-toc">{{subToc.map (·.html config.rootTocDepth)}}</ol>
+            <h2>Contents</h2>
+            <ol class="section-toc">{subToc.map (·.html config.rootTocDepth)}</ol>
             </section>
-          }}
+          }
         else .empty
-        {{<section>{{Html.titlePage titleHtml authors authorshipNote introHtml ++ contents}} {{subTocHtml}}</section>}}
+        html%{<section>{Html.titlePage heading authors authorshipNote introHtml ++ contents}{subTocHtml}</section>}
       else
         let subTocHtml :=
           if (depth > 0 && part.htmlSplit != .never) && subToc.size > 0 && part.htmlToc then
-            {{<ol class="section-toc">{{subToc.map (·.html config.sectionTocDepth)}}</ol>}}
+            html%{<ol class="section-toc">{subToc.map (·.html config.sectionTocDepth)}</ol>}
           else .empty
-        {{<section><h1>{{titleHtml}}</h1> {{introHtml}} {{contents}} {{subTocHtml}}</section>}}
+        html%{<section>{heading.toHtml}{introHtml}{contents}{subTocHtml}</section>}
 
     ensureDir dir
     IO.FS.withFile (dir.join "index.html") .write fun h => do

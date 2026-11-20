@@ -22,6 +22,7 @@ import VersoWeb.Components.Icon
 import VersoWeb.Components.Modal
 import VersoWeb.Components.NavBar
 import VersoWeb.Components.NoJs
+import VersoWeb.Components.Publication
 import VersoWeb.Components.Sponsor
 import VersoWeb.Components.Steps
 import VersoWeb.Components.Tabs

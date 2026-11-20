@@ -1,0 +1,15 @@
+{
+  "version": "1.3.0",
+  "packages": [
+    {
+      "type": "path",
+      "subDir": null,
+      "scope": "",
+      "name": "batteries",
+      "manifestFile": "lake-manifest.json",
+      "inherited": true,
+      "configFile": "lakefile.toml",
+      "dir": "../../batteries"
+    }
+  ]
+}

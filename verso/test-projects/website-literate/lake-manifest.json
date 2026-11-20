@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "packagesDir": ".lake/packages",
   "packages": [
     {
@@ -7,7 +7,7 @@
       "type": "git",
       "subDir": null,
       "scope": "",
-      "rev": "eef47384b97ccdfeadf87b6708d12c28f89e698b",
+      "rev": "37ba4687eeb97bf7243dcc8a4c2694f71c67793c",
       "name": "subverso",
       "manifestFile": "lake-manifest.json",
       "inputRev": "main",
@@ -16,5 +16,6 @@
     }
   ],
   "name": "«lit-lean-example»",
-  "lakeDir": ".lake"
+  "lakeDir": ".lake",
+  "fixedToolchain": false
 }

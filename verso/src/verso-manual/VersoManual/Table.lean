@@ -83,7 +83,7 @@ block_extension Block.table (columns : Nat) (header : Bool) (tag : Option String
         let rowsOut : TeX.TeXT Manual (ReaderT ExtensionImpls (BuildLogT IO)) (Array Output.TeX) := do
           rows.mapIdxM fun i r => do
             let cols ← r.mapM fun c => do
-              let cell : Output.TeX ← Array.mapM goB c
+              let cell : Output.TeX ← TeX.withBlocksNotAsParagraphs <| Array.mapM goB c
               if header && i == 0 then
                 pure cell -- TODO: bold?
               else
@@ -114,22 +114,22 @@ block_extension Block.table (columns : Nat) (header : Bool) (tag : Option String
           rows := rows.push (items.take columns |>.map (·.contents))
           items := items.extract columns items.size
 
-        return {{
-          <table class={{«class»}} {{attrs}}>
-            {{← rows.mapIdxM fun i r => do
+        return html%{
+          <table class={«class»} {...attrs}>
+            {← rows.mapIdxM fun i r => do
               let cols ← Html.seq <$> r.mapM fun c => do
                 let cell : Html ← c.mapM goB
                 if header && i == 0 then
-                  pure {{<th>{{cell}}</th>}}
+                  pure html%{<th>{cell}</th>}
                 else
-                  pure {{<td>{{cell}}</td>}}
+                  pure html%{<td>{cell}</td>}
               if header && i == 0 then
-                pure {{<thead><tr>{{cols}}</tr></thead>}}
+                pure html%{<thead><tr>{cols}</tr></thead>}
               else
-                pure {{<tr>{{cols}}</tr>}}
-            }}
+                pure html%{<tr>{cols}</tr>}
+            }
           </table>
-        }}
+        }
 
       else
         reportError "Malformed table"
