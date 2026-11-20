@@ -33,10 +33,28 @@ open Lean
 
 namespace ImportGraph
 
+open Parser in
+/--
+`Lean.Parser.Module.import`, but with `all` parsed as a non-reserved symbol.
+
+A `syntax` declaration adds every token of the parsers it mentions to the token table, and
+`Lean.Parser.Module.import` can parse `all`. Mentioning it below would therefore reserve `all`
+as a keyword in every module downstream of this one, where it is an ordinary identifier
+(`theorem Commute.all`, `let all := ...`). Parsing it as a non-reserved symbol instead keeps
+`import all` working here without reserving the keyword; the syntax kind is unchanged, so the
+quotations for `Lean.Parser.Module.import` below still apply.
+-/
+def importStx : Parser :=
+  withAntiquot (mkAntiquot "import" ``Module.import) <|
+  node ``Module.import <|
+    atomic (optional Module.«public» >> optional Module.«meta» >> "import ") >>
+    optional (node ``Module.all (nonReservedSymbol "all")) >>
+    identWithPartialTrailingDot
+
 -- No docstring to not interfere with hovers.
 syntax diffAbsolute :=
-  (&"from" ppLine sepByIndentSemicolon(Parser.Module.import))?
-  &"to" ppLine sepByIndentSemicolon(Parser.Module.import)
+  (&"from" ppLine sepByIndentSemicolon(importStx))?
+  &"to" ppLine sepByIndentSemicolon(importStx)
 
 /-- Removes one of the current imports to this file. -/
 syntax importMinus := &"-"
@@ -46,8 +64,8 @@ syntax importPlus := &"+"
 /-- An import added to (`+`) or removed from (`-`) the imports of the current file to form the
 final import state. -/
 syntax diffCurrentItem :=
-  withPosition(importMinus (colGt Parser.Module.import)?)
-    <|> withPosition(importPlus colGt Parser.Module.import)
+  withPosition(importMinus (colGt importStx)?)
+    <|> withPosition(importPlus colGt importStx)
 
 -- No docstring to not interfere with hovers.
 syntax diffCurrent := sepByIndentSemicolon(diffCurrentItem)
