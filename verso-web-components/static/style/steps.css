@@ -12,7 +12,9 @@
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
     flex-direction: column;
     gap: 30px;
 }
@@ -31,7 +33,7 @@
     justify-content: space-between;
 }
 
-.step-box>p {
+.step-box > p {
     color: var(--color-text);
     gap: 10px;
     display: flex;
@@ -79,7 +81,6 @@
     display: flex;
     gap: 10px;
 }
-
 
 .buttons {
     gap: 10px;

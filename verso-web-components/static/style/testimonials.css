@@ -60,7 +60,7 @@
 
 .blockquote {
     padding: var(--space-6);
-    border-left: 5px solid #4CAF50;
+    border-left: 5px solid #4caf50;
     background-color: var(--color-bg);
     font-size: var(--fs-md);
     color: var(--color-text);
@@ -70,7 +70,9 @@
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    transition: background var(--transition-base), border var(--transition-base);
+    transition:
+        background var(--transition-base),
+        border var(--transition-base);
     border: 2px solid white;
     cursor: pointer;
 }
@@ -86,7 +88,6 @@
 .circle:hover {
     background-color: #ffffff;
 }
-
 
 .testimonials-card {
     position: relative;
@@ -180,7 +181,7 @@ img.testimonial-image {
     }
 }
 
-@media (scripting: none){
+@media (scripting: none) {
     .select-circles {
         display: none;
     }

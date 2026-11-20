@@ -11,9 +11,9 @@
 
 .background-wrapper svg {
     width: 100%;
-    stroke: #D7E0E9;
+    stroke: #d7e0e9;
 }
 
 .dark-theme .background-wrapper svg {
-    stroke: #1C1E26;
+    stroke: #1c1e26;
 }

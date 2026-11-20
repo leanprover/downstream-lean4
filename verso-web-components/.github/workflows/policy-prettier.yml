@@ -1,0 +1,26 @@
+name: Prettier
+
+on:
+    pull_request:
+    merge_group:
+
+permissions:
+    contents: read
+
+jobs:
+    prettier:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7.0.1
+              with:
+                  persist-credentials: false
+
+            - uses: actions/setup-node@v7.1.0
+              with:
+                  node-version: "lts/*"
+                  cache: npm
+
+            - run: npm ci
+
+            - name: Check formatting with Prettier
+              run: npx --no-install prettier --check .

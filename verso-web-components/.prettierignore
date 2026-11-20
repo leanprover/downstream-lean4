@@ -1,0 +1,7 @@
+# Vendored third-party code
+deps/
+static/js/motion.js
+
+# Written by Lake and npm
+lake-manifest.json
+package-lock.json

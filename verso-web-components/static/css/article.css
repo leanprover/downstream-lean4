@@ -250,7 +250,7 @@
 }
 
 code {
-    font-family: 'Fira Code', 'SF Mono', Monaco, monospace;
+    font-family: "Fira Code", "SF Mono", Monaco, monospace;
 }
 
 .markdown-body p code:not(.math),
@@ -269,7 +269,7 @@ code {
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     padding: 0.2rem;
-    font-family: 'Fira Code', 'SF Mono', Monaco, monospace;
+    font-family: "Fira Code", "SF Mono", Monaco, monospace;
     font-size: 0.8rem;
     position: relative;
     overflow-x: auto;
@@ -296,12 +296,13 @@ code {
     border-color: rgba(107, 164, 255, 0.2);
 }
 
-.markdown-body pre, .post-content pre {
+.markdown-body pre,
+.post-content pre {
     background: var(--color-bg);
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     padding: 1rem;
-    font-family: 'Fira Code', 'SF Mono', Monaco, monospace;
+    font-family: "Fira Code", "SF Mono", Monaco, monospace;
     font-size: 1rem;
     position: relative;
     overflow-x: auto;
@@ -313,7 +314,6 @@ code {
     word-break: normal;
     min-width: 0;
 }
-
 
 :root.dark-theme .markdown-body pre,
 :root.dark-theme .post-content pre {
@@ -378,9 +378,9 @@ code {
 }
 
 .post-index ol {
-  list-style: none;
-  padding-left: 1.5em;
-  counter-reset: section;
+    list-style: none;
+    padding-left: 1.5em;
+    counter-reset: section;
 }
 
 .post-index ol li {
@@ -567,7 +567,7 @@ code {
 }
 
 .markdown-page .post-container {
-    gap: 30px
+    gap: 30px;
 }
 
 /******** Permalink widgets ********/

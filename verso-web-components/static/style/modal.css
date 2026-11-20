@@ -52,50 +52,51 @@ body.modal-open {
 /* Modal for Step 2 */
 
 .modal-content {
-  padding: 2rem;
-  border-radius: 1rem;
+    padding: 2rem;
+    border-radius: 1rem;
 }
 
 .modal-content h2 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  padding-left: 0.5rem;
-  text-align: center;
-  margin: 0px !important; 
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    padding-left: 0.5rem;
+    text-align: center;
+    margin: 0px !important;
 }
 
 .steps {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 2rem;
 }
 
-.step .screenshot, .step .gallery-item {
+.step .screenshot,
+.step .gallery-item {
     width: 120px;
 }
 
 .step {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  transition: transform 0.2s ease-in-out;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
 }
 
 .step img {
-  width: 120px !important;
-  height: 120px !important;
-  object-fit: cover;
-  border-radius: 0.5rem;
-  border: 1px solid #444;
-  margin: 0px;
+    width: 120px !important;
+    height: 120px !important;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    border: 1px solid #444;
+    margin: 0px;
 }
 
 .step p {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.4;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
 }
 
 .modal-content a {
@@ -109,7 +110,7 @@ body.modal-open {
 }
 
 @media (max-width: 768px) {
-  .modal {
-    border-radius: 0px;
-  }
+    .modal {
+        border-radius: 0px;
+    }
 }

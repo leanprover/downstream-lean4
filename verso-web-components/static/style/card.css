@@ -3,7 +3,9 @@
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: var(--radius-md);
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
 }
 
 .card-body {
