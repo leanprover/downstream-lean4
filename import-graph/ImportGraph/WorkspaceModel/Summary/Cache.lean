@@ -60,7 +60,7 @@ def WorkspaceSummary.isUpToDate (ws : WorkspaceSummary) (wsDir? : Option FilePat
     if let some wsDir := wsDir? then
       unless (← IO.FS.realPath ws.dir).normalize == (← IO.FS.realPath wsDir).normalize do
         return false
-    return (← ws.recomputedInputHash Lean.githash).val == ws.inputHash
+    return (← ws.recomputedInputHash Lean.githash).hex == ws.inputHash
   catch _ =>
     return false
 
