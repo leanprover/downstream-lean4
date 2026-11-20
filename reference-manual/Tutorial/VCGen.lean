@@ -229,10 +229,7 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
   apply Id.of_run_eq_wp h
   vcgen invariants
-  · Invariant.withEarlyReturnNewDo
-      (onReturn := fun ret seen => ret = false ∧ ¬l.Nodup)
-      (onContinue := fun pref suff seen =>
-        (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup)
+  · fun pref suff seen => (∀ x, x ∈ seen ↔ x ∈ pref) ∧ pref.Nodup
   with finish
 ```
 ::::
@@ -241,19 +238,15 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
 :::paragraph
 ```lean -show
 section
-variable {l : List Int} {ret : Bool} {seen : Std.HashSet Int} {pref suff : List Int}
-axiom onReturn : Bool → Std.HashSet Int → Prop
+variable {l : List Int} {seen : Std.HashSet Int} {pref suff : List Int}
 axiom onContinue : List Int → List Int → Std.HashSet Int → Prop
 ```
 The proof has the same structure as the one for {name}`mySum`: {tactic}`grind` discharges all verification conditions with its existing automation around {name}`List.Nodup`, and only the {tech (remote := "reference")}[loop invariant] differs.
-Since our loop has an {ref "early-return" (remote := "reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturnNewDo`, which supports the {ref "do-elab" (remote := "reference")}[extensible `do`-notation elaborator].
-This function allows us to specify the invariant in two parts:
+Even though our loop has an {ref "early-return" (remote := "reference")}[early return], the invariant describes the regular iterations alone: {tactic}`vcgen` checks the early return against the code that follows the loop, so the returned value is not part of the loop's state.
 
-* {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
-  In case of {name}`nodup`, the only value that is ever returned is {name}`false`, in which case {name}`nodup` has decided there _is_ a duplicate in the list.
-* {lean}`onContinue pref suff seen` is the invariant that holds after each regular iteration.
-  As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
-  The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
+{lean}`onContinue pref suff seen` is the invariant that holds after each regular iteration.
+As in {name}`mySum`, the list {lean}`pref` holds the elements that the loop has already visited and {lean}`suff` holds the elements that the loop has yet to visit.
+The given example asserts that the set {lean}`seen` contains all the elements of previous loop iterations and asserts that there were no duplicates so far.
 ```lean -show
 end
 ```

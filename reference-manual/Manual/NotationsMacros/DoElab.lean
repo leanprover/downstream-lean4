@@ -517,7 +517,7 @@ The body's normal fallthrough, {keywordOf Lean.Parser.Term.doBreak}`break`, and 
 @[doElem_control_info doOnce]
 def inferOnce : ControlInfoHandler := fun stx => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
-  let bodyInfo ← InferControlInfo.ofSeq body
+  let bodyInfo ← inferControlInfoSeq body
   let exits :=
     bodyInfo.numRegularExits > 0 ||
     bodyInfo.breaks ||
@@ -539,7 +539,7 @@ It computes this count from the body directly, since the value reported by the c
 def elabOnce : DoElab := fun stx dec => do
   let `(doElem| once $body) := stx | throwUnsupportedSyntax
   let dec ← dec.ensureUnit
-  let bodyInfo ← InferControlInfo.ofSeq body
+  let bodyInfo ← inferControlInfoSeq body (← read).controlInfoCache
   let numRegularExits :=
     bodyInfo.numRegularExits +
     (if bodyInfo.breaks then 2 else 0) +
@@ -814,7 +814,7 @@ Because this new syntax contains a sequence of {keywordOf Lean.Parser.Term.do}`d
 def inferLocally : ControlInfoHandler := fun stx => do
   let `(doElem| locally $_:ident => $_ do $seq) := stx
     | throwUnsupportedSyntax
-  InferControlInfo.ofSeq seq
+  inferControlInfoSeq seq
 ```
 
 The actual elaborator starts by computing the control information for the body, and then derives a control lifter from the control information and the original continuation.
