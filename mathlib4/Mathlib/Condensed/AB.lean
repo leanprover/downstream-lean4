@@ -28,20 +28,18 @@ open Condensed CategoryTheory Limits
 namespace Condensed
 
 variable (A J : Type*) [Category* A] [Category* J] [Preadditive A]
-  [∀ X, HasLimitsOfShape (StructuredArrow X Stonean.toCompHaus.op) A]
+  [∀ X : CompHaus.{u}ᵒᵖ, HasLimitsOfShape (StructuredArrow X Stonean.toCompHaus.op) A]
   [HasWeakSheafify (coherentTopology CompHaus.{u}) A]
   [HasWeakSheafify (extensiveTopology Stonean.{u}) A]
 -- One of the `HasWeakSheafify` instances could be deduced from the other using the dense subsite
 -- API, but when `A` is a concrete category, these will both be synthesized anyway.
 
-set_option Elab.async false in  -- TODO: universe levels from type are unified in proof
 lemma hasExactColimitsOfShape [HasColimitsOfShape J A] [HasExactColimitsOfShape J A]
     [HasFiniteLimits A] : HasExactColimitsOfShape J (Condensed.{u} A) := by
   let e : Condensed.{u} A ≌ Sheaf (extensiveTopology Stonean.{u}) A :=
     (StoneanCompHaus.equivalence A).symm.trans Presheaf.coherentExtensiveEquivalence
   exact HasExactColimitsOfShape.domain_of_functor _ e.functor
 
-set_option Elab.async false in  -- TODO: universe levels from type are unified in proof
 lemma hasExactLimitsOfShape [HasLimitsOfShape J A] [HasExactLimitsOfShape J A]
     [HasFiniteColimits A] : HasExactLimitsOfShape J (Condensed.{u} A) := by
   let e : Condensed.{u} A ≌ Sheaf (extensiveTopology Stonean.{u}) A :=
