@@ -214,15 +214,15 @@ def bigSum : (List.range 1_001).sum = 500_500 := by native_decide
 #print axioms bigSum
 ```
 ```leanOutput printAxExC2
-'bigSum' depends on axioms: [bigSum._native.native_decide.ax_1]
+'bigSum' depends on axioms: [bigSum._native.native_decide.ax_3]
 ```
 
 The axiom's type can be checked directly:
 ```lean (name := printAxExC3)
-#check bigSum._native.native_decide.ax_1
+#check bigSum._native.native_decide.ax_3
 ```
 ```leanOutput printAxExC3
-bigSum._native.native_decide.ax_1 : decide ((List.range 1001).sum = 500500) = true
+bigSum._native.native_decide.ax_3 : decide ((List.range 1001).sum = 500500) = true
 ```
 :::
 

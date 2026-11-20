@@ -186,7 +186,7 @@ theorem Float.sin_zero_eq_zero :
 ```
 This tactic executes a decision procedure as compiled native code.
 This requires trusting the Lean compiler, interpreter and the low-level implementations of built-in operators in addition to the kernel.
-To make this dependency precisely clear, the tactic creates the axiom {name}`Float.sin_zero_eq_zero._native.native_decide.ax_1`:
+To make this dependency precisely clear, the tactic creates the axiom {name}`Float.sin_zero_eq_zero._native.native_decide.ax_1_3`:
 ```lean (name := ofRed)
 #print axioms Float.sin_zero_eq_zero
 ```
@@ -194,7 +194,7 @@ To make this dependency precisely clear, the tactic creates the axiom {name}`Flo
 'Float.sin_zero_eq_zero' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
- Float.sin_zero_eq_zero._native.native_decide.ax_1]
+ Float.sin_zero_eq_zero._native.native_decide.ax_1_3]
 ```
 :::
 
