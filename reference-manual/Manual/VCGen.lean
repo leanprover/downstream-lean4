@@ -606,8 +606,7 @@ The {tech}[specification lemmas] for {name}`ForIn.forIn` and {name}`ForIn'.forIn
 
 Invariants use lists to model the sequence of values in a {keywordOf Lean.Parser.Term.doFor}`for` loop.
 An invariant is a function of the prefix of elements that the loop has already consumed, the suffix of elements that remain, the current accumulator state, and any further state arguments of the monad's assertion language.
-
-{docstring Invariant.withEarlyReturnNewDo}
+Even when the loop body contains an early {keywordOf Lean.Parser.Term.doReturn}`return`, the accumulator state consists of the loop's mutable variables alone: {tactic}`vcgen` checks each early {keywordOf Lean.Parser.Term.doReturn}`return` against the code that follows the loop instead of threading the returned value through the invariant.
 
 # Verification Conditions
 %%%
