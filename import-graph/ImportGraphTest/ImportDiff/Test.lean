@@ -226,7 +226,7 @@ warning: `#import_diff` in the module system uses `+`/`-` or `from`/`to` syntax:
 
 -- `all` must stay usable as an identifier in modules downstream of the `#import_diff` syntax:
 -- mentioning `Lean.Parser.Module.import` in a `syntax` declaration would reserve it as a keyword.
--- (See `ImportGraph.importStx`.)
+-- (See `ImportGraph.Lean.Parser.Module.import'`.)
 def allIsNotAKeyword (all : List Nat) : List Nat := all
 
 -- `import all` is still accepted, and loads the IR of the module it names:
