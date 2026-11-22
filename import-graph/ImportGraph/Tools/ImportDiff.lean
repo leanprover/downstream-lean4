@@ -44,7 +44,7 @@ This is addressed by [lean4#16650](https://github.com/leanprover/lean4/pull/1665
 be deprecated in favor of `Lean.Parser.Module.import` when it lands.
 
 A `syntax` declaration adds every token of the parsers it mentions to the token table, and
-`Lean.Parser.Module.import` can parse `all`. Mentioning it in `syntax would therefore reserve
+`Lean.Parser.Module.import` can parse `all`. Mentioning it in `syntax` would therefore reserve
 `all` as a keyword in every module downstream, where it is an ordinary identifier
 (`theorem Commute.all`, `let all := ...`). Parsing it as a non-reserved symbol prevents this.
 -/
