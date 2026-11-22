@@ -746,6 +746,10 @@ right_2 : a_2 ∈ m.indices.erase a
       [thm] HashMap.mem_insert ↦ 1
 -/
 #check_msgs in
+-- The `grind` diagnostics below have more than the default `maxTraceChildren`
+-- entries in two of their nodes; `0` means "no limit", so that the pinned output
+-- shows every fact instead of a truncated list.
+set_option maxTraceChildren 0 in
 -- ANCHOR: eraseSwap_init
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with
