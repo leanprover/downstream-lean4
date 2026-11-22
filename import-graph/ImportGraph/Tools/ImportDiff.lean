@@ -37,15 +37,16 @@ open Parser in
 /--
 `Lean.Parser.Module.import`, but with `all` parsed as a non-reserved symbol.
 
-This is addressed by [lean4#16550](https://github.com/leanprover/lean4/pull/16650), and should
-be removed/replaced with `Lean.Parser.Module.import` when it lands.
+The syntax kind produced is the same as `Lean.Parser.Module.import`, so
+`Lean.Parser.Module.import` can be used in antiquotations when matching against this syntax.
+
+This is addressed by [lean4#16650](https://github.com/leanprover/lean4/pull/16650), and should
+be deprecated in favor of `Lean.Parser.Module.import` when it lands.
 
 A `syntax` declaration adds every token of the parsers it mentions to the token table, and
-`Lean.Parser.Module.import` can parse `all`. Mentioning it below would therefore reserve `all`
-as a keyword in every module downstream of this one, where it is an ordinary identifier
-(`theorem Commute.all`, `let all := ...`). Parsing it as a non-reserved symbol instead keeps
-`import all` working here without reserving the keyword; the syntax kind is unchanged, so the
-quotations for `Lean.Parser.Module.import` below still apply.
+`Lean.Parser.Module.import` can parse `all`. Mentioning it in `syntax would therefore reserve
+`all` as a keyword in every module downstream, where it is an ordinary identifier
+(`theorem Commute.all`, `let all := ...`). Parsing it as a non-reserved symbol prevents this.
 -/
 def Lean.Parser.Module.import' : Parser :=
   withAntiquot (mkAntiquot "import" ``Module.import) <|
