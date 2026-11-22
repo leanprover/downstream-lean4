@@ -368,7 +368,7 @@ Hoare triples are the standard form of specifications for effectful programs, an
 ::::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {Q : α → Pred} {epost : EPred} {prog : m α} {c : Nat}
+variable {m : Type u → Type v} [Monad m] {α σ ε : Type u} {Pred : Type u} {EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {P : Pred} {Q : α → Pred} {epost : EPred} {prog : m α} {c : Nat}
 ```
 
 A {tech (remote := "reference")}_Hoare triple_ consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
@@ -582,12 +582,12 @@ The precondition of {name}`mkFresh_spec` binds only the state, and `⌜state.cou
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type u} {prog : m α}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {α : Type u} {prog : m α}
 ```
 These proofs might not look much more exciting than when only a single monad was involved.
 However, under the radar of the user the proofs build on a cascade of specifications for {name}`MonadLift` instances.
-They also build on the {name}`WPMonad` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
-A {name}`WPMonad` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
+They also build on the {name}`MonadicWP` instances of {name}`StateT` and {name}`ReaderT`, which make the specifications of {name Pure.pure}`pure` and {name Bind.bind}`bind` available in every layer.
+A {name}`MonadicWP` instance requires only that the weakest precondition of {name Pure.pure}`pure` and {name Bind.bind}`bind` is at least as weak as the one that the predicate transformer monad computes.
 In other words, {name}`wp` is a lax morphism of ordered monads.
 
 :::
@@ -603,7 +603,7 @@ end Transformers
 ::::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type u} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {P : Pred} {α : Type u} {prog : m α} {Q' : α → Pred}
 ```
 
 If {keyword}`let mut` is the {keywordOf Lean.Parser.Term.do}`do`-equivalent of {name}`StateT`, then early {keywordOf Lean.Parser.Term.doReturn}`return` is the equivalent of {name}`ExceptT`.
@@ -721,7 +721,7 @@ end Exceptions
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] [WPMonad m Pred EPred] {α : Type} {σ ε : Type}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [CompleteLattice Pred] [CompleteLattice EPred] [MonadicWP m Pred EPred] [MonadicWP.IsLaxDistrib m] {α : Type} {σ ε : Type}
 ```
 
 A {lean}`StateT σ` layer turns the assertion type `Pred` into `σ → Pred` and leaves the exception postcondition type unchanged.
@@ -734,18 +734,18 @@ The {name}`WP` instance for {lean}`EStateM ε σ` uses assertions of type `σ �
 
 The {tactic}`vcgen` framework is designed to be extensible.
 None of the monads presented so far have in any way been hard-coded into {tactic}`vcgen`.
-Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`WPMonad` type classes and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
-Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`WPMonad` instance.
+Rather, {tactic}`vcgen` relies on instances of the {name}`WP` and {name}`MonadicWP` type classes and user-provided specifications to generate {tech (remote := "reference")}[verification conditions].
+Every program type needs a {name}`WP` instance, and a monad additionally needs a {name}`MonadicWP` instance.
 This section develops both for a custom monad.
 
 :::leanSection
 ```lean -show
 universe u v
-variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [Assertion Pred] [Assertion EPred] {α : Type u}
+variable {m : Type u → Type v} [Monad m] {Pred EPred : Type} [CompleteLattice Pred] [CompleteLattice EPred] {α : Type u}
 ```
 
 The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into predicate transformers {lean}`PredTrans Pred EPred α`,
-and the matching {name}`WPMonad` instance asserts that this translation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`.
+and the matching {name}`MonadicWP` instance asserts that this translation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`.
 :::
 
 :::::paragraph
@@ -784,7 +784,7 @@ instance Result.instLawfulMonad : LawfulMonad Result := by
 There are both {inst}`Monad Result` and {inst}`LawfulMonad Result` instances.
 Supporting this monad in {tactic}`vcgen` is a matter of:
 
-1. Adding {name}`WP` and {name}`WPMonad` instances for {name}`Result`
+1. Adding {name}`WP` and {name}`MonadicWP` instances for {name}`Result`
 2. Registering specification lemmas for the translation of basic Rust primitives such as addition etc.
 :::
 
@@ -818,14 +818,17 @@ instance : WP (Result α) α Prop (Error → Prop) where
 :::::
 
 :::paragraph
-The {name}`WPMonad` instance proves that this interpretation is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`, in its fields {name}`WPMonad.pure_le_wp_pure` and {name}`WPMonad.bind_le_wp_bind`.
+The {name}`MonadicWP` instance makes this interpretation the one that {tactic}`vcgen` uses for every type that {name}`Result` is applied to, and the separate {name}`MonadicWP.IsLaxDistrib` instance proves that it is sound for {name Pure.pure}`pure` and {name Bind.bind}`bind`, in its fields {name}`MonadicWP.IsLaxDistrib.pure_le` and {name}`MonadicWP.IsLaxDistrib.bind_le`.
 For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be unfolded to expose the nested {keyword}`match` structure that a case split and {tactic}`simp` make short work of.
 ```lean
-instance Result.instWPMonad : WPMonad Result Prop (Error → Prop) where
+instance Result.instMonadicWP :
+    MonadicWP Result Prop (Error → Prop) where
   toWP _ := inferInstance
-  pure_le_wp_pure x post epost := by simp [wp, WP.trans, pure]
-  bind_le_wp_bind x f post epost := by
-    cases x <;> simp [wp, WP.trans, bind, PartialOrder.rel]
+
+instance : MonadicWP.IsLaxDistrib Result where
+  pure_le x := fun post epost => by simp [WP.trans, pure]
+  bind_le x f := fun post epost => by
+    cases x <;> simp [WP.trans, bind, PartialOrder.rel]
 ```
 :::
 
