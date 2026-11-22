@@ -1166,6 +1166,7 @@ public import Mathlib.Algebra.Order.Star.Int
 public import Mathlib.Algebra.Order.Star.Orthogonal
 public import Mathlib.Algebra.Order.Star.Pi
 public import Mathlib.Algebra.Order.Star.Prod
+public import Mathlib.Algebra.Order.Star.Projection
 public import Mathlib.Algebra.Order.Star.Rat
 public import Mathlib.Algebra.Order.Star.Real
 public import Mathlib.Algebra.Order.Star.Unitization
@@ -7804,6 +7805,7 @@ public import Mathlib.Tactic.Linter.InternalConstructor
 public import Mathlib.Tactic.Linter.Lint
 public import Mathlib.Tactic.Linter.MinImports
 public import Mathlib.Tactic.Linter.Multigoal
+public import Mathlib.Tactic.Linter.NumericProjection
 public import Mathlib.Tactic.Linter.OldObtain
 public import Mathlib.Tactic.Linter.OverlappingInstances
 public import Mathlib.Tactic.Linter.PPRoundtrip
