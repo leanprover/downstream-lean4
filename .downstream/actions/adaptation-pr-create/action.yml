@@ -9,6 +9,13 @@ inputs:
     description: GitHub app slug.
     required: true
 
+  upstream-clone:
+    description: >
+      Path to a (potentially treeless) clone of the upstream repository. It must
+      contain all refs that `ref-mapping` should consider. The upstream PR head
+      is fetched by the action itself.
+    required: true
+
   upstream-pr:
     description: >
       The upstream PR number to create the adaptation PR for.
@@ -27,11 +34,29 @@ inputs:
     default: >
       The adaptation PR will be created or updated once CI is green.
 
-  upstream-branch:
+  ref-mapping:
     description: >
-      Branch in the upstream repo that marks the latest commit with green
-      downstream CI.
-    default: downstream-green
+      Mapping from upstream refs to the downstream refs they correspond to, one
+      per line, of the form `pattern -> replacement`. The pattern is matched
+      against the full name of the refs from the upstream repo, e.g.
+      `refs/remotes/origin/downstream-green`. The replacement must also be full,
+      e.g. `refs/remotes/origin/green`, and is looked up in the downstream repo.
+
+      The upstream ref closest to the upstream PR's merge base determines the
+      downstream ref the adaptation PR is based on. If multiple upstream refs
+      point to the same commit, earlier lines in this mapping take precedence.
+      Unless the `upstream-label-force` is used, the ref must point exactly to
+      the merge base and ancestors are not considered.
+    default: |
+      refs/remotes/origin/downstream-green -> refs/remotes/origin/green
+
+  ref-mapping-desc:
+    description: >
+      Plain language description of the upstream refs in `ref-mapping`, used in
+      messages to the upstream PR. It should fit into the sentence "The merge
+      base of this PR does not coincide with <ref-mapping-desc>."
+    default: >
+      branch `downstream-green`
 
   upstream-label:
     description: >
@@ -51,13 +76,9 @@ inputs:
 
   downstream-clone:
     description: >
-      Path to a (potentially treeless) clone of the downstream repository.
+      Path to a (potentially treeless) clone of the downstream repository. It
+      must contain all refs that `ref-mapping` may map to.
     required: true
-
-  downstream-branch:
-    description: >
-      The branch in the downstream repo to create the adaptation PR against.
-    default: green
 
   downstream-label:
     description: >

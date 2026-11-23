@@ -25036,9 +25036,10 @@ function runIn(cwd) {
 }
 function captureIn(cwd) {
   const run2 = runIn(cwd);
-  return async function(cmd, args) {
+  return async function(cmd, args, options) {
     let stdout = "";
     await run2(cmd, args, {
+      ...options,
       listeners: { stdout: (data) => stdout += data.toString() }
     });
     return stdout.trim();
