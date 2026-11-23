@@ -33,10 +33,32 @@ open Lean
 
 namespace ImportGraph
 
+open Parser in
+/--
+`Lean.Parser.Module.import`, but with `all` parsed as a non-reserved symbol.
+
+The syntax kind produced is the same as `Lean.Parser.Module.import`, so
+`Lean.Parser.Module.import` can be used in antiquotations when matching against this syntax.
+
+This is addressed by [lean4#16650](https://github.com/leanprover/lean4/pull/16650), and should
+be deprecated in favor of `Lean.Parser.Module.import` when it lands.
+
+A `syntax` declaration adds every token of the parsers it mentions to the token table, and
+`Lean.Parser.Module.import` can parse `all`. Mentioning it in `syntax` would therefore reserve
+`all` as a keyword in every module downstream, where it is an ordinary identifier
+(`theorem Commute.all`, `let all := ...`). Parsing it as a non-reserved symbol prevents this.
+-/
+def Lean.Parser.Module.import' : Parser :=
+  withAntiquot (mkAntiquot "import" ``Module.import) <|
+  node ``Module.import <|
+    atomic (optional Module.«public» >> optional Module.«meta» >> "import ") >>
+    optional (node ``Module.all (nonReservedSymbol "all")) >>
+    identWithPartialTrailingDot
+
 -- No docstring to not interfere with hovers.
 syntax diffAbsolute :=
-  (&"from" ppLine sepByIndentSemicolon(Parser.Module.import))?
-  &"to" ppLine sepByIndentSemicolon(Parser.Module.import)
+  (&"from" ppLine sepByIndentSemicolon(Lean.Parser.Module.import'))?
+  &"to" ppLine sepByIndentSemicolon(Lean.Parser.Module.import')
 
 /-- Removes one of the current imports to this file. -/
 syntax importMinus := &"-"
@@ -46,8 +68,8 @@ syntax importPlus := &"+"
 /-- An import added to (`+`) or removed from (`-`) the imports of the current file to form the
 final import state. -/
 syntax diffCurrentItem :=
-  withPosition(importMinus (colGt Parser.Module.import)?)
-    <|> withPosition(importPlus colGt Parser.Module.import)
+  withPosition(importMinus (colGt Lean.Parser.Module.import')?)
+    <|> withPosition(importPlus colGt Lean.Parser.Module.import')
 
 -- No docstring to not interfere with hovers.
 syntax diffCurrent := sepByIndentSemicolon(diffCurrentItem)

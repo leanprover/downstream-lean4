@@ -223,3 +223,30 @@ warning: `#import_diff` in the module system uses `+`/`-` or `from`/`to` syntax:
 -/
 #guard_msgs in
 #import_diff ImportGraphTest ImportGraph
+
+-- `all` must stay usable as an identifier in modules downstream of the `#import_diff` syntax:
+-- mentioning `Lean.Parser.Module.import` in a `syntax` declaration would reserve it as a keyword.
+-- (See `ImportGraph.Lean.Parser.Module.import'`.)
+def allIsNotAKeyword (all : List Nat) : List Nat := all
+
+-- `import all` is still accepted, and loads the IR of the module it names:
+/--
+info: Imports strictly increased.
+
+                 Δ  +   -   ∩
+modules imported +1 +1  -0  0
+
+public           0  +0  -0  0
+private          +1 +1  -0  0
+public meta      0  +0  -0  0
+private meta     0  +0  -0  0
+import all       +1 +1  -0  0
+meta import all  0  +0  -0  0
+
+previous modules +1 +1  -0  0
+ir loaded        +1 +1  -0  0
+-/
+#guard_msgs (substring := true) in
+#import_diff
+  from
+  to import all ImportGraphTest.ImportDiff.Mods.B
