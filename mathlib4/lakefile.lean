@@ -43,11 +43,6 @@ abbrev mathlibLeanOptions := #[
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
     ⟨`autoImplicit, false⟩,
     ⟨`maxSynthPendingDepth, .ofNat 3⟩,
-    -- Undo the per-argument unification of `inferInstanceAs` of the Lean branch.
-    ⟨`backward.inferInstanceAs.skipInstArgs, false⟩,
-    -- Maximal instance checks: every class-typed metavariable, and explicit class-typed arguments.
-    ⟨`backward.isDefEq.respectTransparency.instances.allMVars, true⟩,
-    ⟨`dsimp.resynthInstances.explicit, true⟩,
     ⟨`weak.linter.unreachableTactic, false⟩, -- superseded by the unused tactic linter
     ⟨`weak.linter.unnecessarySeqFocus, false⟩, -- superseded by the unused tactic linter
   ] ++ -- options that are used in `lake build`

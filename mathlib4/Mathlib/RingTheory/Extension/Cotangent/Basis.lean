@@ -312,7 +312,6 @@ lemma basis_inr [Nontrivial S] (i : σ) :
 
 lemma pres_val_comp_inr : D.pres.val ∘ Sum.inr = P.val := funext (aeval_X _)
 
-set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The constructed basis indeed is given by the images of the relations. -/
 lemma basis_apply [Nontrivial S] (r : Unit ⊕ σ) :

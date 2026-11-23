@@ -355,7 +355,6 @@ instance [IsReduced X] : IsReduced f.normalization :=
     infer_instance
   .of_openCover _ f.normalizationOpenCover
 
-set_option backward.isDefEq.respectTransparency.instances false in
 instance [IsIntegral X] : IsIntegral f.normalization :=
   have : IrreducibleSpace f.normalization := by
     rw [irreducibleSpace_def]
