@@ -80,7 +80,7 @@ jobs:
           upstream-rev: ${{ steps.find-nightly.outputs.nightly-sha }}
           downstream-clone: .
 
-      - name: Post unmerged PRs to Zulip
+      - name: Post adaptation PR results to Zulip
         if: ${{ steps.merge-adaptation-prs.outputs.report-zulip != '' }}
         uses: zulip/github-actions-zulip/send-message@v2
         with:
@@ -91,8 +91,6 @@ jobs:
           to: ecosystem infrastructure
           topic: downstream-lean4 adaptations
           content: |
-            After the toolchain bump to `${{ steps.find-nightly.outputs.nightly-tag }}`, the following adaptation PRs could not be merged automatically:
+            ### `${{ steps.find-nightly.outputs.nightly-tag }}`
 
             ${{ steps.merge-adaptation-prs.outputs.report-zulip }}
-
-            View [all PRs requiring manual intervention](https://github.com/leanprover/downstream-lean4/pulls?q=is%3Aopen+is%3Apr+label%3Amerge-required).

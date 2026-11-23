@@ -63,8 +63,8 @@ structure WorkspaceSummary extends BaseWorkspace where
   packages), the lake manifest, the `package-overrides.json`, the `lean-toolchain` file, and
   the lean githash.
 
-  We unwrap lake's `Hash` into a `UInt64` to avoid a public lake dependency. -/
-  inputHash : UInt64
+  We store lake's `Hash` as its hex string to avoid a public lake dependency. -/
+  inputHash : String
   /-- The `.lake/package-overrides.json` filepath (absolute). May not exist. -/
   packageOverridesFile : FilePath
 deriving ToJson, FromJson, Repr, Inhabited

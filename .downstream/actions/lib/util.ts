@@ -54,9 +54,14 @@ export function runIn(cwd: string) {
 
 export function captureIn(cwd: string) {
   const run = runIn(cwd);
-  return async function (cmd: string, args: string[]): Promise<string> {
+  return async function (
+    cmd: string,
+    args: string[],
+    options?: exec.ExecOptions,
+  ): Promise<string> {
     let stdout = "";
     await run(cmd, args, {
+      ...options,
       listeners: { stdout: (data) => (stdout += data.toString()) },
     });
     return stdout.trim();

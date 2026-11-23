@@ -25036,9 +25036,10 @@ function runIn(cwd) {
 }
 function captureIn(cwd) {
   const run2 = runIn(cwd);
-  return async function(cmd, args) {
+  return async function(cmd, args, options) {
     let stdout = "";
     await run2(cmd, args, {
+      ...options,
       listeners: { stdout: (data) => stdout += data.toString() }
     });
     return stdout.trim();
@@ -25293,14 +25294,14 @@ async function mergeForPr(aPr) {
     warning(
       `Adaptation PR #${aPr.number} has invalid branch name "${aPr.head.ref}", skipping...`
     );
-    return true;
+    return "skipped";
   }
   const uPr = await getPr(octo, upstreamRepo, uPrNumber);
   if (!await isReachableFromRev(uPr)) {
     info(
       `Upstream PR #${uPr.number} is not reachable from rev "${upstreamRev}", skipping...`
     );
-    return true;
+    return "skipped";
   }
   const mergeBase = await dCapture("git", [
     "merge-base",
@@ -25313,32 +25314,57 @@ async function mergeForPr(aPr) {
   if (!await hasChanges(mergeBase)) {
     await tellClosing(aPr);
     await closeEmptyAdaptationPr(aPr);
-    return true;
+    return "closed";
   }
   await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
   await waitForMergeability(aPr.number, headSha);
-  if (await squashMergeAdaptationPr(aPr, headSha)) return true;
+  if (await squashMergeAdaptationPr(aPr, headSha)) return "merged";
   await tellAuthorToMerge(uPr, aPr);
   await addMergeLabel(aPr);
-  return false;
+  return "failed";
 }
-function renderZulipReport(unmergedPrs) {
-  return unmergedPrs.map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`).join("\n");
+function renderZulipPrList(prs) {
+  return prs.map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`).join("\n");
+}
+function renderZulipReport(mergedPrs, failedPrs) {
+  const sections = [];
+  if (mergedPrs.length > 0) {
+    sections.push(
+      "The following adaptation PRs were merged automatically:\n\n" + renderZulipPrList(mergedPrs)
+    );
+  }
+  if (failedPrs.length > 0) {
+    sections.push(
+      "The following adaptation PRs could not be merged automatically:\n\n" + renderZulipPrList(failedPrs)
+    );
+  }
+  if (sections.length === 0) return "";
+  const query = encodeURIComponent(
+    `is:open is:pr label:"${downstreamLabelMerge}"`
+  );
+  const url = `https://github.com/${downstreamRepo.fullName}/pulls?q=${query}`;
+  sections.push(`View [all PRs requiring manual intervention](${url}).`);
+  return sections.join("\n\n");
 }
 async function run() {
   const aPrs = await findAdaptationPrMergeCandidates();
   info(`Found ${aPrs.length} candidate adaptation PR(s)`);
-  const unmergedPrs = [];
+  const mergedPrs = [];
+  const failedPrs = [];
   for (const aPr of aPrs) {
+    let outcome;
     try {
-      if (!await mergeForPr(aPr)) unmergedPrs.push(aPr);
+      outcome = await mergeForPr(aPr);
     } catch (error2) {
       const errorMsg = error2 instanceof Error ? error2.message : String(error2);
       warning(`Failed to merge adaptation PR #${aPr.number}: ${errorMsg}`);
+      continue;
     }
+    if (outcome === "merged") mergedPrs.push(aPr);
+    if (outcome === "failed") failedPrs.push(aPr);
   }
-  setOutput("report-zulip", renderZulipReport(unmergedPrs));
+  setOutput("report-zulip", renderZulipReport(mergedPrs, failedPrs));
 }
 run().catch((error2) => {
   abort(error2 instanceof Error ? error2.message : String(error2));

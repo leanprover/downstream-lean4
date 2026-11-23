@@ -235,18 +235,39 @@ Lake itself can be configured with the following environment variables:
 *
   * {envVar +def}`LAKE_CACHE_KEY`
   * Defines an authentication key for the {ref "lake-cache-remote"}[remote artifact cache].
+    This key is always used for {lake}`cache put`, regardless of the selected {tech}[cache service].
 
 *
   * {envVar +def}`LAKE_CACHE_ARTIFACT_ENDPOINT`
   * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used for artifact uploads.
     If set, then {envVar}`LAKE_CACHE_REVISION_ENDPOINT` must also be set.
-    If neither of these are set, Lake will use Reservoir instead.
-
+    This environment variable is deprecated; instead, use {lakeOpt}`--service` to select a cache service.
 *
   * {envVar +def}`LAKE_CACHE_REVISION_ENDPOINT`
   * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used to upload the {tech (key := "mappings file")}[input/output mappings] for each artifact.
     If set, then {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` must also be set.
-    If neither of these are set, Lake will use Reservoir instead.
+    This environment variable is deprecated; instead, use {lakeOpt}`--service` to select a cache service.
+
+*
+  * {envVar +def}`LAKE_CONFIG`
+  * The path to the {ref "lake-system-config"}[system Lake configuration file].
+    Defaults to `.lake/config.toml` in the user's home directory.
+
+*
+  * {envVar +def}`LAKE_CACHE_DIR`
+  * The directory of the {tech (key := "local cache")}[local artifact cache].
+    If it is set to the empty string, the system cache is disabled.
+    If it is not set, a shared per-toolchain directory in the Elan directory is used.
+
+*
+  * {envVar +def}`LAKE_RESTORE_ARTIFACTS`
+  * If true, artifacts are copied from the Lake artifact cache to the build directory instead of being used in place.
+    If possible, the files are hard linked instead.
+
+*
+  * {envVar +def}`LAKE_PKG_URL_MAP`
+  * If set, its value should be a JSON object that maps package names to Git URLs.
+    These URLs override the URL of any dependency with that name, including transitive dependencies.
 
 :::
 ::::
@@ -1168,6 +1189,36 @@ The report records the outcome of each step (dependency resolution, the build, t
 The exit code is `0` when every checker accepts the project and only standard axioms are used, `1` when a checker rejects it, a non-standard axiom is used, or a build fails, and `2` when the check could not run at all.
 ::::
 
+## Requirements
+%%%
+tag := "lake-comparator-requirements"
+%%%
+
+:::paragraph
+`comparator` establishes that each theorem in the {ref "lake-comparator-config"}[configuration] has the same statement in the challenge and the solution, that its proof in the solution uses only the permitted axioms, and that the proof is accepted by Lean's kernel.
+When the {lakeOpt}`--paranoid` option is provided or when the `external_kernels` field is set in the configuration, it also ensures that external kernels accept the proof.
+`comparator` is only able to provide these guarantees under the following assumptions:
+
+1. Everything (transitively) imported by the challenge file is trusted.
+   If the challenge relies on an incorrect definition or an incorrect problem statement, then an accepted proof is not very useful.
+
+2. The Lake configuration file `lakefile.toml` or `lakefile.lean`, along with the manifest file `lake-manifest.json` and all the {tech}[dependencies] they require, is trusted.
+
+3. The build starts from a clean state.
+   There is no pre-existing `.lake` directory.
+
+4. `bubblewrap` is available for {ref "lake-comparator-sandbox"}[sandboxing] the build of the solution.
+   Building code that was written by a {tech}[malicious] actor is potentially dangerous.
+   `bubblewrap` is only available on Linux systems; as a result, `comparator` can only be safely used on Linux.
+
+5. {lake}`comparator` is not running as a privileged user.
+
+6. The kernels used to check the proof do not have a soundness issue that causes them all to accept an incorrect proof.
+   Some of the {ref "external-kernels"}[kernels] that are included with Lean were independently implemented, and `con-leche` has a machine-checked proof that everything it accepts has a model in set theory; using them guards against both programming errors and unknown logical issues.
+
+7. The solution file does not make use of unknown exploits against other software or hardware on the machine on which verification is performed.
+:::
+
 ## Configuration
 %%%
 tag := "lake-comparator-config"
@@ -1670,6 +1721,9 @@ If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` settin
 
 
 # Local Caches
+%%%
+tag := "lake-cli-cache"
+%%%
 
 {lake}`cache get`, {lake}`cache put`, and {lake}`cache add` are used to interact with remote cache servers.
 These commands are *experimental*, and are only useful if the {ref "lake-cache-local"}[local cache] is enabled.
@@ -1712,10 +1766,10 @@ OPTIONS:
   --rev=<commit-hash>             lookup artifacts only for set revision
   --package=<name>                fetch outputs for set package
   --service=<name>                fetch outputs from set cache service
-  --repo=<github-repo>            GitHub repository of the package or its fork
-  --platform=<target-triple>      with Reservoir or --repo, set the platform
-  --toolchain=<name>              with Reservoir or --repo, set the toolchain
   --scope=<remote-scope>          verbatim scope for a custom endpoint
+  --repo=<github-repo>            GitHub repository of the package or its fork
+  --platform=<target-triple>      without --scope, set the platform
+  --toolchain=<name>              without --scope, set the toolchain
   --mappings-only                 only download mappings, delay artifacts
   --force-download                redownload existing files
 
@@ -1724,18 +1778,20 @@ service. The cache service used can be specified via the `--service` option.
 Otherwise, Lake will use the configured default or, if none, Reservoir. See
 `lake cache services` for more information on how to configure services.
 
-By default, Lake will use Reservoir to download outputs for each
-dependency in the workspace (in order). Non-Reservoir dependencies will be
-skipped. If instead an input-to-outputs mappings file, `--scope`, or `--repo`
-is provided, Lake will default to downloading build outputs for the root
-package. In either case, if `--package` is specified, Lake will switch to
-only downloading outputs for it.
+If an input-to-outputs mappings file, `--scope`, `--repo`, or `--package`
+is provided, Lake will download outputs for a single package (by default,
+without `--package`, the workspace root). Otherwise (e.g., on a bare
+`lake cache get`), Lake will download outputs for each package in the
+workspace (in order). For a multi-package `get`, if a package has configured
+a `downloadCacheService`, that service will be used. Otherwise, by default,
+Lake uses Reservoir. Packages without a `downloadCacheService` that are not
+Reservoir dependencies will be skipped.
 
 To determine what to download, Lake searches for input-to-output mappings for
 a given build of a package via the cache service. This mapping is identified
 by a Git revision and prefixed with a scope derived from the package's name,
-GitHub repository, Lean toolchain, and current platform. The exact configuration
-can be customized using options.
+GitHub repository, Lean toolchain, and current platform. The specifics can be
+customized using options.
 
 For Reservoir, setting `--repo` will cause Lake to lookup outputs for the
 package by a repository name, rather than the package's. This can be used to
@@ -1758,11 +1814,21 @@ package fails, Lake will report this and continue on to the next. Once done,
 if any download failed, Lake will exit with a nonzero status code.
 ```
 
-:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--package=\" «name»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
+::::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--package=\" «name»] [\"--service=\" «name»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»] [\"--mappings-only\"] [\"--force-download\"]"
 Downloads build outputs for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
 The cache service used can be specified via the {lakeOpt}`--service` option.
 Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
 See {lake}`cache services` for more information on how to configure services.
+
+:::paragraph
+The cache service used can be specified via the {lakeOpt}`--service` option.
+Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
+The service may be any of the following:
+* `reservoir`
+* a service {ref "lake-config-cache-services"}[provided by a dependency]
+* a service configured through the {ref "lake-system-config"}[Lake system configuration] (see {lake}`cache services` for details).
+:::
+
 
 By default, Lake will use Reservoir to download outputs for each package in the root's dependency tree in order.
 Non-Reservoir dependencies will be skipped.
@@ -1785,7 +1851,7 @@ Using {lakeOptDef option}`--force-download` will redownload existing files.
 
 While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
 However, it will report this and exit with a nonzero status code in such cases.
-:::
+::::
 
 
 ```lakeCacheHelp put
@@ -1799,8 +1865,8 @@ OPTIONS:
   --service=<name>                upload to set cache service
   --scope=<remote-scope>          upload under set scope verbatim
   --repo=<github-repo>            scope w/ repository + toolchain & platform
-  --toolchain=<name>              with --repo, sets the toolchain
-  --platform=<target-triple>      with --repo, sets the platform
+  --toolchain=<name>              without --scope, sets the toolchain
+  --platform=<target-triple>      without --scope, sets the platform
 
 Uploads the input-to-output mappings contained in the specified file along
 with the corresponding output artifacts to a remote cache. The cache service
@@ -1813,18 +1879,18 @@ via `curl`. Thus, the service should generally be an S3-compatible bucket.
 The authentication key is set via the `LAKE_CACHE_KEY` environment variable.
 
 Since Lake does not currently use cryptographically secure hashes for
-artifacts and outputs, uploads to the cache are prefixed with a scope to
-avoid clashes. This is controlled by `--scope` or `--repo`. With `--repo`,
-Lake will produce a scope by augmenting the repository with toolchain and
-platform information as it deems necessary. With `--scope`, Lake will use
-the specified scope verbatim.
+artifacts and outputs, uploads to a multi-package cache are prefixed with a
+scope to avoid clashes. This is controlled by `--scope` or `--repo`.
+With `--repo`, Lake will produce a scope by augmenting the repository with
+toolchain and platform information as it deems necessary. With `--scope`,
+Lake will use the specified scope verbatim.
 
 Artifacts are uploaded to the artifact endpoint with a file name derived
-from their Lake content hash (and prefixed by the repository or scope).
-The mappings file is uploaded to the revision endpoint with a file name
-derived from the package's current Git revision (and prefixed by the
-full scope). As such, the command will warn if the work tree currently
-has changes.
+from their Lake content hash and, in a multi-package cache, prefixed by
+the repository or scope. The mappings file is uploaded to the revision
+endpoint with a file name derived from the package's current Git revision
+(and prefixed by the full scope). As such, the command will warn if the work
+tree currently has changes.
 ```
 
 ::::lake cache put "mappings [\"--package=\" «name»] [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--toolchain=\" «name»] [\"--platform=\" «target-triple»]"
@@ -1891,10 +1957,10 @@ or be configured through the Lake system configuration (see the help page of
 `lake cache services` for details).
 
 Since Lake does not currently use cryptographically secure hashes for
-artifacts and outputs, artifacts in a cache service are prefixed with a scope
-to avoid clashes. For Reservoir, this scope can either be a package (set via
-`--scope`) or a repository (set via `--repo`). For S3 services, both options
-are synonymous.
+artifacts and outputs, artifacts in a multi-package cache service are prefixed
+with a scope to avoid clashes. For Reservoir, this scope can either be a
+package (set via `--scope`) or a repository (set via `--repo`). For S3
+services, both options are synonymous.
 ```
 
 ::::lake cache add "mappings [\"--package=\" «name»] [\"--service=\" «name»] [\"--scope=\" «remote-scope»] [\"--repo=\" «github-repo»] [\"--no-overwrite\"]"
@@ -1902,8 +1968,14 @@ Reads a list of input-to-output mappings from the provided file and adds them to
 Mappings already in the cache are overwritten unless {lakeOptDef flag}`--no-overwrite` is specified.
 The mappings are added for the root package unless {lakeOpt}`--package` is specified.
 
+:::paragraph
 If {lakeOpt}`--service` is provided, the output artifacts can then be fetched lazily from that service during a Lake build.
-The service must either be `reservoir` or be configured through the Lake system configuration (see {lake}`cache services` for details).
+The service may be any of the following:
+* `reservoir`
+* a service {ref "lake-config-cache-services"}[provided by a dependency]
+* a service configured through the {ref "lake-system-config"}[Lake system configuration] (see {lake}`cache services` for details).
+:::
+
 
 Since Lake does not currently use cryptographically secure hashes for artifacts and outputs, artifacts in a cache service are prefixed with a scope to avoid clashes.
 For Reservoir, this scope can either be a package (set via {lakeOpt}`--scope`) or a repository (set via {lakeOpt}`--repo`).
@@ -1934,11 +2006,12 @@ USAGE:
   lake cache services
 
 Prints the name of each configured remote cache services (one per line).
-Additional services can be added by modifying the system Lake configuration.
-The exact location of the this configuration file is system dependent and can
+Additional services can be added by modifying the system Lake configuration
+or by declaring them in a package configuration file with `cache_service`.
+The exact location of the system configuration file is system dependent and can
 be set by `LAKE_CONFIG`, but it is usually located at `~/.lake/config.toml`.
 
-The configuration of the system cache could look something like the following:
+A system configuration of the cache could look something like the following:
 
   cache.defaultService = "my-s3"
   cache.defaultUploadService = "my-s3"
@@ -1948,13 +2021,18 @@ The configuration of the system cache could look something like the following:
   kind = "s3"
   artifactEndpoint = "https://my-s3.com/a0"
   revisionEndpoint = "https://my-s3.com/r0"
+  hasPackageScopes = true
 
 If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+If `hasPackageScopes = true` (the default), the service is a multi-package
+cache and requires `--scope` or `--repo` for uploads and downloads. Otherwise,
+it is assumed to hold a single package and does not accept the options.
 ```
 
 ::::lake cache services
 Prints the name of each configured remote cache service (one per line).
-Additional services can be added by modifying the system Lake configuration file, which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
+Services may be {ref "lake-config-cache-services"}[added by the package configuration or by dependencies].
+They can also be added by modifying the {ref "lake-system-config"}[system Lake configuration file], which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
 
 :::paragraph
 The configuration of the system cache could look something like the following:
@@ -2031,8 +2109,8 @@ OPTIONS:
   --service=<name>                upload to set cache service
   --scope=<remote-scope>          upload under set scope verbatim
   --repo=<github-repo>            scope w/ repository + toolchain & platform
-  --toolchain=<name>              with --repo, set the toolchain
-  --platform=<target-triple>      with --repo, set the platform
+  --toolchain=<name>              without --scope, set the toolchain
+  --platform=<target-triple>      without --scope, set the platform
 
 Works like `lake cache put` but uploads outputs from the staging directory
 instead of the Lake cache.
