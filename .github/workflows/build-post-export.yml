@@ -100,8 +100,8 @@ jobs:
           email: ${{ vars.ZULIP_EMAIL }}
           organization-url: "https://leanprover.zulipchat.com"
           type: stream
-          to: nightly-testing
-          topic: downstream-lean4 batteries PRs
+          to: nightly-testing-batteries
+          topic: downstream-lean4 PRs
           content: >
             PR batteries#${{ steps.export-pr.outputs.pr-number }} with
             [downstream-lean4](https://github.com/leanprover/downstream-lean4)
