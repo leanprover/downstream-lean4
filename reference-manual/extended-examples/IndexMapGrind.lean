@@ -746,6 +746,7 @@ right_2 : a_2 ∈ m.indices.erase a
       [thm] HashMap.mem_insert ↦ 1
 -/
 #check_msgs in
+set_option maxTraceChildren 0 in
 -- ANCHOR: eraseSwap_init
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with
