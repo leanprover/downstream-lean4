@@ -567,28 +567,30 @@ theorem snd_pow_eq_sum [Monoid R] [AddMonoid M] [DistribMulAction R M] [DistribM
     snd (x ^ n) = ((List.range n).map fun i => x.fst ^ (n.pred - i) •> x.snd <• x.fst ^ i).sum :=
   rfl
 
+private theorem snd_smul_fst_pow_of_smul_comm [Monoid R] [AddMonoid M] [DistribMulAction R M]
+    [DistribMulAction Rᵐᵒᵖ M] [SMulCommClass R Rᵐᵒᵖ M] (x : tsze R M)
+    (h : x.snd <• x.fst = x.fst •> x.snd) (n : ℕ) : x.snd <• x.fst ^ n = x.fst ^ n •> x.snd := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [pow_succ, op_mul, mul_smul, mul_smul, ← h, smul_comm (_ : R) (op x.fst) x.snd, ih]
+
 theorem snd_pow_of_smul_comm [Monoid R] [AddMonoid M] [DistribMulAction R M]
     [DistribMulAction Rᵐᵒᵖ M] [SMulCommClass R Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ)
     (h : x.snd <• x.fst = x.fst •> x.snd) : snd (x ^ n) = n • x.fst ^ n.pred •> x.snd := by
-  simp_rw [snd_pow_eq_sum, ← smul_comm (_ : R) (_ : Rᵐᵒᵖ), aux, smul_smul, ← pow_add]
+  simp_rw [snd_pow_eq_sum, ← smul_comm (_ : R) (_ : Rᵐᵒᵖ), snd_smul_fst_pow_of_smul_comm x h,
+    smul_smul, ← pow_add]
   match n with
   | 0 => rw [Nat.pred_zero, pow_zero, List.range_zero, zero_smul, List.map_nil, List.sum_nil]
   | (Nat.succ n) =>
     simp_rw [Nat.pred_succ]
     exact (List.sum_eq_length_nsmul _ (x.fst ^ n • x.snd) (by grind)).trans
       (by rw [List.length_map, List.length_range])
-where
-  aux : ∀ n : ℕ, x.snd <• x.fst ^ n = x.fst ^ n •> x.snd := by
-    intro n
-    induction n with
-    | zero => simp
-    | succ n ih =>
-      rw [pow_succ, op_mul, mul_smul, mul_smul, ← h, smul_comm (_ : R) (op x.fst) x.snd, ih]
 
 theorem snd_pow_of_smul_comm' [Monoid R] [AddMonoid M] [DistribMulAction R M]
     [DistribMulAction Rᵐᵒᵖ M] [SMulCommClass R Rᵐᵒᵖ M] (x : tsze R M) (n : ℕ)
     (h : x.snd <• x.fst = x.fst •> x.snd) : snd (x ^ n) = n • (x.snd <• x.fst ^ n.pred) := by
-  rw [snd_pow_of_smul_comm _ _ h, snd_pow_of_smul_comm.aux _ h]
+  rw [snd_pow_of_smul_comm _ _ h, snd_smul_fst_pow_of_smul_comm _ h]
 
 @[simp]
 theorem snd_pow [CommMonoid R] [AddMonoid M] [DistribMulAction R M] [DistribMulAction Rᵐᵒᵖ M]
