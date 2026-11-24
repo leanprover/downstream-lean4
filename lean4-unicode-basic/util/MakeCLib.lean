@@ -1,17 +1,11 @@
 module
-import UnicodeData
+import Builders
 
 open Unicode
 
 def clibDir : System.FilePath := ".."/"UnicodeCLib"
 
-def Unicode.GC.BP : GC := (0x80000000 : UInt32)
-def Unicode.GC.LC0 : GC := GC.LC
-def Unicode.GC.LC1 : GC := GC.LC ||| GC.BP
-def Unicode.GC.PG0 : GC := GC.PG
-def Unicode.GC.PG1 : GC := GC.PG ||| GC.BP
-def Unicode.GC.PQ0 : GC := GC.PQ
-def Unicode.GC.PQ1 : GC := GC.PQ ||| GC.BP
+def libDir : System.FilePath := ".."/"UnicodeBasic"
 
 def propTable : Array (UInt32 × UInt32 × UInt64) := Id.run do
   let mut t : Array (UInt32 × UInt32 × UInt64) := #[(0, 0, GC.Cc.toUInt64)]
@@ -230,8 +224,164 @@ static const unicode_data_t table[] = {"
       file.putStrLn s!"\{UINT32_C({c₀}),UINT32_C({c₁}),UINT64_C({d})},"
     file.putStrLn "};"
 
+/-- Drop the rows of `table` with data `default` and merge adjacent rows with equal data -/
+def compressTable (table : Array (UInt32 × UInt32 × UInt64)) (default : UInt64) :
+    Array (UInt32 × UInt32 × UInt64) := Id.run do
+  let mut t := #[]
+  for (c₀, c₁, d) in table do
+    if d == default then continue
+    match t.back? with
+    | some (a, b, e) =>
+      if c₀ == b + 1 && d == e then
+        t := t.pop.push (a, c₁, d)
+      else
+        t := t.push (c₀, c₁, d)
+    | none => t := t.push (c₀, c₁, d)
+  return t
+
+/-- Write `UnicodeCLib/<file>.c` with `table` and the C function `unicode_<file>_lookup`, which
+returns the data of the range containing a code point, or `default` -/
+def makeTableC (file : String) (table : Array (UInt32 × UInt32 × UInt64)) (default : UInt64) :
+    IO Unit :=
+  IO.FS.withFile (clibDir / s!"{file}.c") .write fun h => do
+    h.putStrLn s!"/* THIS IS A GENERATED FILE - DO NOT EDIT */
+#include \"basic.h\"
+
+#define TABLE_SIZE {table.size}
+#define DEFAULT UINT64_C({default})
+
+static const unicode_data_t table[TABLE_SIZE];
+
+uint64_t unicode_{file}_lookup(uint32_t c) \{
+  if (c >= table[0].cmin) \{
+    unsigned int lo = 0;
+    unsigned int hi = TABLE_SIZE;
+    unsigned int i = (lo + hi)/2;
+    while (i != lo) \{
+      if (c < table[i].cmin) hi = i;
+      else lo = i;
+      i = (lo + hi)/2;
+    }
+    if (c <= table[i].cmax) return table[i].data;
+  }
+  return DEFAULT;
+}
+
+static const unicode_data_t table[] = \{"
+    for (c₀, c₁, d) in table do
+      h.putStrLn s!"\{UINT32_C({c₀}),UINT32_C({c₁}),UINT64_C({d})},"
+    h.putStrLn "};"
+
+/-- `Bidi_Class` table: constructor index of the class, default `BN` -/
+def bidiClassTable : IO (Array (UInt32 × UInt32 × UInt64)) := do
+  let t ← mkBidiClass
+  return compressTable (t.map fun (c₀, c₁, bc) => (c₀, c₁, bc.ctorIdx.toUInt64))
+    BidiClass.boundaryNeutral.ctorIdx.toUInt64
+
+/-- `Canonical_Combining_Class` table: the class, default `0` -/
+def combiningClassTable : IO (Array (UInt32 × UInt32 × UInt64)) := do
+  let t ← mkCanonicalCombiningClass
+  return compressTable (t.map fun (c₀, c₁, cc) => (c₀, c₁, cc.toUInt64)) 0
+
+/-- `Bidi_Mirrored` table: `1` for mirrored, default `0` -/
+def bidiMirroredTable : IO (Array (UInt32 × UInt32 × UInt64)) := do
+  let t ← mkBidiMirrored
+  return compressTable (t.map fun (c₀, c₁) => (c₀, c₁, 1)) 0
+
+/-- `Default_Ignorable_Code_Point` table: `1` for ignorable, default `0` -/
+def defaultIgnorableTable : IO (Array (UInt32 × UInt32 × UInt64)) := do
+  let t ← mkDefaultIgnorableCodePoint
+  return compressTable (t.map fun (c₀, c₁) => (c₀, c₁, 1)) 0
+
+/-- `Numeric_Type` and `Numeric_Value` table, default `0` (no value)
+
+* bits 0-1: `1` for decimal, `2` for digit, `3` for numeric;
+* decimal and digit: bits 2-22 hold the first code point of the range, and bits 23-26 the
+  value of that code point;
+* numeric: bit 2 is the sign, bits 3-11 the denominator (`0` for none), bits 12-51 the absolute
+  value of the numerator. -/
+def numericTable : IO (Array (UInt32 × UInt32 × UInt64)) := do
+  let t ← mkNumericValue
+  let t := t.map fun (c₀, c₁, n) =>
+    let d : UInt64 := match n with
+      | .decimal v => (1 : UInt64) ||| c₀.toUInt64 <<< 2 ||| v.val.toUInt64 <<< 23
+      | .digit v => (2 : UInt64) ||| c₀.toUInt64 <<< 2 ||| v.val.toUInt64 <<< 23
+      | .numeric n d =>
+        let d := d.getD 0
+        if d ≥ 0x200 || n.natAbs ≥ 0x10000000000 then
+          panic! s!"numeric value too large: {n}/{d}"
+        else
+          let sign : UInt64 := if n < 0 then 4 else 0
+          (3 : UInt64) ||| sign ||| d.toUInt64 <<< 3 ||| n.natAbs.toUInt64 <<< 12
+    (c₀, c₁, d)
+  return compressTable t 0
+
+/-- Maximum number of ranges in a leaf of the `Internal.BTree` copies of the C tables -/
+def leafSize : Nat := 64
+
+/-- `n` as a Lean raw hexadecimal literal -/
+def natLit (n : Nat) : String :=
+  "(nat_lit 0x" ++ (String.ofList (Nat.toDigits 16 n)).toUpper ++ ")"
+
+/-- B-tree on entries `lo` to `hi - 1` of `table`, as Lean source, following the C search; the
+values of a leaf are packed `width` bits each -/
+partial def btree (table : Array (UInt32 × UInt32 × UInt64)) (width : Nat) (indent : String)
+    (lo hi : Nat) : String :=
+  let indent' := indent ++ "  "
+  if hi - lo ≤ leafSize then
+    let rows := table[lo:hi].toArray.zipIdx
+    let keys := rows.foldl (init := 0) fun n ((c₀, c₁, _), k) =>
+      n ||| (c₀.toNat ||| c₁.toNat <<< 21) <<< (42 * k)
+    let block := rows.foldl (init := 0) fun n ((_, _, d), k) => n ||| d.toNat <<< (width * k)
+    s!".leaf {lo} {hi}\n{indent'}{natLit keys}\n{indent'}{natLit block}"
+  else
+    let mid := (lo + hi) / 2
+    s!".node {natLit table[mid]!.1.toNat}\n{indent'}({btree table width indent' lo mid})"
+      ++ s!"\n{indent'}({btree table width indent' mid hi})"
+
+/-- `n` bits, in words -/
+def bits (n : Nat) : String := if n == 1 then "1 bit" else s!"{n} bits"
+
+/-- Write `UnicodeBasic/Internal/<module>.lean` with `table` as the B-tree `Internal.<name>` -/
+def makeTreeLean (module name c : String) (table : Array (UInt32 × UInt32 × UInt64))
+    (width : Nat) : IO Unit :=
+  IO.FS.withFile (libDir / "Internal" / s!"{module}.lean") .write fun file => do
+    file.putStrLn s!"/- THIS IS A GENERATED FILE - DO NOT EDIT -/
+module
+public import UnicodeBasic.Internal.BTree
+
+/-! # Kernel copy of the `{c}` table
+
+This module holds the same table as `UnicodeCLib/{c}.c` as a B-tree, for the kernel
+to read. It is internal and may change at any time.
+-/
+
+namespace Unicode.Internal
+
+-- The block of each leaf holds the `{c}.c` data of its ranges, {bits width} each.
+--
+-- This must stay `noncomputable`: compiled code uses the C table, and a computable definition
+-- would build this tree when a program starts.
+/-- The `{c}` table (internal use only) -/
+@[expose] public noncomputable def {name} : BTree Nat :=
+  {btree table width "  " 0 table.size}"
+
 public def main : IO UInt32 := do
   makeCaseC
+  makeTreeLean "CaseTree" "caseTree" "case" caseTable 63
   makePropC
+  makeTreeLean "PropTree" "propTree" "prop" propTable 36
   makeScriptC
+  makeTreeLean "ScriptTree" "scriptTree" "script" scriptTable 32
+  for (module, name, file, table, default, width) in [
+      ("BidiClassTree", "bidiClassTree", "bidi_class", ← bidiClassTable,
+        BidiClass.boundaryNeutral.ctorIdx.toUInt64, 5),
+      ("BidiMirroredTree", "bidiMirroredTree", "bidi_mirrored", ← bidiMirroredTable, 0, 1),
+      ("CombiningClassTree", "combiningClassTree", "combining_class",
+        ← combiningClassTable, 0, 8),
+      ("DefaultIgnorableTree", "defaultIgnorableTree", "default_ignorable",
+        ← defaultIgnorableTable, 0, 1),
+      ("NumericTree", "numericTree", "numeric", ← numericTable, 0, 52)] do
+    makeTableC file table default
+    makeTreeLean module name file table width
   return 0
