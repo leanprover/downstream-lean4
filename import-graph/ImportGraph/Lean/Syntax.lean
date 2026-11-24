@@ -25,15 +25,15 @@ exists (instead of setting it to `0`). See the docstring of `updateLeading` for 
 def TSyntax.updateLeadingPreservingStart {ks} (stx : TSyntax ks) : TSyntax ks :=
   ⟨stx.raw.updateLeadingPreservingStart⟩
 
-/-- Gets the leading whitespace of `.original` `SourceInfo`, or `none` if not `.original`. -/
-def SourceInfo.getLeading? : SourceInfo → Option Substring.Raw
-  | .original (leading := leading) .. => leading
-  | _ => none
-
+-- Note: core's formatter ships its own `Lean.SourceInfo.getLeading?` in `Lean.Fmt.Util.Basic`,
+-- so we no longer declare one here: both end up in the same environment as soon as a module
+-- imports `ImportGraph` and anything that pulls in the formatter.
 /-- Gets the leading whitespace of `.original` `SourceInfo`, or the empty substring if not
 `.original`. -/
 @[inline] def SourceInfo.getLeading (info : SourceInfo) : Substring.Raw :=
-  info.getLeading?.getD "".toRawSubstring
+  match info with
+  | .original (leading := leading) .. => leading
+  | _ => "".toRawSubstring
 
 /-- Gets the trailing whitespace of `.original` `SourceInfo`, or the empty substring if not
 `.original`. -/
