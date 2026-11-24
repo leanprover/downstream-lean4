@@ -90,6 +90,7 @@ noncomputable def presheaf (M : X.Modules) : TopCat.Presheaf Ab X := M.val.presh
 /-- Notation for sections of a presheaf of module. -/
 scoped[AlgebraicGeometry] notation3 "Γ(" M ", " U ")" => (Scheme.Modules.presheaf M).obj (.op U)
 
+set_option backward.elab.instanceTypes false in
 instance : Module Γ(X, U) Γ(M, U) := (M.val.obj (.op U)).isModule
 
 variable (M) in

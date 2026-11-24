@@ -137,6 +137,7 @@ def obj (m : ComonadBicat B) :=
 def hom (m : ComonadBicat B) : m.obj ⟶ m.obj :=
   m.toOplax.map (𝟙 (⟨⟨PUnit.unit⟩⟩ : LocallyDiscrete (Discrete PUnit)))
 
+set_option backward.elab.instanceTypes false in
 instance (m : ComonadBicat B) : Comonad m.hom :=
   Comonad.ofOplaxFromUnit m.toOplax
 

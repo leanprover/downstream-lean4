@@ -413,6 +413,7 @@ end Preorder
 instance partialOrder [PartialOrder α] [PartialOrder β] : PartialOrder (α ⊕ₗ β) :=
   { Lex.preorder with le_antisymm := fun _ _ => antisymm_of (Lex (· ≤ ·) (· ≤ ·)) }
 
+set_option backward.elab.instanceTypes false in
 instance linearOrder [LinearOrder α] [LinearOrder β] : LinearOrder (α ⊕ₗ β) :=
   { Lex.partialOrder with
     le_total := total_of (Lex (· ≤ ·) (· ≤ ·)),

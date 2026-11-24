@@ -182,6 +182,7 @@ def quotientCompιIso :
     quotient C ⋙ ι C ≅ CochainComplex.Plus.ι C ⋙ HomotopyCategory.quotient C (.up ℤ) :=
   ObjectProperty.liftCompιIso ..
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : (quotient C).CommShift ℤ := ObjectProperty.commShiftLift ..
 
 instance : NatTrans.CommShift (quotientCompιIso C).hom ℤ :=

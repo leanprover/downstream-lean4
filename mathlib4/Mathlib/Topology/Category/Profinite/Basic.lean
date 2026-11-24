@@ -212,6 +212,7 @@ instance toCompHaus.reflective : Reflective profiniteToCompHaus where
 noncomputable instance toCompHaus.createsLimits : CreatesLimits profiniteToCompHaus :=
   monadicCreatesLimits _
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance toTopCat.reflective : Reflective Profinite.toTopCat :=
   Reflective.comp profiniteToCompHaus compHausToTop
 

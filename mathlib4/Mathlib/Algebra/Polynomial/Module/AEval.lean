@@ -53,6 +53,7 @@ namespace AEval
 instance instFiniteOrig [Module.Finite R M] : Module.Finite R <| AEval R M a :=
   inferInstanceAs <| Module.Finite R M
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance instModulePolynomial : Module R[X] <| AEval R M a :=
   compHom M (aeval a).toRingHom
 

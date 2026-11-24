@@ -168,6 +168,7 @@ functions satisfying `isLocallyFraction`. -/
 def structureSheafInType : Sheaf (Type _) (ProjectiveSpectrum.top 𝒜) :=
   subsheafToTypes (isLocallyFraction 𝒜)
 
+set_option backward.elab.instanceTypes false in
 instance commRingStructureSheafInTypeObj (U : (Opens (ProjectiveSpectrum.top 𝒜))ᵒᵖ) :
     CommRing ((structureSheafInType 𝒜).obj.obj U) :=
   (sectionsSubring U).toCommRing

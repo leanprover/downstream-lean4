@@ -80,6 +80,7 @@ of the underlying functor to types, this is the type `c.pt`
 with the infimum of the induced topologies by the maps `c.π.app j`. -/
 def conePtOfConeForget : Type _ := c.pt
 
+set_option backward.elab.instanceTypes false in
 instance topologicalSpaceConePtOfConeForget :
     TopologicalSpace (conePtOfConeForget c) :=
   (⨅ j, (F.obj j).str.induced (c.π.app j))
@@ -196,6 +197,7 @@ of the underlying cocone of types, this is the type `c.pt`
 with the supremum of the topologies that are coinduced by the maps `c.ι.app j`. -/
 def coconePtOfCoconeForget : Type _ := c.pt
 
+set_option backward.elab.instanceTypes false in
 instance topologicalSpaceCoconePtOfCoconeForget :
     TopologicalSpace (coconePtOfCoconeForget c) :=
   (⨆ j, (F.obj j).str.coinduced (c.ι.app j))

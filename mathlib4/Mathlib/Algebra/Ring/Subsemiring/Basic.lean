@@ -176,6 +176,7 @@ variable {f} in
 theorem rangeS_eq_top : f.rangeS = ⊤ ↔ Function.Surjective f := by
   simp [← Set.range_eq_univ, SetLike.ext'_iff]
 
+set_option backward.elab.instanceTypes false in
 /-- The range of a morphism of semirings is a fintype, if the domain is a fintype.
 Note: this instance can form a diamond with `Subtype.fintype` in the
   presence of `Fintype S`. -/

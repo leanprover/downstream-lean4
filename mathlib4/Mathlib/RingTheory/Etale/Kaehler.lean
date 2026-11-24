@@ -272,6 +272,7 @@ variable {S}
 
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.elab.instanceTypes false in
 /-- let `p` be a submonoid of an `R`-algebra `S`. Then `Sₚ ⊗ H¹(L_{S/R}) ≃ H¹(L_{Sₚ/R})`. -/
 noncomputable
 def tensorH1CotangentOfIsLocalization (M : Submonoid S) [IsLocalization M T] :

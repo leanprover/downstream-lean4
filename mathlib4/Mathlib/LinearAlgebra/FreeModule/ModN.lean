@@ -25,6 +25,7 @@ abbrev ModN : Type _ := G ⧸ LinearMap.range (LinearMap.lsmul ℤ G n)
 
 namespace ModN
 
+set_option backward.elab.instanceTypes false in
 instance : Module (ZMod n) (ModN G n) := QuotientAddGroup.zmodModule (by simp)
 
 set_option backward.isDefEq.respectTransparency false in

@@ -482,6 +482,7 @@ theorem notMem_nil (a : α) : a ∉ nil :=
 instance [DecidableEq α] : DecidableEq (Cycle α) := fun s₁ s₂ =>
   Quotient.recOnSubsingleton₂' s₁ s₂ fun _ _ => decidable_of_iff' _ Quotient.eq''
 
+set_option backward.elab.instanceTypes false in
 instance [DecidableEq α] (x : α) (s : Cycle α) : Decidable (x ∈ s) :=
   Quotient.recOnSubsingleton' s fun l => show Decidable (x ∈ l) from inferInstance
 
@@ -677,9 +678,11 @@ def decidableNontrivialCoe : ∀ l : List α, Decidable (Nontrivial (l : Cycle �
         (decidableNontrivialCoe (x :: l))
     else isTrue ⟨x, y, h, by simp, by simp⟩
 
+set_option backward.elab.instanceTypes false in
 instance {s : Cycle α} : Decidable (Nontrivial s) :=
   Quot.recOnSubsingleton s decidableNontrivialCoe
 
+set_option backward.elab.instanceTypes false in
 instance {s : Cycle α} : Decidable (Nodup s) :=
   Quot.recOnSubsingleton s List.nodupDecidable
 

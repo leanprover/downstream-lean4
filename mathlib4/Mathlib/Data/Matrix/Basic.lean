@@ -40,6 +40,7 @@ variable {R S T A α β γ : Type*}
 
 namespace Matrix
 
+set_option backward.elab.instanceTypes false in
 instance decidableEq [DecidableEq α] [Fintype m] [Fintype n] : DecidableEq (Matrix m n α) :=
   Fintype.decidablePiFintype
 

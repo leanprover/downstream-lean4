@@ -75,6 +75,7 @@ section
 
 variable {m0 : MeasurableSpace α} {μ : Measure α} {s t : Set α}
 
+set_option backward.elab.instanceTypes false in
 instance NullMeasurableSpace.instInhabited [h : Inhabited α] :
     Inhabited (NullMeasurableSpace α μ) :=
   h

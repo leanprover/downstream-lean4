@@ -438,7 +438,9 @@ instance monoidalUnopUnop : (unopUnop C).Monoidal where
   μ_δ X Y := Category.comp_id _
   δ_μ X Y := Category.comp_id _
 
+set_option backward.elab.instanceTypes false in
 instance : (opOpEquivalence C).functor.Monoidal := monoidalUnopUnop
+set_option backward.elab.instanceTypes false in
 instance : (opOpEquivalence C).inverse.Monoidal := monoidalOpOp
 
 instance : (opOpEquivalence C).IsMonoidal where

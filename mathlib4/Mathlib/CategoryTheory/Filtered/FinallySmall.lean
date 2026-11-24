@@ -87,6 +87,7 @@ this is a small filtered category, equipped with a final functor to `C`
 (see `fromFilteredFinalModel`). -/
 def FilteredFinalModel : Type w := (exists_of_isFiltered.{w} C).choose
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : Category (FilteredFinalModel.{w} C) :=
   (exists_of_isFiltered.{w} C).choose_spec.choose
 
@@ -125,6 +126,7 @@ this is a small cofiltered category, equipped with an initial functor to `C`
 (see `fromCofilteredInitialModel`). -/
 def CofilteredInitialModel : Type w := (exists_of_isCofiltered.{w} C).choose
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : Category (CofilteredInitialModel.{w} C) :=
   (exists_of_isCofiltered.{w} C).choose_spec.choose
 

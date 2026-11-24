@@ -56,6 +56,7 @@ variable {α β γ δ : Type*} {ι : Sort*} {s t u : Set α}
   `MeasurableSet.iUnion` instead. -/
   measurableSet_iUnion : ∀ f : ℕ → Set α, (∀ i, MeasurableSet' (f i)) → MeasurableSet' (⋃ i, f i)
 
+set_option backward.elab.instanceTypes false in
 instance [h : MeasurableSpace α] : MeasurableSpace αᵒᵈ := h
 
 /-- `MeasurableSet s` means that `s` is measurable (in the ambient measure space on `α`) -/

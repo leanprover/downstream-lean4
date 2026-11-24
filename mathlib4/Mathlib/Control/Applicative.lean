@@ -108,12 +108,14 @@ instance instLawfulApplicativeComp : LawfulApplicative (Comp F G) where
   seq_pure := Comp.seq_pure
   seq_assoc := Comp.seq_assoc
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem applicative_id_comp {F} [AF : Applicative F] [LawfulApplicative F] :
     @instApplicativeComp Id F _ _ = AF :=
   @Applicative.ext F _ _ (instLawfulApplicativeComp (F := Id)) _
     (fun _ => rfl) (fun _ _ => rfl)
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem applicative_comp_id {F} [AF : Applicative F] [LawfulApplicative F] :
     @Comp.instApplicativeComp F Id _ _ = AF :=

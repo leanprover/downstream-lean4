@@ -79,6 +79,7 @@ namespace SpecialLinearGroup
 
 variable {n : Type u} [DecidableEq n] [Fintype n] {R : Type v} [CommRing R]
 
+set_option backward.elab.instanceTypes false in
 /-- If `R` and `n` have decidable equality then so does `SL(n, R)`. -/
 instance [DecidableEq R] : DecidableEq (SpecialLinearGroup n R) := Subtype.instDecidableEq
 
@@ -129,6 +130,7 @@ instance : Pow (SpecialLinearGroup n R) ℕ where
 instance : Inhabited (SpecialLinearGroup n R) :=
   ⟨1⟩
 
+set_option backward.elab.instanceTypes false in
 instance [Fintype R] [DecidableEq R] : Fintype (SpecialLinearGroup n R) := Subtype.fintype _
 instance [Finite R] : Finite (SpecialLinearGroup n R) := Subtype.finite
 

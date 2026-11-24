@@ -64,6 +64,7 @@ inductive WPath : P.last.W → Fin2 n → Type u
   | child (a : P.A) (f : P.last.B a → P.last.W) (i : Fin2 n) (j : P.last.B a)
     (c : WPath (f j) i) : WPath ⟨a, f⟩ i
 
+set_option backward.elab.instanceTypes false in
 instance WPath.inhabited (x : P.last.W) {i : Fin2 n} [I : Inhabited (P.drop.B x.head i)] :
     Inhabited (WPath P x i) :=
   ⟨match x, I with

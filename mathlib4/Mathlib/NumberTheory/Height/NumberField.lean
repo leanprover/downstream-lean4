@@ -56,6 +56,7 @@ lemma mem_multisetInfinitePlace {v : AbsoluteValue K ℝ} :
     v ∈ multisetInfinitePlace K ↔ IsInfinitePlace v := by
   simp [multisetInfinitePlace, Multiset.mem_replicate, isInfinitePlace_iff, eq_comm (a := v)]
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 lemma count_multisetInfinitePlace_eq_mult [DecidableEq (AbsoluteValue K ℝ)] (v : InfinitePlace K) :
     (multisetInfinitePlace K).count v.val = v.mult := by

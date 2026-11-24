@@ -35,6 +35,7 @@ variable {C : Type u} [Category.{v} C] [CartesianMonoidalCategory.{v} C]
 
 namespace CartesianCopyDiscard
 
+set_option backward.elab.instanceTypes false in
 /-- Provide `ComonObj` instances using the canonical cartesian comonoid structure. -/
 abbrev instComonObjOfCartesian (X : C) : ComonObj X :=
   ((cartesianComon C).obj X).comon

@@ -77,6 +77,7 @@ open scoped UniformConvergence
 
 variable {ι X α : Type*} [TopologicalSpace X] [UniformSpace α] {F : ι → X → α}
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /-- Let `X` be a compact topological space, `α` a uniform space, and `F : ι → (X → α)` an
 equicontinuous family. Then, the uniform structures of uniform convergence and pointwise
@@ -145,6 +146,7 @@ lemma Equicontinuous.isUniformInducing_uniformFun_iff_pi [UniformSpace ι] [Comp
       ← F_eqcont.comap_uniformFun_eq]
   rfl
 
+set_option backward.elab.instanceTypes false in
 /-- Let `X` be a compact topological space, `α` a uniform space, and `F : ι → (X → α)` an
 equicontinuous family. Then, the topologies of uniform convergence and pointwise convergence induce
 the same topology on `ι`.
@@ -203,6 +205,7 @@ theorem Equicontinuous.tendsto_uniformFun_iff_pi [CompactSpace X]
       rwa [tendsto_id', nhds_induced, ← map_le_iff_le_comap, h𝒢ℱ]
     rwa [ind.tendsto_nhds_iff, comp_id, ← tendsto_map'_iff, h𝒢ℱ] at H'
 
+set_option backward.elab.instanceTypes false in
 set_option dsimp.resynthInstances.explicit false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
@@ -288,6 +291,7 @@ lemma EquicontinuousOn.isUniformInducing_uniformOnFun_iff_pi [UniformSpace ι]
       show domRestrict (⋃₀ 𝔖) ∘ F = φ.symm ∘ F by rfl]
   exact ⟨fun H ↦ φ.isUniformInducing.comp H, fun H ↦ φ.symm.isUniformInducing.comp H⟩
 
+set_option backward.elab.instanceTypes false in
 /-- Let `X` be a topological space, `𝔖` a family of compact subsets of `X`, `α` a uniform space,
 and `F : ι → (X → α)` a family which is equicontinuous on each `K ∈ 𝔖`. Then, the topologies
 of uniform convergence on `𝔖` and pointwise convergence on `⋃₀ 𝔖` induce the same topology on  `ι`.

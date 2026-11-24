@@ -386,6 +386,7 @@ protected theorem postcomp_isUniformEmbedding [UniformSpace γ] {f : γ → β}
   toIsUniformInducing := UniformFun.postcomp_isUniformInducing hf.isUniformInducing
   injective _ _ H := funext fun _ ↦ hf.injective congr($H _)
 
+set_option backward.elab.instanceTypes false in
 /-- If `u` is a uniform structures on `β` and `f : γ → β`, then
 `𝒰(α, γ, comap f u) = comap (fun g ↦ f ∘ g) 𝒰(α, γ, u₁)`. -/
 protected theorem comap_eq {f : γ → β} :
@@ -393,6 +394,7 @@ protected theorem comap_eq {f : γ → β} :
   let : UniformSpace γ := .comap f ‹_›
   exact (UniformFun.postcomp_isUniformInducing (f := f) ⟨rfl⟩).comap_uniformSpace.symm
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Post-composition by a uniformly continuous function is uniformly continuous on `α →ᵤ β`.
 
@@ -483,6 +485,7 @@ protected def uniformEquivProdArrow [UniformSpace γ] : (α →ᵤ β × γ) ≃
 -- the relevant diagram commutes by definition
 variable (α) (δ : ι → Type*) [∀ i, UniformSpace (δ i)]
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The natural bijection between `α → Π i, δ i` and `Π i, α → δ i`, upgraded to a uniform
@@ -628,6 +631,7 @@ protected theorem topologicalSpace_eq :
   simp only [UniformOnFun.topologicalSpace, UniformSpace.toTopologicalSpace_iInf]
   rfl
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 protected theorem hasBasis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι → Set (β × β)}
@@ -638,6 +642,7 @@ protected theorem hasBasis_uniformity_of_basis_aux₁ {p : ι → Prop} {s : ι 
   simp_rw [UniformOnFun.gen_eq_preimage_restrict, uniformity_comap]
   exact (UniformFun.hasBasis_uniformity_of_basis S β hb).comap _
 
+set_option backward.elab.instanceTypes false in
 protected theorem hasBasis_uniformity_of_basis_aux₂ (h : DirectedOn (· ⊆ ·) 𝔖) {p : ι → Prop}
     {s : ι → Set (β × β)} (hb : HasBasis (𝓤 β) p s) :
     DirectedOn
@@ -718,6 +723,7 @@ protected theorem isCountablyGenerated_uniformity [IsCountablyGenerated (𝓤 β
 
 variable (α β)
 
+set_option backward.elab.instanceTypes false in
 /-- For `f : α →ᵤ[𝔖] β`, where `𝔖 : Set (Set α)` is nonempty and directed, `𝓝 f` admits the
 family `{g | ∀ x ∈ S, (f x, g x) ∈ V}` for `S ∈ 𝔖` and `V ∈ 𝓑` as a filter basis, for any basis
 `𝓑` of `𝓤 β`. -/
@@ -849,6 +855,7 @@ theorem uniformContinuous_ofFun_toFun_of_mem (s : Set α) (h : s ∈ 𝔖) :
     UniformContinuous (ofFun 𝔖 ∘ toFun {s} : (α →ᵤ[𝔖] β) → α →ᵤ[{s}] β) :=
   uniformContinuous_ofFun_toFun_of_subset _ _ _ (by simpa)
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Let `u₁`, `u₂` be two uniform structures on `γ` and `𝔖₁ 𝔖₂ : Set (Set α)`. If `u₁ ≤ u₂` and
 `𝔖₂ ⊆ 𝔖₁` then `𝒱(α, γ, 𝔖₁, u₁) ≤ 𝒱(α, γ, 𝔖₂, u₂)`. -/
@@ -893,6 +900,7 @@ protected theorem inf_eq {u₁ u₂ : UniformSpace γ} :
   refine iInf_congr fun i => ?_
   cases i <;> rfl
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- If `u` is a uniform structure on `β` and `f : γ → β`, then
@@ -1135,6 +1143,7 @@ alias isClosed_setOf_continuous := isClosed_setOfPred_continuous
 
 set_option backward.isDefEq.respectTransparency false in
 variable (𝔖) in
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_eq_inf_precomp_of_cover {δ₁ δ₂ : Type*} (φ₁ : δ₁ → α) (φ₂ : δ₂ → α)
     (𝔗₁ : Set (Set δ₁)) (𝔗₂ : Set (Set δ₂))
@@ -1163,6 +1172,7 @@ theorem uniformSpace_eq_inf_precomp_of_cover {δ₁ δ₂ : Type*} (φ₁ : δ�
 
 set_option backward.isDefEq.respectTransparency false in
 variable (𝔖) in
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_eq_iInf_precomp_of_cover {δ : ι → Type*} (φ : Π i, δ i → α)
     (𝔗 : ∀ i, Set (Set (δ i))) (h_image : ∀ i, MapsTo (φ i '' ·) (𝔗 i) 𝔖)

@@ -38,6 +38,7 @@ initialize_simps_projections BddOrd (carrier → coe, -str)
 
 namespace BddOrd
 
+set_option backward.elab.instanceTypes false in
 instance : CoeSort BddOrd Type* :=
   InducedCategory.hasCoeToSort toPartOrd
 

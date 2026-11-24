@@ -196,6 +196,7 @@ instance [EDist α] : EDist (WithTop α) where
   | (x : α), ⊤ => ∞
   | (x : α), (y : α) => edist x y
 
+set_option backward.elab.instanceTypes false in
 /-- If `α` has a topology induced by a linear order and is a weak pseudo extended metric space,
 so is `WithTop α` -/
 @[to_dual]
@@ -207,6 +208,7 @@ instance instWeakPseudoEMetricSpaceWithTop [m : WeakPseudoEMetricSpace α] :
     WithTop.isOpenEmbedding_some
   inferInstanceAs <| WeakPseudoEMetricSpace (Option α)
 
+set_option backward.elab.instanceTypes false in
 /-- If `α` has a topology induced by a linear order and is a weak extended metric space,
 so is `WithTop α` -/
 @[to_dual]
@@ -224,6 +226,7 @@ instance [EDist α] : EDist (OnePoint α) where
   | (x : α), ∞ => none
   | (x : α), (y : α) => edist x y
 
+set_option backward.elab.instanceTypes false in
 /-- The one point compactification of a weak pseudo extended metric space is again a weak pseudo
 extended metric space. -/
 instance instWeakPseudoEMetricSpaceOnePoint [m : WeakPseudoEMetricSpace α] :
@@ -233,6 +236,7 @@ instance instWeakPseudoEMetricSpaceOnePoint [m : WeakPseudoEMetricSpace α] :
     (inst := instEDistOnePoint) rfl OnePoint.isOpenEmbedding_coe
   inferInstanceAs <| WeakPseudoEMetricSpace (Option α)
 
+set_option backward.elab.instanceTypes false in
 /-- The one point compactification of a weak extended metric space is again a weak extended metric
 space. -/
 instance instWeakEMetricSpaceOnePoint [m : WeakEMetricSpace α] :

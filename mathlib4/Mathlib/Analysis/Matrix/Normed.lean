@@ -580,6 +580,7 @@ theorem frobeniusNormSMulClass [SeminormedRing R] [SeminormedAddCommGroup α] [M
   letI := PiLp.normSMulClassSeminormedAddCommGroupToPi (R := R) 2 (fun _ : n ↦ α)
   PiLp.normSMulClassSeminormedAddCommGroupToPi 2 _
 
+set_option backward.elab.instanceTypes false in
 /-- Normed space instance (using the Frobenius norm) for matrices over a normed space.  Not
 declared as an instance because there are several natural choices for defining the norm of a
 matrix. -/

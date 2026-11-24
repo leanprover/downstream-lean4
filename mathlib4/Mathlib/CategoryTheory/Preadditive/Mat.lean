@@ -506,6 +506,7 @@ def Mat (_ : Type u) :=
   FintypeCat.{u}
 deriving Inhabited
 
+set_option backward.elab.instanceTypes false in
 instance (R : Type u) : CoeSort (Mat R) (Type u) :=
   FintypeCat.instCoeSort
 

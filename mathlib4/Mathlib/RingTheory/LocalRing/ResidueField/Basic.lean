@@ -183,6 +183,7 @@ variable [Algebra R S] [IsLocalHom (algebraMap R S)]
 instance : (maximalIdeal S).LiesOver (maximalIdeal R) :=
   ⟨(((local_hom_tfae (algebraMap R S)).out 1 5 rfl rfl).mp inferInstance).symm⟩
 
+set_option backward.elab.instanceTypes false in
 instance : Algebra (ResidueField R) (ResidueField S) :=
   Ideal.Quotient.algebraOfLiesOver _ _
 

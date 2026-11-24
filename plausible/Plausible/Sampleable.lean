@@ -208,12 +208,15 @@ open SampleableExt
 def mk (x : α) : NoShrink α := x
 def get (x : NoShrink α) : α := x
 
+set_option backward.elab.instanceTypes false in
 instance inhabited [inst : Inhabited α] : Inhabited (NoShrink α) := inst
+set_option backward.elab.instanceTypes false in
 instance repr [inst : Repr α] : Repr (NoShrink α) := inst
 
 instance shrinkable : Shrinkable (NoShrink α) where
   shrink := fun _ => []
 
+set_option backward.elab.instanceTypes false in
 instance arbitrary [arb : Arbitrary α] : Arbitrary (NoShrink α) := arb
 
 instance sampleableExt [SampleableExt α] [Repr α] : SampleableExt (NoShrink α) where

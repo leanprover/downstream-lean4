@@ -157,6 +157,7 @@ variable {X : TopCat.{u}} {R : X.Presheaf RingCat.{u}} (M : PresheafOfModules.{u
 variable (x : X)
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.elab.instanceTypes false in
 noncomputable
 instance : Module (R.stalk x) ↑(TopCat.Presheaf.stalk M.presheaf x) :=
   letI (i : (OpenNhds x)ᵒᵖ) : Module (((OpenNhds.inclusion x).op ⋙ R).obj i)
@@ -182,6 +183,7 @@ variable {X : TopCat.{u}} {R : X.Presheaf CommRingCat.{u}}
   (M : PresheafOfModules.{u} (R ⋙ forget₂ _ _))
 
 set_option backward.isDefEq.respectTransparency false in
+set_option backward.elab.instanceTypes false in
 noncomputable
 instance (x : X) : Module (R.stalk x) ↑(TopCat.Presheaf.stalk M.presheaf x) :=
   letI (i : (OpenNhds x)ᵒᵖ) : Module (((OpenNhds.inclusion x).op ⋙ R ⋙ forget₂ _ RingCat).obj i)

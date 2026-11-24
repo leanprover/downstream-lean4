@@ -257,6 +257,7 @@ theorem mem_range_self (f : R →+* S) (x : R) : f x ∈ f.range :=
 theorem map_range : f.range.map g = (g.comp f).range := by
   simpa only [range_eq_map] using (⊤ : Subring R).map_map g f
 
+set_option backward.elab.instanceTypes false in
 /-- The range of a ring homomorphism is a fintype, if the domain is a fintype.
 Note: this instance can form a diamond with `Subtype.fintype` in the
   presence of `Fintype S`. -/

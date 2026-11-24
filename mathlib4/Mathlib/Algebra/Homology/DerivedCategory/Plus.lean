@@ -67,6 +67,7 @@ noncomputable def Qh : HomotopyCategory.Plus C ⥤ Plus C :=
     obtain ⟨n, _⟩ := (HomotopyCategory.plus_quotient_obj_iff _).mp hK
     exact ⟨n, t.isGE_of_iso ((quotientCompQhIso C).symm.app K) n⟩)
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : (Qh : _ ⥤ Plus C).CommShift ℤ :=
   ObjectProperty.commShiftLift ..
 
@@ -225,6 +226,7 @@ noncomputable def Q : CochainComplex.Plus C ⥤ DerivedCategory.Plus C :=
   ObjectProperty.lift _ (CochainComplex.Plus.ι C ⋙ DerivedCategory.Q)
     (fun ⟨K, n, hn⟩ ↦ ⟨n, by dsimp; infer_instance⟩)
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : (Q (C := C)).CommShift ℤ := ObjectProperty.commShiftLift ..
 
 variable (C) in

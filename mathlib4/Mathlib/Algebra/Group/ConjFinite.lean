@@ -23,6 +23,7 @@ variable {α : Type*} [Monoid α]
 
 attribute [local instance] IsConj.setoid
 
+set_option backward.elab.instanceTypes false in
 instance [Fintype α] [DecidableRel (IsConj : α → α → Prop)] : Fintype (ConjClasses α) :=
   Quotient.fintype (IsConj.setoid α)
 
@@ -40,6 +41,7 @@ namespace ConjClasses
 
 variable [Fintype α] [DecidableRel (IsConj : α → α → Prop)]
 
+set_option backward.elab.instanceTypes false in
 instance {x : ConjClasses α} : Fintype (carrier x) :=
   Quotient.recOnSubsingleton x fun _ => conjugatesOf.fintype
 

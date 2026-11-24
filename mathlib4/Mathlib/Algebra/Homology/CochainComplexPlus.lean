@@ -184,6 +184,7 @@ section
 
 variable [Preadditive C] [Preadditive D] [F.Additive]
 
+set_option backward.elab.instanceTypes false in
 noncomputable instance : F.mapCochainComplexPlus.CommShift ℤ :=
   ObjectProperty.commShiftLift ..
 

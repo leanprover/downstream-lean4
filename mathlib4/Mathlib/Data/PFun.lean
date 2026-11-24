@@ -93,6 +93,7 @@ def fn (f : α →. β) (a : α) : a ∈ Dom f → β :=
 theorem fn_apply (f : α →. β) (a : α) : f.fn a = (f a).get :=
   rfl
 
+set_option backward.elab.instanceTypes false in
 /-- Evaluate a partial function to return an `Option` -/
 def evalOpt (f : α →. β) [D : DecidablePred (· ∈ Dom f)] (x : α) : Option β :=
   @Part.toOption _ _ (D x)

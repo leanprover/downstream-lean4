@@ -168,6 +168,7 @@ map. -/
 def continuousLinearMapToWeakDual : StrongDual 𝕜 E →L[𝕜] WeakDual 𝕜 E :=
   { StrongDual.toWeakDual with }
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The weak-star topology is coarser than the dual-norm topology. -/

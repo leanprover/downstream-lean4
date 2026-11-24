@@ -54,6 +54,7 @@ the diagram.
 def Quot [DecidableEq J] : Type (max u w) :=
   DFinsupp (fun j ↦ F.obj j) ⧸ Relations F
 
+set_option backward.elab.instanceTypes false in
 instance [DecidableEq J] : AddCommGroup (Quot F) :=
   QuotientAddGroup.Quotient.addCommGroup (Relations F)
 

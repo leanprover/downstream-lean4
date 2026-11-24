@@ -147,6 +147,7 @@ theorem coe_adj_sub (G' : Subgraph G) (u v : G'.verts) (h : G'.coe.Adj u v) : G.
 protected theorem Adj.coe {H : G.Subgraph} {u v : V} (h : H.Adj u v) :
     H.coe.Adj ⟨u, H.edge_vert h⟩ ⟨v, H.edge_vert h.symm⟩ := h
 
+set_option backward.elab.instanceTypes false in
 instance (G : SimpleGraph V) (H : Subgraph G) [DecidableRel H.Adj] : DecidableRel H.coe.Adj :=
   fun a b ↦ ‹DecidableRel H.Adj› _ _
 
@@ -791,6 +792,7 @@ theorem neighborSet_subset_of_subgraph {x y : Subgraph G} (h : x ≤ y) (v : V) 
     x.neighborSet v ⊆ y.neighborSet v :=
   fun _ h' ↦ h.2 h'
 
+set_option backward.elab.instanceTypes false in
 instance neighborSet.decidablePred (G' : Subgraph G) [h : DecidableRel G'.Adj] (v : V) :
     DecidablePred (· ∈ G'.neighborSet v) :=
   h v
@@ -931,6 +933,7 @@ section MkProperties
 
 variable {G : SimpleGraph V} {G' : SimpleGraph W}
 
+set_option backward.elab.instanceTypes false in
 instance (v : V) : Unique (G.singletonSubgraph v).verts :=
   Set.uniqueSingleton _
 
@@ -1370,6 +1373,7 @@ theorem subgraphOfAdj_eq_induce {v w : V} (hvw : G.Adj v w) :
       simp only [induce_adj, Set.mem_insert_iff, Set.mem_singleton_iff, top_adj] at h
       obtain ⟨rfl | rfl, rfl | rfl, ha⟩ := h <;> first | exact (ha.ne rfl).elim | simp
 
+set_option backward.elab.instanceTypes false in
 instance instDecidableRel_induce_adj (s : Set V) [∀ a, Decidable (a ∈ s)] [DecidableRel G'.Adj] :
     DecidableRel (G'.induce s).Adj :=
   fun _ _ ↦ instDecidableAnd

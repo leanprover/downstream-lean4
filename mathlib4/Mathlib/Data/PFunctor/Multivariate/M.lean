@@ -101,6 +101,7 @@ def M (α : TypeVec n) : Type _ :=
 
 instance mvfunctorM : MvFunctor P.M := by delta M; infer_instance
 
+set_option backward.elab.instanceTypes false in
 instance inhabitedM {α : TypeVec _} [I : Inhabited P.A] [∀ i : Fin2 n, Inhabited (α i)] :
     Inhabited (P.M α) :=
   @Obj.inhabited _ (mp P) _ (@PFunctor.M.inhabited P.last I) _

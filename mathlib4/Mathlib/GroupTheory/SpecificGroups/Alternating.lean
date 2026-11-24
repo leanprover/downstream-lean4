@@ -72,6 +72,7 @@ variable (α : Type*) [Fintype α] [DecidableEq α]
 def alternatingGroup : Subgroup (Perm α) :=
   sign.ker
 
+set_option backward.elab.instanceTypes false in
 instance alternatingGroup.instFintype : Fintype (alternatingGroup α) :=
   @Subtype.fintype _ _ sign.decidableMemKer _
 

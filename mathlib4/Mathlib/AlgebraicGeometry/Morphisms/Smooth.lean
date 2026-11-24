@@ -336,6 +336,7 @@ lemma Scheme.Hom.preimage_smoothLocus_eq {U : Scheme.{u}}
   rw [← CommRingCat.hom_comp, ← stalkMap_comp]
   rfl
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 lemma Scheme.Hom.genericPoint_mem_smoothLocus_of_perfectField
     {K : Type u} [Field K] [PerfectField K] [IsIntegral X]

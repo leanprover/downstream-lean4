@@ -202,6 +202,7 @@ profinite topological additive group. -/]
 abbrev ofProfinite (G : Profinite) [Group G] [IsTopologicalGroup G] :
     ProfiniteGrp := of G
 
+set_option backward.elab.instanceTypes false in
 /-- The pi-type of profinite groups is a profinite group. -/
 @[to_additive /-- The pi-type of profinite additive groups is a
 profinite additive group. -/]

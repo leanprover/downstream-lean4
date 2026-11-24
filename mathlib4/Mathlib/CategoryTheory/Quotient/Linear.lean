@@ -78,6 +78,7 @@ def module' (hr : ∀ (a : R) ⦃X Y : C⦄ (f₁ f₂ : X ⟶ Y) (_ : r f₁ f�
       dsimp [smul]
       rw [add_smul, Functor.map_add] }
 
+set_option backward.elab.instanceTypes false in
 /-- Auxiliary definition for `Quotient.linear`. -/
 @[instance_reducible]
 def module (hr : ∀ (a : R) ⦃X Y : C⦄ (f₁ f₂ : X ⟶ Y) (_ : r f₁ f₂), r (a • f₁) (a • f₂))

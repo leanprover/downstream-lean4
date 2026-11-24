@@ -116,6 +116,7 @@ theorem congr_reverse_comp {X Y : Paths <| Quiver.Symmetrify V} (p : X ⟶ Y) :
   nth_rw 2 [← Quiver.Path.reverse_reverse p]
   apply congr_comp_reverse
 
+set_option backward.elab.instanceTypes false in
 instance : Category (Quiver.FreeGroupoid V) :=
   Quotient.category redStep
 

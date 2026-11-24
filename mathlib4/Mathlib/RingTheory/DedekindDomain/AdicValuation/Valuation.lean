@@ -493,6 +493,7 @@ theorem valuationSubringAtPrime_le_valuation :
   suffices (valuation K v) (a / (s : K)) ≤ 1 by rwa [division_def (a : K) s] at this
   rwa [valuation_div_le_one_iff (K := K) v a (by aesop) (fun _ ↦ by contradiction)]
 
+set_option backward.elab.instanceTypes false in
 instance : Algebra R (valuationSubringAtPrime K v) :=
   (subalgebra.ofField K _ v.asIdeal.primeCompl_le_nonZeroDivisors).algebra'
 

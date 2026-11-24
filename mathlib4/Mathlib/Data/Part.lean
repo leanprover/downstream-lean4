@@ -240,9 +240,11 @@ set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem some_toOption (a : α) [Decidable (some a).Dom] : (some a).toOption = Option.some a :=
   dite_eq_left trivial
 
+set_option backward.elab.instanceTypes false in
 instance noneDecidable : Decidable (@none α).Dom :=
   instDecidableFalse
 
+set_option backward.elab.instanceTypes false in
 instance someDecidable (a : α) : Decidable (some a).Dom :=
   instDecidableTrue
 
@@ -337,6 +339,7 @@ protected theorem induction_on {P : Part α → Prop} (a : Part α) (hnone : P n
   (Classical.em a.Dom).elim (fun h => Part.some_get h ▸ hsome _) fun h =>
     (eq_none_iff'.2 h).symm ▸ hnone
 
+set_option backward.elab.instanceTypes false in
 instance ofOptionDecidable : ∀ o : Option α, Decidable (ofOption o).Dom
   | Option.none => Part.noneDecidable
   | Option.some a => Part.someDecidable a

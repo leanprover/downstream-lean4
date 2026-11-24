@@ -105,6 +105,7 @@ lemma finite_hasEigenvalue : Set.Finite {μ | f.HasEigenvalue μ} := by
   refine ((minpoly R f).rootSet_finite R).subset ?_
   simp [Set.subset_def, hasEigenvalue_iff_isRoot, mem_rootSet, h]
 
+set_option backward.elab.instanceTypes false in
 /-- An endomorphism of a finite-dimensional vector space has finitely many eigenvalues. -/
 noncomputable instance : Fintype f.Eigenvalues :=
   Set.Finite.fintype f.finite_hasEigenvalue

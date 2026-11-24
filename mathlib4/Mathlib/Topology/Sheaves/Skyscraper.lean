@@ -72,6 +72,7 @@ def skyscraperPresheaf : Presheaf C X where
       simp only [dite_eq_left hW, dite_eq_left hV, eqToHom_trans]
     · dsimp; rw [dite_eq_right hW]; apply ((ite_eq_right hW).symm.ndrec terminalIsTerminal).hom_ext
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem skyscraperPresheaf_eq_pushforward
     [hd : ∀ U : Opens (TopCat.of PUnit.{u + 1}), Decidable (PUnit.unit ∈ U)] :

@@ -19,6 +19,7 @@ variable {α : Type*}
 
 namespace Fintype
 
+set_option backward.elab.instanceTypes false in
 instance IsSquare.decidablePred [Mul α] [Fintype α] [DecidableEq α] :
     DecidablePred (IsSquare : α → Prop) := fun _ => Fintype.decidableExistsFintype
 

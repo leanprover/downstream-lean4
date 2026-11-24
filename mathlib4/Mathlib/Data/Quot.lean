@@ -174,6 +174,7 @@ instance lift.decidablePred (r : α → α → Prop) (f : α → Prop) (h : ∀ 
     DecidablePred (Quot.lift f h) :=
   fun q ↦ Quot.recOnSubsingleton (motive := fun _ ↦ Decidable _) q hf
 
+set_option backward.elab.instanceTypes false in
 /-- Note that this provides `DecidableRel (Quot.Lift₂ f ha hb)` when `α = β`. -/
 instance lift₂.decidablePred (r : α → α → Prop) (s : β → β → Prop) (f : α → β → Prop)
     (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
@@ -186,6 +187,7 @@ instance (r : α → α → Prop) (q : Quot r) (f : α → Prop) (h : ∀ a b, r
     Decidable (Quot.liftOn q f h) :=
   Quot.lift.decidablePred _ _ _ _
 
+set_option backward.elab.instanceTypes false in
 instance (r : α → α → Prop) (s : β → β → Prop) (q₁ : Quot r) (q₂ : Quot s) (f : α → β → Prop)
     (ha : ∀ a b₁ b₂, s b₁ b₂ → f a b₁ = f a b₂) (hb : ∀ a₁ a₂ b, r a₁ a₂ → f a₁ b = f a₂ b)
     [∀ a, DecidablePred (f a)] :
@@ -250,6 +252,7 @@ theorem map₂_mk (f : α → β → γ) (h) (x : α) (y : β) :
     Quotient.map₂ f h (⟦x⟧ : Quotient sa) (⟦y⟧ : Quotient sb) = (⟦f x y⟧ : Quotient sc) :=
   rfl
 
+set_option backward.elab.instanceTypes false in
 instance lift.decidablePred (f : α → Prop) (h : ∀ a b, a ≈ b → f a = f b) [DecidablePred f] :
     DecidablePred (Quotient.lift f h) :=
   Quot.lift.decidablePred _ _ _
@@ -763,11 +766,13 @@ theorem map'_mk {t : Setoid β} (f : α → β) (h) (x : α) :
 
 end
 
+set_option backward.elab.instanceTypes false in
 instance (q : Quotient s₁) (f : α → Prop) (h : ∀ a b, s₁ a b → f a = f b)
     [DecidablePred f] :
     Decidable (Quotient.liftOn' q f h) :=
   Quotient.lift.decidablePred _ _ q
 
+set_option backward.elab.instanceTypes false in
 instance (q₁ : Quotient s₁) (q₂ : Quotient s₂) (f : α → β → Prop)
     (h : ∀ a₁ b₁ a₂ b₂, s₁ a₁ a₂ → s₂ b₁ b₂ → f a₁ b₁ = f a₂ b₂)
     [∀ a, DecidablePred (f a)] :

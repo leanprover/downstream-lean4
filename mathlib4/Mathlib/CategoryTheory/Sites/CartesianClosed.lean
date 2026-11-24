@@ -23,6 +23,7 @@ open CategoryTheory Presheaf
 
 variable {C : Type*} [Category* C] (J : GrothendieckTopology C) (A : Type*) [Category* A]
 
+set_option backward.elab.instanceTypes false in
 instance [HasSheafify J A] [CartesianMonoidalCategory A] [MonoidalClosed (Cᵒᵖ ⥤ A)] :
     MonoidalClosed (Sheaf J A) :=
   cartesianClosedOfReflective' (sheafToPresheaf _ _) {

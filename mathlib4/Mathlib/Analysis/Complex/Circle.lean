@@ -55,6 +55,7 @@ deriving TopologicalSpace
 namespace Circle
 variable {x y : Circle}
 
+set_option backward.elab.instanceTypes false in
 instance instCoeOut : CoeOut Circle ℂ := subtypeCoe
 
 instance instCommGroup : CommGroup Circle := inferInstanceAs <| CommGroup (sphere _ _)

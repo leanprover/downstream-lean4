@@ -231,6 +231,7 @@ theorem ForgetEnrichment.of_to (X : ForgetEnrichment W C) :
     ForgetEnrichment.of W (ForgetEnrichment.to W X) = X :=
   rfl
 
+set_option backward.elab.instanceTypes false in
 instance categoryForgetEnrichment : Category (ForgetEnrichment W C) :=
   enrichedCategoryTypeEquivCategory C (inferInstanceAs (EnrichedCategory (Type w)
       (TransportEnrichment (coyoneda.obj (op (𝟙_ W))) C)))

@@ -141,8 +141,10 @@ instance [Inhabited α] : Inhabited (Multiplicative α) :=
 instance [Unique α] : Unique (Additive α) := toMul.unique
 instance [Unique α] : Unique (Multiplicative α) := toAdd.unique
 
+set_option backward.elab.instanceTypes false in
 instance [h : DecidableEq α] : DecidableEq (Multiplicative α) := h
 
+set_option backward.elab.instanceTypes false in
 instance [h : DecidableEq α] : DecidableEq (Additive α) := h
 
 instance Additive.instNontrivial [Nontrivial α] : Nontrivial (Additive α) :=

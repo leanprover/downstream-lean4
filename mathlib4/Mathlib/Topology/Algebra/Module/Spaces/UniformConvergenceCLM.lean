@@ -116,6 +116,7 @@ instance instContinuousSemilinearMapClass [TopologicalSpace F] (𝔖 : Set (Set 
     ContinuousSemilinearMapClass (E →SLᵤ[σ, 𝔖] F) σ E F :=
   inferInstanceAs <| ContinuousSemilinearMapClass (E →SL[σ] F) σ E F
 
+set_option backward.elab.instanceTypes false in
 instance instTopologicalSpace [TopologicalSpace F] [IsTopologicalAddGroup F] (𝔖 : Set (Set E)) :
     TopologicalSpace (E →SLᵤ[σ, 𝔖] F) :=
   (@UniformOnFun.topologicalSpace E F (IsTopologicalAddGroup.rightUniformSpace F) 𝔖).induced
@@ -401,12 +402,14 @@ theorem completeSpace [UniformSpace F] [IsUniformAddGroup F] [ContinuousSMul �
 
 variable {𝔖₁ 𝔖₂ : Set (Set E)}
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem uniformSpace_mono [UniformSpace F] [IsUniformAddGroup F] (h : 𝔖₂ ⊆ 𝔖₁) :
     instUniformSpace σ F 𝔖₁ ≤ instUniformSpace σ F 𝔖₂ := by
   simp_rw [uniformSpace_eq]
   exact UniformSpace.comap_monotone (UniformOnFun.mono (le_refl _) h)
 
+set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem topologicalSpace_mono [TopologicalSpace F] [IsTopologicalAddGroup F] (h : 𝔖₂ ⊆ 𝔖₁) :
     instTopologicalSpace σ F 𝔖₁ ≤ instTopologicalSpace σ F 𝔖₂ := by

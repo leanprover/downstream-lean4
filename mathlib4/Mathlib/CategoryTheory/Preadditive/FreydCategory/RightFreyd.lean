@@ -46,6 +46,7 @@ def RightFreyd :=
 instance : Category (RightFreyd V) :=
   inferInstanceAs <| Category (CategoryTheory.Quotient (rightHomotopic V))
 
+set_option backward.elab.instanceTypes false in
 /-- The category `RightFreyd V` is preadditive. -/
 instance : Preadditive (RightFreyd V) :=
   Quotient.preadditive _ (by

@@ -145,6 +145,7 @@ theorem support_comap_subset (f : V → W) (G : SimpleGraph W) :
     (G.comap f).support ⊆ f ⁻¹' G.support :=
   fun _ ⟨v, h⟩ ↦ ⟨f v, h⟩
 
+set_option backward.elab.instanceTypes false in
 instance instDecidableComapAdj (f : V → W) (G : SimpleGraph W) [DecidableRel G.Adj] :
     DecidableRel (G.comap f).Adj := fun _ _ ↦ ‹DecidableRel G.Adj› _ _
 
