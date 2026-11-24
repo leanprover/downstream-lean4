@@ -3,15 +3,14 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Components.Icon
-import VersoWeb.Components.Button.ReadMore
-import Lean
+module
+
+public import VersoWeb.Components.Button.ReadMore
+
+public section
 
 namespace Verso.Web.Components
 
-open Verso.Output.Html
 open Verso Genre Lean Blog Template
 
 def gameCard
@@ -23,15 +22,15 @@ def gameCard
     (imageSrc : String) : m Html := do
   saveCss (include_str "../../../static/style/game-card.css")
 
-  return {{
+  return html%{
     <div class="card game-info card-item white-blue-gradient">
       <div class="game-container">
-        <h4>{{ title }}</h4>
-        <p>{{ description }}</p>
-        {{ ← Button.readMore buttonUrl }}
+        <h4>{ title }</h4>
+        <p>{ description }</p>
+        { ← Button.readMore buttonUrl }
       </div>
-      <img src={{ imageSrc }} />
+      <img src={ imageSrc } />
     </div>
-  }}
+  }
 
 end Verso.Web.Components

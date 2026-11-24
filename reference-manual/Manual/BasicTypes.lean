@@ -101,7 +101,7 @@ If in doubt, use {lean}`Unit` until universe errors occur.
 
 ## Definitional Equality
 
-A {deftech}_Uuit-like type_ type is either a (non-recursive) structure type for which the type of each field is unit-like or proofs, or a function type whose codomain is a unit-like type.
+{deftech}_Unit-like types_ are inductive types that have a single constructor which takes no non-proof parameters.
 {lean}`PUnit` is one such type.
 All elements of unit-like types are {tech (key := "definitional equality")}[definitionally equal] to all other elements.
 
@@ -130,33 +130,40 @@ structure AlsoUnit where
 example (e1 e2 : AlsoUnit) : e1 = e2 := rfl
 ```
 
-Structures with parameters, such as {lean}`WithParam`, are also unit-like if all their fields's types are unit-like or proofs.
+Types with parameters, such as {lean}`WithParam`, are also unit-like if they have a single constructor that does not take parameters.
 
 ```lean
-structure WithParam (α : Type) where
-  a : α
-  a_eq_a : a = a
+inductive WithParam (n : Nat) where
+  | mk
 
-example (x y : WithParam Unit) : x = y := rfl
-```
-```lean -show
-variable {α : Type}
+example (x y : WithParam 3) : x = y := rfl
 ```
 
-Note that in this example, {lean}`WithParam α` is only unit-like if {lean}`α` is unit-like. The following fails.
+Constructors with non-proof parameters are not unit-like, even if the parameters are all unit-like types.
+```lean
+inductive NotUnitLike where
+  | mk (u : Unit)
+```
 
 ```lean +error (name := NotUnitLike)
-example (e1 e2 : WithParam Nat) : e1 = e2 := rfl
+example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
 ```
 ```leanOutput NotUnitLike
 Type mismatch
   rfl
 has type
-  ?m.3 = ?m.3
+  ?m.13 = ?m.13
 but is expected to have type
   e1 = e2
 ```
 
+Constructors of unit-like types may take parameters that are proofs.
+```lean
+inductive ProofUnitLike where
+  | mk : 2 = 2 → ProofUnitLike
+
+example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
+```
 :::
 ::::
 

@@ -37,10 +37,10 @@ attribute [scoped grind _=_] FinFun.mem_support_fn
 namespace FinFun
 
 @[inherit_doc]
-scoped infixr:25 " →₀ " => FinFun
+scoped infixr:25 (priority := high) " →₀ " => FinFun
 
 /-- Constructs a `FinFun` by restricting a function to a given support, filtering out all elements
-not mapped to 0 in the support. -/
+of the support that are mapped to 0. -/
 @[scoped grind .]
 def fromFun {α β : Type*} [Zero β] [DecidableEq α]
   [∀ y : β, Decidable (y = 0)] (fn : α → β) (support : Finset α) : α →₀ β where

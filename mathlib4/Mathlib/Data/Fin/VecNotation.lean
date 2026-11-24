@@ -382,7 +382,7 @@ def vecAlt0 (hm : m = n + n) (v : Fin m → α) (k : Fin n) : α := v ⟨(k : �
 /-- `vecAlt1 v` gives a vector with half the length of `v`, with
 only alternate elements (odd-numbered). -/
 def vecAlt1 (hm : m = n + n) (v : Fin m → α) (k : Fin n) : α :=
-  v ⟨(k : ℕ) + k + 1, hm.symm ▸ Nat.add_succ_lt_add k.2 k.2⟩
+  v ⟨(k : ℕ) + k + 1, hm.symm ▸ Nat.add_succ_lt_add k.isLt k.isLt⟩
 
 section bits
 
@@ -408,11 +408,10 @@ theorem vecAlt1_vecAppend (v : Fin (n + 1) → α) :
     simp only [Nat.zero_add, Nat.lt_one_iff] at hi; subst i; rfl
   | succ n =>
     split_ifs with h <;> congr
-    · simp only [Nat.one_mod, Nat.mod_add_mod]
-      rw [← Nat.mod_eq_of_lt h, Nat.mod_mod]
+    · simp [Nat.mod_eq_of_lt, h]
     · rw [Fin.val_mk, not_lt] at h
-      simp only [Nat.reduceSubDiff, show 1 % (n + 2) = 1 from Nat.mod_eq_of_lt (by lia),
-        Nat.mod_add_mod, Nat.mod_eq_sub_mod h]
+      simp only [Nat.mod_add_mod,
+        Nat.mod_eq_sub_mod h, show 1 % (n + 2) = 1 from Nat.mod_eq_of_lt (by lia)]
       refine (Nat.mod_eq_of_lt ?_).symm
       lia
 

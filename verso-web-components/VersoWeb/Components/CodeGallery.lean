@@ -3,7 +3,13 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
+module
+
+public import VersoBlog.Basic
 import VersoWeb.Components.Icon
+import VersoWeb.Util
+
+public section
 
 open Lean Elab Term
 open Verso Output.Html
@@ -24,48 +30,48 @@ block_component codeGallery where
     let chunks := content.chunk 4
 
     let tabs ← chunks.mapIdxM fun idx chunk => do
-      return {{
-        <div class=s!"code-gallery-tab{if idx == 0 then " active" else ""}" role="tab" aria-selected={{if idx = 0 then "true" else "false"}}>
-          {{ ← goB <| chunk[0]! }}
+      return html%{
+        <div class={s!"code-gallery-tab{if idx == 0 then " active" else ""}"} role="tab" aria-selected={if idx = 0 then "true" else "false"}>
+          { ← goB <| chunk[0]! }
         </div>
-      }}
+      }
 
     let snippets ← chunks.mapIdxM fun idx chunk => do
-      return {{
-        <div class=s!"code-gallery-snippet{if idx == 0 then " visible-code" else ""}">
-          {{ ← goB <| chunk[1]! }}
+      return html%{
+        <div class={s!"code-gallery-snippet{if idx == 0 then " visible-code" else ""}"}>
+          { ← goB <| chunk[1]! }
         </div>
-      }}
+      }
 
     let tips ← chunks.mapIdxM fun idx chunk => do
-      return {{
-        <div class=s!"code-gallery-tip{if idx == 0 then " active" else ""}">
+      return html%{
+        <div class={s!"code-gallery-tip{if idx == 0 then " active" else ""}"}>
           <span>
-            {{ ← goB <| chunk[2]! }}
+            { ← goB <| chunk[2]! }
           </span>
-          <a class="code-gallery-run" href={{extractBlock chunk[3]! |>.getD ""}}>
-            {{ Icon.arrowRight (fill := "#386EE0") (width := "25px") }}
+          <a class="code-gallery-run" href={extractBlock chunk[3]! |>.getD ""}>
+            { Icon.arrowRight (fill := "#386EE0") (width := "25px") }
           </a>
         </div>
-      }}
+      }
 
-    return {{
+    return html%{
       <div class="code-gallery-box">
         <div class="code-gallery-tabs" role="tablist">
-          {{ tabs}}
+          { tabs }
           <div class="code-gallery-tab filler"></div>
           <div class="code-gallery-tab-border"></div>
         </div>
         <div class="code-gallery-content" tabindex="-1">
-          {{ snippets}}
+          { snippets }
         </div>
         <div class="code-gallery-footer">
           <div class="code-gallery-footer-left">
-            {{ tips }}
+            { tips }
           </div>
         </div>
       </div>
-    }}
+    }
 
 
 end Verso.Web.Components

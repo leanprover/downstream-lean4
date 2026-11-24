@@ -449,6 +449,10 @@ theorem ofBijective_apply [NonUnitalRingHomClass F R S] (f : F) (hf : Function.B
     (x : R) : ofBijective f hf x = f x :=
   rfl
 
+-- TODO: Make simp once `toEquiv` is simp nf
+lemma toEquiv_ofBijective [NonUnitalRingHomClass F R S] (f : F) (hf : Function.Bijective f) :
+    (ofBijective f hf).toEquiv = .ofBijective f hf := rfl
+
 @[simp]
 lemma ofBijective_symm_comp (f : R →ₙ+* S) (hf : Function.Bijective f) :
     ((RingEquiv.ofBijective f hf).symm : _ →ₙ+* _).comp f = NonUnitalRingHom.id R := by
@@ -570,11 +574,11 @@ def prodCongr {R R' S S' : Type*} [NonUnitalNonAssocSemiring R] [NonUnitalNonAss
     R × S ≃+* R' × S' where
   toEquiv := Equiv.prodCongr f g
   map_mul' _ _ := by
-    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, Prod.map, EquivLike.coe_coe, map_mul,
-      Prod.mk_mul_mk]
+    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, EquivLike.coe_coe,
+      Prod.map, map_mul, Prod.mk_mul_mk]
   map_add' _ _ := by
-    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, Prod.map, EquivLike.coe_coe, map_add,
-      Prod.mk_add_mk]
+    simp only [Equiv.toFun_as_coe, Equiv.prodCongr_apply, EquivLike.coe_coe,
+      Prod.map, map_add, Prod.mk_add_mk]
 
 @[simp]
 theorem coe_prodCongr {R R' S S' : Type*} [NonUnitalNonAssocSemiring R]

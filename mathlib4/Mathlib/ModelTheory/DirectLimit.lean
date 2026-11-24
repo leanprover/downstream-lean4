@@ -235,8 +235,7 @@ theorem funMap_quotient_mk'_sigma_mk' {n : ℕ} {F : L.Functions n} {i : ι} {x 
   simp only [funMap_quotient_mk', Quotient.eq]
   obtain ⟨k, ik, jk⟩ :=
     directed_of (· ≤ ·) i (Classical.choose (Finite.bddAbove_range fun _ : Fin n => i))
-  refine ⟨k, jk, ik, (?_ : (f (Classical.choose _) k jk) (funMap F (unify f _ _ _)) =
-  (f i k ik) (funMap F x))⟩
+  refine ⟨k, jk, ik, ?_⟩
   simp only [Embedding.map_fun, comp_unify]
   rfl
 
@@ -318,7 +317,7 @@ substructure in some component of the directed system. -/
 theorem exists_fg_substructure_in_Sigma (S : L.Substructure (DirectLimit G f)) (S_fg : S.FG) :
     ∃ i, ∃ T : L.Substructure (G i), T.map (of L ι G f i).toHom = S := by
   let ⟨A, A_closure⟩ := S_fg
-  let ⟨i, y, eq_y⟩ := exists_quotient_mk'_sigma_mk'_eq G _ (fun a : A ↦ a.1)
+  let ⟨i, y, eq_y⟩ := exists_quotient_mk'_sigma_mk'_eq G _ (fun a : A ↦ a.val)
   use i
   use Substructure.closure L (range y)
   rw [Substructure.map_closure]

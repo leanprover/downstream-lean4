@@ -3,12 +3,13 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import Lean.Elab
-import VersoBlog
+module
+
+public import VersoBlog.Template
+
+public section
 
 open Lean (Html)
-open Verso.Output.Html
 open Verso.Genre.Blog Template
 
 namespace Verso.Web.Components
@@ -65,14 +66,14 @@ Renders a Citation as HTML for display in a blog post or page.
 def render [MonadStateOf Component.State m] [Monad m] (citation : Citation) : m Html := do
   saveCss (include_str "../../static/style/citation.css")
 
-  return {{
+  return html%{
     <div class="citation-item">
-        <span class="citation-authors">{{ citation.authors }}</span>
-        <span class="citation-title">{{ citation.title }}</span>
-        <span class="citation-venue">{{ citation.venue }}</span>
-        <span class="citation-year">{{ citation.date }} </span>
-        <span class="citation-pages">{{ citation.pages }}</span>
+        <span class="citation-authors">{ citation.authors }</span>
+        <span class="citation-title">{ citation.title }</span>
+        <span class="citation-venue">{ citation.venue }</span>
+        <span class="citation-year">{ citation.date }</span>
+        <span class="citation-pages">{ citation.pages }</span>
     </div>
-  }}
+  }
 
 end Verso.Web.Components.Citation

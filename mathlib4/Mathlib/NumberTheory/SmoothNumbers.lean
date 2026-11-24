@@ -196,7 +196,7 @@ given by `(e, n) ↦ p^e * n` when `p ∉ s` is a prime. See `Nat.factoredNumber
 when `p` is not prime. -/
 def equivProdNatFactoredNumbers {s : Finset ℕ} {p : ℕ} (hp : p.Prime) (hs : p ∉ s) :
     ℕ × factoredNumbers s ≃ factoredNumbers (insert p s) where
-  toFun := fun ⟨e, n⟩ ↦ ⟨p ^ e * n, pow_mul_mem_factoredNumbers hp e n.2⟩
+  toFun := fun ⟨e, n⟩ ↦ ⟨p ^ e * n, pow_mul_mem_factoredNumbers hp e n.property⟩
   invFun := fun ⟨m, _⟩  ↦ (m.factorization p,
                             ⟨(m.primeFactorsList.filter (· ∈ s)).prod, prod_mem_factoredNumbers ..⟩)
   left_inv := by
@@ -213,7 +213,7 @@ def equivProdNatFactoredNumbers {s : Finset ℕ} {p : ℕ} (hp : p.Prime) (hs : 
         filter_eq_self.mpr <| by grind]
   right_inv := by
     rintro ⟨m, hm₀, hm⟩
-    simp_rw [Subtype.mk.injEq, ← primeFactorsList_count_eq, ← prod_replicate, ← prod_append]
+    rw [Subtype.mk.injEq, ← primeFactorsList_count_eq, ← prod_replicate, ← prod_append]
     conv_rhs => rw [← prod_primeFactorsList hm₀]
     have : m.primeFactorsList.filter (· = p) = m.primeFactorsList.filter (· ∉ s) :=
       filter_congr <| by grind

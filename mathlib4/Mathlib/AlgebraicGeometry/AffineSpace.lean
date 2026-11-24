@@ -21,7 +21,6 @@ public import Mathlib.AlgebraicGeometry.Morphisms.Smooth
 - `AlgebraicGeometry.AffineSpace.homOverEquiv`:
   `S`-morphisms into `Spec 𝔸(n; S)` are equivalent to the choice of `n` global sections.
 - `AlgebraicGeometry.AffineSpace.SpecIso`: `𝔸(n; Spec R) ≅ Spec R[n]`
-
 -/
 
 @[expose] public section
@@ -68,7 +67,6 @@ instance over : 𝔸(n; S).CanonicallyOver S where
 /-- The map from the affine `n`-space over `S` to the integral model `Spec ℤ[n]`. -/
 def toSpecMvPoly : 𝔸(n; S) ⟶ Spec ℤ[n] := pullback.snd _ _
 
-set_option backward.defeqAttrib.useBackward true in
 /--
 Morphisms into `Spec ℤ[n]` are equivalent the choice of `n` global sections.
 Use `homOverEquiv` instead.
@@ -150,11 +148,11 @@ instance {X : Scheme.{u}} [X.Over S] (v : n → Γ(X, ⊤)) :
 @[simps]
 def homOverEquiv {X : Scheme.{u}} [X.Over S] :
     { f : X ⟶ 𝔸(n; S) // f.IsOver S } ≃ (n → Γ(X, ⊤)) where
-  toFun f i := f.1.appTop (coord S i)
+  toFun f i := f.val.appTop (coord S i)
   invFun v := ⟨homOfVector (X ↘ S) v, inferInstance⟩
   left_inv f := by
     ext : 2
-    · simp [f.2.1]
+    · simp [f.property.comp_over]
     · rw [homOfVector_appTop_coord]
   right_inv v := by ext i; simp [-TopologicalSpace.Opens.map_top, homOfVector_appTop_coord]
 
@@ -307,7 +305,6 @@ lemma map_SpecMap {R S : CommRingCat.{u}} (φ : R ⟶ S) :
     rw [SpecIso_inv_appTop_coord, ← CommRingCat.comp_apply, ← Scheme.ΓSpecIso_inv_naturality,
         CommRingCat.comp_apply, ConcreteCategory.hom_ofHom, map_X]
 
-set_option backward.defeqAttrib.useBackward true in
 /-- The map between affine spaces over affine bases is
 isomorphic to the natural map between polynomial rings. -/
 def mapSpecMap {R S : CommRingCat.{u}} (φ : R ⟶ S) :
@@ -484,8 +481,7 @@ lemma isIntegralHom_over_iff_isEmpty : IsIntegralHom (𝔸(n; S) ↘ S) ↔ IsEm
         (arrowIsoΓSpecOfIsAffine _)).mpr h.2 (X i)
     have : (rename fun _ ↦ i).comp (uniqueAlgEquiv.{_, u} _ PUnit).symm.toAlgHom p = 0 := by
       simp [← hp', ← algebraMap_eq]
-    rw [AlgHom.comp_apply,
-      map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl (α := PUnit.{u + 1})))] at this
+    rw [AlgHom.comp_apply, map_eq_zero_iff _ (rename_injective _ (fun _ _ _ ↦ rfl))] at this
     simp only [AlgEquiv.coe_toAlgHom, EmbeddingLike.map_eq_zero_iff] at this
     simp [this] at hp
   · rintro (_ | _) <;> infer_instance
