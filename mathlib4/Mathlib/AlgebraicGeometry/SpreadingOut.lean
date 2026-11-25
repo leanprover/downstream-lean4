@@ -129,7 +129,6 @@ lemma Scheme.IsGermInjective.of_openCover
   infer_instance
 
 set_option backward.isDefEq.respectTransparency false in
-set_option backward.elab.instanceTypes false in
 protected
 lemma Scheme.IsGermInjective.Spec
     (H : ∀ I : Ideal R, I.IsPrime →

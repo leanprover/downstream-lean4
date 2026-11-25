@@ -60,21 +60,17 @@ instance decidableMemIio [Decidable (x < b)] : Decidable (x ∈ Iio b) := by ass
 @[to_dual]
 instance decidableMemIic [Decidable (x ≤ b)] : Decidable (x ∈ Iic b) := by assumption
 
-set_option backward.elab.instanceTypes false in
 @[to_dual self (reorder := a b, 6 7)]
 instance decidableMemIoo [Decidable (a < x)] [Decidable (x < b)] : Decidable (x ∈ Ioo a b) :=
   instDecidableAnd
 
-set_option backward.elab.instanceTypes false in
 instance decidableMemIco [Decidable (a ≤ x)] [Decidable (x < b)] : Decidable (x ∈ Ico a b) :=
   instDecidableAnd
 
-set_option backward.elab.instanceTypes false in
 @[to_dual self (reorder := a b, 6 7)]
 instance decidableMemIcc [Decidable (a ≤ x)] [Decidable (x ≤ b)] : Decidable (x ∈ Icc a b) :=
   instDecidableAnd
 
-set_option backward.elab.instanceTypes false in
 @[to_dual existing (reorder := a b, 6 7)]
 instance decidableMemIoc [Decidable (a < x)] [Decidable (x ≤ b)] : Decidable (x ∈ Ioc a b) :=
   instDecidableAnd

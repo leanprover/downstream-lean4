@@ -31,7 +31,6 @@ variable {α : Type*} {x : α} {f g : α → α}
 def fixedPoints (f : α → α) : Set α :=
   { x : α | IsFixedPt f x }
 
-set_option backward.elab.instanceTypes false in
 instance fixedPoints.decidable [DecidableEq α] (f : α → α) (x : α) :
     Decidable (x ∈ fixedPoints f) :=
   IsFixedPt.decidable

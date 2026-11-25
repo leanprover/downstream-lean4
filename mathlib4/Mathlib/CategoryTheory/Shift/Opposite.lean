@@ -83,7 +83,6 @@ def OppositeShift (A : Type*) [AddMonoid A] [HasShift C A] := Cᵒᵖ
 
 instance : Category (OppositeShift C A) := inferInstanceAs (Category Cᵒᵖ)
 
-set_option backward.elab.instanceTypes false in
 instance : HasShift (OppositeShift C A) A :=
   hasShiftMk Cᵒᵖ A (HasShift.mkShiftCoreOp C A)
 

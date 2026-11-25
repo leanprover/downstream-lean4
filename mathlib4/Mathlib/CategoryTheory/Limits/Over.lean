@@ -50,7 +50,6 @@ instance [HasColimits C] : HasColimits (Over X) :=
 instance [HasFiniteCoproducts C] : HasFiniteCoproducts (Over X) where
   out := inferInstance
 
-set_option backward.elab.instanceTypes false in
 instance createsColimitsOfSize : CreatesColimitsOfSize.{w, w'} (forget X) :=
   CostructuredArrow.createsColimitsOfSize
 
@@ -67,7 +66,6 @@ theorem epi_left_of_epi [HasPushouts C] {f g : Over X} (h : f ⟶ g) [Epi h] : E
 theorem epi_iff_epi_left [HasPushouts C] {f g : Over X} (h : f ⟶ g) : Epi h ↔ Epi h.left :=
   CostructuredArrow.epi_iff_epi_left _
 
-set_option backward.elab.instanceTypes false in
 instance createsColimitsOfSizeMapCompForget {Y : C} (f : X ⟶ Y) :
     CreatesColimitsOfSize.{w, w'} (map f ⋙ forget Y) :=
   show CreatesColimitsOfSize.{w, w'} (forget X) from inferInstance
@@ -120,7 +118,6 @@ theorem mono_right_of_mono [HasPullbacks C] {f g : Under X} (h : f ⟶ g) [Mono 
 theorem mono_iff_mono_right [HasPullbacks C] {f g : Under X} (h : f ⟶ g) : Mono h ↔ Mono h.right :=
   StructuredArrow.mono_iff_mono_right _
 
-set_option backward.elab.instanceTypes false in
 instance createsLimitsOfSize : CreatesLimitsOfSize.{w, w'} (forget X) :=
   StructuredArrow.createsLimitsOfSize
 
@@ -131,7 +128,6 @@ example [HasLimits C] : PreservesLimits (forget X) :=
 example : ReflectsLimits (forget X) :=
   inferInstance
 
-set_option backward.elab.instanceTypes false in
 instance createLimitsOfSizeMapCompForget {Y : C} (f : X ⟶ Y) :
     CreatesLimitsOfSize.{w, w'} (map f ⋙ forget X) :=
   show CreatesLimitsOfSize.{w, w'} (forget Y) from inferInstance

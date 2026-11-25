@@ -217,7 +217,6 @@ instance {β : α → Type*} [∀ a, LE (β a)] [∀ a, DecidableLE (β a)] [Fin
     DecidableLE (∀ a, β a) :=
   fun _ _ ↦ decidable_of_iff _ Pi.le_def.symm
 
-set_option backward.elab.instanceTypes false in
 instance decidableMemRangeFintype [Fintype α] [DecidableEq β] (f : α → β) :
     DecidablePred (· ∈ Set.range f) := fun _ => Fintype.decidableExistsFintype
 

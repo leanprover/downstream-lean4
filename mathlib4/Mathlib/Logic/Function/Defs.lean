@@ -220,7 +220,6 @@ def IsFixedPt (f : α → α) (x : α) := f x = x
 protected theorem IsFixedPt.eq {f : α → α} {x : α} (hf : IsFixedPt f x) : f x = x :=
   hf
 
-set_option backward.elab.instanceTypes false in
 instance IsFixedPt.decidable [h : DecidableEq α] {f : α → α} {x : α} : Decidable (IsFixedPt f x) :=
   h (f x) x
 

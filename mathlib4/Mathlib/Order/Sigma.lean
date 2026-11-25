@@ -164,7 +164,6 @@ instance partialOrder [Preorder ι] [∀ i, PartialOrder (α i)] :
 
 
 
-set_option backward.elab.instanceTypes false in
 /-- The lexicographical linear order on a sigma type. -/
 instance linearOrder [LinearOrder ι] [∀ i, LinearOrder (α i)] :
     LinearOrder (Σₗ i, α i) :=

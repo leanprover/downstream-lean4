@@ -69,7 +69,6 @@ theorem pushoutCocone_pt :
     (pushoutCocone R A B).pt = ↧(A ⊗[R] B) :=
   rfl
 
-set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Verify that the `pushout_cocone` is indeed the colimit. -/
 def pushoutCoconeIsColimit : Limits.IsColimit (pushoutCocone R A B) :=

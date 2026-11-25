@@ -113,7 +113,6 @@ namespace CommShift₂
 attribute [instance_reducible] commShiftObj commShiftFlipObj
 attribute [instance] commShiftObj commShiftFlipObj commShift_map commShift_flip_map
 
-set_option backward.elab.instanceTypes false in
 instance precomp₁ {M : Type*} [AddCommMonoid M] [HasShift C₁ M] [HasShift C₁' M]
     [HasShift C₂ M] [HasShift D M] (F : C₁' ⥤ C₁) [F.CommShift M]
     (G : C₁ ⥤ C₂ ⥤ D) (h : CommShift₂Setup D M) [G.CommShift₂ h] :
@@ -130,7 +129,6 @@ instance precomp₁ {M : Type*} [AddCommMonoid M] [HasShift C₁ M] [HasShift C�
     rw [NatTrans.shift_app (G.map ((F.commShiftIso m).hom.app X₁')) n X₂]
     simp [this]
 
-set_option backward.elab.instanceTypes false in
 instance precomp₂ {M : Type*} [AddCommMonoid M] [HasShift C₁ M] [HasShift C₂' M]
     [HasShift C₂ M] [HasShift D M] (F : C₂' ⥤ C₂) [F.CommShift M]
     (G : C₁ ⥤ C₂ ⥤ D) (h : CommShift₂Setup D M) [G.CommShift₂ h] :

@@ -36,7 +36,6 @@ instance : PreservesLimitsOfShape J (shrinkYonedaMon.{max w v} (C := C)) :=
     (inferInstance : PreservesLimitsOfShape J (Mon.forget C ⋙ shrinkYoneda.{max w v}))
   preservesLimitsOfShape_of_reflects_of_preserves _ ((whiskeringRight _ _ _).obj (forget MonCat))
 
-set_option backward.elab.instanceTypes false in
 /-- An auxiliary construction in order to prove that `Grp.forget₂Mon` creates limits. -/
 noncomputable def Grp.limitAux (F : J ⥤ Grp C) : Grp C where
   X := (limit (F ⋙ forget₂Mon C)).X

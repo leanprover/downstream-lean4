@@ -283,7 +283,6 @@ lemma shift_quotient_obj (K : HomologicalComplex C (.up ℤ)) (n : ℤ) :
     (HomotopyCategory.quotient _ _).obj (K⟦n⟧) :=
   Quotient.functor_obj_shift ..
 
-set_option backward.elab.instanceTypes false in
 noncomputable instance commShiftQuotient :
     (HomotopyCategory.quotient C (ComplexShape.up ℤ)).CommShift ℤ :=
   Quotient.functor_commShift (homotopic C (ComplexShape.up ℤ)) ℤ
@@ -309,7 +308,6 @@ section
 variable {C}
 variable (F : C ⥤ D) [F.Additive]
 
-set_option backward.elab.instanceTypes false in
 noncomputable instance : (F.mapHomotopyCategory (ComplexShape.up ℤ)).CommShift ℤ :=
   Quotient.liftCommShift _ _ _ _
 

@@ -798,7 +798,6 @@ variable [SMulCommClass R Rᵐᵒᵖ M]
   let := invertibleFstOfInvertible x
   ext <;> simp [fst_invOf, snd_invOf]
 
-set_option backward.elab.instanceTypes false in
 protected theorem mul_inv_cancel {x : tsze R M} (hx : fst x ≠ 0) : x * x⁻¹ = 1 := by
   have : Invertible x.fst := Units.invertible (.mk0 _ hx)
   have := invertibleOfInvertibleFst x

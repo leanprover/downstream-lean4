@@ -59,7 +59,6 @@ namespace GradedObject
 
 variable {C : Type u} [Category.{v} C]
 
-set_option backward.elab.instanceTypes false in
 @[simps!]
 instance categoryOfGradedObjects (β : Type w) : Category.{max w v} (GradedObject β C) :=
   CategoryTheory.pi fun _ => C

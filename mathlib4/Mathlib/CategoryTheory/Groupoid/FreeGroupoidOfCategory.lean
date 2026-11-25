@@ -67,7 +67,6 @@ def FreeGroupoid := Quotient (FreeGroupoid.homRel C)
 instance [Nonempty C] : Nonempty (FreeGroupoid C) :=
   ⟨Quotient.mk (Quotient.mk ((Paths.of _).obj (Classical.arbitrary C)))⟩
 
-set_option backward.elab.instanceTypes false in
 instance : Groupoid (FreeGroupoid C) :=
   Quotient.groupoid (FreeGroupoid.homRel C)
 

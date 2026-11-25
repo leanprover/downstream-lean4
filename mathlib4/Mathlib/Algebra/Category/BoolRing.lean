@@ -98,7 +98,6 @@ end BoolRing
 /-! ### Equivalence between `BoolAlg` and `BoolRing` -/
 
 -- We have to add this instance since Lean doesn't see through `X.toBddDistLat`.
-set_option backward.elab.instanceTypes false in
 instance {X : BoolAlg} :
     BooleanAlgebra ↑(BddDistLat.toBddLat (X.toBddDistLat)).toLat :=
   BoolAlg.str _

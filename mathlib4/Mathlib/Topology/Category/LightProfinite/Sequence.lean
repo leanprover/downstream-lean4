@@ -57,7 +57,6 @@ scoped notation "ℕ∪{∞}" => NatUnionInfty
 
 instance : Countable ℕ∪{∞} := (inferInstance : Countable <| Option _)
 
-set_option backward.elab.instanceTypes false in
 instance : Coe ℕ ℕ∪{∞} := optionCoe
 
 open Filter

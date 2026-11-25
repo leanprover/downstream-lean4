@@ -139,7 +139,6 @@ def _root_.CategoryTheory.InducedCategory.homLinearEquiv
 
 end InducedCategory
 
-set_option backward.elab.instanceTypes false in
 instance fullSubcategory (Z : ObjectProperty C) : Linear.{w, v} R Z.FullSubcategory :=
   inducedCategory _
 

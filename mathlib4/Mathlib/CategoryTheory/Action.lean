@@ -139,7 +139,6 @@ section Group
 
 variable {G : Type*} [Group G] [MulAction G X]
 
-set_option backward.elab.instanceTypes false in
 instance : Groupoid (ActionCategory G X) :=
   Functor.Elements.groupoid _
 

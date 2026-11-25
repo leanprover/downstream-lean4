@@ -76,7 +76,6 @@ The functor from `LightProfinite` to `LightCondSet` preserves finite limits.
 instance : PreservesFiniteLimits lightProfiniteToLightCondSet.{u} where
   preservesFiniteLimits _ := inferInstance
 
-set_option backward.elab.instanceTypes false in
 /--
 The functor from `LightProfinite` to `LightCondSet` is monoidal with respect to the cartesian
 monoidal structure.

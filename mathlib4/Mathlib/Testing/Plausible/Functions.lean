@@ -386,21 +386,18 @@ end InjectiveFunction
 
 open Function
 
-set_option backward.elab.instanceTypes false in
 instance Injective.testable (f : α → β)
     [I : Testable (NamedBinder "x" <|
       ∀ x : α, NamedBinder "y" <| ∀ y : α, NamedBinder "H" <| f x = f y → x = y)] :
     Testable (Injective f) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance Monotone.testable [Preorder α] [Preorder β] (f : α → β)
     [I : Testable (NamedBinder "x" <|
       ∀ x : α, NamedBinder "y" <| ∀ y : α, NamedBinder "H" <| x ≤ y → f x ≤ f y)] :
     Testable (Monotone f) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance Antitone.testable [Preorder α] [Preorder β] (f : α → β)
     [I : Testable (NamedBinder "x" <|
       ∀ x : α, NamedBinder "y" <| ∀ y : α, NamedBinder "H" <| x ≤ y → f y ≤ f x)] :

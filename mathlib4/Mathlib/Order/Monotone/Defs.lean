@@ -120,29 +120,21 @@ section Decidable
 
 variable [Preorder α] [Preorder β] {f : α → β} {s : Set α}
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a b, a ≤ b → f a ≤ f b)] : Decidable (Monotone f) := i
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a b, a ≤ b → f b ≤ f a)] : Decidable (Antitone f) := i
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a ∈ s, ∀ b ∈ s, a ≤ b → f a ≤ f b)] :
     Decidable (MonotoneOn f s) := i
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a ∈ s, ∀ b ∈ s, a ≤ b → f b ≤ f a)] :
     Decidable (AntitoneOn f s) := i
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a b, a < b → f a < f b)] : Decidable (StrictMono f) := i
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a b, a < b → f b < f a)] : Decidable (StrictAnti f) := i
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a ∈ s, ∀ b ∈ s, a < b → f a < f b)] :
     Decidable (StrictMonoOn f s) := i
 
-set_option backward.elab.instanceTypes false in
 instance [i : Decidable (∀ a ∈ s, ∀ b ∈ s, a < b → f b < f a)] :
     Decidable (StrictAntiOn f s) := i
 

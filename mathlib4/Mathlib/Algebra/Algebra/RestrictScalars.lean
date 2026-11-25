@@ -80,13 +80,10 @@ over a field of characteristic zero and wishes to make use of the `ℚ`-algebra 
 @[nolint unusedArguments]
 def RestrictScalars (_R _S M : Type*) : Type _ := M
 
-set_option backward.elab.instanceTypes false in
 instance [I : Inhabited M] : Inhabited (RestrictScalars R S M) := I
 
-set_option backward.elab.instanceTypes false in
 instance [I : AddCommMonoid M] : AddCommMonoid (RestrictScalars R S M) := I
 
-set_option backward.elab.instanceTypes false in
 instance [I : AddCommGroup M] : AddCommGroup (RestrictScalars R S M) := I
 
 section Module
@@ -95,7 +92,6 @@ section
 
 variable [Semiring S] [AddCommMonoid M]
 
-set_option backward.elab.instanceTypes false in
 /-- We temporarily install an action of the original ring on `RestrictScalars R S M`. -/
 @[instance_reducible]
 def RestrictScalars.moduleOrig [I : Module S M] : Module S (RestrictScalars R S M) := I
@@ -114,7 +110,6 @@ The preferred way of setting this up is `[Module R M] [Module S M] [IsScalarTowe
 abbrev Module.restrictScalars [Module S M] : Module R M :=
   Module.compHom M (algebraMap R S)
 
-set_option backward.elab.instanceTypes false in
 /-- When `M` is a module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
 module structure over `R`.
 
@@ -136,7 +131,6 @@ instance RestrictScalars.isScalarTower [Module S M] : IsScalarTower R S (Restric
 
 end
 
-set_option backward.elab.instanceTypes false in
 /-- When `M` is a right-module over a ring `S`, and `S` is an algebra over `R`, then `M` inherits a
 right-module structure over `R`.
 The preferred way of setting this up is
@@ -199,16 +193,12 @@ end Module
 
 section Algebra
 
-set_option backward.elab.instanceTypes false in
 instance [I : Semiring A] : Semiring (RestrictScalars R S A) := I
 
-set_option backward.elab.instanceTypes false in
 instance [I : Ring A] : Ring (RestrictScalars R S A) := I
 
-set_option backward.elab.instanceTypes false in
 instance [I : CommSemiring A] : CommSemiring (RestrictScalars R S A) := I
 
-set_option backward.elab.instanceTypes false in
 instance [I : CommRing A] : CommRing (RestrictScalars R S A) := I
 
 variable [Semiring A]
@@ -229,7 +219,6 @@ theorem RestrictScalars.ringEquiv_map_smul (r : R) (x : RestrictScalars R S A) :
 abbrev Algebra.restrictScalars : Algebra R A :=
   Algebra.compHom A (algebraMap R S)
 
-set_option backward.elab.instanceTypes false in
 /-- `R ⟶ S` induces `S-Alg ⥤ R-Alg` -/
 instance RestrictScalars.algebra : Algebra R (RestrictScalars R S A) :=
   Algebra.restrictScalars R S A

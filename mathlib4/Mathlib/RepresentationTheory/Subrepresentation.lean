@@ -171,7 +171,6 @@ def ofSubmodule (N : Submodule A[G] M) :
 @[simp]
 lemma mem_ofSubmodule_iff {N : Submodule A[G] M} {m : M} : m ∈ ofSubmodule N ↔ m ∈ N := by rfl
 
-set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency false in
 /-- An `A[G]`-submodule of `ρ.asModule` can be thought of as a subrepresentation of `ρ`.
 -/

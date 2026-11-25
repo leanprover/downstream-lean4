@@ -375,7 +375,6 @@ end
 
 section Fintype
 
-set_option backward.elab.instanceTypes false in
 instance {R : Type*} [Fintype R] : Fintype (TruncatedWittVector p n R) :=
   Pi.instFintype
 

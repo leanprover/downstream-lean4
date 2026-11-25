@@ -118,7 +118,6 @@ lemma measurableSet_countableFiltration_countablePartitionSet (n : ℕ) (t : α)
     MeasurableSet[countableFiltration α n] (countablePartitionSet n t) :=
   measurableSet_countableFiltration_of_mem n (countablePartitionSet_mem n t)
 
-set_option backward.elab.instanceTypes false in
 lemma measurable_countablePartitionSet_subtype (n : ℕ)
     (m : MeasurableSpace (countablePartition α n)) :
     @Measurable α (countablePartition α n) (countableFiltration α n) m

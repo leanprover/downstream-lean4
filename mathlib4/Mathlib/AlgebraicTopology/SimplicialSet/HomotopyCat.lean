@@ -469,7 +469,6 @@ instance subsingleton_hom (X : Truncated.{u} 2) [Unique (X _⦋0⦌₂)] [Subsin
     inferInstanceAs (Subsingleton <| X.Edge _ _)
   CategoryTheory.Quotient.instSubsingletonHom _ _ _
 
-set_option backward.elab.instanceTypes false in
 instance (X : Truncated.{u} 2) [Unique (X _⦋0⦌₂)] : Unique X.HomotopyCategory :=
   letI : Unique (OneTruncation₂ X) := inferInstanceAs (Unique (X _⦋0⦌₂))
   CategoryTheory.Quotient.instUnique _

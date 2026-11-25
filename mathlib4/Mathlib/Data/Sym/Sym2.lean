@@ -592,7 +592,6 @@ theorem diagSet_eq_univ_of_subsingleton [Subsingleton α] : @diagSet α = Set.un
 instance IsDiag.decidablePred (α : Type u) [DecidableEq α] : DecidablePred (@IsDiag α) :=
   fun z => z.recOnSubsingleton fun _ _ => decidable_of_iff' _ mk_isDiag_iff
 
-set_option backward.elab.instanceTypes false in
 instance decidablePred_mem_diagSet (α : Type u) [DecidableEq α] : DecidablePred (· ∈ @diagSet α) :=
   IsDiag.decidablePred _
 
@@ -677,7 +676,6 @@ theorem mem_fromRel_irrefl_other_ne {sym : Std.Symm r} (irrefl : Std.Irrefl r) {
     {z : Sym2 α} (hz : z ∈ fromRel sym) (h : a ∈ z) : Mem.other h ≠ a :=
   other_ne (fromRel_irrefl.mp irrefl hz) h
 
-set_option backward.elab.instanceTypes false in
 instance fromRel.decidablePred (sym : Std.Symm r) [h : DecidableRel r] :
     DecidablePred (· ∈ Sym2.fromRel sym) := fun z => z.recOnSubsingleton h
 

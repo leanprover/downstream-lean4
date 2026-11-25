@@ -59,7 +59,6 @@ theorem IsOrderedMonoid.ofSubmonoid :
   letI := PartialOrder.ofSubmonoid hM
   { mul_le_mul_left := fun a b nab c ↦ by simpa [· ≤ ·] using nab }
 
-set_option backward.elab.instanceTypes false in
 /-- Construct a linear order by designating
 a maximal submonoid with zero support in an abelian group. -/
 @[to_additive (attr := implicit_reducible)

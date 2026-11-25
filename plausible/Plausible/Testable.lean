@@ -445,7 +445,6 @@ where
     return imp (· <| Classical.ofNonempty) finalR (PSum.inr <| fun x _ => x)
 
 universe u in
-set_option backward.elab.instanceTypes false in
 instance (priority := 2000) subtypeVarTestable {α : Type u} {p : α → Prop} {β : α → Prop}
     [∀ x, PrintableProp (p x)]
     [∀ x, Testable (β x)]

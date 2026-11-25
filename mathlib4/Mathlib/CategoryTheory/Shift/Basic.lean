@@ -162,7 +162,6 @@ variable [HasShift C A]
 def shiftMonoidalFunctor : Discrete A ⥤ C ⥤ C :=
   HasShift.shift
 
-set_option backward.elab.instanceTypes false in
 instance : (shiftMonoidalFunctor C A).Monoidal := HasShift.shiftMonoidal
 
 variable {A}

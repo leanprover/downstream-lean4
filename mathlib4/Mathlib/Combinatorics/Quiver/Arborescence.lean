@@ -46,7 +46,6 @@ class Arborescence (V : Type u) [Quiver.{v} V] : Type max u v where
 def root (V : Type u) [Quiver V] [Arborescence V] : V :=
   Arborescence.root
 
-set_option backward.elab.instanceTypes false in
 instance {V : Type u} [Quiver V] [Arborescence V] (b : V) : Unique (Path (root V) b) :=
   Arborescence.uniquePath b
 

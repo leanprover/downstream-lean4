@@ -65,7 +65,6 @@ theorem one_eq : (1 : Skeleton C) = toSkeleton (𝟙_ C) := rfl
 theorem toSkeleton_tensorObj (X Y : C) : toSkeleton (X ⊗ Y) = toSkeleton X * toSkeleton Y :=
   let φ := (skeletonEquivalence C).symm.unitIso.app; Quotient.sound ⟨φ X ⊗ᵢ φ Y⟩
 
-set_option backward.elab.instanceTypes false in
 /-- The skeleton of a braided monoidal category has a braided monoidal structure itself, induced by
 the equivalence. -/
 noncomputable instance instBraidedCategory [BraidedCategory C] : BraidedCategory (Skeleton C) :=
@@ -92,11 +91,8 @@ noncomputable instance : (skeletonEquivalence C).inverse.Monoidal :=
 
 variable {D : Type*} [Category* D] [MonoidalCategory D] (F : C ⥤ D) (e : C ≌ D)
 
-set_option backward.elab.instanceTypes false in
 noncomputable instance [F.LaxMonoidal] : F.mapSkeleton.LaxMonoidal := .comp ..
-set_option backward.elab.instanceTypes false in
 noncomputable instance [F.OplaxMonoidal] : F.mapSkeleton.OplaxMonoidal := .comp ..
-set_option backward.elab.instanceTypes false in
 noncomputable instance [F.Monoidal] : F.mapSkeleton.Monoidal := .instComp ..
 
 /-- A monoidal functor between skeletal monoidal categories induces a monoid homomorphism. -/

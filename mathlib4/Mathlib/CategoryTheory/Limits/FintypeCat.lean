@@ -49,7 +49,6 @@ noncomputable instance inclusionCreatesFiniteLimits {J : Type} [SmallCategory J]
   CreatesLimit {K} := createsLimitOfFullyFaithfulOfIso
     ↧(limit <| K ⋙ FintypeCat.incl) (Iso.refl _)
 
-set_option backward.elab.instanceTypes false in
 /-- Help typeclass inference to infer creation of finite limits for the forgetful functor. -/
 noncomputable instance {J : Type} [SmallCategory J] [FinCategory J] :
     CreatesLimitsOfShape J (forget FintypeCat) :=
@@ -124,7 +123,6 @@ noncomputable instance inclusionCreatesFiniteColimits {J : Type} [SmallCategory 
   CreatesColimit {K} := createsColimitOfFullyFaithfulOfIso
     ↧(colimit <| K ⋙ FintypeCat.incl) (Iso.refl _)
 
-set_option backward.elab.instanceTypes false in
 /-- Help typeclass inference to infer creation of finite colimits for the forgetful functor. -/
 noncomputable instance {J : Type} [SmallCategory J] [FinCategory J] :
     CreatesColimitsOfShape J (forget FintypeCat) :=

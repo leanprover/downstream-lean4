@@ -41,7 +41,6 @@ protected abbrev normedCommGroup [NormedCommGroup β] (e : α ≃ β) : NormedCo
 
 end Equiv
 
-set_option backward.elab.instanceTypes false in
 /-- Transfer `NormedSpace` across an `AddEquiv` -/
 protected abbrev AddEquiv.normedSpace (𝕜 : Type*) [NormedField 𝕜]
     [AddCommGroup α] [SeminormedAddCommGroup β] [NormedSpace 𝕜 β] (e : α ≃+ β) :

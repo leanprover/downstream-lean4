@@ -32,7 +32,6 @@ section
 
 variable {c : Cocone (F ⋙ forget₂ _ RingCat)} [IsFilteredOrEmpty J]
 
-set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in

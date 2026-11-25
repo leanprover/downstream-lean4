@@ -420,7 +420,6 @@ variable {α : Type*} {s t : Set α}
 lemma diagonal_nonempty [Nonempty α] : (diagonal α).Nonempty :=
   Nonempty.elim ‹_› fun x => ⟨_, mem_diagonal x⟩
 
-set_option backward.elab.instanceTypes false in
 instance decidableMemDiagonal [h : DecidableEq α] (x : α × α) : Decidable (x ∈ diagonal α) :=
   h x.1 x.2
 

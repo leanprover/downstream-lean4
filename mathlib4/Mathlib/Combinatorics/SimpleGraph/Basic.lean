@@ -613,7 +613,6 @@ theorem edge_other_ne {e : Sym2 V} (he : e ∈ G.edgeSet) {v : V} (h : v ∈ e) 
   rw [← Sym2.other_spec h, Sym2.eq_swap] at he
   exact G.ne_of_adj he
 
-set_option backward.elab.instanceTypes false in
 instance decidableMemEdgeSet [DecidableRel G.Adj] : DecidablePred (· ∈ G.edgeSet) :=
   Sym2.fromRel.decidablePred G.symm
 

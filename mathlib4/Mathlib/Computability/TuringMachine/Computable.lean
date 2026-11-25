@@ -94,7 +94,6 @@ instance inhabitedStmt : Inhabited (Stmt tm) :=
 def Cfg : Type :=
   Turing.TM2.Cfg tm.Γ tm.Λ tm.σ
 
-set_option backward.elab.instanceTypes false in
 instance inhabitedCfg : Inhabited (Cfg tm) :=
   Turing.TM2.Cfg.inhabited _ _ _
 

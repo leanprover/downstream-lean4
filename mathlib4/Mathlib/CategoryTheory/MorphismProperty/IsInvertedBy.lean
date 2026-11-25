@@ -111,7 +111,6 @@ lemma FunctorsInverting.ext {W : MorphismProperty C} {F₁ F₂ : FunctorsInvert
   subst h
   rfl
 
-set_option backward.elab.instanceTypes false in
 instance (W : MorphismProperty C) (D : Type*) [Category* D] : Category (FunctorsInverting W D) :=
   ObjectProperty.FullSubcategory.category _
 

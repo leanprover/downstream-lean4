@@ -188,7 +188,6 @@ local notation a "∣∣" b => a ∣ b ∧ (a * a)∤b
 
 local notation "𝕊" => AddCircle T
 
-set_option backward.elab.instanceTypes false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- **Gallagher's ergodic theorem** on Diophantine approximation. -/
 theorem addWellApproximable_ae_empty_or_univ (δ : ℕ → ℝ) (hδ : Tendsto δ atTop (𝓝 0)) :

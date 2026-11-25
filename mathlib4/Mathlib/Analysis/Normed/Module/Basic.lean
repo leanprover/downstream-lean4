@@ -434,52 +434,42 @@ section RestrictScalars
 
 section NormInstances
 
-set_option backward.elab.instanceTypes false in
 instance [I : SeminormedAddCommGroup E] :
     SeminormedAddCommGroup (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NormedAddCommGroup E] :
     NormedAddCommGroup (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NonUnitalSeminormedRing E] :
     NonUnitalSeminormedRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NonUnitalNormedRing E] :
     NonUnitalNormedRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : SeminormedRing E] :
     SeminormedRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NormedRing E] :
     NormedRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NonUnitalSeminormedCommRing E] :
     NonUnitalSeminormedCommRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NonUnitalNormedCommRing E] :
     NonUnitalNormedCommRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : SeminormedCommRing E] :
     SeminormedCommRing (RestrictScalars 𝕜 𝕜' E) :=
   I
 
-set_option backward.elab.instanceTypes false in
 instance [I : NormedCommRing E] :
     NormedCommRing (RestrictScalars 𝕜 𝕜' E) :=
   I
@@ -520,7 +510,6 @@ instance RestrictScalars.normedSpace : NormedSpace 𝕜 (RestrictScalars 𝕜 �
 
 -- If you think you need this, consider instead reproducing `RestrictScalars.lsmul`
 -- appropriately modified here.
-set_option backward.elab.instanceTypes false in
 /-- The action of the original `NormedField` on `RestrictScalars 𝕜 𝕜' E`.
 This is not an instance as it would be contrary to the purpose of `RestrictScalars`.
 -/
@@ -557,7 +546,6 @@ instance RestrictScalars.normedAlgebra : NormedAlgebra 𝕜 (RestrictScalars �
 
 -- If you think you need this, consider instead reproducing `RestrictScalars.lsmul`
 -- appropriately modified here.
-set_option backward.elab.instanceTypes false in
 /-- The action of the original `NormedField` on `RestrictScalars 𝕜 𝕜' E`.
 This is not an instance as it would be contrary to the purpose of `RestrictScalars`.
 -/

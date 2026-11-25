@@ -80,7 +80,6 @@ namespace IsPeriodicPt
 theorem of_subsingleton [Subsingleton α] (f : α → α) (n : ℕ) (x : α) : IsPeriodicPt f n x :=
   IsFixedPt.of_subsingleton _ _
 
-set_option backward.elab.instanceTypes false in
 instance [DecidableEq α] {f : α → α} {n : ℕ} {x : α} : Decidable (IsPeriodicPt f n x) :=
   IsFixedPt.decidable
 

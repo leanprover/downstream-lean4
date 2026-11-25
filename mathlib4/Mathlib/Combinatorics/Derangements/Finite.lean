@@ -35,7 +35,6 @@ open derangements Equiv Fintype
 
 variable {α : Type*} [DecidableEq α] [Fintype α]
 
-set_option backward.elab.instanceTypes false in
 instance : DecidablePred (· ∈ derangements α) := fun _ => Fintype.decidableForallFintype
 
 example : Fintype (derangements α) := inferInstance

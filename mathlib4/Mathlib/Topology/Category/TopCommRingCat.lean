@@ -83,7 +83,6 @@ instance hasForgetToCommRingCat : HasForget₂ TopCommRingCat CommRingCat :=
   HasForget₂.mk' (fun R => ↧R) (fun _ => rfl)
     (fun f => CommRingCat.ofHom f.val) HEq.rfl
 
-set_option backward.elab.instanceTypes false in
 instance forgetToCommRingCatTopologicalSpace (R : TopCommRingCat) :
     TopologicalSpace ((forget₂ TopCommRingCat CommRingCat).obj R) :=
   R.isTopologicalSpace
@@ -92,7 +91,6 @@ instance forgetToCommRingCatTopologicalSpace (R : TopCommRingCat) :
 instance hasForgetToTopCat : HasForget₂ TopCommRingCat TopCat :=
   HasForget₂.mk' (fun R => ↧R) (fun _ => rfl) (fun f => TopCat.ofHom ⟨⇑f.val, f.property⟩) HEq.rfl
 
-set_option backward.elab.instanceTypes false in
 instance forgetToTopCatCommRing (R : TopCommRingCat) :
     CommRing ((forget₂ TopCommRingCat TopCat).obj R) :=
   R.isCommRing

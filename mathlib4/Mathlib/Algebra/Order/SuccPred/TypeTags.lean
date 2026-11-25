@@ -18,14 +18,10 @@ public section
 
 variable {X : Type*}
 
-set_option backward.elab.instanceTypes false in
 instance [Preorder X] [h : SuccOrder X] : SuccOrder (Multiplicative X) := h
-set_option backward.elab.instanceTypes false in
 instance [Preorder X] [h : SuccOrder X] : SuccOrder (Additive X) := h
 
-set_option backward.elab.instanceTypes false in
 instance [Preorder X] [h : PredOrder X] : PredOrder (Multiplicative X) := h
-set_option backward.elab.instanceTypes false in
 instance [Preorder X] [h : PredOrder X] : PredOrder (Additive X) := h
 
 instance [Preorder X] [SuccOrder X] [h : IsSuccArchimedean X] :

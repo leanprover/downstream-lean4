@@ -109,13 +109,11 @@ instance Colex.partialOrder [PartialOrder N] : PartialOrder (Colex (α →₀ N)
   __ := PartialOrder.lift (fun x : Colex (α →₀ N) ↦ toColex (⇑(ofColex x)))
     (DFunLike.coe_injective (F := Finsupp α N))
 
-set_option backward.elab.instanceTypes false in
 /-- The linear order on `Finsupp`s obtained by the lexicographic ordering. -/
 instance Lex.linearOrder [LinearOrder N] : LinearOrder (Lex (α →₀ N)) where
   __ := Lex.partialOrder
   __ := LinearOrder.lift' (toLex ∘ toDFinsupp ∘ ofLex) finsuppEquivDFinsupp.injective
 
-set_option backward.elab.instanceTypes false in
 /-- The linear order on `Finsupp`s obtained by the colexicographic ordering. -/
 instance Colex.linearOrder [LinearOrder N] : LinearOrder (Colex (α →₀ N)) where
   lt := (· < ·)

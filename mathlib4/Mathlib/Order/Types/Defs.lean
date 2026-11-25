@@ -66,7 +66,6 @@ This is defined through the axiom of choice. -/
 def ToType (o : OrderType) : Type u :=
   o.out.carrier
 
-set_option backward.elab.instanceTypes false in
 /-- The instance for some arbitrary linear order on `Type u` , order isomorphic within
 order type `o`. -/
 @[no_expose]

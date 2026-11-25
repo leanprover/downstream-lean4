@@ -145,7 +145,6 @@ namespace RestrictScalars
 
 variable [h : LieRing L]
 
-set_option backward.elab.instanceTypes false in
 instance : LieRing (RestrictScalars R A L) :=
   h
 

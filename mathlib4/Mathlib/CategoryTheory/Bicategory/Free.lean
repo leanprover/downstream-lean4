@@ -37,7 +37,6 @@ open Bicategory
 def FreeBicategory (B : Type u) :=
   B
 
-set_option backward.elab.instanceTypes false in
 instance (B : Type u) : ∀ [Inhabited B], Inhabited (FreeBicategory B) := by
   intro h
   exact id h

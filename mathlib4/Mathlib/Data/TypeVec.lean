@@ -405,7 +405,6 @@ i.e. its first argument can be fed in separately from the rest of the vector of 
 def Curry (F : TypeVec.{u} (n + 1) → Type*) (α : Type u) (β : TypeVec.{u} n) : Type _ :=
   F (β ::: α)
 
-set_option backward.elab.instanceTypes false in
 instance Curry.inhabited (F : TypeVec.{u} (n + 1) → Type*) (α : Type u) (β : TypeVec.{u} n)
     [I : Inhabited (F (β ::: α))] : Inhabited (Curry F α β) :=
   I

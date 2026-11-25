@@ -47,7 +47,6 @@ instance : Inhabited Grpd :=
 instance str' (C : Grpd.{v, u}) : Groupoid.{v, u} C.α :=
   C.str
 
-set_option backward.elab.instanceTypes false in
 instance : CoeSort Grpd Type* :=
   Bundled.coeSort
 

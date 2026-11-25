@@ -114,7 +114,6 @@ to the lattice of open subsets of `X`. More generally, if `C` is a topos, this i
 def Subterminals (C : Type u₁) [Category.{v₁} C] :=
   ObjectProperty.FullSubcategory fun A : C => IsSubterminal A
 
-set_option backward.elab.instanceTypes false in
 instance (C : Type u₁) [Category.{v₁} C] : Category (Subterminals C) :=
   ObjectProperty.FullSubcategory.category _
 

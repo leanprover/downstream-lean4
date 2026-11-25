@@ -98,7 +98,6 @@ def Order.Preimage (f : α → β) (s : β → β → Prop) (x y : α) : Prop :=
 
 @[inherit_doc] infixl:80 " ⁻¹'o " => Order.Preimage
 
-set_option backward.elab.instanceTypes false in
 /-- The preimage of a decidable order is decidable. -/
 instance Order.Preimage.decidable (f : α → β) (s : β → β → Prop) [H : DecidableRel s] :
     DecidableRel (f ⁻¹'o s) := fun _ _ ↦ H _ _

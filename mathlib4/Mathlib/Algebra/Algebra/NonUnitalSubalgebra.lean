@@ -519,7 +519,6 @@ theorem mem_equalizer (φ ψ : A →ₙₐ[R] B) (x : A) :
     x ∈ NonUnitalAlgHom.equalizer φ ψ ↔ φ x = ψ x :=
   Iff.rfl
 
-set_option backward.elab.instanceTypes false in
 /-- The range of a morphism of algebras is a fintype, if the domain is a fintype.
 
 Note that this instance can cause a diamond with `Subtype.fintype` if `B` is also a fintype. -/

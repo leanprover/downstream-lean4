@@ -66,7 +66,6 @@ that is fixed by the `[HasLocalization W]` instance. -/
 @[implicit_reducible]
 def Localization' := HasLocalization.D W
 
-set_option backward.elab.instanceTypes false in
 instance : Category W.Localization' := HasLocalization.hD
 
 /-- The localization functor `C ⥤ W.Localization'`

@@ -352,7 +352,6 @@ variable {K Γ}
 instance Γ'.inhabited : Inhabited (Γ' K Γ) :=
   ⟨⟨false, fun _ ↦ none⟩⟩
 
-set_option backward.elab.instanceTypes false in
 instance Γ'.fintype [DecidableEq K] [Fintype K] [∀ k, Fintype (Γ k)] : Fintype (Γ' K Γ) :=
   instFintypeProd _ _
 

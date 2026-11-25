@@ -40,7 +40,6 @@ def optionEquiv : Option C ≃ WithTerminal C where
 instance instFintype [Fintype C] : Fintype (WithTerminal C) :=
   .ofEquiv (Option C) <| optionEquiv C
 
-set_option backward.elab.instanceTypes false in
 instance instFinCategory [SmallCategory C] [FinCategory C] :
     FinCategory (WithTerminal C) where
   fintypeObj := inferInstance
@@ -69,7 +68,6 @@ def optionEquiv : Option C ≃ WithInitial C where
 instance instFintype [Fintype C] : Fintype (WithInitial C) :=
   .ofEquiv (Option C) <| optionEquiv C
 
-set_option backward.elab.instanceTypes false in
 instance instFinCategory [SmallCategory C] [FinCategory C] :
     FinCategory (WithInitial C) where
   fintypeObj := inferInstance

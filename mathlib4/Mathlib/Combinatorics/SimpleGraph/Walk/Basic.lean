@@ -372,7 +372,6 @@ theorem coe_edges_toFinset [DecidableEq V] {u v : V} (p : G.Walk u v) :
 theorem finite_edgeSet (p : G.Walk v w) : p.edgeSet.Finite :=
   p.edges.finite_toSet
 
-set_option backward.elab.instanceTypes false in
 /-- The edge set of a walk is a `Fintype`. -/
 @[implicit_reducible]
 def fintypeEdgeSet [DecidableEq V] (p : G.Walk v w) : Fintype p.edgeSet :=

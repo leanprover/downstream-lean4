@@ -279,7 +279,6 @@ instance fintypeDiff [DecidableEq α] (s t : Set α) [Fintype s] [Fintype t] :
     Fintype (s \ t : Set α) :=
   Fintype.ofFinset (s.toFinset \ t.toFinset) <| by simp
 
-set_option backward.elab.instanceTypes false in
 instance fintypeDiffLeft (s t : Set α) [Fintype s] [DecidablePred (· ∈ t)] :
     Fintype (s \ t : Set α) :=
   Set.fintypeSep s (· ∈ tᶜ)
@@ -341,7 +340,6 @@ instance fintypeLTNat (n : ℕ) : Fintype { i | i < n } :=
 instance fintypeLENat (n : ℕ) : Fintype { i | i ≤ n } := by
   simpa [Nat.lt_succ_iff] using Set.fintypeLTNat (n + 1)
 
-set_option backward.elab.instanceTypes false in
 /-- This is not an instance so that it does not conflict with the one
 in `Mathlib/Order/Interval/Finset/Defs.lean`. -/
 @[instance_reducible]

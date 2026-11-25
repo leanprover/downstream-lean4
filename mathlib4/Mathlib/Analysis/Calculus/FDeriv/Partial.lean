@@ -55,7 +55,6 @@ theorem isLittleO_sub_sub_fderiv
 variable {𝕜 E₁ E₂ F : Type*} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E₁] [NormedSpace 𝕜 E₁]
   [NormedAddCommGroup E₂] [NormedSpace 𝕜 E₂] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
 
-set_option backward.elab.instanceTypes false in
 set_option backward.defeqAttrib.useBackward true in
 /-- If bivariate `f : E₁ → E₂ → F` has partial derivatives `f₁` and `f₂` in a neighbourhood of
 `u : E₁ × E₂` and if they are continuous there then the uncurried function `↿f` is strictly

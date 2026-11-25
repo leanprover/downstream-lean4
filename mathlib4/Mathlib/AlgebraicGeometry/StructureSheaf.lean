@@ -169,22 +169,18 @@ functions satisfying `isLocallyFraction`. -/
 def structureSheafInType : Sheaf (Type u) (PrimeSpectrum.Top R) :=
   subsheafToTypes (isLocallyFraction R M)
 
-set_option backward.elab.instanceTypes false in
 instance (U : (Opens (PrimeSpectrum.Top R))ᵒᵖ) :
     AddCommGroup ((structureSheafInType R M).obj.obj U) :=
   (sectionsSubmodule M U.unop).toAddSubgroup.toAddCommGroup
 
-set_option backward.elab.instanceTypes false in
 instance (U : (Opens (PrimeSpectrum.Top R))ᵒᵖ) :
     Module R ((structureSheafInType R M).obj.obj U) :=
   (sectionsSubmodule M U.unop).module
 
-set_option backward.elab.instanceTypes false in
 instance (U : (Opens (PrimeSpectrum.Top R))ᵒᵖ) :
     CommRing ((structureSheafInType R A).obj.obj U) :=
   (sectionsSubalgebra A U.unop).toCommRing
 
-set_option backward.elab.instanceTypes false in
 instance (U : (Opens (PrimeSpectrum.Top R))ᵒᵖ) :
     Algebra R ((structureSheafInType R A).obj.obj U) :=
   (sectionsSubalgebra A U.unop).algebra
@@ -900,7 +896,6 @@ theorem algebraMap_self_map (U V : (Opens (PrimeSpectrum.Top R))ᵒᵖ) (i : V �
       CommRingCat.ofHom (algebraMap R _) :=
   rfl
 
-set_option backward.elab.instanceTypes false in
 instance stalkAlgebra (p : PrimeSpectrum R) : Algebra R ((structureSheaf R).presheaf.stalk p) :=
   (toStalk R p).hom.toAlgebra
 

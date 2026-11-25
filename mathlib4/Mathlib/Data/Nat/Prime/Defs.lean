@@ -438,7 +438,6 @@ instance instDecidablePredPrime : DecidablePred (_root_.Prime : ℕ → Prop) :=
 theorem irreducible_iff_prime {p : ℕ} : Irreducible p ↔ _root_.Prime p :=
   prime_iff
 
-set_option backward.elab.instanceTypes false in
 instance instDecidablePredIrreducible : DecidablePred (Irreducible : ℕ → Prop) :=
   decidablePrime
 

@@ -49,7 +49,6 @@ open CategoryTheory Simplicial
 `SSet` of simplicial sets. -/
 abbrev QCat := ObjectProperty.FullSubcategory Quasicategory
 
-set_option backward.elab.instanceTypes false in
 /-- `QCat` obtains a `Cat`-enriched ordinary category structure by applying `hoFunctor` to the
 hom objects in its `SSet`-enriched ordinary structure. -/
 instance QCat.catEnrichedOrdinaryCategory : EnrichedOrdinaryCategory Cat QCat :=
@@ -62,7 +61,6 @@ equivalent to `QCat`. -/
 def QCat.forgetEnrichment.equiv :
     ForgetEnrichment Cat QCat ≌ QCat := ForgetEnrichment.equiv Cat
 
-set_option backward.elab.instanceTypes false in
 /-- The bicategory of quasicategories extracted from `QCat.CatEnrichedOrdinaryCat`. -/
 instance QCat.bicategory : Bicategory QCat :=
   CatEnrichedOrdinary.instBicategory

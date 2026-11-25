@@ -590,7 +590,6 @@ theorem rangeRestrict_surjective (f : A →ₐ[R] B) : Function.Surjective (f.ra
     let ⟨x, hx⟩ := hy
     ⟨x, SetCoe.ext hx⟩
 
-set_option backward.elab.instanceTypes false in
 /-- The range of a morphism of algebras is a fintype, if the domain is a fintype.
 
 Note that this instance can cause a diamond with `Subtype.fintype` if `B` is also a fintype. -/

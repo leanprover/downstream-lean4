@@ -16,7 +16,6 @@ public section
 
 variable {G : Type*} [Group G]
 
-set_option backward.elab.instanceTypes false in
 instance [Fintype G] [DecidablePred (· ∈ commutator G)] : Fintype (Group.Abelianization G) :=
   QuotientGroup.fintype (commutator G)
 

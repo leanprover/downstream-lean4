@@ -410,7 +410,6 @@ abbrev GeneralizedBooleanAlgebra.toNonUnitalCommRing [GeneralizedBooleanAlgebra 
   nsmul := letI : Zero α := ⟨⊥⟩; letI : Add α := ⟨(· ∆ ·)⟩; nsmulRec
   zsmul := letI : Zero α := ⟨⊥⟩; letI : Add α := ⟨(· ∆ ·)⟩; letI : Neg α := ⟨id⟩; zsmulRec
 
-set_option backward.elab.instanceTypes false in
 instance [GeneralizedBooleanAlgebra α] : NonUnitalCommRing (AsBoolRing α) :=
   @GeneralizedBooleanAlgebra.toNonUnitalCommRing α _
 

@@ -37,7 +37,6 @@ namespace Cat
 
 namespace HasLimits
 
-set_option backward.elab.instanceTypes false in
 instance categoryObjects {F : J ⥤ Cat.{u, u}} {j} :
     SmallCategory ((F ⋙ Cat.objects.{u, u}).obj j) :=
   (F.obj j).str

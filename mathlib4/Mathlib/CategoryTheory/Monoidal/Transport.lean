@@ -173,7 +173,6 @@ def transport (e : C ≌ D) : MonoidalCategory.{v₂} D :=
 @[nolint unusedArguments]
 def Transported (_ : C ≌ D) := D
 
-set_option backward.elab.instanceTypes false in
 instance (e : C ≌ D) : Category (Transported e) := (inferInstance : Category D)
 
 instance Transported.instMonoidalCategoryStruct (e : C ≌ D) :
@@ -201,7 +200,6 @@ instance : (equivalenceTransported e).inverse.Monoidal := by
 instance : (equivalenceTransported e).symm.functor.Monoidal :=
   inferInstanceAs (equivalenceTransported e).inverse.Monoidal
 
-set_option backward.elab.instanceTypes false in
 noncomputable instance : (equivalenceTransported e).functor.Monoidal :=
   (equivalenceTransported e).symm.inverseMonoidal
 
