@@ -49,6 +49,7 @@ def IsRegular (a : α) : Prop :=
 protected theorem IsRegular.eq : IsRegular a → aᶜᶜ = a :=
   id
 
+set_option linter.checkRespectTransparency.instances false in
 instance IsRegular.decidablePred [DecidableEq α] : @DecidablePred α IsRegular := fun _ =>
   ‹DecidableEq α› _ _
 

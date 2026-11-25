@@ -104,6 +104,7 @@ def iso {Y X : C} (f : Y ≅ X) : ChosenPullbacksAlong f.hom where
   mapPullbackAdj.unit.app T := Over.homMk (𝟙 T.left)
   mapPullbackAdj.counit.app U := Over.homMk (𝟙 _)
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The inverse of an isomorphism has a functorial choice of pullbacks. -/
 @[simps!, instance_reducible]
 def isoInv {Y X : C} (f : Y ≅ X) : ChosenPullbacksAlong f.inv := iso f.symm

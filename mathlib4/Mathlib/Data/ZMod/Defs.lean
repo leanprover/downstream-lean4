@@ -149,8 +149,10 @@ instance ZMod.repr : ∀ n : ℕ, Repr (ZMod n)
 
 namespace ZMod
 
+set_option linter.checkRespectTransparency.instances false in
 instance instUnique : Unique (ZMod 1) := Fin.instUnique
 
+set_option linter.checkRespectTransparency.instances false in
 instance fintype : ∀ (n : ℕ) [NeZero n], Fintype (ZMod n)
   | 0, h => (h.ne _ rfl).elim
   | n + 1, _ => Fin.fintype (n + 1)

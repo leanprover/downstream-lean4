@@ -102,12 +102,14 @@ protected def rec {motive : WithLower α → Sort*} (toLower : ∀ a, motive (to
   toLower (ofLower a)
 
 instance [Nonempty α] : Nonempty (WithLower α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithLower α) := ‹Inhabited α›
 
 section Preorder
 
 variable [Preorder α] {s : Set α}
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Preorder (WithLower α) := ‹Preorder α›
 instance : TopologicalSpace (WithLower α) := lower (WithLower α)
 
@@ -127,7 +129,9 @@ theorem continuous_toLower [TopologicalSpace α] [ClosedIciTopology α] :
 
 end Preorder
 
+set_option linter.checkRespectTransparency.instances false in
 instance [PartialOrder α] : PartialOrder (WithLower α) := ‹PartialOrder α›
+set_option linter.checkRespectTransparency.instances false in
 instance [LinearOrder α] : LinearOrder (WithLower α) := ‹LinearOrder α›
 
 end WithLower
@@ -156,12 +160,14 @@ protected def rec {motive : WithUpper α → Sort*} (toUpper : ∀ a, motive (to
   toUpper (ofUpper a)
 
 instance [Nonempty α] : Nonempty (WithUpper α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithUpper α) := ‹Inhabited α›
 
 section Preorder
 
 variable [Preorder α] {s : Set α}
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Preorder (WithUpper α) := ‹Preorder α›
 instance : TopologicalSpace (WithUpper α) := upper (WithUpper α)
 
@@ -180,7 +186,9 @@ theorem continuous_toUpper [TopologicalSpace α] [ClosedIicTopology α] :
 
 end Preorder
 
+set_option linter.checkRespectTransparency.instances false in
 instance [PartialOrder α] : PartialOrder (WithUpper α) := ‹PartialOrder α›
+set_option linter.checkRespectTransparency.instances false in
 instance [LinearOrder α] : LinearOrder (WithUpper α) := ‹LinearOrder α›
 
 end WithUpper

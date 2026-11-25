@@ -493,6 +493,7 @@ set_option backward.isDefEq.respectTransparency.types false in
 lemma spec_le_iff (R : CommRingCat) (p q : Spec R) : p ≤ q ↔ q.asIdeal ≤ p.asIdeal := by
   aesop (add simp PrimeSpectrum.le_iff_specializes)
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 /--
 One should bear this equality in mind when breaking the `Spec R/ PrimeSpectrum R` abstraction

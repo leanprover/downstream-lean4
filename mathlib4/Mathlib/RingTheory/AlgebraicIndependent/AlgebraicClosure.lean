@@ -35,6 +35,7 @@ include hx
 
 namespace AlgebraicIndependent
 
+set_option linter.checkRespectTransparency.instances false in
 theorem extendScalars [alg : Algebra.IsAlgebraic R S] : AlgebraicIndependent S x := by
   refine algebraicIndependent_of_finite_type'
     (Algebra.IsAlgebraic.injective_tower_top S hx.algebraMap_injective) fun t fin ind i hi ↦ ?_

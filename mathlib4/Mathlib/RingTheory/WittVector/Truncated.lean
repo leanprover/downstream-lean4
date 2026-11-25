@@ -375,6 +375,7 @@ end
 
 section Fintype
 
+set_option linter.checkRespectTransparency.instances false in
 instance {R : Type*} [Fintype R] : Fintype (TruncatedWittVector p n R) :=
   Pi.instFintype
 

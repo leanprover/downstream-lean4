@@ -532,6 +532,7 @@ instance decidableNonnegg (c d) : DecidableRel (Nonnegg c d)
   | .negSucc _, .ofNat _ => inferInstanceAs <| Decidable (_ ≤ _)
   | .negSucc _, .negSucc _ => inferInstanceAs <| Decidable False
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableNonneg : ∀ a : ℤ√d, Decidable (Nonneg a)
   | ⟨_, _⟩ => Zsqrtd.decidableNonnegg _ _ _ _
 

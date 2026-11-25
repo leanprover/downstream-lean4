@@ -357,6 +357,7 @@ noncomputable def mapHomologicalComplexUpToQuasiIso :
   (F.mapHomologicalComplexUpToQuasiIsoLocalizerMorphism c).localizedFunctor
     HomologicalComplexUpToQuasiIso.Q HomologicalComplexUpToQuasiIso.Q
 
+set_option linter.checkRespectTransparency.instances false in
 noncomputable instance :
     Localization.Lifting HomologicalComplexUpToQuasiIso.Q
       (HomologicalComplex.quasiIso C c)

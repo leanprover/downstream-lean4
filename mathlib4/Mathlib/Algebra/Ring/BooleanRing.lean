@@ -159,6 +159,7 @@ theorem ofBoolAlg_inj {a b : AsBoolAlg α} : ofBoolAlg a = ofBoolAlg b ↔ a = b
 protected def AsBoolAlg.rec {motive : AsBoolAlg α → Sort*} (toBoolAlg : ∀ a, motive (toBoolAlg a)) :
     ∀ a, motive a := fun a ↦ toBoolAlg (ofBoolAlg a)
 
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (AsBoolAlg α) :=
   ‹Inhabited α›
 
@@ -410,6 +411,7 @@ abbrev GeneralizedBooleanAlgebra.toNonUnitalCommRing [GeneralizedBooleanAlgebra 
   nsmul := letI : Zero α := ⟨⊥⟩; letI : Add α := ⟨(· ∆ ·)⟩; nsmulRec
   zsmul := letI : Zero α := ⟨⊥⟩; letI : Add α := ⟨(· ∆ ·)⟩; letI : Neg α := ⟨id⟩; zsmulRec
 
+set_option linter.checkRespectTransparency.instances false in
 instance [GeneralizedBooleanAlgebra α] : NonUnitalCommRing (AsBoolRing α) :=
   @GeneralizedBooleanAlgebra.toNonUnitalCommRing α _
 

@@ -184,6 +184,7 @@ section
 
 variable [Preadditive C] [Preadditive D] [F.Additive]
 
+set_option linter.checkRespectTransparency.instances false in
 noncomputable instance : F.mapCochainComplexMinus.CommShift ℤ :=
   ObjectProperty.commShiftLift ..
 

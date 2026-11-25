@@ -135,10 +135,12 @@ protected def rec {β : WithLawson α → Sort*}
     (h : ∀ a, β (toLawson a)) : ∀ a, β a := fun a => h (ofLawson a)
 
 instance [Nonempty α] : Nonempty (WithLawson α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithLawson α) := ‹Inhabited α›
 
 variable [Preorder α]
 
+set_option linter.checkRespectTransparency.instances false in
 instance instPreorder : Preorder (WithLawson α) := ‹Preorder α›
 
 instance instTopologicalSpace : TopologicalSpace (WithLawson α) :=

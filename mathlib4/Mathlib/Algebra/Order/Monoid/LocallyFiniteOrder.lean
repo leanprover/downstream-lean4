@@ -162,6 +162,7 @@ def LocallyFiniteOrder.orderAddMonoidEquiv [Nontrivial G] :
 lemma LocallyFiniteOrder.orderAddMonoidEquiv_apply [Nontrivial G] (x : G) :
     orderAddMonoidEquiv G x = addMonoidHom G x := rfl
 
+set_option linter.checkRespectTransparency.instances false in
 /-- Any linearly ordered abelian group that is locally finite embeds to `Multiplicative ℤ`. -/
 noncomputable
 def LocallyFiniteOrder.orderMonoidEquiv (G : Type*) [CommGroup G] [LinearOrder G]
@@ -170,6 +171,7 @@ def LocallyFiniteOrder.orderMonoidEquiv (G : Type*) [CommGroup G] [LinearOrder G
   have : LocallyFiniteOrder (Additive G) := ‹LocallyFiniteOrder G›
   (orderAddMonoidEquiv (Additive G)).toMultiplicative
 
+set_option linter.checkRespectTransparency.instances false in
 /-- Any linearly ordered abelian group that is locally finite embeds into `Multiplicative ℤ`. -/
 noncomputable
 def LocallyFiniteOrder.orderMonoidHom (G : Type*) [CommGroup G] [LinearOrder G]
@@ -178,6 +180,7 @@ def LocallyFiniteOrder.orderMonoidHom (G : Type*) [CommGroup G] [LinearOrder G]
   have : LocallyFiniteOrder (Additive G) := ‹LocallyFiniteOrder G›
   ⟨(orderAddMonoidHom (Additive G)).toMultiplicative, (orderAddMonoidHom (Additive G)).monotone'⟩
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances false in
 lemma LocallyFiniteOrder.orderMonoidHom_strictMono {G : Type*} [CommGroup G] [LinearOrder G]
     [IsOrderedMonoid G] [LocallyFiniteOrder G] :

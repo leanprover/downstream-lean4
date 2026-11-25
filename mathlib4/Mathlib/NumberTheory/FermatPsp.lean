@@ -66,6 +66,7 @@ also permits `n` to be less than `b`, so that 4 is a pseudoprime to base 5, for 
 def FermatPsp (n b : ℕ) : Prop :=
   ProbablePrime n b ∧ ¬n.Prime ∧ 1 < n
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableProbablePrime (n b : ℕ) : Decidable (ProbablePrime n b) :=
   Nat.decidable_dvd _ _
 

@@ -811,6 +811,7 @@ theorem primeIdealOf_isMaximal_of_isClosed (x : U) (hx : IsClosed {(x : X)}) :
   apply (TopCat.isIso_iff_isHomeomorph _).mp
   infer_instance
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.types false in
 theorem isLocalization_stalk' (y : PrimeSpectrum Γ(X, U)) (hy : hU.fromSpec y ∈ U) :
     @IsLocalization.AtPrime
@@ -860,6 +861,7 @@ lemma stalkMap_injective (f : X ⟶ Y) {U : Opens Y} (hU : IsAffineOpen U) (x : 
 
 set_option backward.isDefEq.respectTransparency.types false in
 include hU in
+set_option linter.checkRespectTransparency.instances false in
 lemma mem_ideal_iff {s : Γ(X, U)} {I : Ideal Γ(X, U)} :
     s ∈ I ↔ ∀ (x : X) (h : x ∈ U), X.presheaf.germ U x h s ∈ I.map (X.presheaf.germ U x h).hom := by
   refine ⟨fun hs x hxU ↦ Ideal.mem_map_of_mem _ hs, fun H ↦ ?_⟩

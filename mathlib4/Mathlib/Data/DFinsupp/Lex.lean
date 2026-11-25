@@ -160,6 +160,7 @@ instance Lex.decidableLE : DecidableLE (Lex (Π₀ i, α i)) :=
     (fun h ↦ isTrue <| Or.inl <| congr_arg _ h)
     fun h ↦ isFalse fun h' ↦ lt_irrefl _ (h.trans_le h')
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The less-or-equal relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLE : DecidableLE (Colex (Π₀ i, α i)) :=
@@ -171,6 +172,7 @@ set_option backward.privateInPublic.warn false in
 instance Lex.decidableLT : DecidableLT (Lex (Π₀ i, α i)) :=
   lt_trichotomy_rec (fun h ↦ isTrue h) (fun h ↦ isFalse h.not_lt) fun h ↦ isFalse h.asymm
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The less-than relation for the colexicographic ordering is decidable. -/
 instance Colex.decidableLT : DecidableLT (Colex (Π₀ i, α i)) :=

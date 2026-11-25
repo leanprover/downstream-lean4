@@ -42,6 +42,7 @@ the additive group with generators `x : α` and relations `rels` as a quotient o
 def PresentedGroup (rels : Set (FreeGroup α)) :=
   FreeGroup α ⧸ Subgroup.normalClosure rels
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 instance (rels : Set (FreeGroup α)) : Group (PresentedGroup rels) :=
   QuotientGroup.Quotient.group _

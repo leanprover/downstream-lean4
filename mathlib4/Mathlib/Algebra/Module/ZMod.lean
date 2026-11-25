@@ -39,6 +39,7 @@ abbrev AddCommMonoid.zmodModule [NeZero n] [AddCommMonoid M] (h : ∀ (x : M), n
     mul_smul := fun _ _ _ ↦ (h_mod _ _).trans <| mul_nsmul' _ _ _
   }
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The `ZMod n`-module structure on Abelian groups whose elements have order dividing `n`.
 See note [reducible non-instances]. -/
 abbrev AddCommGroup.zmodModule {G : Type*} [AddCommGroup G] (h : ∀ (x : G), n • x = 0) :

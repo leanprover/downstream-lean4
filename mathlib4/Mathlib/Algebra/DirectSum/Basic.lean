@@ -270,9 +270,11 @@ def setToSet (S T : Set ι) (H : S ⊆ T) : (⨁ i : S, β i) →+ ⨁ i : T, β
 
 end DecidableEq
 
+set_option linter.checkRespectTransparency.instances false in
 instance unique [∀ i, Subsingleton (β i)] : Unique (⨁ i, β i) :=
   DFinsupp.unique
 
+set_option linter.checkRespectTransparency.instances false in
 /-- A direct sum over an empty type is trivial. -/
 instance uniqueOfIsEmpty [IsEmpty ι] : Unique (⨁ i, β i) :=
   DFinsupp.uniqueOfIsEmpty

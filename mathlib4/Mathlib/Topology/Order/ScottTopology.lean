@@ -433,10 +433,12 @@ protected def rec {β : WithScott α → Sort _}
     (h : ∀ a, β (toScott a)) : ∀ a, β a := fun a ↦ h (ofScott a)
 
 instance [Nonempty α] : Nonempty (WithScott α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithScott α) := ‹Inhabited α›
 
 variable [Preorder α]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Preorder (WithScott α) := ‹Preorder α›
 
 instance : TopologicalSpace (WithScott α) :=

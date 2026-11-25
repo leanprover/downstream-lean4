@@ -55,6 +55,7 @@ theorem mk_zero : mk K (0 : L) = 0 :=
 theorem mk_eq_zero_iff (x : L) : mk K x = 0 ↔ x = 0 := by
   rw [eq_comm (b := 0), ← mk_zero, mk_eq_mk, isConjRoot_zero_iff_eq_zero]
 
+set_option linter.checkRespectTransparency.instances false in
 instance [Normal K L] [DecidableEq L] [Fintype Gal(L/K)] : DecidableEq (ConjRootClass K L) :=
   Quotient.decidableEq (d := IsConjRoot.decidable)
 

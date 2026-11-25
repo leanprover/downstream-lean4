@@ -373,6 +373,7 @@ lemma idealHeight_eq_coheight (R : CommRingCat) (x : Spec R) :
 
 set_option backward.isDefEq.respectTransparency.types false in
 open Order in
+set_option linter.checkRespectTransparency.instances false in
 @[stacks 02IZ]
 lemma ringKrullDim_stalk_eq_coheight {X : Scheme} (x : X) :
     ringKrullDim (X.presheaf.stalk x) = coheight x := by

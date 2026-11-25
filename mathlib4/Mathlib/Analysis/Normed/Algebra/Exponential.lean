@@ -156,6 +156,7 @@ theorem expSeries_eq_expSeries_rat [Algebra ℚ 𝔸] (n : ℕ) :
   simp [expSeries, inv_natCast_smul_eq 𝕂 ℚ]
 
 variable (𝕂) in
+set_option linter.checkRespectTransparency.instances false in
 theorem exp_eq_expSeries_sum [CharZero 𝕂] : exp = (expSeries 𝕂 𝔸).sum := by
   ext x
   rw [exp, dite_eq_left ⟨RestrictScalars.algebra ℚ 𝕂 𝔸⟩, ← @expSeries_sum_eq_rat (𝕂 := 𝕂)]
@@ -189,6 +190,7 @@ theorem exp_zero : exp (0 : 𝔸) = 1 := by
   · simp_rw [expSeries_sum_eq, ← expSeries_apply_eq, expSeries_apply_zero, tsum_pi_single]
   · rfl
 
+set_option linter.checkRespectTransparency.instances false in
 @[simp]
 theorem exp_op [T2Space 𝔸] (x : 𝔸) :
     exp (MulOpposite.op x) = MulOpposite.op (exp x) := by

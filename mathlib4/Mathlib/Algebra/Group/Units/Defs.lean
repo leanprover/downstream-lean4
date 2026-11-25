@@ -523,6 +523,7 @@ theorem val_inv_mul (h : IsUnit a) : ↑h.unit⁻¹ * a = 1 :=
 theorem mul_val_inv (h : IsUnit a) : a * ↑h.unit⁻¹ = 1 := by
   rw [← h.unit.mul_inv]; congr
 
+set_option linter.checkRespectTransparency.instances false in
 /-- `IsUnit x` is decidable if we can decide if `x` comes from `Mˣ`. -/
 @[to_additive /-- `IsAddUnit x` is decidable if we can decide if `x` comes from `AddUnits M`. -/]
 instance (x : M) [h : Decidable (∃ u : Mˣ, ↑u = x)] : Decidable (IsUnit x) :=

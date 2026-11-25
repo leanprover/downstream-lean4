@@ -71,6 +71,7 @@ instance (X : FinTopCat) : TopologicalSpace ((forget₂ FinTopCat FintypeCat).ob
 instance : HasForget₂ FinTopCat TopCat :=
   inferInstanceAs <| HasForget₂ (InducedCategory _ toTop) _
 
+set_option linter.checkRespectTransparency.instances false in
 instance (X : FinTopCat) : Fintype ((forget₂ FinTopCat TopCat).obj X) :=
   X.fintype
 

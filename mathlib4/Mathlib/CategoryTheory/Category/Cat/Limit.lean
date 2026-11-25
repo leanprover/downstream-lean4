@@ -37,10 +37,12 @@ namespace Cat
 
 namespace HasLimits
 
+set_option linter.checkRespectTransparency.instances false in
 instance categoryObjects {F : J ⥤ Cat.{u, u}} {j} :
     SmallCategory ((F ⋙ Cat.objects.{u, u}).obj j) :=
   (F.obj j).str
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- Auxiliary definition:
 the diagram whose limit gives the morphism space between two objects of the limit category. -/

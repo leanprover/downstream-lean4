@@ -692,6 +692,7 @@ private lemma uniformInducing_toMatrixAux :
   AntilipschitzWith.isUniformInducing antilipschitzWith_toMatrixAux
     lipschitzWith_toMatrixAux.uniformContinuous
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 private lemma uniformity_eq_aux :
     𝓤 (CStarMatrix m n A) = (𝓤[Pi.uniformSpace _] :

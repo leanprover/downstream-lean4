@@ -147,6 +147,7 @@ lemma IsTranscendenceBasis.algebraMap_comp
   have : Algebra.IsAlgebraic Rx A := .trans _ S _
   exact .extendScalars e.injective
 
+set_option linter.checkRespectTransparency.instances false in
 lemma IsTranscendenceBasis.isAlgebraic_iff [IsDomain S] [NoZeroDivisors A]
     {ι : Type*} {v : ι → A} (hv : IsTranscendenceBasis R v) :
     Algebra.IsAlgebraic S A ↔ ∀ i, IsAlgebraic S (v i) := by

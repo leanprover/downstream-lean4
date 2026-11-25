@@ -184,6 +184,7 @@ theorem _root_.AlgHom.ker_kerSquareLift (f : A →ₐ[R] B) :
   · intro x hx; obtain ⟨x, rfl⟩ := Ideal.Quotient.mk_surjective x; exact ⟨x, hx, rfl⟩
   · rintro _ ⟨x, hx, rfl⟩; exact hx
 
+set_option linter.checkRespectTransparency.instances false in
 instance Algebra.kerSquareLift : Algebra (R ⧸ (RingHom.ker (algebraMap R A) ^ 2)) A :=
   (Algebra.ofId R A).kerSquareLift.toAlgebra
 

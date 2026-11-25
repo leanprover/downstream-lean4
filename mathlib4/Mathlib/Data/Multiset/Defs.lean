@@ -184,6 +184,7 @@ instance : PartialOrder (Multiset α) where
   le_trans := by rintro ⟨l₁⟩ ⟨l₂⟩ ⟨l₃⟩; exact @Subperm.trans _ _ _ _
   le_antisymm := by rintro ⟨l₁⟩ ⟨l₂⟩ h₁ h₂; exact Quot.sound (Subperm.antisymm h₁ h₂)
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableLE [DecidableEq α] : DecidableLE (Multiset α) :=
   fun s t => Quotient.recOnSubsingleton₂ s t List.decidableSubperm
 
@@ -363,6 +364,7 @@ theorem le_iff_subset {s t : Multiset α} : Nodup s → (s ≤ t ↔ s ⊆ t) :=
 theorem nodup_of_le {s t : Multiset α} (h : s ≤ t) : Nodup t → Nodup s :=
   Multiset.leInductionOn h fun {_ _} => Nodup.sublist
 
+set_option linter.checkRespectTransparency.instances false in
 instance nodupDecidable [DecidableEq α] (s : Multiset α) : Decidable (Nodup s) :=
   Quotient.recOnSubsingleton s fun l => l.nodupDecidable
 

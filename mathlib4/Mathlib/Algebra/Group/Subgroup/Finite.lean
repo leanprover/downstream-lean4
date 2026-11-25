@@ -234,12 +234,14 @@ variable {N : Type*} [Group N]
 
 open Subgroup
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 instance decidableMemRange (f : G →* N) [Fintype G] [DecidableEq N] : DecidablePred (· ∈ f.range) :=
   fun _ => Fintype.decidableExistsFintype
 
 -- this instance can't go just after the definition of `mrange` because `Fintype` is
 -- not imported at that stage
+set_option linter.checkRespectTransparency.instances false in
 /-- The range of a finite monoid under a monoid homomorphism is finite.
 Note: this instance can form a diamond with `Subtype.fintype` in the
 presence of `Fintype N`. -/
@@ -252,6 +254,7 @@ instance fintypeMrange {M N : Type*} [Monoid M] [Monoid N] [Fintype M] [Decidabl
     (f : M →* N) : Fintype (mrange f) :=
   Set.fintypeRange f
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The range of a finite group under a group homomorphism is finite.
 
 Note: this instance can form a diamond with `Subtype.fintype` or `Subgroup.fintype` in the

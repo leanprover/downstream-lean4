@@ -217,6 +217,7 @@ instance {β : α → Type*} [∀ a, LE (β a)] [∀ a, DecidableLE (β a)] [Fin
     DecidableLE (∀ a, β a) :=
   fun _ _ ↦ decidable_of_iff _ Pi.le_def.symm
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableMemRangeFintype [Fintype α] [DecidableEq β] (f : α → β) :
     DecidablePred (· ∈ Set.range f) := fun _ => Fintype.decidableExistsFintype
 
@@ -291,11 +292,13 @@ instance Bool.fintype : Fintype Bool :=
 instance Ordering.fintype : Fintype Ordering :=
   ⟨⟨{.lt, .eq, .gt}, by simp⟩, fun x => by cases x <;> simp⟩
 
+set_option linter.checkRespectTransparency.instances false in
 instance OrderDual.fintype (α : Type*) [Fintype α] : Fintype αᵒᵈ :=
   ‹Fintype α›
 
 instance OrderDual.finite (α : Type*) [Finite α] : Finite αᵒᵈ :=
   ‹Finite α›
 
+set_option linter.checkRespectTransparency.instances false in
 instance Lex.fintype (α : Type*) [Fintype α] : Fintype (Lex α) :=
   ‹Fintype α›

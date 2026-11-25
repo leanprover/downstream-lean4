@@ -468,6 +468,7 @@ theorem prodChartedSpace_chartAt :
     chartAt (ModelProd H H') x = (chartAt H x.fst).prod (chartAt H' x.snd) :=
   rfl
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem chartedSpaceSelf_prod : prodChartedSpace H H H' H' = chartedSpaceSelf (H × H') := by
   ext1

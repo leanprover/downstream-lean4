@@ -169,6 +169,7 @@ instance OrderDual.instSemilatticeSup (α) [h : SemilatticeInf α] : Semilattice
   le_sup_right := h.inf_le_right
   sup_le _ _ _ := h.le_inf _ _ _
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_dual]
 theorem SemilatticeSup.dual_dual (α : Type*) [H : SemilatticeSup α] :
     OrderDual.instSemilatticeSup αᵒᵈ = H :=

@@ -47,6 +47,7 @@ instance : Inhabited Grpd :=
 instance str' (C : Grpd.{v, u}) : Groupoid.{v, u} C.α :=
   C.str
 
+set_option linter.checkRespectTransparency.instances false in
 instance : CoeSort Grpd Type* :=
   Bundled.coeSort
 

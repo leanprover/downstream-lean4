@@ -123,6 +123,7 @@ theorem minFac_to_nat : ∀ n : Num, (minFac n : ℕ) = Nat.minFac n
 def Prime (n : Num) : Prop :=
   Nat.Prime n
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidablePrime : DecidablePred Num.Prime
   | 0 => Decidable.isFalse Nat.not_prime_zero
   | pos n => PosNum.decidablePrime n

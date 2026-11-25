@@ -198,6 +198,7 @@ variable [SeminormedCommRing S] [SeminormedRing R] [SeminormedAddCommGroup M]
 variable [Algebra S R] [Module S M]
 variable [IsBoundedSMul S R] [IsBoundedSMul S M]
 
+set_option linter.checkRespectTransparency.instances false in
 instance instL1SeminormedAddCommGroup : SeminormedAddCommGroup (tsze R M) :=
   fast_instance% {
     WithLp.seminormedAddCommGroupToProd 1 R M with

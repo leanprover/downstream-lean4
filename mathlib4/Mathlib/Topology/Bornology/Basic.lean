@@ -317,6 +317,7 @@ end Bornology
 namespace OrderDual
 variable [Bornology α]
 
+set_option linter.checkRespectTransparency.instances false in
 instance instBornology : Bornology αᵒᵈ := ‹Bornology α›
 
 @[simp] lemma isCobounded_preimage_ofDual {s : Set α} :

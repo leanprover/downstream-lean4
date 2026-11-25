@@ -35,6 +35,7 @@ def AdjoinPthRoots := k
 @[no_expose]
 noncomputable instance : Field (AdjoinPthRoots k) := inferInstanceAs (Field k)
 
+set_option linter.checkRespectTransparency.instances false in
 @[no_expose]
 noncomputable instance : Algebra k (AdjoinPthRoots k) := (frobenius k (ringExpChar k)).toAlgebra
 

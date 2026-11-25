@@ -78,6 +78,7 @@ theorem AntisymmRel.trans [IsTrans α r] (hab : AntisymmRel r a b) (hbc : Antisy
 instance [IsTrans α r] : IsTrans α (AntisymmRel r) where
   trans _ _ _ := .trans
 
+set_option linter.checkRespectTransparency.instances false in
 instance AntisymmRel.decidableRel [DecidableRel r] : DecidableRel (AntisymmRel r) :=
   fun _ _ ↦ instDecidableAnd
 
@@ -302,6 +303,7 @@ instance [WellFoundedLT α] : WellFoundedLT (Antisymmetrization α (· ≤ ·)) 
 instance [WellFoundedGT α] : WellFoundedGT (Antisymmetrization α (· ≤ ·)) :=
   wellFoundedGT_antisymmetrization_iff.mpr ‹_›
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 instance [DecidableLE α] [DecidableLT α] [@Std.Total α (· ≤ ·)] :
     LinearOrder (Antisymmetrization α (· ≤ ·)) :=

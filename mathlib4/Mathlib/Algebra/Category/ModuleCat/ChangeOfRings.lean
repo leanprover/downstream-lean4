@@ -138,6 +138,7 @@ theorem restrictScalars.smul_def' {R : Type u₁} {S : Type u₂} [Ring R] [Ring
   rfl
 
 
+set_option linter.checkRespectTransparency.instances false in
 instance (priority := 100) sMulCommClass_mk {R : Type u₁} {S : Type u₂} [Ring R] [CommRing S]
     (f : R →+* S) (M : Type v) [I : AddCommGroup M] [Module S M] :
     haveI : SMul R M := (RestrictScalars.obj' f ↧M).isModule.toSMul

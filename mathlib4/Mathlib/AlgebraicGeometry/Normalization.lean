@@ -72,6 +72,7 @@ def normalizationDiagramMap : Y.presheaf ⟶ f.normalizationDiagram where
 
 variable [QuasiCompact f] [QuasiSeparated f]
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 lemma coequifibered_normalizationDiagramMap :
     ((toOpensFunctor Y).op.whiskerLeft f.normalizationDiagramMap).Coequifibered := by

@@ -40,9 +40,11 @@ end OrderDual
 
 namespace Lex
 
+set_option linter.checkRespectTransparency.instances false in
 instance instModule [Semiring α] [AddCommMonoid β] [Module α β] : Module (Lex α) β :=
   ‹Module α β›
 
+set_option linter.checkRespectTransparency.instances false in
 instance instModule' [Semiring α] [AddCommMonoid β] [Module α β] : Module α (Lex β) :=
   ‹Module α β›
 

@@ -61,6 +61,7 @@ attribute [reassoc] map_comp
 
 #adaptation_note /-- https://github.com/leanprover/lean4/pull/12564
 This is required for `Algebra.Category.ModuleCat.Differentials.Presheaf` -/
+set_option linter.checkRespectTransparency.instances false in
 instance {R : Cᵒᵖ ⥤ CommRingCat.{u}} (X : Cᵒᵖ) (M : PresheafOfModules.{v} (R ⋙ forget₂ _ _)) :
     Module (R.obj X) (M.obj X) := (M.obj X).isModule
 

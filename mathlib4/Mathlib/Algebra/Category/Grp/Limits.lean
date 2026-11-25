@@ -48,6 +48,7 @@ def sectionsSubgroup : Subgroup (∀ j, F.obj j) :=
       dsimp [Functor.sections] at ah ⊢
       rw [(F.map f).hom.map_inv (a j), ah f] }
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 instance sectionsGroup : Group (F ⋙ forget GrpCat.{u}).sections :=
   (sectionsSubgroup F).toGroup
@@ -219,6 +220,7 @@ variable (F : J ⥤ CommGrpCat.{u})
 instance commGroupObj (j) : CommGroup ((F ⋙ forget CommGrpCat).obj j) :=
   inferInstanceAs <| CommGroup (F.obj j)
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 noncomputable instance limitCommGroup
     [Small.{u} (Functor.sections (F ⋙ forget CommGrpCat))] :

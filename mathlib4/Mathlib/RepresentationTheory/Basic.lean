@@ -158,6 +158,7 @@ instance [Module.Finite k V] (ρ : Representation k G V) : Module.Finite k ρ.as
 
 end
 
+set_option linter.checkRespectTransparency.instances false in
 /-- A `k`-linear representation of `G` on `V` can be thought of as a module over `k[G]`.
 -/
 noncomputable instance : Module k[G] ρ.asModule :=

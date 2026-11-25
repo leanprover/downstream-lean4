@@ -127,6 +127,7 @@ theorem logSeries_eq_logSeries_rat [Algebra ℚ 𝔸] (n : ℕ) :
   simp [logSeries, neg_one_pow_div_natCast_smul_eq 𝕂 ℚ]
 
 variable (𝕂) in
+set_option linter.checkRespectTransparency.instances false in
 theorem log_eq_logSeries_sum [CharZero 𝕂] : log = fun x : 𝔸 ↦ (logSeries 𝕂 𝔸).sum (x - 1) := by
   ext x
   rw [log, dite_eq_left ⟨RestrictScalars.algebra ℚ 𝕂 𝔸⟩, ← @logSeries_sum_eq_rat (𝕂 := 𝕂)]
@@ -146,6 +147,7 @@ theorem logSeries_apply_zero (n : ℕ) : logSeries 𝕂 𝔸 n (fun _ ↦ (0 : �
 theorem log_one : log (1 : 𝔸) = 0 := by
   simp [log, logSeries_sum_eq, ← logSeries_apply_eq, logSeries_apply_zero, tsum_zero]
 
+set_option linter.checkRespectTransparency.instances false in
 @[simp]
 theorem log_op [T2Space 𝔸] (x : 𝔸) : log (MulOpposite.op x) = MulOpposite.op (log x) := by
   obtain h | ⟨⟨_⟩⟩ := isEmpty_or_nonempty (Algebra ℚ 𝔸)

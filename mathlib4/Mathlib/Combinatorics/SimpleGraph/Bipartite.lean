@@ -541,6 +541,7 @@ such that `inl v` (`inr v`) is adjacent to `inr w` (`inl w`) iff `v` is adjacent
   | _, _ => False
   symm.symm _ _ := by grind [adj_symm]
 
+set_option linter.checkRespectTransparency.instances false in
 instance [h : DecidableRel G.Adj] : DecidableRel G.bipartiteDoubleCover.Adj
   | .inl _, .inr _ | .inr _, .inl _ => h _ _
   | .inl _, .inl _ | .inr _, .inr _ => inferInstanceAs (Decidable False)

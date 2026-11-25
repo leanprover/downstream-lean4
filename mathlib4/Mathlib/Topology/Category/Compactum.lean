@@ -89,6 +89,7 @@ def forget : Compactum ⥤ Type _ :=
 instance : forget.Faithful :=
   show (Monad.forget _).Faithful from inferInstance
 
+set_option linter.checkRespectTransparency.instances false in
 noncomputable instance : CreatesLimits forget :=
   show CreatesLimits <| Monad.forget _ from inferInstance
 

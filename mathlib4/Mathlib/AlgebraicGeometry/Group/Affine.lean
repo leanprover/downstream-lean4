@@ -206,6 +206,7 @@ instance locallyOfFiniteType_specOverSpec [Algebra R A] [Algebra.FiniteType R A]
 
 set_option dsimp.resynthInstances false in
 attribute [local simp] AlgHom.toUnder in
+set_option linter.checkRespectTransparency.instances false in
 @[simps! one]
 instance instMonObjSpecAsOverSpec [Bialgebra R A] : MonObj ((Spec A).asOver (Spec R)) :=
   ((bialgSpec R).obj <| .op <| .of R A).mon
@@ -309,6 +310,7 @@ end universe_polymorphic
 section universe_monomorphic
 variable {R A : CommRingCat.{u}} {X M G : Scheme.{u}}
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The global sections of an affine scheme over `Spec R` are a `R`-algebra. -/
 instance [X.Over (Spec R)] [IsAffine X] : Algebra R Γ(X, ⊤) :=
   ((commAlgCatEquivUnder R).inverse.obj <|

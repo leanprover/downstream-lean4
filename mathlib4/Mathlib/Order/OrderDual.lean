@@ -77,6 +77,7 @@ instance (α : Type*) [Preorder α] : Preorder αᵒᵈ where
 instance (α : Type*) [PartialOrder α] : PartialOrder αᵒᵈ where
   le_antisymm a b hab hba := @le_antisymm α _ a b hba hab
 
+set_option linter.checkRespectTransparency.instances false in
 instance (α : Type*) [DecidableEq α] : DecidableEq αᵒᵈ := ‹DecidableEq α›
 
 instance (α : Type*) [LT α] [h : DecidableLT α] : DecidableLT (αᵒᵈ) :=
@@ -99,16 +100,20 @@ instance (α : Type*) [LinearOrder α] : LinearOrder αᵒᵈ where
 
 instance [h : Inhabited α] : Inhabited αᵒᵈ := ⟨h.default⟩
 
+set_option linter.checkRespectTransparency.instances false in
 theorem Ord.dual_dual (α : Type*) [H : Ord α] : OrderDual.instOrd αᵒᵈ = H :=
   rfl
 
+set_option linter.checkRespectTransparency.instances false in
 theorem Preorder.dual_dual (α : Type*) [H : Preorder α] : OrderDual.instPreorder αᵒᵈ = H :=
   rfl
 
+set_option linter.checkRespectTransparency.instances false in
 theorem instPartialOrder.dual_dual (α : Type*) [H : PartialOrder α] :
     OrderDual.instPartialOrder αᵒᵈ = H :=
   rfl
 
+set_option linter.checkRespectTransparency.instances false in
 theorem instLinearOrder.dual_dual (α : Type*) [H : LinearOrder α] :
     OrderDual.instLinearOrder αᵒᵈ = H :=
   rfl

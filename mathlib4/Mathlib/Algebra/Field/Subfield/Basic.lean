@@ -221,6 +221,7 @@ theorem fieldRange_eq_top_iff {f : K →+* L} :
     f.fieldRange = ⊤ ↔ Function.Surjective f :=
   SetLike.ext'_iff.trans Set.range_eq_univ
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The range of a morphism of fields is a fintype, if the domain is a fintype.
 
 Note that this instance can cause a diamond with `Subtype.Fintype` if `L` is also a fintype. -/

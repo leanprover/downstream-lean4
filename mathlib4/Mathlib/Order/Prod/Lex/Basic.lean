@@ -169,8 +169,10 @@ instance instOrdLexProd [Ord α] [Ord β] : Ord (α ×ₗ β) := fast_instance% 
 theorem compare_def [Ord α] [Ord β] : @compare (α ×ₗ β) _ =
     compareLex (compareOn fun x => (ofLex x).1) (compareOn fun x => (ofLex x).2) := rfl
 
+set_option linter.checkRespectTransparency.instances false in
 theorem _root_.lexOrd_eq [Ord α] [Ord β] : @lexOrd α β _ _ = instOrdLexProd := rfl
 
+set_option linter.checkRespectTransparency.instances false in
 theorem _root_.Ord.lex_eq [oα : Ord α] [oβ : Ord β] : Ord.lex oα oβ = instOrdLexProd := rfl
 
 instance [Ord α] [Ord β] [Std.OrientedOrd α] [Std.OrientedOrd β] : Std.OrientedOrd (α ×ₗ β) :=
@@ -179,6 +181,7 @@ instance [Ord α] [Ord β] [Std.OrientedOrd α] [Std.OrientedOrd β] : Std.Orien
 instance [Ord α] [Ord β] [Std.TransOrd α] [Std.TransOrd β] : Std.TransOrd (α ×ₗ β) :=
   inferInstanceAs (@Std.TransCmp (α × β) (compareLex _ _))
 
+set_option linter.checkRespectTransparency.instances false in
 /-- Dictionary / lexicographic linear order for pairs. -/
 instance instLinearOrder (α β : Type*) [LinearOrder α] [LinearOrder β] : LinearOrder (α ×ₗ β) where
   le_total := total_of (Prod.Lex _ _)

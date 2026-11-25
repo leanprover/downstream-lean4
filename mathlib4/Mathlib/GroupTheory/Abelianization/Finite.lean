@@ -16,6 +16,7 @@ public section
 
 variable {G : Type*} [Group G]
 
+set_option linter.checkRespectTransparency.instances false in
 instance [Fintype G] [DecidablePred (· ∈ commutator G)] : Fintype (Group.Abelianization G) :=
   QuotientGroup.fintype (commutator G)
 

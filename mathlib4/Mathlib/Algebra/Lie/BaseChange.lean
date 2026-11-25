@@ -145,6 +145,7 @@ namespace RestrictScalars
 
 variable [h : LieRing L]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : LieRing (RestrictScalars R A L) :=
   h
 

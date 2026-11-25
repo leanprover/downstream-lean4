@@ -118,6 +118,7 @@ def AddConst.mk {α β} (x : α) : AddConst α β :=
 def AddConst.run {α β} : AddConst α β → α :=
   id
 
+set_option linter.checkRespectTransparency.instances false in
 instance AddConst.functor {γ} : Functor (AddConst γ) :=
   @Const.functor γ
 
@@ -195,11 +196,13 @@ instance lawfulFunctor : LawfulFunctor (Comp F G) where
   id_map := Comp.id_map
   comp_map := Comp.comp_map
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem functor_comp_id {F} [AF : Functor F] [LawfulFunctor F] :
     Comp.functor (G := Id) = AF :=
   @Functor.ext F _ AF (Comp.lawfulFunctor (G := Id)) _ fun _ _ _ _ => rfl
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances.allMVars false in
 theorem functor_id_comp {F} [AF : Functor F] [LawfulFunctor F] : Comp.functor (F := Id) = AF :=
   @Functor.ext F _ AF (Comp.lawfulFunctor (F := Id)) _ fun _ _ _ _ => rfl

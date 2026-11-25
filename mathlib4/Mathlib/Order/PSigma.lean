@@ -93,6 +93,7 @@ instance partialOrder [PartialOrder ι] [∀ i, PartialOrder (α i)] : PartialOr
       · exact (lt_irrefl a₁ hlt₂).elim
       · rw [hlt₁.antisymm hlt₂] }
 
+set_option linter.checkRespectTransparency.instances false in
 /-- Dictionary / lexicographic `LinearOrder` for pairs. -/
 instance linearOrder [LinearOrder ι] [∀ i, LinearOrder (α i)] : LinearOrder (Σₗ' i, α i) :=
   { Lex.partialOrder with

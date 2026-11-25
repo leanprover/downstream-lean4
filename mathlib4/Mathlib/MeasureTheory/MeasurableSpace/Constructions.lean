@@ -793,6 +793,7 @@ theorem measurable_piEquivPiSubtypeProd (p : δ → Prop) [DecidablePred p] :
 
 end Pi
 
+set_option linter.checkRespectTransparency.instances false in
 instance TProd.instMeasurableSpace (X : δ → Type*) [∀ i, MeasurableSpace (X i)] :
     ∀ l : List δ, MeasurableSpace (List.TProd X l)
   | [] => PUnit.instMeasurableSpace

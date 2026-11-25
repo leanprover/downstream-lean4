@@ -224,7 +224,9 @@ section
 
 variable [Dist X]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Dist (Additive X) := ‹Dist X›
+set_option linter.checkRespectTransparency.instances false in
 instance : Dist (Multiplicative X) := ‹Dist X›
 
 @[simp] theorem dist_ofMul (a b : X) : dist (ofMul a) (ofMul b) = dist a b := rfl
@@ -237,7 +239,9 @@ instance : Dist (Multiplicative X) := ‹Dist X›
 
 end
 
+set_option linter.checkRespectTransparency.instances false in
 instance [MetricSpace X] : MetricSpace (Additive X) := ‹MetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [MetricSpace X] : MetricSpace (Multiplicative X) := ‹MetricSpace X›
 
 /-!
@@ -252,6 +256,7 @@ section
 
 variable [Dist X]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Dist Xᵒᵈ := ‹Dist X›
 
 @[simp] theorem dist_toDual (a b : X) : dist (toDual a) (toDual b) = dist a b := rfl
@@ -260,4 +265,5 @@ instance : Dist Xᵒᵈ := ‹Dist X›
 
 end
 
+set_option linter.checkRespectTransparency.instances false in
 instance [MetricSpace X] : MetricSpace Xᵒᵈ := ‹MetricSpace X›

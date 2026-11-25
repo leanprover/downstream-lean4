@@ -58,6 +58,7 @@ namespace Int
 
 variable {m n a b c d : ℤ}
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Decidable (ModEq n a b) := decEq (a % n) (b % n)
 
 namespace ModEq

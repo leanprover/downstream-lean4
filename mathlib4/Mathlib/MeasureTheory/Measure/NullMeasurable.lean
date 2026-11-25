@@ -75,6 +75,7 @@ section
 
 variable {m0 : MeasurableSpace α} {μ : Measure α} {s t : Set α}
 
+set_option linter.checkRespectTransparency.instances false in
 instance NullMeasurableSpace.instInhabited [h : Inhabited α] :
     Inhabited (NullMeasurableSpace α μ) :=
   h

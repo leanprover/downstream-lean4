@@ -45,6 +45,7 @@ def sectionsSubmonoid : Submonoid (∀ j, F.obj j) where
   one_mem' {j} {j'} f := by simp
   mul_mem' {a} {b} ah bh {j} {j'} f := by simp [← ah f, ← bh f]
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 instance sectionsMonoid : Monoid (F ⋙ forget MonCat.{u}).sections :=
   (sectionsSubmonoid F).toMonoid
@@ -208,6 +209,7 @@ instance commMonoidObj (j) : CommMonoid ((F ⋙ forget CommMonCat.{u}).obj j) :=
 
 variable [Small.{u} (Functor.sections (F ⋙ forget CommMonCat))]
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 noncomputable instance limitCommMonoid :
     CommMonoid (Types.Small.limitCone (F ⋙ forget CommMonCat.{u})).pt :=

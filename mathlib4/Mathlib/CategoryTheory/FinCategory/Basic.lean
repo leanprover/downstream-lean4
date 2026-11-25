@@ -62,6 +62,7 @@ instance finCategoryOpposite {J : Type v} [SmallCategory J] [FinCategory J] : Fi
   fintypeHom j j' := Fintype.ofEquiv _ (opEquiv j j').symm
 
 attribute [local instance] uliftCategory in
+set_option linter.checkRespectTransparency.instances false in
 /-- Applying `ULift` to morphisms and objects of a category preserves finiteness. -/
 instance finCategoryUlift {J : Type v} [SmallCategory J] [FinCategory J] :
     FinCategory.{max w v} (ULiftHom.{w, max w v} (ULift.{w, v} J)) where

@@ -286,6 +286,7 @@ lemma prodComparisonIso_pullback_inv_left_snd' (f : X ⟶ Y) (gA : A ⟶ Y) (gB 
     Over.hom_left_inv_left_assoc]
   simp [CartesianMonoidalCategory.prodComparison]
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The pullback of a monoid object is a monoid object. -/
 @[simps! -isSimp mul one]
 abbrev monObjMkPullbackSnd [MonObj (Over.mk f)] : MonObj (Over.mk <| pullback.snd f g) :=
@@ -297,6 +298,7 @@ instance isCommMonObj_mk_pullbackSnd [MonObj (Over.mk f)] [IsCommMonObj (Over.mk
     IsCommMonObj (Over.mk <| pullback.snd f g) :=
   ((Over.pullback g).mapCommMon.obj <| .mk <| .mk f).comm
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The pullback of a monoid object is a monoid object. -/
 @[simps! -isSimp mul one]
 abbrev grpObjMkPullbackSnd [GrpObj (Over.mk f)] : GrpObj (Over.mk (pullback.snd f g)) :=

@@ -346,6 +346,7 @@ lemma isLocalization_of_isLocalizedFullyFaithful
   have : G.IsEquivalence := { }
   exact IsLocalization.of_equivalence_target W₁.Q W₁ L₁ G.asEquivalence e
 
+set_option linter.checkRespectTransparency.instances false in
 instance IsLocalizedFullyFaithful.comp
     (Ψ : LocalizerMorphism W₂ W₃)
     [Φ.IsLocalizedFullyFaithful] [Ψ.IsLocalizedFullyFaithful] :

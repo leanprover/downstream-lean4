@@ -590,6 +590,7 @@ lemma commShift_of_functor [E.functor.CommShift A] :
   let := E.commShiftInverse A
   exact CommShift.mk' _ _ (E.toAdjunction.commShift_of_leftAdjoint A).commShift_unit
 
+set_option linter.checkRespectTransparency.instances false in
 /--
 If `E : C ≌ D` is an equivalence and we have a `CommShift` structure on `E.inverse`,
 this constructs the unique compatible `CommShift` structure on `E.functor`.

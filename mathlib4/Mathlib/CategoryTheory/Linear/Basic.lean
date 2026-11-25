@@ -139,6 +139,7 @@ def _root_.CategoryTheory.InducedCategory.homLinearEquiv
 
 end InducedCategory
 
+set_option linter.checkRespectTransparency.instances false in
 instance fullSubcategory (Z : ObjectProperty C) : Linear.{w, v} R Z.FullSubcategory :=
   inducedCategory _
 

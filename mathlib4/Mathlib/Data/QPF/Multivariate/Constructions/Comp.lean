@@ -36,6 +36,7 @@ open MvPFunctor
 
 variable {F G} {α β : TypeVec.{u} m} (f : α ⟹ β)
 
+set_option linter.checkRespectTransparency.instances false in
 instance [I : Inhabited (F fun i : Fin2 n ↦ G i α)] : Inhabited (Comp F G α) := I
 
 /-- Constructor for functor composition -/

@@ -102,10 +102,12 @@ protected def rec {motive : WithUpperSet α → Sort*} (toUpperSet : ∀ a, moti
   fun a => toUpperSet (ofUpperSet a)
 
 instance [Nonempty α] : Nonempty (WithUpperSet α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithUpperSet α) := ‹Inhabited α›
 
 variable [Preorder α] [Preorder β]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Preorder (WithUpperSet α) := ‹Preorder α›
 
 instance : TopologicalSpace (WithUpperSet α) :=
@@ -151,10 +153,12 @@ protected def rec {motive : WithLowerSet α → Sort*} (toLowerSet : ∀ a, moti
   fun a => toLowerSet (ofLowerSet a)
 
 instance [Nonempty α] : Nonempty (WithLowerSet α) := ‹Nonempty α›
+set_option linter.checkRespectTransparency.instances false in
 instance [Inhabited α] : Inhabited (WithLowerSet α) := ‹Inhabited α›
 
 variable [Preorder α]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Preorder (WithLowerSet α) := ‹Preorder α›
 
 instance : TopologicalSpace (WithLowerSet α) :=

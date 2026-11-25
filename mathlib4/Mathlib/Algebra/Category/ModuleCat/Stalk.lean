@@ -156,6 +156,7 @@ variable {X : TopCat.{u}} {R : X.Presheaf RingCat.{u}} (M : PresheafOfModules.{u
 
 variable (x : X)
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 noncomputable
 instance : Module (R.stalk x) ↑(TopCat.Presheaf.stalk M.presheaf x) :=
@@ -181,6 +182,7 @@ section CommRingCat
 variable {X : TopCat.{u}} {R : X.Presheaf CommRingCat.{u}}
   (M : PresheafOfModules.{u} (R ⋙ forget₂ _ _))
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 noncomputable
 instance (x : X) : Module (R.stalk x) ↑(TopCat.Presheaf.stalk M.presheaf x) :=

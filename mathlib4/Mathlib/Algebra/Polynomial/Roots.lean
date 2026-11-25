@@ -619,6 +619,7 @@ theorem rootSet_neg (p : T[X]) (S) [CommRing S] [IsDomain S] [Algebra T S] :
     (-p).rootSet S = p.rootSet S := by
   rw [rootSet, aroots_neg, rootSet]
 
+set_option linter.checkRespectTransparency.instances false in
 instance rootSetFintype (p : T[X]) (S : Type*) [CommRing S] [IsDomain S] [Algebra T S] :
     Fintype (p.rootSet S) :=
   FinsetCoe.fintype _

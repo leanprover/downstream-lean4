@@ -45,10 +45,12 @@ instance decidableLELE (P : Int → Prop) [DecidablePred P] (m n : ℤ) :
   decidable_of_iff (∀ r ∈ range m (n + 1), P r :) <| by
     simp only [mem_range_iff, and_imp, lt_add_one_iff]
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableLTLT (P : Int → Prop) [DecidablePred P] (m n : ℤ) :
     Decidable (∀ r, m < r → r < n → P r) :=
   Int.decidableLELT P _ _
 
+set_option linter.checkRespectTransparency.instances false in
 instance decidableLTLE (P : Int → Prop) [DecidablePred P] (m n : ℤ) :
     Decidable (∀ r, m < r → r ≤ n → P r) :=
   Int.decidableLELE P _ _

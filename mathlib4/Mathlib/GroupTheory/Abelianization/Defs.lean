@@ -264,6 +264,7 @@ def Abelianization.equivOfComm {H : Type*} [CommGroup H] : H ≃* Abelianization
       rintro ⟨a⟩
       rfl }
 
+set_option linter.checkRespectTransparency.instances false in
 @[to_additive]
 instance [Unique G] :
   Unique (Abelianization G) := Quotient.instUniqueQuotient _

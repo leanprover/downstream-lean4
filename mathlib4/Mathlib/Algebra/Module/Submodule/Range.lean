@@ -155,6 +155,7 @@ This is the bundled version of `Set.rangeFactorization`. -/
 abbrev rangeRestrict [RingHomSurjective τ₁₂] (f : M →ₛₗ[τ₁₂] M₂) : M →ₛₗ[τ₁₂] LinearMap.range f :=
   f.codRestrict (LinearMap.range f) (LinearMap.mem_range_self f)
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The range of a linear map is finite if the domain is finite.
 Note: this instance can form a diamond with `Subtype.fintype` in the
   presence of `Fintype M₂`. -/

@@ -924,7 +924,9 @@ section
 
 variable [EDist X]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : EDist (Additive X) := ‹EDist X›
+set_option linter.checkRespectTransparency.instances false in
 instance : EDist (Multiplicative X) := ‹EDist X›
 
 @[simp]
@@ -945,9 +947,13 @@ theorem edist_toAdd (a b : Multiplicative X) : edist a.toAdd b.toAdd = edist a b
 
 end
 
+set_option linter.checkRespectTransparency.instances false in
 instance [PseudoEMetricSpace X] : PseudoEMetricSpace (Additive X) := ‹PseudoEMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [PseudoEMetricSpace X] : PseudoEMetricSpace (Multiplicative X) := ‹PseudoEMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [EMetricSpace X] : EMetricSpace (Additive X) := ‹EMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [EMetricSpace X] : EMetricSpace (Multiplicative X) := ‹EMetricSpace X›
 
 /-!
@@ -963,6 +969,7 @@ section
 
 variable [EDist X]
 
+set_option linter.checkRespectTransparency.instances false in
 instance : EDist Xᵒᵈ := ‹EDist X›
 
 @[simp]
@@ -993,11 +1000,15 @@ instance {α : Type*} {p : α → Prop} [TopologicalSpace α] [WeakEMetricSpace 
 
 end
 
+set_option linter.checkRespectTransparency.instances false in
 instance [TopologicalSpace X] [WeakPseudoEMetricSpace X] : WeakPseudoEMetricSpace Xᵒᵈ :=
   ‹WeakPseudoEMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [TopologicalSpace X] [WeakEMetricSpace X] : WeakEMetricSpace Xᵒᵈ :=
   ‹WeakEMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [PseudoEMetricSpace X] : PseudoEMetricSpace Xᵒᵈ :=
   ‹PseudoEMetricSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance [EMetricSpace X] : EMetricSpace Xᵒᵈ :=
   ‹EMetricSpace X›

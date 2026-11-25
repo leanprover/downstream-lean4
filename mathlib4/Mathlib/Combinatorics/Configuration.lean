@@ -48,12 +48,14 @@ variable (P L : Type*) [Membership P L]
 def Dual :=
   P
 
+set_option linter.checkRespectTransparency.instances false in
 instance [h : Inhabited P] : Inhabited (Dual P) :=
   h
 
 instance [Finite P] : Finite (Dual P) :=
   ‹Finite P›
 
+set_option linter.checkRespectTransparency.instances false in
 instance [h : Fintype P] : Fintype (Dual P) :=
   h
 

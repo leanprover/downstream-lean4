@@ -80,7 +80,9 @@ variable [TopologicalSpace X]
 
 open Additive Multiplicative
 
+set_option linter.checkRespectTransparency.instances false in
 instance : TopologicalSpace (Additive X) := ‹TopologicalSpace X›
+set_option linter.checkRespectTransparency.instances false in
 instance : TopologicalSpace (Multiplicative X) := ‹TopologicalSpace X›
 
 instance [DiscreteTopology X] : DiscreteTopology (Additive X) := ‹DiscreteTopology X›

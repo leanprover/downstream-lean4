@@ -690,6 +690,7 @@ end
 instance ULift.uniformSpace [UniformSpace α] : UniformSpace (ULift α) :=
   UniformSpace.comap ULift.down ‹_›
 
+set_option linter.checkRespectTransparency.instances false in
 /-- Uniform space structure on `αᵒᵈ`. -/
 instance OrderDual.instUniformSpace [UniformSpace α] : UniformSpace (αᵒᵈ) :=
   ‹UniformSpace α›
@@ -752,7 +753,9 @@ variable [UniformSpace α]
 
 open Additive Multiplicative
 
+set_option linter.checkRespectTransparency.instances false in
 instance : UniformSpace (Additive α) := ‹UniformSpace α›
+set_option linter.checkRespectTransparency.instances false in
 instance : UniformSpace (Multiplicative α) := ‹UniformSpace α›
 
 @[fun_prop]

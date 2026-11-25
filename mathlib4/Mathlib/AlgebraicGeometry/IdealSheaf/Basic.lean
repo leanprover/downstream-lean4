@@ -505,6 +505,7 @@ section ofIsClosed
 
 open _root_.PrimeSpectrum TopologicalSpace
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The radical of an ideal sheaf. -/
 @[simps! ideal]
 def radical (I : IdealSheafData X) : IdealSheafData X :=
@@ -556,6 +557,7 @@ lemma radical_mul {I J : IdealSheafData X} :
   ext U : 2
   simp only [radical_ideal, ideal_mul, Pi.mul_apply, Ideal.radical_mul, ideal_inf, Pi.inf_apply]
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The vanishing ideal sheaf of a closed set,
 which is the largest ideal sheaf whose support is equal to it.

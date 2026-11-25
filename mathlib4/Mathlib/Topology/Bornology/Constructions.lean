@@ -174,9 +174,11 @@ The bornology on those type synonyms is inherited without change.
 -/
 
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Bornology (Additive α) :=
   ‹Bornology α›
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Bornology (Multiplicative α) :=
   ‹Bornology α›
 
@@ -193,6 +195,7 @@ The bornology on this type synonym is inherited without change.
 -/
 
 
+set_option linter.checkRespectTransparency.instances false in
 instance : Bornology αᵒᵈ :=
   ‹Bornology α›
 

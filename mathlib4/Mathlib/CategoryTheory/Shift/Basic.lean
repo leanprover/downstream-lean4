@@ -162,6 +162,7 @@ variable [HasShift C A]
 def shiftMonoidalFunctor : Discrete A ⥤ C ⥤ C :=
   HasShift.shift
 
+set_option linter.checkRespectTransparency.instances false in
 instance : (shiftMonoidalFunctor C A).Monoidal := HasShift.shiftMonoidal
 
 variable {A}

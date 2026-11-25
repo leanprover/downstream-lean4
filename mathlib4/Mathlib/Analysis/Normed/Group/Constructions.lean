@@ -110,7 +110,9 @@ open Additive Multiplicative
 section Norm
 variable [Norm E]
 
+set_option linter.checkRespectTransparency.instances false in
 instance Additive.toNorm : Norm (Additive E) := ‹Norm E›
+set_option linter.checkRespectTransparency.instances false in
 instance Multiplicative.toNorm : Norm (Multiplicative E) := ‹Norm E›
 
 @[simp] lemma norm_toMul (x : Additive E) : ‖(x.toMul : E)‖ = ‖x‖ := rfl
@@ -126,8 +128,10 @@ end Norm
 section NNNorm
 variable [NNNorm E]
 
+set_option linter.checkRespectTransparency.instances false in
 instance Additive.toNNNorm : NNNorm (Additive E) := ‹NNNorm E›
 
+set_option linter.checkRespectTransparency.instances false in
 instance Multiplicative.toNNNorm : NNNorm (Multiplicative E) := ‹NNNorm E›
 
 @[simp] lemma nnNorm_toMul (x : Additive E) : ‖(x.toMul : E)‖₊ = ‖x‖₊ := rfl

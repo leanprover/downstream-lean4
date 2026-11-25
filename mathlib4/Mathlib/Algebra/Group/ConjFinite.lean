@@ -23,6 +23,7 @@ variable {α : Type*} [Monoid α]
 
 attribute [local instance] IsConj.setoid
 
+set_option linter.checkRespectTransparency.instances false in
 instance [Fintype α] [DecidableRel (IsConj : α → α → Prop)] : Fintype (ConjClasses α) :=
   Quotient.fintype (IsConj.setoid α)
 
@@ -32,6 +33,7 @@ instance [Finite α] : Finite (ConjClasses α) :=
 instance [DecidableEq α] [Fintype α] : DecidableRel (IsConj : α → α → Prop) := fun a b =>
   inferInstanceAs (Decidable (∃ c : αˣ, c.val * a = b * c.val))
 
+set_option linter.checkRespectTransparency.instances false in
 instance conjugatesOf.fintype [Fintype α] [DecidableRel (IsConj : α → α → Prop)] {a : α} :
     Fintype (conjugatesOf a) :=
   @Subtype.fintype _ _ (‹DecidableRel IsConj› a) _
@@ -40,6 +42,7 @@ namespace ConjClasses
 
 variable [Fintype α] [DecidableRel (IsConj : α → α → Prop)]
 
+set_option linter.checkRespectTransparency.instances false in
 instance {x : ConjClasses α} : Fintype (carrier x) :=
   Quotient.recOnSubsingleton x fun _ => conjugatesOf.fintype
 

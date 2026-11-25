@@ -41,6 +41,7 @@ instance [DecidableEq V] [Fintype G.edgeSet] [Fintype K] : Fintype (EdgeLabeling
 instance [Finite G.edgeSet] [Finite K] : Finite (EdgeLabeling G K) :=
   Pi.finite
 
+set_option linter.checkRespectTransparency.instances false in
 instance [IsEmpty G.edgeSet] : Unique (EdgeLabeling G K) :=
   Pi.uniqueOfIsEmpty _
 

@@ -205,6 +205,7 @@ noncomputable def gcorec {β γ : Type*} {basis_hd} {basis_tl}
     Multiseries basis_hd basis_tl :=
   Seq.gcorec (fun a => (F a).map (fun (exp, coef, c, next) => ((exp, coef), c, next))) op b
 
+set_option linter.checkRespectTransparency.instances false in
 instance (basis_hd basis_tl) : Inhabited (Multiseries basis_hd basis_tl) where
   default := (default : Seq (ℝ × MultiseriesExpansion basis_tl))
 

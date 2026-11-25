@@ -138,6 +138,7 @@ noncomputable instance Lex.linearOrder [LinearOrder ι] [WellFoundedLT ι]
   @linearOrderOfSTO (Πₗ i, β i) (· < ·)
     { trichotomous := (trichotomous_lex _ _).trichotomous } (Classical.decRel _)
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.types false in
 /-- `Colex (∀ i, α i)` is a linear order if the original order has well-founded `>`. -/
 noncomputable instance Colex.linearOrder [LinearOrder ι] [WellFoundedGT ι]

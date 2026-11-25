@@ -164,6 +164,7 @@ instance partialOrder [Preorder ι] [∀ i, PartialOrder (α i)] :
 
 
 
+set_option linter.checkRespectTransparency.instances false in
 /-- The lexicographical linear order on a sigma type. -/
 instance linearOrder [LinearOrder ι] [∀ i, LinearOrder (α i)] :
     LinearOrder (Σₗ i, α i) :=

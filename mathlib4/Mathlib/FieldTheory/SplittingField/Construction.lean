@@ -124,6 +124,7 @@ def SplittingFieldAuxAux (n : ℕ) : ∀ {K : Type u} [Field K], K[X] →
 def SplittingFieldAux (n : ℕ) {K : Type u} [Field K] (f : K[X]) : Type u :=
   (SplittingFieldAuxAux n f).1
 
+set_option linter.checkRespectTransparency.instances false in
 instance SplittingFieldAux.field (n : ℕ) {K : Type u} [Field K] (f : K[X]) :
     Field (SplittingFieldAux n f) :=
   (SplittingFieldAuxAux n f).2.1
@@ -131,6 +132,7 @@ instance SplittingFieldAux.field (n : ℕ) {K : Type u} [Field K] (f : K[X]) :
 instance (n : ℕ) {K : Type u} [Field K] (f : K[X]) : Inhabited (SplittingFieldAux n f) :=
   ⟨0⟩
 
+set_option linter.checkRespectTransparency.instances false in
 instance SplittingFieldAux.algebra (n : ℕ) {K : Type u} [Field K] (f : K[X]) :
     Algebra K (SplittingFieldAux n f) :=
   (SplittingFieldAuxAux n f).2.2
@@ -145,6 +147,7 @@ instance algebra''' {n : ℕ} {f : K[X]} :
     Algebra (AdjoinRoot f.factor) (SplittingFieldAux n f.removeFactor) :=
   SplittingFieldAux.algebra n _
 
+set_option linter.checkRespectTransparency.instances false in
 instance algebra' {n : ℕ} {f : K[X]} : Algebra (AdjoinRoot f.factor) (SplittingFieldAux n.succ f) :=
   SplittingFieldAux.algebra'''
 

@@ -52,11 +52,13 @@ def sectionsSubsemiring : Subsemiring (∀ j, F.obj j) :=
       forget₂ AddCommMonCat AddMonCat)) with
     carrier := (F ⋙ forget SemiRingCat).sections }
 
+set_option linter.checkRespectTransparency.instances false in
 instance sectionsSemiring : Semiring (F ⋙ forget SemiRingCat.{u}).sections :=
   (sectionsSubsemiring F).toSemiring
 
 variable [Small.{u} (Functor.sections (F ⋙ forget SemiRingCat.{u}))]
 
+set_option linter.checkRespectTransparency.instances false in
 instance limitSemiring :
     Semiring (Types.Small.limitCone.{v, u} (F ⋙ forget SemiRingCat.{u})).pt :=
   let _ : Semiring (F ⋙ forget SemiRingCat).sections := (sectionsSubsemiring F).toSemiring
@@ -194,6 +196,7 @@ instance commSemiringObj (j) :
 
 variable [Small.{u} (Functor.sections (F ⋙ forget CommSemiRingCat))]
 
+set_option linter.checkRespectTransparency.instances false in
 instance limitCommSemiring :
     CommSemiring (Types.Small.limitCone.{v, u} (F ⋙ forget CommSemiRingCat.{u})).pt :=
   let _ : CommSemiring (F ⋙ forget CommSemiRingCat.{u}).sections :=
@@ -303,6 +306,7 @@ def sectionsSubring : Subring (∀ j, F.obj j) :=
 
 variable [Small.{u} (Functor.sections (F ⋙ forget RingCat.{u}))]
 
+set_option linter.checkRespectTransparency.instances false in
 instance limitRing : Ring.{u} (Types.Small.limitCone.{v, u} (F ⋙ forget RingCat.{u})).pt :=
   let _ : Ring (F ⋙ forget RingCat.{u}).sections := (sectionsSubring F).toRing
   inferInstanceAs <| Ring (Shrink _)
@@ -417,6 +421,7 @@ instance commRingObj (j) : CommRing ((F ⋙ forget CommRingCat).obj j) :=
 
 variable [Small.{u} (Functor.sections (F ⋙ forget CommRingCat))]
 
+set_option linter.checkRespectTransparency.instances false in
 instance limitCommRing :
     CommRing.{u} (Types.Small.limitCone.{v, u} (F ⋙ forget CommRingCat.{u})).pt :=
   let _ : CommRing (F ⋙ forget CommRingCat).sections := @Subring.toCommRing (∀ j, F.obj j) _

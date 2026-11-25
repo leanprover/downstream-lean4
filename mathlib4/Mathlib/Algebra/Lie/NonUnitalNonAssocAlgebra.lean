@@ -55,6 +55,7 @@ namespace LieAlgebra
 
 instance (L : Type v) [Nonempty L] : Nonempty (CommutatorRing L) := ‹Nonempty L›
 
+set_option linter.checkRespectTransparency.instances false in
 instance (L : Type v) [Inhabited L] : Inhabited (CommutatorRing L) := ‹Inhabited L›
 
 instance : LieRing (CommutatorRing L) := inferInstanceAs <| LieRing L

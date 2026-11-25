@@ -93,6 +93,7 @@ namespace Grp
 abbrev toMon (A : Grp C) : Mon C := ⟨A.X⟩
 
 variable (C) in
+set_option linter.checkRespectTransparency.instances false in
 /-- The trivial group object. -/
 @[to_additive (attr := simps!) /-- The trivial additive group object. -/]
 def trivial : Grp C := { Mon.trivial C with grp := GrpObj.instTensorUnit }

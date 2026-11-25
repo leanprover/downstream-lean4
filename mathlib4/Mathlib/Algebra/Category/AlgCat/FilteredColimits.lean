@@ -32,6 +32,7 @@ section
 
 variable {c : Cocone (F ⋙ forget₂ _ RingCat)} [IsFilteredOrEmpty J]
 
+set_option linter.checkRespectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 set_option dsimp.resynthInstances false in

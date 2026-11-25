@@ -446,6 +446,7 @@ instance inhabited [Inhabited V] : Inhabited G.ConnectedComponent :=
 
 instance isEmpty [IsEmpty V] : IsEmpty G.ConnectedComponent := Quot.instIsEmpty
 instance [Subsingleton V] : Subsingleton G.ConnectedComponent := Quot.Subsingleton
+set_option linter.checkRespectTransparency.instances false in
 instance [Unique V] : Unique G.ConnectedComponent := Quot.instUnique
 instance [Nonempty V] : Nonempty G.ConnectedComponent := Nonempty.map G.connectedComponentMk ‹_›
 instance [Finite V] : Finite G.ConnectedComponent := Quot.finite _
