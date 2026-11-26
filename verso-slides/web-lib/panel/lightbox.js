@@ -4,39 +4,47 @@
     "use strict";
 
     /** @type {Record<string, *> | null} */
-    var docsJson = null;
+    let docsJson = null;
+
+    /**
+     * A promise that resolves when the hover data has finished loading, at which point `docsJson`
+     * holds it. `init` starts the load, and this is `null` before then. A failed load also
+     * resolves, with `docsJson` empty.
+     * @type {Promise<void> | null}
+     */
+    let docsLoaded = null;
 
     /** @type {HTMLElement | null} */
-    var currentOverlay = null;
+    let currentOverlay = null;
 
     /** @type {HTMLElement | null} */
-    var currentBackdrop = null;
+    let currentBackdrop = null;
 
     /** @type {HTMLElement | null} */
-    var currentInner = null;
+    let currentInner = null;
+
+    /** Fetches the hover data into `docsJson`. A failed fetch leaves it empty. */
+    async function loadDocs() {
+        try {
+            const r = await fetch("-verso-docs.json");
+            docsJson = (r.ok ? await r.json() : null) ?? {};
+        } catch {
+            docsJson = {};
+        }
+    }
 
     function init() {
-        // Fetch the hover-docs JSON (may already be cached by panel.js)
-        fetch("-verso-docs.json")
-            .then(function (r) {
-                return r.ok ? r.json() : {};
-            })
-            .then(function (j) {
-                docsJson = j;
-            })
-            .catch(function () {
-                docsJson = {};
-            });
+        docsLoaded = loadDocs();
 
         // Set up click handlers on inline Lean code tokens
-        document.querySelectorAll("code.hl.lean.inline").forEach(function (codeEl) {
-            codeEl.addEventListener("click", function (e) {
-                var target = /** @type {Element} */ (e.target);
+        document.querySelectorAll("code.hl.lean.inline").forEach((codeEl) => {
+            codeEl.addEventListener("click", (e) => {
+                const target = /** @type {Element} */ (e.target);
 
                 // Check for hover doc tokens (normal case)
-                var tok = target.closest("[data-verso-hover]");
+                const tok = target.closest("[data-verso-hover]");
                 if (tok) {
-                    var id = tok.getAttribute("data-verso-hover");
+                    const id = tok.getAttribute("data-verso-hover");
                     if (id) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -46,9 +54,9 @@
                 }
 
                 // Check for error/warning tokens with embedded messages
-                var infoSpan = target.closest(".has-info");
+                const infoSpan = target.closest(".has-info");
                 if (infoSpan) {
-                    var msgEl = infoSpan.querySelector(".hover-info.messages");
+                    const msgEl = infoSpan.querySelector(".hover-info.messages");
                     if (msgEl) {
                         e.preventDefault();
                         e.stopPropagation();
@@ -67,7 +75,7 @@
         // Close on Escape — use capture phase to intercept before reveal.js
         document.addEventListener(
             "keydown",
-            function (e) {
+            (e) => {
                 if (e.key === "Escape" && currentOverlay) {
                     closeLightbox();
                     e.preventDefault();
@@ -84,24 +92,24 @@
      */
     function applyScale() {
         if (!currentInner) return;
-        var scale = Reveal.getScale();
-        currentInner.style.fontSize = scale * 0.75 + "em";
+        const scale = Reveal.getScale();
+        currentInner.style.fontSize = `${scale * 0.75}em`;
     }
 
     /**
      * Look up hover doc HTML from the docs JSON.
      * @param {string} id
-     * @return {string}
+     * @returns {string}
      */
     function lookupHoverDoc(id) {
         if (!docsJson || !id) return "";
-        var entry = docsJson[id];
+        const entry = docsJson[id];
         if (!entry) return "";
         if (typeof entry === "string") {
-            return '<span class="hl lean">' + entry + "</span>";
+            return `<span class="hl lean">${entry}</span>`;
         }
         if (entry.hover) {
-            return '<span class="hl lean">' + entry.hover + "</span>";
+            return `<span class="hl lean">${entry.hover}</span>`;
         }
         return "";
     }
@@ -111,7 +119,18 @@
      * @param {string} id
      */
     function openLightbox(id) {
-        var html = lookupHoverDoc(id);
+        if (!docsJson && docsLoaded) {
+            // The hover data is still loading. Open the lightbox when it arrives, if the
+            // presentation is still on the same slide.
+            const slide = Reveal.getCurrentSlide();
+            docsLoaded
+                .then(() => {
+                    if (Reveal.getCurrentSlide() === slide) openLightbox(id);
+                })
+                .catch((e) => console.error(e));
+            return;
+        }
+        const html = lookupHoverDoc(id);
         if (!html) return;
         openLightboxWithHtml(html);
     }
@@ -126,35 +145,37 @@
 
         if (!html) return;
 
-        var revealEl = Reveal.getRevealElement();
+        const revealEl = Reveal.getRevealElement();
         if (!revealEl) return;
 
         // Full-screen backdrop to catch clicks outside the lightbox
-        var backdrop = document.createElement("div");
+        const backdrop = document.createElement("div");
         backdrop.className = "lean-hover-backdrop";
         backdrop.addEventListener("click", closeLightbox);
 
         // Build overlay following the r-overlay pattern from reveal.js 5.2.1
-        var overlay = document.createElement("div");
+        const overlay = document.createElement("div");
         overlay.className = "r-overlay r-overlay-lean-hover";
 
         // Propagate the active slide's light/dark tag to the overlay so the
         // light-mode Lean token palette in slides-highlight.css applies here.
-        var currentSlide = Reveal.getCurrentSlide();
+        const currentSlide = Reveal.getCurrentSlide();
         if (currentSlide && currentSlide.classList.contains("slide-light-bg")) {
             overlay.classList.add("slide-light-bg");
         }
 
-        var viewport = document.createElement("div");
+        const viewport = document.createElement("div");
         viewport.className = "r-overlay-viewport";
 
         // Content area
-        var content = document.createElement("div");
+        const content = document.createElement("div");
         content.className = "r-overlay-content lean-hover-content";
 
-        var inner = document.createElement("div");
+        const inner = document.createElement("div");
         inner.className = "lean-hover-inner hl lean";
+        // eslint-disable-next-line no-unsanitized/property -- the markup comes from this page or its generated hover data
         inner.innerHTML = html;
+        versoRenderMath(inner);
         content.appendChild(inner);
 
         viewport.appendChild(content);
@@ -172,29 +193,21 @@
         // Lay out the hover's format data, if it has any
         reflowLightboxFormat(inner);
 
-        // Render docstrings with marked
-        if (typeof marked !== "undefined") {
-            var m = /** @type {typeof marked} */ (marked);
-            inner.querySelectorAll(".docstring").forEach(function (ds) {
-                ds.innerHTML = /** @type {string} */ (m.parse(ds.textContent || ""));
-            });
-        }
-
         // Set up binding highlighting within the lightbox
-        inner.addEventListener("mouseover", function (e) {
-            var tok = /** @type {Element} */ (e.target).closest(".token[data-binding]");
+        inner.addEventListener("mouseover", (e) => {
+            const tok = /** @type {Element} */ (e.target).closest(".token[data-binding]");
             if (!tok) return;
-            var binding = tok.getAttribute("data-binding");
+            const binding = tok.getAttribute("data-binding");
             if (!binding) return;
-            var sel = '.token[data-binding="' + binding + '"]';
-            inner.querySelectorAll(sel).forEach(function (t) {
+            const sel = `.token[data-binding="${binding}"]`;
+            inner.querySelectorAll(sel).forEach((t) => {
                 t.classList.add("binding-hl");
             });
         });
-        inner.addEventListener("mouseout", function (e) {
-            var tok = /** @type {Element} */ (e.target).closest(".token[data-binding]");
+        inner.addEventListener("mouseout", (e) => {
+            const tok = /** @type {Element} */ (e.target).closest(".token[data-binding]");
             if (!tok) return;
-            inner.querySelectorAll(".token.binding-hl").forEach(function (t) {
+            inner.querySelectorAll(".token.binding-hl").forEach((t) => {
                 t.classList.remove("binding-hl");
             });
         });

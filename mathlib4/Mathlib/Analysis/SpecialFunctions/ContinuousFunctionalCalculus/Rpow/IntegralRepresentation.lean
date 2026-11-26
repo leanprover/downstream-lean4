@@ -25,12 +25,6 @@ operator monotone and concave through direct means, and this integral lifts thes
 to `rpow`. These results can be found in
 `Mathlib.Analysis.SpecialFunctions.ContinuousFunctionalCalculus.Rpow.Order`.
 
-## Notes
-
-Here we only compute the integral up to a constant, even though the actual constant can be
-computed via contour integration. We chose to avoid this, as the constant is seldom if ever
-relevant in applications, and would needlessly complicate the proof.
-
 ## Main declarations
 
 + `rpowIntegrand₀₁ p t x := t ^ p * (t⁻¹ - (t + x)⁻¹)`
@@ -41,6 +35,12 @@ relevant in applications, and would needlessly complicate the proof.
 + `CFC.exists_measure_nnrpow_eq_integral_cfcₙ_rpowIntegrand₀₁` and
   `CFC.exists_measure_nnrpow_eq_integral_cfcₙ_rpowIntegrand₁₂`: the corresponding statements where
   `x ^ p` is defined via the CFC.
+
+## Implementation notes
+
+Here we only compute the integral up to a constant, even though the actual constant can be
+computed via contour integration. We chose to avoid this, as the constant is seldom if ever
+relevant in applications, and would needlessly complicate the proof.
 
 ## TODO
 
@@ -107,7 +107,7 @@ lemma rpowIntegrand₀₁_eq_pow_div (hp : p ∈ Ioo 0 1) (ht : 0 ≤ t) (hx : 0
     calc _ = (t : ℝ) ^ p * (t⁻¹ - (t + x)⁻¹) := rfl
       _ = (t : ℝ) ^ p * ((t + x - t) / (t * (t + x))) := by
           simp only [inv_eq_one_div]
-          rw [div_sub_div _ _ (by lia) (by lia)]
+          rw [div_sub_div _ _ (by lia -filterFacts) (by lia -filterFacts)]
           simp
       _ = t ^ p / t * x / (t + x) := by simp [field]
       _ = t ^ (p - 1) * x / (t + x) := by congr; exact (Real.rpow_sub_one ht' p).symm

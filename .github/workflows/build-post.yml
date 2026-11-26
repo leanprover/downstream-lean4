@@ -272,6 +272,27 @@ jobs:
           topic: downstream-lean4 builds
           content: ${{ steps.build-report-cslib.outputs.report }}
 
+      - name: Render batteries build report
+        id: build-report-batteries
+        uses: ./.downstream/actions/render-report
+        with:
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          report-style: zulip
+          limited-to: batteries
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
+      - name: Post batteries build report to Zulip
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-batteries
+          topic: downstream-lean4 builds
+          content: ${{ steps.build-report-batteries.outputs.report }}
+
       - name: Determine parent commit
         id: parent
         env:
@@ -337,6 +358,30 @@ jobs:
           to: nightly-testing-cslib
           topic: downstream-lean4 breakages
           content: ${{ steps.breakage-report-cslib.outputs.report }}
+
+      - name: Render batteries breakage report
+        id: breakage-report-batteries
+        uses: ./.downstream/actions/render-report
+        with:
+          build-report-path: ${{ runner.temp }}/report/build-report.json
+          status-report-path: ${{ runner.temp }}/report/status-report.json
+          report-type: delta
+          report-style: zulip
+          limited-to: batteries
+          run-id: ${{ github.event.workflow_run.id }}
+          run-attempt: ${{ github.event.workflow_run.run_attempt }}
+
+      - name: Post batteries breakage report to Zulip
+        if: ${{ !fromJSON(steps.breakage-report-batteries.outputs.empty) }}
+        uses: zulip/github-actions-zulip/send-message@v2
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: ${{ vars.ZULIP_EMAIL }}
+          organization-url: "https://leanprover.zulipchat.com"
+          type: stream
+          to: nightly-testing-batteries
+          topic: downstream-lean4 breakages
+          content: ${{ steps.breakage-report-batteries.outputs.report }}
 
   update-branches:
     if: |

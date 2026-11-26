@@ -6,10 +6,11 @@ Authors: Johannes Hölzl, Mario Carneiro
 module
 
 public import Mathlib.Algebra.Notation.Indicator
-public import Mathlib.Data.Int.Cast.Pi
 public import Mathlib.Data.Nat.Cast.Basic
 public import Mathlib.MeasureTheory.MeasurableSpace.Defs
 public import Mathlib.Order.SupClosed
+
+import Mathlib.Data.Int.Cast.Pi
 
 /-!
 # Measurable spaces and measurable functions
@@ -300,7 +301,7 @@ variable {m : MeasurableSpace α}
 @[fun_prop]
 theorem Measurable.iterate {f : α → α} (hf : Measurable f) : ∀ n, Measurable f^[n]
   | 0 => measurable_id
-  | n + 1 => (Measurable.iterate hf n).comp hf
+  | n + 1 => hf.comp (Measurable.iterate hf n)
 
 variable {mβ : MeasurableSpace β}
 

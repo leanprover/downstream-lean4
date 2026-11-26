@@ -266,7 +266,7 @@ lemma subsingleton_of_stabilizer_lt_of_subset {B : Set α}
     · -- `Subtype.val ⁻¹' B = s`
       have hBs' : B = s := Set.Subset.antisymm hBs (by simp_all)
       subst hBs'
-      obtain ⟨g', hg', hg's⟩ := IsConcreteLE.exists_of_lt hG
+      obtain ⟨g', hg', hg's⟩ := exists_mem_notMem_of_lt hG
       have h := (isBlock_iff_smul_eq_or_disjoint.mp hB ⟨g', hg'⟩).resolve_left hg's
       suffices (g' • B).Subsingleton by
         exact subsingleton_of_image (MulAction.injective g') B this
@@ -375,7 +375,8 @@ theorem isCoatom_stabilizer_of_ncard_lt_ncard_compl
   have hB_not_le_sc (B : Set α) (hB : IsBlock G B) (hBsc : B ⊆ sᶜ) :
       B.Subsingleton :=
     -- uses Step 1
-    hB.subsingleton_of_ssubset_of_stabilizer_Perm_le (hBsc.ssubset_of_ne (by lia)) hG'.le
+    hB.subsingleton_of_ssubset_of_stabilizer_Perm_le
+      (hBsc.ssubset_of_ne (by lia -filterFacts)) hG'.le
   -- Step 3 : A block contained in `s` is a subsingleton
   have hB_not_le_s (B : Set α) (hB : IsBlock G B) (hBs : B ⊆ s) : B.Subsingleton :=
     have := isPreprimitive_stabilizer_subgroup hG.le

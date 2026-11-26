@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oranienbaum&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oranienbaum&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oranienbaum&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oranienbaum&display=swap");
 
 html {
     scroll-behavior: smooth;
@@ -7,7 +7,10 @@ html {
 }
 
 * {
-    transition: background-color var(--transition-base), fill var(--transition-base), color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        fill var(--transition-base),
+        color var(--transition-base);
 }
 
 body {
@@ -38,7 +41,7 @@ b {
 /* Containers */
 
 .container {
-padding: 0 var(--space-4);
+    padding: 0 var(--space-4);
     max-width: min(var(--container-width), 100vw);
     margin: 0 auto;
     box-sizing: border-box;
@@ -71,7 +74,6 @@ page {
         padding-top: 20px;
         gap: 50px;
     }
-
 }
 
 /* Animation */
@@ -94,7 +96,15 @@ page {
     filter: blur(0);
 }
 
-.transition-delay-small  { --reveal-delay: 0.15s; }
-.transition-delay-medium { --reveal-delay: 0.3s; }
-.transition-delay-large  { --reveal-delay: 0.5s; }
-.transition-delay-xl     { --reveal-delay: 0.7s; }
+.transition-delay-small {
+    --reveal-delay: 0.15s;
+}
+.transition-delay-medium {
+    --reveal-delay: 0.3s;
+}
+.transition-delay-large {
+    --reveal-delay: 0.5s;
+}
+.transition-delay-xl {
+    --reveal-delay: 0.7s;
+}

@@ -274,7 +274,7 @@ lemma pderiv_inr_universalFactorizationMap_X (i j) :
   · obtain h | h := lt_or_ge j.val i.val
     · rw [Finset.sum_eq_zero, ite_eq_left h]
       simp only [Finset.mem_antidiagonal]
-      lia
+      lia -filterFacts
     rw [Finset.sum_eq_single ⟨j.val - i.val, i.val⟩, ite_eq_right h.not_gt]
     · simp
     · simp only [Finset.mem_antidiagonal, ne_eq, ite_eq_right_iff, Prod.forall, Prod.mk.injEq]
@@ -656,7 +656,7 @@ lemma UniversalCoprimeFactorizationRing.exists_liesOver_residueFieldMap_bijectiv
   have : Q.LiesOver P := ⟨by rw [Ideal.under, RingHom.comap_ker, AlgHom.toRingHom_eq_coe,
       φ.comp_algebraMap, Ideal.ker_algebraMap_residueField]⟩
   let φ' : Q.ResidueField →ₐ[R] P.ResidueField := Ideal.ResidueField.liftₐ _ φ le_rfl (by
-    simp [IsConcreteLE.le_iff, IsUnit.mem_submonoid_iff, Q])
+    simp [le_iff_mem_imp_mem, IsUnit.mem_submonoid_iff, Q])
   let φi : P.ResidueField →ₐ[R] Q.ResidueField :=
     Ideal.ResidueField.mapₐ _ _ (Algebra.ofId _ _) (Ideal.over_def _ _)
   let e : P.ResidueField ≃ₐ[R] Q.ResidueField :=

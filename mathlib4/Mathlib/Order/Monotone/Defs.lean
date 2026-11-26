@@ -294,21 +294,27 @@ namespace Subsingleton
 
 variable [Preorder α] [Preorder β]
 
+@[nontriviality]
 protected theorem monotone [Subsingleton α] (f : α → β) : Monotone f :=
   fun _ _ _ ↦ (congr_arg _ <| Subsingleton.elim _ _).le
 
+@[nontriviality]
 protected theorem antitone [Subsingleton α] (f : α → β) : Antitone f :=
   fun _ _ _ ↦ (congr_arg _ <| Subsingleton.elim _ _).le
 
+@[nontriviality]
 theorem monotone' [Subsingleton β] (f : α → β) : Monotone f :=
   fun _ _ _ ↦ (Subsingleton.elim _ _).le
 
+@[nontriviality]
 theorem antitone' [Subsingleton β] (f : α → β) : Antitone f :=
   fun _ _ _ ↦ (Subsingleton.elim _ _).le
 
+@[nontriviality]
 protected theorem strictMono [Subsingleton α] (f : α → β) : StrictMono f :=
   fun _ _ h ↦ (h.ne <| Subsingleton.elim _ _).elim
 
+@[nontriviality]
 protected theorem strictAnti [Subsingleton α] (f : α → β) : StrictAnti f :=
   fun _ _ h ↦ (h.ne <| Subsingleton.elim _ _).elim
 
@@ -377,7 +383,7 @@ theorem Antitone.comp_monotone (hg : Antitone g) (hf : Monotone f) : Antitone (g
   fun _ _ h ↦ hg (hf h)
 
 protected theorem Monotone.iterate {f : α → α} (hf : Monotone f) (n : ℕ) : Monotone f^[n] :=
-  Nat.recOn n monotone_id fun _ h ↦ h.comp hf
+  Nat.recOn n monotone_id fun _ h ↦ hf.comp h
 
 protected theorem Monotone.comp_monotoneOn (hg : Monotone g) (hf : MonotoneOn f s) :
     MonotoneOn (g ∘ f) s :=
@@ -406,7 +412,7 @@ theorem StrictAnti.comp_strictMono (hg : StrictAnti g) (hf : StrictMono f) : Str
   fun _ _ h ↦ hg (hf h)
 
 protected theorem StrictMono.iterate {f : α → α} (hf : StrictMono f) (n : ℕ) : StrictMono f^[n] :=
-  Nat.recOn n strictMono_id fun _ h ↦ h.comp hf
+  Nat.recOn n strictMono_id fun _ h ↦ hf.comp h
 
 protected theorem StrictMono.comp_strictMonoOn (hg : StrictMono g) (hf : StrictMonoOn f s) :
     StrictMonoOn (g ∘ f) s :=

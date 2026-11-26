@@ -59,17 +59,27 @@ extern "C" {
 #define UNICODE_GC_Cn UINT32_C(0x20000000)
 #define UNICODE_GC_C (UNICODE_GC_Cc | UNICODE_GC_Cf | UNICODE_GC_Cs | UNICODE_GC_Co | UNICODE_GC_Cn)
 
-typedef struct {
-  uint32_t cmin;
-  uint32_t cmax;
-  uint64_t data;
-} unicode_data_t;
-
 LEAN_EXPORT uint64_t unicode_prop_lookup(uint32_t c);
 
 LEAN_EXPORT uint64_t unicode_case_lookup(uint32_t c);
 
 LEAN_EXPORT uint32_t unicode_script_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_bidi_class_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_bidi_mirrored_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_combining_class_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_default_ignorable_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_numeric_lookup(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_case_folding_lookup_lo(uint32_t c);
+LEAN_EXPORT uint64_t unicode_case_folding_lookup_hi(uint32_t c);
+
+LEAN_EXPORT uint64_t unicode_decomposition_lookup_lo(uint32_t c);
+LEAN_EXPORT uint64_t unicode_decomposition_lookup_hi(uint32_t c);
 
 LEAN_EXPORT uint32_t unicode_script_of_abbrev(b_lean_obj_arg abbr);
 

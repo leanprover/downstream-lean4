@@ -192,7 +192,8 @@ theorem trivial_iff_lower_central_eq_bot : IsTrivial L M ↔ lowerCentralSeries 
   · simp
   · rw [LieSubmodule.eq_bot_iff] at h; apply IsTrivial.mk; intro x m; apply h
     apply LieSubmodule.subset_lieSpan
-    simp only [Subtype.exists, LieSubmodule.mem_top, exists_prop, true_and, Set.mem_ofPred]
+    simp only [Function.iterate_zero_apply, Subtype.exists, LieSubmodule.mem_top, exists_prop,
+      true_and, Set.mem_ofPred]
     exact ⟨x, m, rfl⟩
 
 section
@@ -681,8 +682,8 @@ theorem Equiv.lieModule_isNilpotent_iff (f : L ≃ₗ⁅R⁆ L₂) (g : M ≃ₗ
     exact f.surjective.lieModuleIsNilpotent hfg hg
   · have hg : Surjective (g.symm : M₂ →ₗ[R] M) := g.symm.surjective
     refine f.symm.surjective.lieModuleIsNilpotent (fun x m => ?_) hg
-    rw [LinearEquiv.coe_coe, LieEquiv.coe_toLieHom, ← g.symm_apply_apply ⁅f.symm x, g.symm m⁆, ←
-      hfg, f.apply_symm_apply, g.apply_symm_apply]
+    rw [LinearEquiv.coe_toLinearMap, LieEquiv.coe_toLieHom,
+      ← g.symm_apply_apply ⁅f.symm x, g.symm m⁆, ← hfg, f.apply_symm_apply, g.apply_symm_apply]
 
 @[simp]
 theorem LieModule.isNilpotent_of_top_iff :

@@ -5,6 +5,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 module
 import UnicodeBasic.CharacterDatabase
 import UnicodeBasic.Hangul
+public import UnicodeBasic.Internal.BidiClassTree
+public import UnicodeBasic.Internal.BidiMirroredTree
+public import UnicodeBasic.Internal.CaseFoldingTree
+public import UnicodeBasic.Internal.CaseTree
+public import UnicodeBasic.Internal.CombiningClassTree
+public import UnicodeBasic.Internal.DecompositionTree
+public import UnicodeBasic.Internal.DefaultIgnorableTree
+public import UnicodeBasic.Internal.NumericTree
+public import UnicodeBasic.Internal.PropTree
+public import UnicodeBasic.Internal.ScriptTree
 public import UnicodeBasic.Types
 
 /-! # Table lookups
@@ -17,8 +27,100 @@ namespace Unicode
 
 namespace CLib
 
-@[extern "unicode_case_lookup"]
-protected opaque lookupCase (c : UInt32) : UInt64
+/-- Data of a code point, looked up in the B-tree `t` with data `width` bits wide, or `default`
+(internal use only) -/
+@[expose] public protected def lookupIn (t : Internal.BTree Nat) (width default c : Nat) :
+    UInt64 :=
+  match t.find? c with
+  | none => default.toUInt64
+  | some (block, k) => (block >>> (width * k) &&& (1 <<< width) - 1).toUInt64
+
+/-- Bidi classes, in the order of their codes in `CLib.lookupBidiClass` (internal use only) -/
+@[expose] public protected def bidiClasses : Array BidiClass := #[
+  .leftToRight, .rightToLeft, .arabicLetter, .europeanNumber, .europeanSeparator,
+  .europeanTerminator, .arabicNumber, .commonSeparator, .nonspacingMark, .boundaryNeutral,
+  .paragraphSeparator, .segmentSeparator, .whiteSpace, .otherNeutral, .leftToRightEmbedding,
+  .leftToRightOverride, .rightToLeftEmbedding, .rightToLeftOverride, .popDirectionalFormat,
+  .leftToRightIsolate, .rightToLeftIsolate, .firstStrongIsolate, .popDirectionalIsolate]
+
+/-- Code of the bidi class of a code point, looked up in the B-tree `t` (internal use only) -/
+@[expose] public protected def lookupBidiClassIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  CLib.lookupIn t 5 9 c -- default BN
+
+/-- Code of the bidi class of a code point, an index into `CLib.bidiClasses` (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.BidiClassTree`. `util/TestTables` checks that the two agree on every
+-- code point.
+@[extern "unicode_bidi_class_lookup", expose]
+public protected def lookupBidiClass (c : UInt32) : UInt64 :=
+  CLib.lookupBidiClassIn Internal.bidiClassTree c.toNat
+
+/-- `1` if a code point is bidi mirrored, `0` otherwise, looked up in the B-tree `t` (internal
+use only) -/
+@[expose] public protected def lookupBidiMirroredIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  CLib.lookupIn t 1 0 c
+
+/-- `1` if a code point is bidi mirrored, `0` otherwise (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.BidiMirroredTree`. `util/TestTables` checks that the two agree on every
+-- code point.
+@[extern "unicode_bidi_mirrored_lookup", expose]
+public protected def lookupBidiMirrored (c : UInt32) : UInt64 :=
+  CLib.lookupBidiMirroredIn Internal.bidiMirroredTree c.toNat
+
+/-- Canonical combining class of a code point, looked up in the B-tree `t` (internal use only) -/
+@[expose] public protected def lookupCombiningClassIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  CLib.lookupIn t 8 0 c
+
+/-- Canonical combining class of a code point (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.CombiningClassTree`. `util/TestTables` checks that the two agree on
+-- every code point.
+@[extern "unicode_combining_class_lookup", expose]
+public protected def lookupCombiningClass (c : UInt32) : UInt64 :=
+  CLib.lookupCombiningClassIn Internal.combiningClassTree c.toNat
+
+/-- `1` if a code point is default ignorable, `0` otherwise, looked up in the B-tree `t`
+(internal use only) -/
+@[expose] public protected def lookupDefaultIgnorableIn (t : Internal.BTree Nat) (c : Nat) :
+    UInt64 :=
+  CLib.lookupIn t 1 0 c
+
+/-- `1` if a code point is default ignorable, `0` otherwise (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.DefaultIgnorableTree`. `util/TestTables` checks that the two agree on
+-- every code point.
+@[extern "unicode_default_ignorable_lookup", expose]
+public protected def lookupDefaultIgnorable (c : UInt32) : UInt64 :=
+  CLib.lookupDefaultIgnorableIn Internal.defaultIgnorableTree c.toNat
+
+/-- Encoded numeric type and value of a code point, looked up in the B-tree `t` (internal use
+only) -/
+@[expose] public protected def lookupNumericIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  CLib.lookupIn t 52 0 c
+
+/-- Encoded numeric type and value of a code point, see `UnicodeCLib/numeric.c` (internal use
+only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.NumericTree`. `util/TestTables` checks that the two agree on every code
+-- point.
+@[extern "unicode_numeric_lookup", expose]
+public protected def lookupNumeric (c : UInt32) : UInt64 :=
+  CLib.lookupNumericIn Internal.numericTree c.toNat
+
+/-- Simple case mappings of a code point, looked up in the B-tree `t` (internal use only) -/
+@[expose] public protected def lookupCaseIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  match t.find? c with
+  | none => 0
+  | some (block, k) => (block >>> (63 * k) &&& 0x7FFFFFFFFFFFFFFF).toUInt64
+
+/-- Simple case mappings of a code point (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.CaseTree`. `util/TestTables` checks that the two agree on every code
+-- point.
+@[extern "unicode_case_lookup", expose]
+public protected def lookupCase (c : UInt32) : UInt64 :=
+  CLib.lookupCaseIn Internal.caseTree c.toNat
 
 /-- `Other_Uppercase` bit of `CLib.lookupProp` (internal use only) -/
 public protected abbrev oUpper : UInt64 := 0x100000000
@@ -29,12 +131,106 @@ public protected abbrev oAlpha : UInt64 := 0x400000000
 /-- `Other_Math` bit of `CLib.lookupProp` (internal use only) -/
 public protected abbrev oMath  : UInt64 := 0x800000000
 
-/-- General category and `Other_*` property bits of a code point (internal use only) -/
-@[extern "unicode_prop_lookup"]
-public protected opaque lookupProp (c : UInt32) : UInt64
+/-- General category and `Other_*` property bits of a code point, looked up in the B-tree `t`
+(internal use only) -/
+@[expose] public protected def lookupPropIn (t : Internal.BTree Nat) (c : Nat) : UInt64 :=
+  match t.find? c with
+  | none => 0x20000000 -- Cn
+  | some (block, k) =>
+    let d := block >>> (36 * k) &&& 0xFFFFFFFFF
+    let gc := d &&& 0x3FFFFFFF
+    let pb := d >>> 31 &&& 1
+    let op := d &&& 0xF00000000
+    -- Alternating pairs, see `UnicodeCLib/prop.c`
+    let gc :=
+      if gc == 0x7 then -- LC
+        if c % 2 == pb then 0x1 else 0x2 -- Lu, Ll
+      else if gc == 0x6000 then -- PG
+        if c % 2 == pb then 0x2000 else 0x4000 -- Ps, Pe
+      else if gc == 0x18000 then -- PQ
+        if c % 2 == pb then 0x8000 else 0x10000 -- Pi, Pf
+      else gc
+    (op ||| gc).toUInt64
 
-@[extern "unicode_script_lookup"]
-protected opaque lookupScript (c : UInt32) : Script
+/-- General category and `Other_*` property bits of a code point (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.PropTree`. `util/TestTables` checks that the two agree on every code
+-- point.
+@[extern "unicode_prop_lookup", expose]
+public protected def lookupProp (c : UInt32) : UInt64 :=
+  CLib.lookupPropIn Internal.propTree c.toNat
+
+/-- Script of a code point, looked up in the B-tree `t` (internal use only) -/
+@[expose] public protected def lookupScriptIn (t : Internal.BTree Nat) (c : Nat) : Script :=
+  let v : UInt32 :=
+    match t.find? c with
+    | none => (default : Script).code -- Zzzz
+    | some (block, k) => (block >>> (32 * k) &&& 0xFFFFFFFF).toUInt32
+  if h : Script.isValid v then ⟨v, h⟩ else default
+
+/-- Script of a code point (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.ScriptTree`. `util/TestTables` checks that the two agree on every code
+-- point.
+@[extern "unicode_script_lookup", expose]
+public protected def lookupScript (c : UInt32) : Script :=
+  CLib.lookupScriptIn Internal.scriptTree c.toNat
+
+/-- Data of a code point, looked up in the B-tree `t` with data `width` bits wide, or `0`, as a
+`Nat` (internal use only) -/
+@[expose] public protected def lookupWideIn (t : Internal.BTree Nat) (width c : Nat) : Nat :=
+  match t.find? c with
+  | none => 0
+  | some (block, k) => block >>> (width * k) &&& (1 <<< width) - 1
+
+/-- Encoded case foldings of a code point, looked up in the B-tree `t` (internal use only) -/
+@[expose] public protected def lookupCaseFoldingIn (t : Internal.BTree Nat) (c : Nat) : Nat :=
+  CLib.lookupWideIn t 85 c
+
+/-- Low 64 bits of the encoded case foldings of a code point, see `UnicodeCLib/case_folding.c`
+(internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.CaseFoldingTree`. `util/TestTables` checks that the two agree on every
+-- code point.
+@[extern "unicode_case_folding_lookup_lo", expose]
+public protected def lookupCaseFoldingLo (c : UInt32) : UInt64 :=
+  (CLib.lookupCaseFoldingIn Internal.caseFoldingTree c.toNat).toUInt64
+
+/-- High 64 bits of the encoded case foldings of a code point, see `UnicodeCLib/case_folding.c`
+(internal use only) -/
+-- Compiled code calls the C table, as for `CLib.lookupCaseFoldingLo`.
+@[extern "unicode_case_folding_lookup_hi", expose]
+public protected def lookupCaseFoldingHi (c : UInt32) : UInt64 :=
+  (CLib.lookupCaseFoldingIn Internal.caseFoldingTree c.toNat >>> 64).toUInt64
+
+/-- Encoded canonical decomposition of a code point, looked up in the B-tree `t` (internal use
+only) -/
+@[expose] public protected def lookupDecompositionIn (t : Internal.BTree Nat) (c : Nat) : Nat :=
+  CLib.lookupWideIn t 84 c
+
+/-- Low 64 bits of the encoded canonical decomposition of a code point, see
+`UnicodeCLib/decomposition.c` (internal use only) -/
+-- Compiled code calls the C table. The kernel unfolds the body, which reads the same data from
+-- `UnicodeBasic.Internal.DecompositionTree`. `util/TestTables` checks that the two agree on every
+-- code point.
+@[extern "unicode_decomposition_lookup_lo", expose]
+public protected def lookupDecompositionLo (c : UInt32) : UInt64 :=
+  (CLib.lookupDecompositionIn Internal.decompositionTree c.toNat).toUInt64
+
+/-- High 64 bits of the encoded canonical decomposition of a code point, see
+`UnicodeCLib/decomposition.c` (internal use only) -/
+-- Compiled code calls the C table, as for `CLib.lookupDecompositionLo`.
+@[extern "unicode_decomposition_lookup_hi", expose]
+public protected def lookupDecompositionHi (c : UInt32) : UInt64 :=
+  (CLib.lookupDecompositionIn Internal.decompositionTree c.toNat >>> 64).toUInt64
+
+/-- Code points packed 21 bits each in `d`, up to the first `0`, at most `n` of them (internal
+use only) -/
+@[expose] public protected def unpackCodes (d : Nat) : (n : Nat) → List UInt32
+  | 0 => []
+  | n + 1 =>
+    let x := d &&& 0x1FFFFF
+    if x == 0 then [] else x.toUInt32 :: CLib.unpackCodes (d >>> 21) n
 
 end CLib
 
@@ -72,64 +268,38 @@ private def parseDataTable (s : String) (f : UInt32 → UInt32 → Array String.
       r := r.push (start, stop, val)
     return r
 
-/-- Parse a range compressed property table -/
-private def parsePropTable (s : String) : Thunk <| Array (UInt32 × UInt32) :=
-  .mk fun _ => Id.run do
-    let mut r := #[]
-    let mut stream := UCDStream.ofString s
-    for record in stream do
-      let start := ofHexString! record[0]!
-      let stop := if record[1]!.isEmpty then start else ofHexString! record[1]!
-      r := r.push (start, stop)
-    return r
-
 /-- Get bidirectional class using lookup table
 
   Unicode property: `Bidi_Class` -/
+@[expose]
 public def lookupBidiClass (c : UInt32) : BidiClass :=
-  let table := table.get
-  if c < table[0]!.1 then .BN else
-    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (_, v, bc) => if c ≤ v then bc else .BN
-where
-  str : String := include_str "../data/Bidi_Class.txt"
-  table : Thunk <| Array (UInt32 × UInt32 × BidiClass) :=
-    parseDataTable str fun _ _ x => BidiClass.ofAbbrev! x[0]!
+  CLib.bidiClasses.getD (CLib.lookupBidiClass c).toNat .boundaryNeutral
 
 /-- Get canonical combining class using lookup table
 
   Unicode property: `Canonical_Combining_Class` -/
+@[expose]
 public def lookupCanonicalCombiningClass (c : UInt32) : Nat :=
-  let t := table.get
-  if c < t[0]!.1 then 0 else
-    match t[find c (fun i => t[i]!.1) 0 t.size.toUSize]! with
-    | (_, v, n) => if c ≤ v then n else 0
-where
-  str : String := include_str "../data/Canonical_Combining_Class.txt"
-  table : Thunk <| Array (UInt32 × UInt32 × Nat) :=
-    parseDataTable str fun _ _ x => x[0]!.toNat?.get!
+  (CLib.lookupCombiningClass c).toNat
 
 /-- Get canonical decomposition mapping using lookup table
 
   Unicode properties:
     `Decomposition_Mapping`
     `Decomposition_Type=Canonical` -/
+@[expose]
 public def lookupCanonicalDecompositionMapping (c : UInt32) : List UInt32 :=
-  -- Hangul syllables
-  if Hangul.Syllable.base ≤ c && c ≤ Hangul.Syllable.last then
-    let s := Hangul.getSyllable! c
-    match s.getTChar? with
-    | some t => [s.getLChar.val, s.getVChar.val, t.val]
-    | none => [s.getLChar.val, s.getVChar.val]
+  -- Hangul syllables, by the algorithm in Section 3.12 of the Standard
+  if 0xAC00 ≤ c && c ≤ 0xD7A3 then
+    let i := c - 0xAC00
+    let l := 0x1100 + i / 588
+    let v := 0x1161 + i % 588 / 28
+    let t := i % 28
+    if t == 0 then [l, v] else [l, v, 0x11A7 + t]
   else
-    let table := table.get
-    if c < table[0]!.1 then [c] else
-      match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-      | (v, l) => if c == v then l else [c]
-where
-  str : String := include_str "../data/Canonical_Decomposition_Mapping.txt"
-  table : Thunk <| Array (UInt32 × List UInt32) :=
-    parseTable str fun _ x => (x.map ofHexString!).toList
+    let lo := CLib.lookupDecompositionLo c
+    if lo == 0 then [c] else
+      CLib.unpackCodes (lo.toNat ||| (CLib.lookupDecompositionHi c).toNat <<< 64) 4
 
 /-- Get simple and full case foldings of a code point using lookup table
 
@@ -140,18 +310,13 @@ where
   Unicode properties:
     `Case_Folding`
     `Simple_Case_Folding` -/
+@[expose, inline]
 public def lookupCaseFolding (c : UInt32) : Option UInt32 × List UInt32 :=
-  let t := table.get
-  if c < t[0]!.1 then (none, []) else
-    match t[find c (fun i => t[i]!.1) 0 t.size.toUSize]! with
-    | (c', v) => if c == c' then v else (none, [])
-where
-  str : String := include_str "../data/Case_Folding.txt"
-  table : Thunk <| Array (UInt32 × Option UInt32 × List UInt32) :=
-    parseTable str fun _ x =>
-      let s := if x[0]!.isEmpty then none else some (ofHexString! x[0]!)
-      let f := if x[1]!.isEmpty then [] else x[1]!.split " " |>.toList.map ofHexString!
-      (s, f)
+  let lo := CLib.lookupCaseFoldingLo c
+  let s := lo &&& 0x3FFFFF
+  let s := if s == 0 then none else some ((c.toUInt64 + s) % 0x400000).toUInt32
+  if lo >>> 22 == 0 then (s, []) else
+    (s, CLib.unpackCodes (lo.toNat >>> 22 ||| (CLib.lookupCaseFoldingHi c).toNat <<< 42) 3)
 
 /-- Get simple case mappings of a code point using lookup table
 
@@ -159,7 +324,7 @@ where
     `Simple_Lowercase_Mapping`
     `Simple_Uppercase_Mapping`
     `Simple_Titlecase_Mapping` -/
-@[inline]
+@[expose, inline]
 public def lookupCaseMapping (c : UInt32) : UInt32 × UInt32 × UInt32 :=
   let v : UInt64 := CLib.lookupCase c
   if v == 0 then (c, c, c) else
@@ -300,50 +465,21 @@ where
   Unicode properties:
     `Numeric_Type`
     `Numeric_Value` -/
+@[expose]
 public def lookupNumericValue (c : UInt32) : Option NumericType :=
-  let table := table.get
-  if c < table[0]!.1 then none else
-    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (c₀, _, .decimal _) =>
-      let val := c.toNat - c₀.toNat
-      if h : val < 10 then
-        some <| NumericType.decimal ⟨val, h⟩
-      else
-        none
-    | (c₀, c₁, .digit i) =>
-      if c ≤ c₁ then
-        let val := c.toNat - c₀.toNat + i.val
-        if h : val < 10 then
-          some <| NumericType.digit ⟨val, h⟩
-        else
-          panic! "invalid `Numeric_Value` table"
-      else
-        none
-    | ⟨v, _, n⟩ =>
-      if c == v then some n else none
-where
-  str : String := include_str "../data/Numeric_Value.txt"
-  table : Thunk <| Array (UInt32 × UInt32 × NumericType) :=
-    parseDataTable str fun _ _ a =>
-      let s := a[0]!.copy
-      if s == "decimal" then
-        .decimal 0
-      else if "digit".isPrefixOf s then
-        let d := (String.Pos.Raw.get s ⟨6⟩).toNat
-        if h : d - '0'.toNat < 10 then
-          if d < '0'.toNat then
-            panic! s!"invalid table data {d} {s}"
-          else
-            .digit ⟨d - '0'.toNat, h⟩
-        else
-          panic! s!"invalid table data {d} {s}"
-      else if "numeric".isPrefixOf s then
-        let s := s.drop 8
-        match s.split "/" |>.toStringList with
-        | [n] => .numeric n.toInt! none
-        | [n, d] => .numeric n.toInt! (some d.toNat!)
-        | _ => panic! "invalid table data"
-      else .numeric (-4) none
+  let d := (CLib.lookupNumeric c).toNat
+  let tag := d &&& 0x3
+  if tag == 0 then none
+  else if tag == 3 then
+    let num : Int := d >>> 12
+    let den := d >>> 3 &&& 0x1FF
+    some <| .numeric (if d &&& 0x4 == 0 then num else -num) (if den == 0 then none else some den)
+  else
+    -- decimal and digit ranges: first code point and its value
+    let val := c.toNat - (d >>> 2 &&& 0x1FFFFF) + (d >>> 23 &&& 0xF)
+    if h : val < 10 then
+      some <| if tag == 1 then .decimal ⟨val, h⟩ else .digit ⟨val, h⟩
+    else none
 
 /-- Get other properties using lookup table
 
@@ -365,14 +501,9 @@ public def lookupAlphabetic (c : UInt32) : Bool :=
 
   Unicode property: `Bidi_Mirrored`
 -/
+@[expose]
 public def lookupBidiMirrored (c : UInt32) : Bool :=
-  let table := table.get
-  if c < table[0]!.1 then false else
-    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (_, v) => c ≤ v
-where
-  str : String := include_str "../data/Bidi_Mirrored.txt"
-  table : Thunk <| Array (UInt32 × UInt32) := parsePropTable str
+  CLib.lookupBidiMirrored c != 0
 
 /-- Check if code point is a cased letter using lookup table
 
@@ -385,15 +516,9 @@ public def lookupCased (c : UInt32 ) : Bool :=
 /-- Check if code point is ignorable using lookup table
 
   Unicode property: `Default_Ignorable_Code_Point` -/
-@[inline]
-public def lookupDefaultIgnorableCodePoint (c : UInt32 ) : Bool :=
-  let table := table.get
-  if c < table[0]!.1 then false else
-    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (_, v) => c ≤ v
-where
-  str : String := include_str "../data/Default_Ignorable_Code_Point.txt"
-  table : Thunk <| Array (UInt32 × UInt32) := parsePropTable str
+@[expose, inline]
+public def lookupDefaultIgnorableCodePoint (c : UInt32) : Bool :=
+  CLib.lookupDefaultIgnorable c != 0
 
 /-- Check if code point is a lowercase letter using lookup table
 
@@ -434,22 +559,10 @@ public def lookupUppercase (c : UInt32) : Bool :=
   let m := CLib.oUpper ||| GC.Lu.toUInt64
   CLib.lookupProp c &&& m != 0
 
-/-- Check if code point is a white space character using lookup table
-
-  Unicode property: `White_Space` -/
-public def lookupWhiteSpace (c : UInt32) : Bool :=
-  let table := table.get
-  if c < table[0]!.1 then false else
-    match table[find c (fun i => table[i]!.1) 0 table.size.toUSize]! with
-    | (_, v) => c ≤ v
-where
-  str : String := include_str "../data/White_Space.txt"
-  table : Thunk <| Array (UInt32 × UInt32) := parsePropTable str
-
 /-- Get the script of a code point using lookup table
 
   Unicode property: `Script` -/
-@[inline]
+@[expose, inline]
 public def lookupScript (c : UInt32) : Script := CLib.lookupScript c
 
 /-- Get the name of a script

@@ -30,7 +30,7 @@
 }
 
 /* centre a sponsor that ends up alone on the last row */
-.sponsor:last-child:nth-child(3n+1):not(:first-child) {
+.sponsor:last-child:nth-child(3n + 1):not(:first-child) {
     grid-column: 2;
 }
 
@@ -49,7 +49,7 @@ img.sponsor-logo {
 
 @media (max-width: 768px) {
     .sponsors {
-        width: calc(100% - var(--space-8)*2);
+        width: calc(100% - var(--space-8) * 2);
     }
 
     .sponsors-content {

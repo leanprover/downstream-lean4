@@ -84,7 +84,7 @@ public def getName (char : Char) : String := lookupName char.val
 
   Unicode property: `Script`
 -/
-@[inline]
+@[expose, inline]
 public def getScript (char : Char) : Script := lookupScript char.val
 
 /-- Get script name
@@ -120,13 +120,13 @@ public def getScriptSet (char : Char) : ScriptSet := lookupScriptSet char.val
 /-- Get character bidirectional class
 
   Unicode property: `Bidi_Class` -/
-@[inline]
+@[expose, inline]
 public def getBidiClass (char : Char) : BidiClass := lookupBidiClass char.val
 
 /-- Check if bidirectional mirrored character
 
   Unicode property: `Bidi_Mirrored` -/
-@[inline]
+@[expose, inline]
 public def isBidiMirrored (char : Char) : Bool := lookupBidiMirrored char.val
 
 /-- Check if bidirectional control character
@@ -153,21 +153,7 @@ public def isBidiControl (char : Char) : Bool :=
   Unicode property: `General_Category` -/
 @[expose, inline]
 public def getGC (char : Char) : GC :=
-  -- ASCII shortcut
-  if h : char.toNat < table.size then
-    table[char.toNat]
-  else
-    lookupGC char.val
-where
-  table : Array GC :=
-    #[.Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc,
-      .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc, .Cc,
-      .Zs, .Po, .Po, .Po, .Sc, .Po, .Po, .Po, .Ps, .Pe, .Po, .Sm, .Po, .Pd, .Po, .Po,
-      .Nd, .Nd, .Nd, .Nd, .Nd, .Nd, .Nd, .Nd, .Nd, .Nd, .Po, .Po, .Sm, .Sm, .Sm, .Po,
-      .Po, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu,
-      .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Lu, .Ps, .Po, .Pe, .Sk, .Pc,
-      .Sk, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll,
-      .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ll, .Ps, .Sm, .Pe, .Sm, .Cc]
+  lookupGC char.val
 
 /-- `char ∈ cat` holds when the general category of `char` is included in `cat` -/
 public instance : Membership Char GC where
@@ -422,11 +408,7 @@ end GeneralCategory
   Unicode property: `Lowercase` -/
 @[expose, inline]
 public def isLowercase (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    'a' ≤ char && char ≤ 'z'
-  else
-    lookupLowercase char.val
+  lookupLowercase char.val
 
 /-- Check if uppercase character
 
@@ -438,11 +420,7 @@ public def isLowercase (char : Char) : Bool :=
   Unicode property: `Uppercase` -/
 @[expose, inline]
 public def isUppercase (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    'A' ≤ char && char ≤ 'Z'
-  else
-    lookupUppercase char.val
+  lookupUppercase char.val
 
 /-- Check if cased character
 
@@ -454,11 +432,7 @@ public def isUppercase (char : Char) : Bool :=
   Unicode property: `Cased` -/
 @[expose, inline]
 public def isCased (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    'A' ≤ char && char ≤ 'Z' || 'a' ≤ char && char ≤ 'z'
-  else
-    lookupCased char.val
+  lookupCased char.val
 
 /-- Check if character is ignorable for casing purposes
 
@@ -502,32 +476,19 @@ where
   Unicode property: `Simple_Lowercase_Mapping` -/
 @[expose, inline]
 public def getLowerChar (char : Char) : Char :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    if 'A' ≤ char && char ≤ 'Z' then
-      Char.ofNat (char.val + 0x20).toNat
-    else
-      char
-  else
-    match lookupCaseMapping char.val with
-    | (_, lc, _) => Char.ofNat lc.toNat
+  match lookupCaseMapping char.val with
+  | (_, lc, _) => Char.ofNat lc.toNat
 
 /-- Full lowercase mapping of a character as its first code point and the rest
 
   Internal use only. -/
 @[expose, inline]
 public def unconsLowercasing (char : Char) : UInt32 × List UInt32 :=
-  if char.val < 0x80 then
-    if 'A' ≤ char && char ≤ 'Z' then
-      (char.val + 0x20, [])
-    else
-      (char.val, [])
-  else
-    match lookupSpecialCasing char.val with
-    | (v :: l, _, _) => (v, l)
-    | ([], _, _) =>
-      match lookupCaseMapping char.val with
-      | (_, lc, _) => (lc, [])
+  match lookupSpecialCasing char.val with
+  | (v :: l, _, _) => (v, l)
+  | ([], _, _) =>
+    match lookupCaseMapping char.val with
+    | (_, lc, _) => (lc, [])
 
 /-- Full lowercase mapping of a character, in continuation-passing style
 
@@ -563,31 +524,19 @@ public def getLower (char : Char) : String :=
   Unicode property: `Simple_Uppercase_Mapping` -/
 @[expose, inline]
 public def getUpperChar (char : Char) : Char :=
-  if char.val < 0x80 then
-    if 'a' ≤ char && char ≤ 'z' then
-      Char.ofNat (char.val - 0x20).toNat
-    else
-      char
-  else
-    match lookupCaseMapping char.val with
-    | (uc, _, _) => Char.ofNat uc.toNat
+  match lookupCaseMapping char.val with
+  | (uc, _, _) => Char.ofNat uc.toNat
 
 /-- Full uppercase mapping of a character as its first code point and the rest
 
   Internal use only. -/
 @[expose, inline]
 public def unconsUppercasing (char : Char) : UInt32 × List UInt32 :=
-  if char.val < 0x80 then
-    if 'a' ≤ char && char ≤ 'z' then
-      (char.val - 0x20, [])
-    else
-      (char.val, [])
-  else
-    match lookupSpecialCasing char.val with
-    | (_, _, v :: u) => (v, u)
-    | (_, _, []) =>
-      match lookupCaseMapping char.val with
-      | (uc, _, _) => (uc, [])
+  match lookupSpecialCasing char.val with
+  | (_, _, v :: u) => (v, u)
+  | (_, _, []) =>
+    match lookupCaseMapping char.val with
+    | (uc, _, _) => (uc, [])
 
 /-- Full uppercase mapping of a character, in continuation-passing style
 
@@ -622,31 +571,19 @@ public def getUpper (char : Char) : String :=
   Unicode property: `Simple_Titlecase_Mapping` -/
 @[expose, inline]
 public def getTitleChar (char : Char) : Char :=
-  if char.val < 0x80 then
-    if 'a' ≤ char && char ≤ 'z' then
-      Char.ofNat (char.val - 0x20).toNat
-    else
-      char
-  else
-    match lookupCaseMapping char.val with
-    | (_, _, tc) => Char.ofNat tc.toNat
+  match lookupCaseMapping char.val with
+  | (_, _, tc) => Char.ofNat tc.toNat
 
 /-- Full titlecase mapping of a character as its first code point and the rest
 
   Internal use only. -/
 @[expose, inline]
 public def unconsTitlecasing (char : Char) : UInt32 × List UInt32 :=
-  if char.val < 0x80 then
-    if 'a' ≤ char && char ≤ 'z' then
-      (char.val - 0x20, [])
-    else
-      (char.val, [])
-  else
-    match lookupSpecialCasing char.val with
-    | (_, v :: t, _) => (v, t)
-    | (_, [], _) =>
-      match lookupCaseMapping char.val with
-      | (_, _, tc) => (tc, [])
+  match lookupSpecialCasing char.val with
+  | (_, v :: t, _) => (v, t)
+  | (_, [], _) =>
+    match lookupCaseMapping char.val with
+    | (_, _, tc) => (tc, [])
 
 /-- Full titlecase mapping of a character, in continuation-passing style
 
@@ -680,31 +617,19 @@ public def getTitle (char : Char) : String :=
   Unicode property: `Simple_Case_Folding` -/
 @[expose, inline]
 public def getCaseFoldingChar (char : Char) : Char :=
-  if char.val < 0x80 then
-    if 'A' ≤ char && char ≤ 'Z' then
-      Char.ofNat (char.val + 0x20).toNat
-    else
-      char
-  else
-    match lookupCaseFolding char.val with
-    | (some s, _) => Char.ofNat s.toNat
-    | (none, _) => char
+  match lookupCaseFolding char.val with
+  | (some s, _) => Char.ofNat s.toNat
+  | (none, _) => char
 
 /-- Full case folding of a character as its first code point and the rest
 
   Internal use only. -/
 @[expose, inline]
 public def unconsCaseFolding (char : Char) : UInt32 × List UInt32 :=
-  if char.val < 0x80 then
-    if 'A' ≤ char && char ≤ 'Z' then
-      (char.val + 0x20, [])
-    else
-      (char.val, [])
-  else
-    match lookupCaseFolding char.val with
-    | (_, v :: f) => (v, f)
-    | (some s, []) => (s, [])
-    | (none, []) => (char.val, [])
+  match lookupCaseFolding char.val with
+  | (_, v :: f) => (v, f)
+  | (some s, []) => (s, [])
+  | (none, []) => (char.val, [])
 
 /-- Full case folding of a character, in continuation-passing style
 
@@ -786,11 +711,7 @@ where
 -/
 @[expose]
 public def getCanonicalCombiningClass (char : Char) : Nat :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    0
-  else
-    lookupCanonicalCombiningClass char.val
+  lookupCanonicalCombiningClass char.val
 
 /-- Get full canonical decomposition of character (`NFD`)
 
@@ -803,9 +724,7 @@ public def getCanonicalCombiningClass (char : Char) : Nat :=
     `Decomposition_Type=Canonical` -/
 @[expose]
 public def getCanonicalDecomposition (char : Char) : String :=
-  -- ASCII shortcut
-  if char.val < 0x80 then char.toString else
-    (lookupCanonicalDecompositionMapping char.val).foldl (fun s c => s.push (Char.ofNat c.toNat)) ""
+  (lookupCanonicalDecompositionMapping char.val).foldl (fun s c => s.push (Char.ofNat c.toNat)) ""
 
 /-- Get decomposition mapping of a character
 
@@ -820,11 +739,7 @@ public def getCanonicalDecomposition (char : Char) : String :=
     `Decomposition_Mapping` -/
 @[expose]
 public def getDecompositionMapping? (char : Char) : Option DecompositionMapping :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    none
-  else
-    lookupDecompositionMapping? char.val
+  lookupDecompositionMapping? char.val
 
 /-!
   ## Numeric Type and Value ##
@@ -837,13 +752,10 @@ public def getDecompositionMapping? (char : Char) : Option DecompositionMapping 
   Unicode property: `Numeric_Type` (any value other than `None`) -/
 @[expose, inline]
 public def isNumeric (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    char >= '0' && char <= '9'
-  else
-    match lookupNumericValue char.val with
-    | some _ => true
-    | _ => otherNumeric.binSearchContains char.val (· < ·)
+  match lookupNumericValue char.val with
+  | some _ => true
+  -- `otherNumeric` starts at U+3405
+  | _ => 0x3405 ≤ char.val && otherNumeric.binSearchContains char.val (· < ·)
 where
   -- CJK ideographs whose numeric values come from the Unihan database, sorted for binary search
   otherNumeric := #[
@@ -873,14 +785,10 @@ where
   Unicode property: `Numeric_Type=Decimal | Numeric_Type=Digit` -/
 @[expose, inline]
 public def isDigit (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    char >= '0' && char <= '9'
-  else
-    match lookupNumericValue char.val with
-    | some (.decimal _) => true
-    | some (.digit _) => true
-    | _ => false
+  match lookupNumericValue char.val with
+  | some (.decimal _) => true
+  | some (.digit _) => true
+  | _ => false
 
 /-- Get value of digit
 
@@ -891,21 +799,10 @@ public def isDigit (char : Char) : Bool :=
     `Numeric_Value` -/
 @[expose, inline]
 public def getDigit? (char : Char) : Option (Fin 10) :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    if char.toNat < '0'.toNat then
-      none
-    else
-      let n := char.toNat - '0'.toNat
-      if h : n < 10 then
-        some ⟨n, h⟩
-      else
-        none
-  else
-    match lookupNumericValue char.val with
-    | some (.decimal value) => some value
-    | some (.digit value) => some value
-    | _ => none
+  match lookupNumericValue char.val with
+  | some (.decimal value) => some value
+  | some (.digit value) => some value
+  | _ => none
 
 /-- Check if character represents a decimal digit
 
@@ -915,13 +812,9 @@ public def getDigit? (char : Char) : Option (Fin 10) :=
   Unicode property: `Numeric_Type=Decimal` -/
 @[expose, inline]
 public def isDecimal (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    char >= '0' && char <= '9'
-  else
-    match lookupNumericValue char.val with
-    | some (.decimal _) => true
-    | _ => false
+  match lookupNumericValue char.val with
+  | some (.decimal _) => true
+  | _ => false
 
 /-- Get decimal digit range
 
@@ -934,18 +827,11 @@ public def isDecimal (char : Char) : Bool :=
     `Numeric_Value` -/
 @[expose, inline]
 public def getDecimalRange? (char : Char) : Option (Char × Char) :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    if char >= '0' && char <= '9' then
-      some ('0', '9')
-    else
-      none
-  else
-    match lookupNumericValue char.val with
-    | some (.decimal value) =>
-      let first := char.toNat - value.val
-      some (Char.ofNat first, Char.ofNat (first + 9))
-    | _ => none
+  match lookupNumericValue char.val with
+  | some (.decimal value) =>
+    let first := char.toNat - value.val
+    some (Char.ofNat first, Char.ofNat (first + 9))
+  | _ => none
 
 /-- Check if character represents a hexadecimal digit
 
@@ -1001,7 +887,7 @@ public def isNoncharacterCodePoint (char : Char) : Bool :=
 
   Unicode property: `Default_Ignorable_Code_Point`
 -/
-@[inline]
+@[expose, inline]
 public def isDefaultIgnorableCodePoint (char : Char) : Bool :=
   lookupDefaultIgnorableCodePoint char.val
 
@@ -1011,12 +897,17 @@ public def isDefaultIgnorableCodePoint (char : Char) : Bool :=
 -/
 @[expose, inline]
 public def isWhiteSpace (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    char == ' ' || char >= '\t' && char <= '\r'
-  else
-    -- U+0085 NEXT LINE is the only non-ASCII white space outside `GC.Z`
-    char.val == 0x85 || GeneralCategory.isSeparator char
+  -- Extracted from `PropList.txt`
+  char.val <= 0x000D && char.val >= 0x0009 || --  [5] <control-0009>..<control-000D>
+  char.val == 0x0020 ||                       --      SPACE
+  char.val == 0x0085 ||                       --      <control-0085>
+  char.val == 0x00A0 ||                       --      NO-BREAK SPACE
+  char.val == 0x1680 ||                       --      OGHAM SPACE MARK
+  char.val <= 0x200A && char.val >= 0x2000 || -- [11] EN QUAD..HAIR SPACE
+  char.val <= 0x2029 && char.val >= 0x2028 || --  [2] LINE SEPARATOR..PARAGRAPH SEPARATOR
+  char.val == 0x202F ||                       --      NARROW NO-BREAK SPACE
+  char.val == 0x205F ||                       --      MEDIUM MATHEMATICAL SPACE
+  char.val == 0x3000                          --      IDEOGRAPHIC SPACE
 
 /-- Check if mathematical symbol character
 
@@ -1033,11 +924,7 @@ public def isMath (char : Char) : Bool := lookupMath char.val
   Unicode property: `Alphabetic` -/
 @[expose, inline]
 public def isAlphabetic (char : Char) : Bool :=
-  -- ASCII shortcut
-  if char.val < 0x80 then
-    'A' ≤ char && char ≤ 'Z' || 'a' ≤ char && char ≤ 'z'
-  else
-    lookupAlphabetic char.val
+  lookupAlphabetic char.val
 
 @[inherit_doc isAlphabetic]
 public abbrev isAlpha := isAlphabetic

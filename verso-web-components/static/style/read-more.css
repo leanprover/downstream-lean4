@@ -11,7 +11,9 @@
 
 .read-more svg {
     fill: var(--color-text) !important;
-    transition: transform 0.2s, opacity 0.2s;
+    transition:
+        transform 0.2s,
+        opacity 0.2s;
     opacity: 1;
 }
 

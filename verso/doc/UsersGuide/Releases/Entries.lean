@@ -10,6 +10,7 @@ public import UsersGuide.Releases.Entries.BlogLeanRole
 public import UsersGuide.Releases.Entries.BuildLog
 public import UsersGuide.Releases.Entries.BuildTimeDocstringMarkdown
 public import UsersGuide.Releases.Entries.CodeColorVariables
+public import UsersGuide.Releases.Entries.ContentSecurityPolicy
 public import UsersGuide.Releases.Entries.DevelopmentServer
 public import UsersGuide.Releases.Entries.Diagrams
 public import UsersGuide.Releases.Entries.DocSourceRanges
@@ -19,8 +20,10 @@ public import UsersGuide.Releases.Entries.ExtraStep
 public import UsersGuide.Releases.Entries.FoldingRanges
 public import UsersGuide.Releases.Entries.FullPageSearch
 public import UsersGuide.Releases.Entries.HeadingIds
+public import UsersGuide.Releases.Entries.IncludeLicense
 public import UsersGuide.Releases.Entries.InlineLeanElaboration
 public import UsersGuide.Releases.Entries.InlineLeanInfoview
+public import UsersGuide.Releases.Entries.KatexUpgrade
 public import UsersGuide.Releases.Entries.LeanHtml
 public import UsersGuide.Releases.Entries.LegacyInlineRoles
 public import UsersGuide.Releases.Entries.LinkFootnoteResolution

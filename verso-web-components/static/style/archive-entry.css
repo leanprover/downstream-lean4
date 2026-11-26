@@ -2,7 +2,9 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
     padding: var(--space-12);
 }
 
@@ -37,7 +39,6 @@
     flex-direction: column;
 }
 
-
 ul.post-list {
     padding-bottom: 100px;
     display: flex;
@@ -54,7 +55,9 @@ ul.post-list {
     border-radius: var(--radius-md);
     overflow: hidden;
     font-size: var(--fs-md);
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
 }
 
 .title span.name {
@@ -85,7 +88,8 @@ a.read-more {
     gap: 5px;
 }
 
-.post-list li, .post-list p {
+.post-list li,
+.post-list p {
     color: var(--color-text-light) !important;
     line-height: 1.6 !important;
     margin: 0px !important;
@@ -109,7 +113,7 @@ a.read-more {
 }
 
 .blog-page {
-    padding-top: 0px !important
+    padding-top: 0px !important;
 }
 
 @media (max-width: 768px) {
@@ -120,14 +124,15 @@ a.read-more {
     .title span.name {
         font-size: var(--fs-lg);
     }
-
 }
 
 .archive-content {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
     padding: var(--space-12);
 }
 
