@@ -1,4 +1,4 @@
-module  -- shake: keep-all --deprecated_module: ignore
+module -- shake: keep-all -- deprecated_module: ignore
 
 public import Cslib.Algorithms.CCS.VendingMachine
 public import Cslib.Algorithms.Lean.MergeSort.MergeSort
@@ -25,9 +25,12 @@ public import Cslib.Computability.Automata.DA.Buchi
 public import Cslib.Computability.Automata.DA.Congr
 public import Cslib.Computability.Automata.DA.Prod
 public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.DA.Transducer
 public import Cslib.Computability.Automata.EpsilonNA.Basic
+public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
+public import Cslib.Computability.Automata.EpsilonNA.ThompsonConstruction
 public import Cslib.Computability.Automata.EpsilonNA.ToNA
-public import Cslib.Computability.Automata.EpsilonNA.ToSingleAccept
+public import Cslib.Computability.Automata.EpsilonNA.ToSingleStartAccept
 public import Cslib.Computability.Automata.NA.Basic
 public import Cslib.Computability.Automata.NA.BuchiEquiv
 public import Cslib.Computability.Automata.NA.BuchiInter
@@ -41,6 +44,7 @@ public import Cslib.Computability.Automata.NA.Prod
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.Sum
 public import Cslib.Computability.Automata.NA.ToDA
+public import Cslib.Computability.Automata.NA.ToEpsilonNA
 public import Cslib.Computability.Automata.NA.Total
 public import Cslib.Computability.Automata.Transducers.Transducer
 public import Cslib.Computability.Automata.TwoWayNA.Basic
@@ -69,8 +73,12 @@ public import Cslib.Computability.Circuit.Signature
 public import Cslib.Computability.Circuit.Simulation
 public import Cslib.Computability.Circuit.Synthesis
 public import Cslib.Computability.Circuit.Wire
+public import Cslib.Computability.Distributed.Consistency.Enumeration
+public import Cslib.Computability.Distributed.Consistency.Execution
 public import Cslib.Computability.Distributed.Consistency.Hierarchy
 public import Cslib.Computability.Distributed.Consistency.Specification
+public import Cslib.Computability.Distributed.Consistency.Trajectory
+public import Cslib.Computability.Distributed.Consistency.Transition
 public import Cslib.Computability.Distributed.FLP.Algorithm
 public import Cslib.Computability.Distributed.FLP.CanReachVia
 public import Cslib.Computability.Distributed.FLP.Consensus
@@ -79,6 +87,8 @@ public import Cslib.Computability.Distributed.FLP.Impossibility
 public import Cslib.Computability.Distributed.FLP.OnePseudoConsensus
 public import Cslib.Computability.Distributed.FLP.PseudoConsensus
 public import Cslib.Computability.Distributed.FLP.ZeroConsensus
+public import Cslib.Computability.Encoding.Basic
+public import Cslib.Computability.Encoding.Delimit
 public import Cslib.Computability.Languages.Congruences.Basic
 public import Cslib.Computability.Languages.Congruences.BuchiCongruence
 public import Cslib.Computability.Languages.Congruences.MyhillCongruence
@@ -95,10 +105,13 @@ public import Cslib.Computability.Languages.SafetyLiveness
 public import Cslib.Computability.Languages.Slice
 public import Cslib.Computability.Languages.SyntacticMonoid
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.AlmostConstant
+public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Concatenate
 public import Cslib.Computability.Machines.Turing.MultiTape.Combinators.Id
 public import Cslib.Computability.Machines.Turing.MultiTape.ConfigBound
 public import Cslib.Computability.Machines.Turing.MultiTape.Configuration
 public import Cslib.Computability.Machines.Turing.MultiTape.Deterministic
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.Delimit
+public import Cslib.Computability.Machines.Turing.MultiTape.Encodings.HeadCases
 public import Cslib.Computability.Machines.Turing.MultiTape.Nondeterministic
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ClearWork
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.ExtendTapes
@@ -114,6 +127,7 @@ public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.TransformsT
 public import Cslib.Computability.Machines.Turing.MultiTape.Plumbing.WordsCfg
 public import Cslib.Computability.Machines.Turing.MultiTape.Space
 public import Cslib.Computability.Machines.Turing.MultiTape.TapeLemmas
+public import Cslib.Computability.Machines.Turing.MultiTape.Transducer
 public import Cslib.Computability.Machines.Turing.SingleTape.Defs
 public import Cslib.Computability.Machines.Turing.SingleTape.Deterministic
 public import Cslib.Computability.Machines.Turing.SingleTape.NonDeterministic
@@ -154,6 +168,7 @@ public import Cslib.Foundations.Data.FinFun.Basic
 public import Cslib.Foundations.Data.FinFun.Update
 public import Cslib.Foundations.Data.Finset.Involution
 public import Cslib.Foundations.Data.HasFresh
+public import Cslib.Foundations.Data.HasTrue
 public import Cslib.Foundations.Data.List.IsChainFromTo
 public import Cslib.Foundations.Data.Nat.Asymptotics
 public import Cslib.Foundations.Data.Nat.Factorial
@@ -171,12 +186,17 @@ public import Cslib.Foundations.Data.PFunctor.Free.Fold
 public import Cslib.Foundations.Data.PFunctor.Free.W
 public import Cslib.Foundations.Data.Polynomial.Monotone
 public import Cslib.Foundations.Data.Set.Saturation
+public import Cslib.Foundations.Data.SetRel
 public import Cslib.Foundations.Data.StackTape
 public import Cslib.Foundations.Lint.Basic
-public import Cslib.Foundations.Logic.InferenceSystem
+public import Cslib.Foundations.Logic.InferenceSystem.Basic
+public import Cslib.Foundations.Logic.InferenceSystem.Defs
 public import Cslib.Foundations.Logic.LogicalEquivalence
 public import Cslib.Foundations.Logic.Operators
 public import Cslib.Foundations.MeasureTheory.FiniteSupport
+public import Cslib.Foundations.Order.AlgebraIntervals
+public import Cslib.Foundations.Order.FixedPoints
+public import Cslib.Foundations.Order.Heyting
 public import Cslib.Foundations.Order.Huntington
 public import Cslib.Foundations.Relation.Attr
 public import Cslib.Foundations.Relation.Basic
@@ -188,10 +208,16 @@ public import Cslib.Foundations.Relation.Preserves
 public import Cslib.Foundations.Relation.RelatesInSteps
 public import Cslib.Foundations.Relation.Restriction
 public import Cslib.Foundations.Relation.Termination
+public import Cslib.Foundations.RelationAlgebra.AtomStructure
 public import Cslib.Foundations.RelationAlgebra.Basic
+public import Cslib.Foundations.RelationAlgebra.Group
 public import Cslib.Foundations.RelationAlgebra.Hom
+public import Cslib.Foundations.RelationAlgebra.Integral
+public import Cslib.Foundations.RelationAlgebra.IntegralAtomStructure
 public import Cslib.Foundations.RelationAlgebra.Pi
+public import Cslib.Foundations.RelationAlgebra.Relativization
 public import Cslib.Foundations.RelationAlgebra.Representation
+public import Cslib.Foundations.RelationAlgebra.SpecialElements
 public import Cslib.Foundations.Semantics.FLTS.Basic
 public import Cslib.Foundations.Semantics.FLTS.FLTSToLTS
 public import Cslib.Foundations.Semantics.FLTS.LTSToFLTS
@@ -265,10 +291,16 @@ public import Cslib.Languages.LambdaCalculus.LocallyNameless.Untyped.StrongNorm
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Basic
 public import Cslib.Languages.LambdaCalculus.Named.Untyped.Properties
 public import Cslib.Languages.Mech.Choreography.Basic
-public import Cslib.Languages.Mech.LocalComputation
+public import Cslib.Languages.Mech.Common.Basic
+public import Cslib.Languages.Mech.Common.Expr.Basic
+public import Cslib.Languages.Mech.Common.Expr.Notation
+public import Cslib.Languages.Mech.Common.GlobalStore
+public import Cslib.Languages.Mech.Common.LocalStore
 public import Cslib.Languages.StatefulProcesses.Basic
 public import Cslib.Languages.StatefulProcesses.Network
+public import Cslib.Logics.BTL.Basic
 public import Cslib.Logics.HML.Basic
+public import Cslib.Logics.Kleene.Basic
 public import Cslib.Logics.LinearLogic.CLL.Basic
 public import Cslib.Logics.LinearLogic.CLL.CutElimination
 public import Cslib.Logics.LinearLogic.CLL.EtaExpansion
@@ -286,7 +318,7 @@ public import Cslib.Logics.Modal.Unimodal.Lean.Basic
 public import Cslib.Logics.Modal.Unimodal.Lean.SMul
 public import Cslib.Logics.Propositional.Defs
 public import Cslib.Logics.Propositional.NaturalDeduction.Basic
-public import Cslib.Logics.Propositional.NaturalDeduction.Theory
+public import Cslib.Logics.Propositional.NaturalDeduction.Lemmas
 public import Cslib.MachineLearning.PACLearning.Defs
 public import Cslib.MachineLearning.PACLearning.VCDimension
 public import Cslib.MachineLearning.PACLearning.VersionSpace
@@ -294,3 +326,4 @@ public import Cslib.MachineLearning.PACLearning.VersionSpaceLattice
 public import Cslib.Probability.PMF
 public import Cslib.Probability.StatisticalDistance
 public import Cslib.Tactic.GrindAttrs
+public import Cslib.Tactic.Membership

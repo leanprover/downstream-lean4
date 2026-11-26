@@ -55,6 +55,15 @@ Use {name}`HtmlAssets.combine` to combine multiple assets.
 
 :::
 
+# Content Security Policy
+%%%
+tag := "manual-content-security-policy"
+%%%
+
+The {ref "html-content-security-policy"}[content security policy] for manuals and tutorials is configured in {name}`HtmlConfig.contentSecurityPolicy`.
+The scripts that it allows include those in {name}`HtmlAssets.extraJs`, {name}`HtmlAssets.extraJsFiles`, and `<script>` elements in {name}`HtmlConfig.extraHead`.
+It also automatically allows scripts that are part of block and inline extensions, as configured through their {name}`HtmlAssets` fields.
+
 # Tags and References
 %%%
 tag := "manual-tags"
@@ -244,6 +253,7 @@ tag := "oss-licenses"
 
 To facilitate providing appropriate credit to the authors of open-source JavaScript, CSS, and HTML libraries used to render a Verso document, inline and block elements can specify the licenses of components that they include in their rendered output.
 This is done using the {name HtmlAssets.licenseInfo}`licenseInfo` field that {name}`BlockDescr` and {name}`InlineDescr` inherit from {name}`HtmlAssets`.
+The licenses of bundled features, such as KaTeX, are included whenever the feature is enabled, either by the configuration or by an element.
 These contain a {name}`LicenseInfo`:
 
 {docstring LicenseInfo}

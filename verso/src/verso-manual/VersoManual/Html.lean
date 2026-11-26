@@ -402,13 +402,7 @@ on servers that don't do this step.
 This is a hack - it only helps clients with JS enabled, and should really be fixed in the server
 configuration. But not all hosts allow this to happen, and most clients have JS enabled.
 -/
-def addSlashJs : String :=
-r#"(function(){
-  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
-  if (!(path.endsWith("/") || path.endsWith(".html"))) {
-    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
-  }
-})()"#
+def addSlashJs : String := include_str "../../../static-web/add-trailing-slash.js"
 
 /--
 Applies a saved table-of-contents width before the first paint.
@@ -444,6 +438,7 @@ public def page
   html%{
     <html>
       <head>
+        <meta charset="utf-8"/>
         <script>
           {addSlashJs}
         </script>
@@ -451,12 +446,10 @@ public def page
           {tocWidthPreloadJs}
         </script>
         <base href={relativeRoot}/>
-        <meta charset="utf-8"/>
         <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1"/>
         <title>{textTitle}</title>
         <link rel="stylesheet" href="book.css" />
         <link rel="stylesheet" href="verso-vars.css" />
-        <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
         { searchAssetTags }
         <script src="toc-resize.js" defer="defer"></script>
         {extraJsFiles.map fun f => (html%{<script src={s!"{f.1}"} {...if f.2 then defer else #[]}></script>})}
@@ -486,7 +479,7 @@ public def page
           <span class="line line3"/>
         </label>
         <div class="with-toc">
-          <div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div>
+          <div class="toc-backdrop"></div>
           <nav id="toc">
             <input type="checkbox" id="toggle-toc" />
             <div class="first">

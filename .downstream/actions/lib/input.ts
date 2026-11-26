@@ -35,6 +35,18 @@ export function parseBool(input: string): boolean {
   return input.trim().toLowerCase() === "true";
 }
 
+// Parse lines of the form `pattern -> replacement`, ignoring empty lines.
+export function parseReplacements(input: string): [string, string][] {
+  const result: [string, string][] = [];
+  for (const line of input.split("\n")) {
+    if (line.trim() === "") continue;
+    const i = line.indexOf(" -> ");
+    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
+    result.push([line.slice(0, i), line.slice(i + " -> ".length)]);
+  }
+  return result;
+}
+
 export function parseRepo(input: string): Repo {
   const match = /^([^/]+)\/([^/]+)$/.exec(input);
   assert(match !== null, `Expected "owner/repo", not "${input}"`);

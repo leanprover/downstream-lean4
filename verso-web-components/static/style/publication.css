@@ -21,7 +21,7 @@ ol.authors {
 
 .publication .links::after,
 .publication .authors::after {
-    content: '\A';
+    content: "\A";
     white-space: pre;
 }
 

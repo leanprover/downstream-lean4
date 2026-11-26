@@ -35,10 +35,12 @@ open ImportGraph Shake Lean
 
 namespace ImportGraph
 
+namespace WorkspaceModel
+
 /-- Assuming that the indices in `Needs` correspond to module indices in the provided workspace
 model, record an `Import` for each set index in `Needs` in some order. This does **not** remove
 redundant imports. By default, this skips modules with prefix `Init`. -/
-def WorkspaceModel.toRawImports (w : WorkspaceModel) (n : Needs) (skipInit := true) :
+def toRawImports (w : WorkspaceModel) (n : Needs) (skipInit := true) :
     Array Import := Id.run do
   let mut out := #[]
   for (k, i) in n.highToLow do
@@ -47,13 +49,42 @@ def WorkspaceModel.toRawImports (w : WorkspaceModel) (n : Needs) (skipInit := tr
     out := out.push { k with module, importAll := k.isAll }
   return out
 
+/-- The index of `Init.lean`. -/
+@[inline] def getInitModIdx? (w : WorkspaceModel) : Option ModIdx :=
+  w.getModIdx? `Init
+
 /-- Every non-`prelude` file adds `public import Init` and `public meta import Init` to every file
-behind the scenes. This repesents (exactly) those two files. This should be added to any
-`base : Needs` which should represent what a typical file actually gets. Returns `base` unchanged
-if `Init` is not in the workspace model (this should be impossible). -/
-def WorkspaceModel.implicitInitNeeds (w : WorkspaceModel) (base : Needs) : Needs := Id.run do
-  let some initIdx := w.getModIdx? `Init | base
-  return base.union .pub {initIdx} |>.union .metaPub {initIdx}
+behind the scenes. This repesents (exactly) those two files. This should be added to any synthetic
+`Needs` to represent what a typical file actually gets. Returns `∅` if `Init` is not in the
+workspace model (this should be impossible). -/
+def initNeeds (w : WorkspaceModel) : Needs := Id.run do
+  let some initIdx := w.getInitModIdx? | return ∅
+  return Needs.single initIdx .pub |>.union .metaPub {initIdx}
+
+/-- The transitive closure of the implicit `Init` imports added to every non-`prelude` file behind
+the scenes. -/
+@[inline] def initProvides (w : WorkspaceModel) : Provides :=
+  w⟦w.initNeeds.linearize⟧
+
+/-- The modules prior to the implicit `Init` imports added to every non-`prelude` file behind
+the scenes, but including the `Init` imports themselves. (Empty if `Init` cannot be found.) -/
+@[inline] def initPrevs (w : WorkspaceModel) : ModuleBitset := Id.run do
+  let some initIdx := w.getInitModIdx? | return ∅
+  return (w.getMod! initIdx |>.prevs) ∪ {initIdx}
+
+/-- Given a `Needs`, the `IR` which loading such a `Needs` would provide. Recall that
+IR is loaded transitively above any `meta` import, disregarding module system annotations, as well
+as non-transitively for any `import all`. -/
+def irNeeds (w : WorkspaceModel) (n : Needs) : ModuleBitset := Id.run do
+  let n := w⟦n.linearize⟧
+  let irTrans := n.get .metaPriv ∪ n.get .metaPub ∪ n.get .metaPrivOfPriv
+  -- not perfect `all` handling, but uncommon anyway
+  let mut irs := irTrans ∪ n.get .privOfPriv
+  for idx in irTrans.highToLow do
+    irs := irs ∪ w.mods[idx]!.prevs -- `∪ {idx}` not necessary, already present
+  return irs
+
+end WorkspaceModel
 
 namespace Shake
 
@@ -69,7 +100,7 @@ def ImportNeeds.ofExtraModUses (w : WorkspaceModel) (uses : List ExtraModUse)
     (init : ImportNeeds := ∅) : ImportNeeds :=
   uses.foldl (init := init) fun needs use => Id.run do
     let some idx := w.getModIdx? use.module | needs
-    needs.union { use with allowMeta := true } {idx}
+    needs.union { use with meta? := if use.isMeta then true else none } {idx}
 
 -- TODO: make this take in a monadic interface for the module index, so that we can use it both for
 -- an environment and more generally
@@ -95,14 +126,16 @@ def DeclNeeds.toSimultaneousImportNeeds
         let some usedStance ← getStance? usedDecl | continue
         for k in ks do
           trace[ImportGraph.Shake] "{k}"
+          -- TODO: split out indirect mod uses to the command level when refactoring
           if let .comptime <| .indirect _ mods := k then
             for modName in mods do
               let some modIdx := w.getModIdx? modName | continue
               trace[ImportGraph.Shake] "indirect usage of `{modName}`"
               declImportNeeds := declImportNeeds.union
-                { isExported := false, isMeta := false, allowMeta := true } {modIdx}
-          let k := stance.toImportNeedsKind k usedStance
-          declImportNeeds := declImportNeeds.union k {modIdx}
+                { isExported := false, meta? := none } {modIdx}
+          else
+            let k := stance.toImportNeedsKind k usedStance
+            declImportNeeds := declImportNeeds.union k {modIdx}
   return declImportNeeds
 
 /-- Computes a mapping `LibIdx → Array ModIdx` assigning to each library in the workspace model an

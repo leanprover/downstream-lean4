@@ -4,7 +4,9 @@
     z-index: var(--z-header);
     background-color: var(--color-bg-translucent);
     backdrop-filter: blur(10px);
-    transition: background-color var(--transition-base), border-color var(--transition-base);
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base);
 }
 
 /* Drop the header below any full-screen overlay (glightbox, modals) */
@@ -100,7 +102,7 @@ body.modal-open .site-header {
 }
 
 .nav-link::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: var(--color-hover);
@@ -254,35 +256,34 @@ nav.sub-navbar .navbar-container {
     justify-content: start;
 }
 .mobile-group-toggle {
-  display: none;
+    display: none;
 }
 
 .has-submenu > .nav-link {
-  justify-content: space-between;
-  position: relative;
-  width: -webkit-fill-available;
+    justify-content: space-between;
+    position: relative;
+    width: -webkit-fill-available;
 }
 
 .has-submenu .submenu {
-  display: none;
-  flex-direction: column;
-  padding-left: var(--space-4);
+    display: none;
+    flex-direction: column;
+    padding-left: var(--space-4);
 }
 
 .mobile-group-toggle:checked + .nav-link + .submenu {
-  display: flex;
+    display: flex;
 }
 
 .has-submenu > .nav-link::after {
-  content: '▸';
-  transition: transform 0.3s;
-  padding: 0px 10px;
+    content: "▸";
+    transition: transform 0.3s;
+    padding: 0px 10px;
 }
 
 .mobile-group-toggle:checked + .nav-link::after {
-  transform: rotate(90deg);
+    transform: rotate(90deg);
 }
-
 
 /* ── Nav hover highlight ───────────────────────────────────────────────── */
 
@@ -292,7 +293,12 @@ nav.sub-navbar .navbar-container {
     background: var(--color-hover);
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.15s ease, left 0.18s ease, top 0.18s ease, width 0.18s ease, height 0.18s ease;
+    transition:
+        opacity 0.15s ease,
+        left 0.18s ease,
+        top 0.18s ease,
+        width 0.18s ease,
+        height 0.18s ease;
     z-index: 0;
 }
 
@@ -312,7 +318,7 @@ nav.sub-navbar .navbar-container {
 
 /* transparent bridge fills the gap so the mouse can reach the panel */
 .nav-dropdown-wrapper::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 100%;
     left: -16px;
@@ -358,7 +364,10 @@ nav.sub-navbar .navbar-container {
     visibility: hidden;
     pointer-events: none;
     transform: translateY(-6px) scale(0.97);
-    transition: opacity 0.18s ease, transform 0.2s ease, visibility 0.18s;
+    transition:
+        opacity 0.18s ease,
+        transform 0.2s ease,
+        visibility 0.18s;
 }
 
 .nav-dropdown-wrapper:hover .nav-dropdown-panel {
@@ -410,7 +419,7 @@ nav.sub-navbar .navbar-container {
 
 /* small arrow caret pointing up from the panel */
 .nav-dropdown-panel::before {
-    content: '';
+    content: "";
     position: absolute;
     top: -5px;
     left: 50%;

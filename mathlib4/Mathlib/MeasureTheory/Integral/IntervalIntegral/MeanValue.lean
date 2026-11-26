@@ -79,7 +79,8 @@ theorem exists_eq_const_mul_intervalIntegral_of_ae_nonneg
   wlog hab : a < b generalizing a b
   · simp only [not_lt] at hab
     obtain ⟨c, c_in_uIcc, that⟩ :=
-      this (by rwa [uIcc_comm]) hg.symm (by rwa [uIoc_comm]) (by lia) (lt_of_le_of_ne' hab h)
+      this (by rwa [uIcc_comm]) hg.symm (by rwa [uIoc_comm]) (by lia -filterFacts)
+        (lt_of_le_of_ne' hab h)
     exact ⟨c, by rwa [uIcc_comm], by simpa [integral_symm b a]⟩
   let s := Ι a b
   have hs : s = Ioc a b := uIoc_of_le hab.le
@@ -170,7 +171,7 @@ theorem exists_eq_const_mul_intervalIntegral_of_nonneg_of_antitoneOn
         exact hy.2.trans (hf_mon hxIcc hy.1 hxy.le)
     simpa only [show H r = G (sSup S) from
       (intervalIntegral.integral_congr_ae_restrict <|
-        indicator_ae_eq_of_ae_eq_set (hc_eq.mono fun _ ↦ propext)).trans
+        indicator_ae_eq_of_ae_eq_set (hc_eq.mono (by grind))).trans
         (intervalIntegral.integral_indicator hc)] using ⟨hmin hc, hmax hc⟩
   -- Finally, integrate over `r`, divide by `f a` and apply the intermediate value theorem
   have hy_mem : (∫ x in a..b, f x * g x) / f a ∈ Icc (G ξmin) (G ξmax) := by

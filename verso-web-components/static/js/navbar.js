@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
     initNavHighlight();
     initDropdownArrows();
     initDropdownKeyboard();
@@ -6,17 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Sliding highlight that follows hovered nav links
 function initNavHighlight() {
-    document.querySelectorAll('.desktop-menu-part').forEach(menu => {
-        const links = menu.querySelectorAll('.nav-link');
+    /** @type {NodeListOf<HTMLElement>} */ (
+        document.querySelectorAll(".desktop-menu-part")
+    ).forEach((menu) => {
+        const links = menu.querySelectorAll(".nav-link");
         if (!links.length) return;
 
-        const highlight = document.createElement('div');
-        highlight.className = 'nav-hover-highlight';
-        menu.style.position = 'relative';
+        const highlight = document.createElement("div");
+        highlight.className = "nav-hover-highlight";
+        menu.style.position = "relative";
         menu.appendChild(highlight);
 
+        /** @type {Element | null} */
         let currentTarget = null;
 
+        /** @param {Element} el */
         function moveHighlight(el) {
             const menuRect = menu.getBoundingClientRect();
             const elRect = el.getBoundingClientRect();
@@ -25,29 +29,29 @@ function initNavHighlight() {
 
             if (currentTarget === null) {
                 // Snap to position on first hover, then enable transitions
-                highlight.style.transition = 'none';
-                highlight.style.left = x + 'px';
-                highlight.style.top = y + 'px';
-                highlight.style.width = elRect.width + 'px';
-                highlight.style.height = elRect.height + 'px';
+                highlight.style.transition = "none";
+                highlight.style.left = `${x}px`;
+                highlight.style.top = `${y}px`;
+                highlight.style.width = `${elRect.width}px`;
+                highlight.style.height = `${elRect.height}px`;
                 highlight.getBoundingClientRect(); // force reflow
-                highlight.style.transition = '';
-                highlight.classList.add('visible');
+                highlight.style.transition = "";
+                highlight.classList.add("visible");
             } else {
-                highlight.style.left = x + 'px';
-                highlight.style.top = y + 'px';
-                highlight.style.width = elRect.width + 'px';
-                highlight.style.height = elRect.height + 'px';
+                highlight.style.left = `${x}px`;
+                highlight.style.top = `${y}px`;
+                highlight.style.width = `${elRect.width}px`;
+                highlight.style.height = `${elRect.height}px`;
             }
             currentTarget = el;
         }
 
-        links.forEach(link => {
-            link.addEventListener('mouseenter', () => moveHighlight(link));
+        links.forEach((link) => {
+            link.addEventListener("mouseenter", () => moveHighlight(link));
         });
 
-        menu.addEventListener('mouseleave', () => {
-            highlight.classList.remove('visible');
+        menu.addEventListener("mouseleave", () => {
+            highlight.classList.remove("visible");
             currentTarget = null;
         });
     });
@@ -55,18 +59,20 @@ function initNavHighlight() {
 
 // CSS-transition chevron for dropdowns
 function initDropdownArrows() {
-    document.querySelectorAll('.nav-dropdown-wrapper').forEach(wrapper => {
-        wrapper.addEventListener('mouseenter', () => wrapper.classList.add('is-open'));
-        wrapper.addEventListener('mouseleave', () => wrapper.classList.remove('is-open'));
+    document.querySelectorAll(".nav-dropdown-wrapper").forEach((wrapper) => {
+        wrapper.addEventListener("mouseenter", () => wrapper.classList.add("is-open"));
+        wrapper.addEventListener("mouseleave", () => wrapper.classList.remove("is-open"));
     });
 }
 
 // Keyboard: close dropdown on Escape
 function initDropdownKeyboard() {
-    document.querySelectorAll('.nav-dropdown-wrapper').forEach(wrapper => {
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && wrapper.matches(':hover')) {
-                wrapper.querySelector('.nav-dropdown-trigger')?.blur();
+    document.querySelectorAll(".nav-dropdown-wrapper").forEach((wrapper) => {
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && wrapper.matches(":hover")) {
+                /** @type {HTMLElement | null} */ (
+                    wrapper.querySelector(".nav-dropdown-trigger")
+                )?.blur();
             }
         });
     });

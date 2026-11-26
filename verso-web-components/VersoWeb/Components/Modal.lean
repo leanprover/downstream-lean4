@@ -9,7 +9,6 @@ import VersoWeb.Components.Icon
 
 namespace Verso.Web.Components
 
-open Verso.Output.Html
 open Verso.Genre.Blog Template
 
 block_component +directive modal (id : String) where
@@ -17,16 +16,16 @@ block_component +directive modal (id : String) where
     saveCss (include_str "../../static/style/modal.css")
     saveJs (include_str "../../static/js/modal.js")
 
-    return {{
-      <div id={{id}} class="modal-backdrop hidden" data-modal="">
+    return html%{
+      <div id={id} class="modal-backdrop hidden" data-modal="">
         <div class="modal">
-          <button class="modal-close" aria-label="Close modal">"&times;"</button>
+          <button class="modal-close" aria-label="Close modal">&times;</button>
           <div class="modal-content">
-            {{ ← contents.mapM goB }}
+            { ← contents.mapM goB }
           </div>
         </div>
       </div>
-    }}
+    }
 
 
 end Verso.Web.Components

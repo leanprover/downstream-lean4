@@ -5,8 +5,98 @@ Released under Apache 2.0 license as described in the file LICENSE.
 module
 import UnicodeBasic
 import UnicodeData
+public meta import Lean.Elab.Term
 
 open Unicode
+
+/-! Kernel reduction of property lookups -/
+
+example : GeneralCategory.isLetter 'é' = true := by decide +kernel
+example : GeneralCategory.isMark '\u0301' = true := by decide +kernel
+example : GeneralCategory.isNumber '٣' = true := by decide +kernel
+example : GeneralCategory.isLetter '日' = true := by decide +kernel
+example : GeneralCategory.isLetter '\u0378' = false := by decide +kernel
+example : isAlphabetic 'ا' = true := by decide +kernel
+example : isUppercase 'Σ' = true := by decide +kernel
+example : isLowercase 'ς' = true := by decide +kernel
+example : getUpperChar 'é' = 'É' := by decide +kernel
+example : getLowerChar 'Σ' = 'σ' := by decide +kernel
+example : getTitleChar 'ǆ' = 'ǅ' := by decide +kernel
+example : (getScript 'ا').code = 0x41726162 := by decide +kernel -- Arab
+example : (getScript '日').code = 0x48616E69 := by decide +kernel -- Hani
+example : getBidiClass 'א' = .rightToLeft := by decide +kernel
+example : getBidiClass '٣' = .arabicNumber := by decide +kernel
+example : isBidiMirrored '«' = true := by decide +kernel
+example : getCanonicalCombiningClass '\u0301' = 230 := by decide +kernel
+example : isDefaultIgnorableCodePoint '\u200B' = true := by decide +kernel
+example : getCanonicalDecomposition 'ǻ' = "a\u030A\u0301" := by decide +kernel
+example : getCanonicalDecomposition '각' = "\u1100\u1161\u11A8" := by decide +kernel
+example : getCaseFoldingChar 'Σ' = 'σ' := by decide +kernel
+example : unconsCaseFolding 'ß' = (0x73, [0x73]) := by decide +kernel
+example : getDigit? '٣' = some 3 := by decide +kernel
+example : isNumeric '½' = true := by decide +kernel
+example : getDecimalRange? '٣' = some ('٠', '٩') := by decide +kernel
+
+/-! Agreement of the kernel copy of the `prop` table with the C table -/
+
+open Lean Elab Term in
+/-- The body of a definition, so that compiled code can run a `noncomputable` definition -/
+elab "body_of% " id:ident : term => do
+  let some (.defnInfo d) := (← getEnv).find? id.getId
+    | throwError "{id} is not a definition"
+  return d.value
+
+/-- Computable copy of `Internal.bidiClassTree` -/
+def bidiClassTree : Internal.BTree Nat := body_of% Unicode.Internal.bidiClassTree
+
+/-- Computable copy of `Internal.bidiMirroredTree` -/
+def bidiMirroredTree : Internal.BTree Nat := body_of% Unicode.Internal.bidiMirroredTree
+
+/-- Computable copy of `Internal.combiningClassTree` -/
+def combiningClassTree : Internal.BTree Nat := body_of% Unicode.Internal.combiningClassTree
+
+/-- Computable copy of `Internal.defaultIgnorableTree` -/
+def defaultIgnorableTree : Internal.BTree Nat := body_of% Unicode.Internal.defaultIgnorableTree
+
+/-- Computable copy of `Internal.numericTree` -/
+def numericTree : Internal.BTree Nat := body_of% Unicode.Internal.numericTree
+
+/-- Computable copy of `Internal.caseFoldingTree` -/
+def caseFoldingTree : Internal.BTree Nat := body_of% Unicode.Internal.caseFoldingTree
+
+/-- Computable copy of `Internal.decompositionTree` -/
+def decompositionTree : Internal.BTree Nat := body_of% Unicode.Internal.decompositionTree
+
+/-- Computable copy of `Internal.caseTree` -/
+def caseTree : Internal.BTree Nat := body_of% Unicode.Internal.caseTree
+
+/-- Computable copy of `Internal.propTree` -/
+def propTree : Internal.BTree Nat := body_of% Unicode.Internal.propTree
+
+/-- Computable copy of `Internal.scriptTree` -/
+def scriptTree : Internal.BTree Nat := body_of% Unicode.Internal.scriptTree
+
+/-- Code points where the B-tree copies of the C tables and the C tables disagree -/
+def treeTests : Array (String × (UInt32 → Bool)) := #[
+  ("BidiClassTree", fun c =>
+    CLib.lookupBidiClassIn bidiClassTree c.toNat == CLib.lookupBidiClass c),
+  ("BidiMirroredTree", fun c =>
+    CLib.lookupBidiMirroredIn bidiMirroredTree c.toNat == CLib.lookupBidiMirrored c),
+  ("CombiningClassTree", fun c =>
+    CLib.lookupCombiningClassIn combiningClassTree c.toNat == CLib.lookupCombiningClass c),
+  ("DefaultIgnorableTree", fun c =>
+    CLib.lookupDefaultIgnorableIn defaultIgnorableTree c.toNat == CLib.lookupDefaultIgnorable c),
+  ("NumericTree", fun c =>
+    CLib.lookupNumericIn numericTree c.toNat == CLib.lookupNumeric c),
+  ("CaseFoldingTree", fun c =>
+    CLib.lookupCaseFoldingIn caseFoldingTree c.toNat ==
+      (CLib.lookupCaseFoldingLo c).toNat ||| (CLib.lookupCaseFoldingHi c).toNat <<< 64),
+  ("DecompositionTree", fun c =>
+    CLib.lookupDecompositionIn decompositionTree c.toNat ==
+      (CLib.lookupDecompositionLo c).toNat ||| (CLib.lookupDecompositionHi c).toNat <<< 64),
+  ("CaseTree", fun c => CLib.lookupCaseIn caseTree c.toNat == CLib.lookupCase c),
+  ("PropTree", fun c => CLib.lookupPropIn propTree c.toNat == CLib.lookupProp c),
+  ("ScriptTree", fun c => CLib.lookupScriptIn scriptTree c.toNat == CLib.lookupScript c)]
 
 /-- Character for a code point; surrogates are skipped by `main` -/
 def Unicode.UnicodeData.char (d : UnicodeData) : Char := Char.ofNat d.code.toNat
@@ -182,9 +272,15 @@ def tests : Array (String × (UnicodeData → Bool)) := #[
   ("White_Space", testWhiteSpace)]
 
 public def main (args : List String) : IO UInt32 := do
-  let args := if args.isEmpty then tests.map Prod.fst else args.toArray
+  let args := if args.isEmpty then tests.map Prod.fst ++ treeTests.map Prod.fst else args.toArray
   let stream : UnicodeDataStream := {}
   let mut err : UInt32 := 0
+  for (name, test) in treeTests do
+    if name ∈ args then
+      for n in [0:0x110000] do
+        if !test n.toUInt32 then
+          err := 1
+          IO.println s!"Error: {name} {toHexStringRaw n.toUInt32}"
   for d in stream do
     -- surrogate code points are not characters
     if d.gc == .Cs then continue

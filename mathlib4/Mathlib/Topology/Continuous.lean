@@ -34,7 +34,7 @@ open TopologicalSpace
 -- when topologies are not those provided by instances.
 theorem continuous_def {_ : TopologicalSpace X} {_ : TopologicalSpace Y} {f : X → Y} :
     Continuous f ↔ ∀ s, IsOpen s → IsOpen (f ⁻¹' s) :=
-  ⟨fun hf => hf.1, fun h => ⟨h⟩⟩
+  ⟨fun hf => hf.isOpen_preimage, fun h => ⟨h⟩⟩
 
 variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 variable {f : X → Y} {s : Set X} {x : X} {y : Y}
@@ -123,7 +123,7 @@ theorem Continuous.comp' {g : Y → Z} (hg : Continuous g) (hf : Continuous f) :
 
 @[fun_prop]
 theorem Continuous.iterate {f : X → X} (h : Continuous f) (n : ℕ) : Continuous f^[n] :=
-  Nat.recOn n continuous_id fun _ ihn => ihn.comp h
+  Nat.recOn n continuous_id fun _ ihn => h.comp ihn
 
 nonrec theorem ContinuousAt.comp {g : Y → Z} (hg : ContinuousAt g (f x))
     (hf : ContinuousAt f x) : ContinuousAt (g ∘ f) x :=
@@ -179,7 +179,7 @@ theorem continuousAt_id' (y) : ContinuousAt (fun x : X => x) y := continuousAt_i
 
 theorem ContinuousAt.iterate {f : X → X} (hf : ContinuousAt f x) (hx : f x = x) (n : ℕ) :
     ContinuousAt f^[n] x :=
-  Nat.recOn n continuousAt_id fun _n ihn ↦ ihn.comp_of_eq hf hx
+  Nat.recOn n continuousAt_id fun _n ihn ↦ hf.comp_of_eq ihn (Function.iterate_fixed hx _)
 
 theorem continuous_iff_isClosed : Continuous f ↔ ∀ s, IsClosed s → IsClosed (f ⁻¹' s) :=
   continuous_def.trans <| compl_surjective.forall.trans <| by
@@ -275,11 +275,15 @@ theorem DenseRange.closure_range (h : DenseRange f) : closure (range f) = univ :
   h.closure_eq
 
 @[simp]
-lemma denseRange_subtype_val {p : X → Prop} : DenseRange (@Subtype.val _ p) ↔ Dense {x | p x} := by
+lemma denseRange_subtypeVal {p : X → Prop} : DenseRange (@Subtype.val _ p) ↔ Dense {x | p x} := by
   simp [DenseRange]
 
-theorem Dense.denseRange_val (h : Dense s) : DenseRange ((↑) : s → X) :=
-  denseRange_subtype_val.2 h
+theorem Dense.denseRange_subtypeVal (h : Dense s) : DenseRange ((↑) : s → X) :=
+  _root_.denseRange_subtypeVal.2 h
+
+@[deprecated (since := "2026-11-10")] alias denseRange_subtype_val := denseRange_subtypeVal
+@[deprecated (since := "2026-11-10")]
+alias Dense.denseRange_val := Dense.denseRange_subtypeVal
 
 theorem Continuous.range_subset_closure_image_dense {f : X → Y} (hf : Continuous f)
     (hs : Dense s) : range f ⊆ closure (f '' s) := by

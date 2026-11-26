@@ -1,7 +1,13 @@
 // @ts-check
 
 // Shared animation helpers used by standalone.js, reveal.js, and animate_widget.js.
-// Defined as var declarations so they work when concatenated before any player.
+// The Lean build puts a copy of this file in front of each player script, so a page with several
+// animations loads the file several times. This works because the helpers are function
+// declarations: JavaScript lets a script declare a function that an earlier script on the page
+// has already declared.
+
+/* exported animFindSegment, animFindCurrentStep, animClampFrame, animComputeFrame,
+   animFindStepEnd, animWrapLoop, animCheckPauseSteps, animRenderSegFrame */
 
 /**
  * Finds the segment containing the given frame index.
@@ -9,13 +15,14 @@
  * @param {number} frame
  * @returns {Segment}
  */
-var animFindSegment = function (segments, frame) {
-    for (var i = 0; i < segments.length; i++) {
-        var s = segments[i];
+function animFindSegment(segments, frame) {
+    for (const s of segments) {
         if (frame >= s.sf && frame < s.sf + s.fc) return s;
     }
-    return segments[segments.length - 1];
-};
+    const last = segments[segments.length - 1];
+    if (last === undefined) throw new Error("An animation needs at least one segment.");
+    return last;
+}
 
 /**
  * Returns the index of the step active at the given frame.
@@ -23,12 +30,14 @@ var animFindSegment = function (segments, frame) {
  * @param {number} frame
  * @returns {number}
  */
-var animFindCurrentStep = function (steps, frame) {
-    for (var i = steps.length - 1; i >= 0; i--) {
-        if (frame >= steps[i].frame) return i;
+function animFindCurrentStep(steps, frame) {
+    for (let i = steps.length - 1; i >= 0; i--) {
+        const step = steps[i];
+        if (step === undefined) throw new Error(`Step ${i} is missing.`);
+        if (frame >= step.frame) return i;
     }
     return 0;
-};
+}
 
 /**
  * Clamps a frame index to `[0, totalFrames - 1]`.
@@ -36,9 +45,9 @@ var animFindCurrentStep = function (steps, frame) {
  * @param {number} totalFrames
  * @returns {number}
  */
-var animClampFrame = function (frame, totalFrames) {
+function animClampFrame(frame, totalFrames) {
     return Math.max(0, Math.min(frame, totalFrames - 1));
-};
+}
 
 /**
  * Computes a frame index from an elapsed-time measurement.
@@ -48,10 +57,10 @@ var animClampFrame = function (frame, totalFrames) {
  * @param {number} pauseFrame - frame offset at which playback started
  * @returns {number}
  */
-var animComputeFrame = function (startTime, timestamp, fps, pauseFrame) {
-    var elapsed = (timestamp - startTime) / 1000;
+function animComputeFrame(startTime, timestamp, fps, pauseFrame) {
+    const elapsed = (timestamp - startTime) / 1000;
     return pauseFrame + Math.round(elapsed * fps);
-};
+}
 
 /**
  * Returns the frame index where the step at `stepIndex` ends.
@@ -60,9 +69,10 @@ var animComputeFrame = function (startTime, timestamp, fps, pauseFrame) {
  * @param {number} totalFrames
  * @returns {number}
  */
-var animFindStepEnd = function (steps, stepIndex, totalFrames) {
-    return stepIndex + 1 < steps.length ? steps[stepIndex + 1].frame : totalFrames;
-};
+function animFindStepEnd(steps, stepIndex, totalFrames) {
+    const next = steps[stepIndex + 1];
+    return next !== undefined ? next.frame : totalFrames;
+}
 
 /**
  * @typedef {{ wrapped: number, didCycle: boolean }} LoopResult
@@ -76,12 +86,12 @@ var animFindStepEnd = function (steps, stepIndex, totalFrames) {
  * @param {number} stepEnd
  * @returns {LoopResult}
  */
-var animWrapLoop = function (frame, stepStart, stepEnd) {
-    var stepLen = stepEnd - stepStart;
+function animWrapLoop(frame, stepStart, stepEnd) {
+    const stepLen = stepEnd - stepStart;
     if (stepLen <= 0 || frame < stepEnd) return { wrapped: frame, didCycle: false };
-    var overshoot = (frame - stepStart) % stepLen;
+    const overshoot = (frame - stepStart) % stepLen;
     return { wrapped: stepStart + overshoot, didCycle: true };
-};
+}
 
 /**
  * Scans forward from `currentStep` to check if any pause steps have been
@@ -91,17 +101,19 @@ var animWrapLoop = function (frame, stepStart, stepEnd) {
  * @param {number} frame
  * @returns {{ pauseAtStep: number, pauseAtFrame: number } | null}
  */
-var animCheckPauseSteps = function (steps, currentStep, frame) {
-    var step = animFindCurrentStep(steps, frame);
+function animCheckPauseSteps(steps, currentStep, frame) {
+    const step = animFindCurrentStep(steps, frame);
     if (step > currentStep) {
-        for (var s = currentStep + 1; s <= step; s++) {
-            if (steps[s].pause) {
-                return { pauseAtStep: s, pauseAtFrame: steps[s].frame };
+        for (let s = currentStep + 1; s <= step; s++) {
+            const stepInfo = steps[s];
+            if (stepInfo === undefined) throw new Error(`Step ${s} is missing.`);
+            if (stepInfo.pause) {
+                return { pauseAtStep: s, pauseAtFrame: stepInfo.frame };
             }
         }
     }
     return null;
-};
+}
 
 /**
  * Indexes patchable SVG elements by their `data-e` attribute.
@@ -113,17 +125,16 @@ var animCheckPauseSteps = function (steps, currentStep, frame) {
  * @param {HTMLElement} container
  * @returns {Element[]}
  */
-var animIndexElements = function (container) {
+function animIndexElements(container) {
     /** @type {Element[]} */
-    var elems = [];
-    var tagged = container.querySelectorAll("[data-e]");
-    for (var i = 0; i < tagged.length; i++) {
-        var el = tagged[i];
-        var idx = parseInt(el.getAttribute("data-e") || "0", 10);
+    const elems = [];
+    const tagged = container.querySelectorAll("[data-e]");
+    for (const el of tagged) {
+        const idx = parseInt(el.getAttribute("data-e") || "0", 10);
         elems[idx] = el;
     }
     return elems;
-};
+}
 
 /**
  * Renders a frame into a container using parameterized attribute updates
@@ -135,24 +146,25 @@ var animIndexElements = function (container) {
  * @param {number} local - frame index within the segment
  * @returns {Segment} the segment (with `_elems` populated)
  */
-var animRenderSegFrame = function (container, seg, currentSeg, local) {
+function animRenderSegFrame(container, seg, currentSeg, local) {
     if (seg !== currentSeg) {
+        // eslint-disable-next-line no-unsanitized/property -- `seg.sync` is SVG from the Lean renderer
         container.innerHTML = seg.sync;
         seg._elems = animIndexElements(container);
     }
     if (seg._elems && seg.pmap && seg.params && seg.params[local]) {
-        var p = seg.params[local];
-        for (var i = 0; i < seg.pmap.length; i++) {
-            var binding = seg.pmap[i];
-            var elem = seg._elems[binding.e];
-            if (elem && p[i] !== undefined) {
+        const p = seg.params[local];
+        for (const [i, binding] of seg.pmap.entries()) {
+            const elem = seg._elems[binding.e];
+            const value = p[i];
+            if (elem && value !== undefined) {
                 if (binding.a === "textContent") {
-                    elem.textContent = p[i];
+                    elem.textContent = value;
                 } else {
-                    elem.setAttribute(binding.a, p[i]);
+                    elem.setAttribute(binding.a, value);
                 }
             }
         }
     }
     return seg;
-};
+}

@@ -9,6 +9,7 @@ module
 import VersoUtil.BinFiles
 import TestFixtures.Markup
 import TestFixtures.Code
+import TestFixtures.ExternalCode
 import TestFixtures.PanelOption
 import TestFixtures.DiagramAnim
 import TestFixtures.Theme
@@ -48,12 +49,16 @@ public def main : IO UInt32 := do
     (%doc TestFixtures.Markup)
   if rc != 0 then return rc
   let rc ← slidesMain
-    { theme := "black", outputDir := "_test/code" }
+    { theme := "black", outputDir := "_test/code", mathPrelude := "\\def\\RR{\\mathbb{R}}\n" }
     (%doc TestFixtures.Code)
   if rc != 0 then return rc
   let rc ← slidesMain
     { theme := "black", outputDir := "_test/paneloption" }
     (%doc TestFixtures.PanelOption)
+  if rc != 0 then return rc
+  let rc ← slidesMain
+    { theme := "black", outputDir := "_test/externalcode" }
+    (%doc TestFixtures.ExternalCode)
   if rc != 0 then return rc
   let rc ← slidesMain
     { theme := "black", outputDir := "_test/diagramanim" }

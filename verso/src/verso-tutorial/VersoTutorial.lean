@@ -17,6 +17,7 @@ public import VersoBlog.Component
 public import VersoBlog.Template
 public import VersoBlog.Generate
 public import VersoTutorial.Basic
+import Verso.Output.Html.KaTeX
 
 public section
 
@@ -208,7 +209,9 @@ def EmitM.writeFile (path : System.FilePath) (content : String) : EmitM Unit := 
 def EmitM.writeHtmlFile (path : System.FilePath) (content : Html) : EmitM Unit := do
   if (← readThe EmitContext).config.verbose then
     IO.println s!"Writing {path}"
-  IO.FS.writeFile path <| doctype ++ "\n" ++ (Hoist.postprocess content).render
+  let policy := (← readThe EmitContext).config.contentSecurityPolicy
+  let content ← IO.ofExcept <| Output.Html.ContentSecurityPolicy.apply policy (Hoist.postprocess content)
+  IO.FS.writeFile path <| doctype ++ "\n" ++ content.render
 
 def LocalToC.ofPage (path : Path) (text : Part Blog.Page) : EmitM LocalToC := do
   let title := text.titleString
@@ -504,6 +507,7 @@ def liftGenerate (act : Blog.GenerateM α) (site : Blog.Site) (state : Blog.Trav
     config := (← EmitM.blogConfig),
     header := Html.doctype,
     rewriteHtml := some fun _ html => pure (Hoist.postprocess html),
+    contentSecurityPolicy := (← read).config.contentSecurityPolicy,
     components := (← read).components,
     extraParams
   }
@@ -518,6 +522,8 @@ def emit (tutorials : Tutorials) (navSite : Option Blog.Site) : EmitM Unit := do
   let dir := (← read).config.destination
   ensureDir dir
   (← readThe Manual.TraverseState).writeFiles (dir / "-verso-data")
+  -- The blog theme's pages load KaTeX from here.
+  Verso.Output.Html.writeKaTeX (dir / "-verso-data" / "katex")
 
   let site ← toSite tutorials
   let (site, blogState) ← site.traverse (← blogConfig) (← read).components

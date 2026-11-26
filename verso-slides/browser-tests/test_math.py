@@ -2,23 +2,29 @@
 
 from bs4 import BeautifulSoup
 
-from conftest import goto_slide_by_title
+from conftest import goto_slide_by_title, mathml_texts
 
 
 class TestMathMarkup:
     def test_inline_math_emitted(self, markup_doc: BeautifulSoup):
         """Inline $`...` sources produce <code class="math inline">TEX</code>."""
         nodes = markup_doc.select("code.math.inline")
-        assert len(nodes) >= 2, f"expected at least two inline math nodes, got {len(nodes)}"
+        assert len(nodes) >= 2, (
+            f"expected at least two inline math nodes, got {len(nodes)}"
+        )
         tex = [n.get_text() for n in nodes]
         assert r"e^{i\pi} + 1 = 0" in tex, f"missing Euler identity source, got {tex}"
 
     def test_display_math_emitted(self, markup_doc: BeautifulSoup):
         """Display $$`...` sources produce <code class="math display">TEX</code>."""
         nodes = markup_doc.select("code.math.display")
-        assert len(nodes) >= 1, f"expected at least one display math node, got {len(nodes)}"
+        assert len(nodes) >= 1, (
+            f"expected at least one display math node, got {len(nodes)}"
+        )
         tex = nodes[0].get_text()
-        assert r"\int_0^\infty" in tex, f"display math TeX missing integral, got {tex!r}"
+        assert r"\int_0^\infty" in tex, (
+            f"display math TeX missing integral, got {tex!r}"
+        )
 
     def test_math_style_link_in_head(self, markup_doc: BeautifulSoup):
         """The page head should link KaTeX's stylesheet."""
@@ -28,20 +34,26 @@ class TestMathMarkup:
     def test_math_script_tags_present(self, markup_doc: BeautifulSoup):
         """The page body should load KaTeX and our math.js renderer."""
         scripts = [s.get("src", "") for s in markup_doc.select("script[src]")]
-        assert any(s.endswith("katex/dist/katex.min.js") for s in scripts), \
+        assert any(s.endswith("katex/dist/katex.min.js") for s in scripts), (
             f"KaTeX JS not loaded, scripts: {scripts}"
-        assert any(s.endswith("lib/math.js") for s in scripts), \
+        )
+        assert any(s.endswith("lib/math.js") for s in scripts), (
             f"math.js not loaded, scripts: {scripts}"
+        )
 
     def test_math_prelude_script_emitted(self, markup_doc: BeautifulSoup):
         """When Config.mathPrelude is non-empty, a <script> sets window.__versoMathPrelude."""
-        inline_scripts = [s.get_text() for s in markup_doc.select("script") if not s.get("src")]
+        inline_scripts = [
+            s.get_text() for s in markup_doc.select("script") if not s.get("src")
+        ]
         prelude_scripts = [s for s in inline_scripts if "__versoMathPrelude" in s]
-        assert len(prelude_scripts) == 1, \
+        assert len(prelude_scripts) == 1, (
             f"expected one prelude <script>, got {len(prelude_scripts)}"
+        )
         body = prelude_scripts[0]
-        assert "\\\\def\\\\RR" in body or "\\def\\RR" in body, \
+        assert "\\\\def\\\\RR" in body or "\\def\\RR" in body, (
             f"prelude script missing \\RR definition, got: {body!r}"
+        )
 
     def test_old_reveal_math_plugin_not_wired(self, markup_doc: BeautifulSoup):
         """The reveal.js math plugin's auto-render skips <code> tags, so it's unused.
@@ -51,11 +63,13 @@ class TestMathMarkup:
         """
         scripts = markup_doc.select("script")
         init_text = "\n".join(s.get_text() for s in scripts if not s.get("src"))
-        assert "RevealMath" not in init_text, \
+        assert "RevealMath" not in init_text, (
             f"Reveal math plugin should not be registered, found reference in init script"
+        )
         srcs = [s.get("src", "") for s in scripts if s.get("src")]
-        assert not any(s.endswith("plugin/math/math.js") for s in srcs), \
+        assert not any(s.endswith("plugin/math/math.js") for s in srcs), (
             f"reveal.js math plugin should not be loaded, scripts: {srcs}"
+        )
 
 
 class TestMathAssets:
@@ -92,7 +106,9 @@ class TestMathRendering:
             "() => Array.from(document.querySelectorAll('code.math.inline'))"
             "       .every(n => n.querySelector('.katex') !== null)"
         )
-        assert rendered, "every inline math node should contain a .katex element after render"
+        assert rendered, (
+            "every inline math node should contain a .katex element after render"
+        )
 
     def test_display_math_is_rendered(self, page, markup_url):
         """Display math nodes contain a .katex-display wrapper."""
@@ -105,22 +121,20 @@ class TestMathRendering:
     def test_math_prelude_macros_expand(self, page, markup_url):
         """Macros defined in Config.mathPrelude are available to all math on the page.
 
-        The markup fixture's Config sets `\\def\\RR{\\mathbb{R}}`. After render, the
-        math slide should contain a KaTeX `.mathbb` span, which only appears when
-        `\\RR` successfully expanded — an unexpanded control sequence would render
-        as error text.
+        The markup fixture's Config sets `\\def\\RR{\\mathbb{R}}` and
+        `\\newcommand{\\Hom}[2]{\\mathrm{Hom}(#1, #2)}`. The math slide uses
+        `\\RR` inline and `\\Hom{A}{B} \\subseteq \\RR` as display math. The
+        MathML that the page shows for them is that of their expansions.
         """
-        goto_slide_by_title(page, markup_url, "Math")
+        slide = goto_slide_by_title(page, markup_url, "Math")
         page.wait_for_function(
-            "() => document.querySelectorAll('code.math.inline .katex').length > 0",
+            "() => document.querySelectorAll('code.math.inline math').length > 0",
             timeout=5000,
         )
-        has_blackboard = page.evaluate(
-            "() => document.querySelector('code.math .mathbb') !== null"
-        )
-        assert has_blackboard, (
-            "no .mathbb span found — prelude macro \\RR did not expand"
-        )
+        texts = mathml_texts(slide.locator("code.math"))
+        assert texts[-2:] == ["R", "Hom(A,B)⊆R"], texts
+        # Both uses of `\\RR` are blackboard bold
+        assert slide.locator("code.math mi[mathvariant='double-struck']").count() == 2
 
     def test_math_tex_source_not_visible(self, page, markup_url):
         """Raw TeX source (backslashes) should not appear in the visible DOM text."""

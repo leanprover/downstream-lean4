@@ -55,7 +55,9 @@
     bottom: 0;
     height: 2px;
     background: var(--color-primary);
-    transition: left 0.3s ease, width 0.3s ease;
+    transition:
+        left 0.3s ease,
+        width 0.3s ease;
     z-index: 0;
 }
 

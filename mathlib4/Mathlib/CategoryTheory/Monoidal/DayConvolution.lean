@@ -35,14 +35,15 @@ a monoidal structure.
 
 
 ## References
+
 - [nLab page: Day convolution](https://ncatlab.org/nlab/show/Day+convolution)
 
-## TODOs (@robin-carlier)
+## TODO (@robin-carlier)
+
 - Type alias for `C ⥤ V` with a `LawfulDayConvolutionMonoidalCategoryStruct`.
 - Characterization of lax monoidal functors out of a Day convolution monoidal category.
 - Case `V = Type u` and its universal property.
 - Fix the abuse of functor associativity that causes `erw [id_apply]` in a few places in this file.
-
 -/
 
 set_option backward.defeqAttrib.useBackward true

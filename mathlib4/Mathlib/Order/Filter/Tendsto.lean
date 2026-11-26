@@ -7,6 +7,9 @@ module
 
 public import Mathlib.Order.Filter.Map
 
+set_option doc.verso true
+set_option doc.verso.suggestions false
+
 /-!
 # Convergence in terms of filters
 
@@ -125,7 +128,7 @@ theorem Tendsto.comp {f : α → β} {g : β → γ} {x : Filter α} {y : Filter
 protected theorem Tendsto.iterate {f : α → α} {l : Filter α} (h : Tendsto f l l) :
     ∀ n, Tendsto (f^[n]) l l
   | 0 => tendsto_id
-  | (n + 1) => (h.iterate n).comp h
+  | (n + 1) => h.comp (h.iterate n)
 
 theorem Tendsto.mono_left {f : α → β} {x y : Filter α} {z : Filter β} (hx : Tendsto f x z)
     (h : y ≤ x) : Tendsto f y z :=

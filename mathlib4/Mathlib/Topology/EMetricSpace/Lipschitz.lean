@@ -79,9 +79,11 @@ theorem lipschitzOnWith_empty (K : ℝ≥0) (f : α → β) : LipschitzOnWith K 
 @[simp] lemma locallyLipschitzOn_empty (f : α → β) : LocallyLipschitzOn ∅ f := fun _ ↦ False.elim
 
 /-- Being Lipschitz on a set is monotone w.r.t. that set. -/
+@[gcongr]
 theorem LipschitzOnWith.mono (hf : LipschitzOnWith K f t) (h : s ⊆ t) : LipschitzOnWith K f s :=
   fun _x x_in _y y_in => hf (h x_in) (h y_in)
 
+@[gcongr]
 lemma LocallyLipschitzOn.mono (hf : LocallyLipschitzOn t f) (h : s ⊆ t) : LocallyLipschitzOn s f :=
   fun x hx ↦ by obtain ⟨K, u, hu, hfu⟩ := hf (h hx); exact ⟨K, u, nhdsWithin_mono _ h hu, hfu⟩
 
@@ -205,8 +207,11 @@ protected theorem id : LipschitzWith 1 (@id α) :=
   LipschitzWith.of_edist_le fun _ _ => le_rfl
 
 /-- The inclusion of a subset is 1-Lipschitz. -/
-protected theorem subtype_val (s : Set α) : LipschitzWith 1 (Subtype.val : s → α) :=
+protected theorem subtypeVal (s : Set α) : LipschitzWith 1 (Subtype.val : s → α) :=
   LipschitzWith.of_edist_le fun _ _ => le_rfl
+
+@[deprecated (since := "2026-11-10")]
+protected alias subtype_val := LipschitzWith.subtypeVal
 
 theorem subtype_mk (hf : LipschitzWith K f) {p : β → Prop} (hp : ∀ x, p (f x)) :
     LipschitzWith K (fun x => ⟨f x, hp x⟩ : α → { y // p y }) :=
@@ -263,7 +268,7 @@ protected theorem uncurry {f : α → β → γ} {Kα Kβ : ℝ≥0} (hα : ∀ 
 /-- Iterates of a Lipschitz function are Lipschitz. -/
 protected theorem iterate {f : α → α} (hf : LipschitzWith K f) : ∀ n, LipschitzWith (K ^ n) f^[n]
   | 0 => by simpa only [pow_zero] using! LipschitzWith.id
-  | n + 1 => by rw [pow_succ]; exact (LipschitzWith.iterate hf n).comp hf
+  | n + 1 => by rw [pow_succ']; exact hf.comp (LipschitzWith.iterate hf n)
 
 theorem edist_iterate_succ_le_geometric {f : α → α} (hf : LipschitzWith K f) (x n) :
     edist (f^[n] x) (f^[n + 1] x) ≤ edist x (f x) * (K : ℝ≥0∞) ^ n := by

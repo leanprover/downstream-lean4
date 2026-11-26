@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
+import re
+import subprocess
 from release_utils import (
     run_git_command,
     is_git_ancestor,
     find_latest_version,
     find_latest_stable_version,
 )
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlsplit
+from extend_content_security_policy import extend_policy
 
 UNICODE_INPUT_FILES = [
     "unicode-input.min.js",
@@ -15,6 +21,45 @@ UNICODE_INPUT_FILES = [
 ]
 
 STATS_HTML_FILE = "stats.html"
+
+# The commit from which the permalink and search scripts are taken.
+VERSO_SCRIPTS_REF = "72f606748cc5f4e1ce9f6d0b7abbd37cf767c9fd"
+
+# The permalink and search scripts, as paths relative to static-web/.
+VERSO_SCRIPT_FILES = {
+    "find.js": "find.js",
+    "search-highlight.js": "search/search-highlight.js",
+    "search-box.js": "search/search-box.js",
+}
+
+
+def read_verso_scripts():
+    """
+    Read the permalink and search scripts at VERSO_SCRIPTS_REF.
+
+    The commit is fetched from origin if the repository doesn't have it, as in a shallow checkout.
+
+    Returns:
+        dict: Map from filename to text content
+    """
+    has_ref = subprocess.run(
+        ["git", "cat-file", "-e", f"{VERSO_SCRIPTS_REF}^{{commit}}"],
+        capture_output=True,
+    )
+    if has_ref.returncode != 0:
+        run_git_command(["git", "fetch", "--depth", "1", "origin", VERSO_SCRIPTS_REF])
+    result = {}
+    for filename, path in VERSO_SCRIPT_FILES.items():
+        # run_git_command strips the output, which would drop the file's final newline
+        shown = subprocess.run(
+            ["git", "show", f"{VERSO_SCRIPTS_REF}:static-web/{path}"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        result[filename] = shown.stdout
+        print(f"overlay.py: read {path} at {VERSO_SCRIPTS_REF}")
+    return result
 
 
 def add_metadata(directory, version_name, extensions=(".html", ".htm")):
@@ -84,15 +129,75 @@ def replace_unicode_input_files(directory, unicode_input_files):
                     print(f"Skipped (not present): {filepath}")
 
 
+class StatsScriptParser(HTMLParser):
+    # With scripting enabled, these elements contain text rather than nested markup.
+    CDATA_CONTENT_ELEMENTS = (
+        "script",
+        "style",
+        "title",
+        "textarea",
+        "xmp",
+        "iframe",
+        "noembed",
+        "noframes",
+        "noscript",
+    )
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.bodies = []
+        self.origins = []
+        self.body = None
+        self.template_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "template":
+            self.template_depth += 1
+        if tag != "script" or self.template_depth:
+            return
+        for name, value in attrs:
+            if name == "src":
+                url = urlsplit(value or "")
+                if url.netloc:
+                    origin = (
+                        f"{url.scheme}://{url.netloc}" if url.scheme else url.netloc
+                    )
+                    self.origins.append(origin)
+                return
+        self.body = []
+
+    def handle_data(self, data):
+        if self.body is not None:
+            self.body.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "template" and self.template_depth:
+            self.template_depth -= 1
+        if tag == "script" and self.body is not None:
+            self.bodies.append("".join(self.body))
+            self.body = None
+
+
+def scripts_in(html):
+    """Returns the inline script bodies and external origins in a trusted stats snippet."""
+    parser = StatsScriptParser()
+    parser.feed(html)
+    parser.close()
+    return parser.bodies, parser.origins
+
+
 def inject_stats_html(directory, stats_html_content, extensions=(".html", ".htm")):
     """
     Recursively walk through `directory`, find all HTML files,
     and insert stats_html_content as the last element of <head>.
 
+    The Content Security Policy of each page is extended to allow the snippet's scripts.
+
     Args:
         directory (Path): The directory in which to recursively modify files
         stats_html_content (str): HTML content to inject before </head>
     """
+    stats_scripts, stats_origins = scripts_in(stats_html_content)
     for root, _, files in os.walk(directory):
         for filename in files:
             if filename.lower().endswith(extensions):
@@ -104,6 +209,9 @@ def inject_stats_html(directory, stats_html_content, extensions=(".html", ".htm"
                     new_content = content.replace(
                         "</head>", f"{stats_html_content}</head>"
                     )
+                    new_content = extend_policy(
+                        new_content, stats_scripts, stats_origins
+                    )
                     with open(filepath, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     print(f"Injected stats HTML: {filepath}")
@@ -111,9 +219,108 @@ def inject_stats_html(directory, stats_html_content, extensions=(".html", ".htm"
                     print(f"Skipped stats HTML injection (no </head>): {filepath}")
 
 
+def update_find_page(version_dir, find_js):
+    """
+    Replace the script in a version's find/index.html with the find.js at VERSO_SCRIPTS_REF.
+
+    The page's cross-reference data is kept. Older pages declare it with `let xref`, and the
+    updated page declares it as `window.xref`, which is where the current script reads it from.
+    The page's Content Security Policy, if any, is extended to allow the new script.
+
+    Args:
+        version_dir (Path): The version's directory
+        find_js (str): The contents of find.js, from read_verso_scripts
+    """
+    page = version_dir / "find" / "index.html"
+    if not page.is_file():
+        return
+    content = page.read_text(encoding="utf-8")
+    match = re.search(r"(?:let |window\.)xref = ", content)
+    if match is None:
+        print(f"No cross-reference data, skipping: {page}")
+        return
+    _, data_end = json.JSONDecoder().raw_decode(content, match.end())
+    script_start = content.rfind("<script", 0, match.start())
+    script_end = content.find("</script>", data_end)
+    if script_start < 0 or script_end < 0:
+        print(f"Unexpected find page layout, skipping: {page}")
+        return
+    body_start = content.index(">", script_start) + 1
+    body = (
+        content[body_start : match.start()]
+        + "window.xref = "
+        + content[match.end() : data_end]
+        + ";\n"
+        + find_js
+        + "\n"
+    )
+    new_content = extend_policy(
+        content[:body_start] + body + content[script_end:], [body]
+    )
+    page.write_text(new_content, encoding="utf-8")
+    print(f"Updated: {page}")
+
+
+# The search-result snippet rendering in search-box.js: the snippet callback in highlightTextResult.
+SNIPPET_START = "const highlightedSnippets = limitedSnippets.map((snippet) => {"
+SNIPPET_END = re.compile(r"return elem;\s*\}\);")
+
+
+def snippet_code(search_box_js):
+    """Returns the start and end of the snippet rendering code in search-box.js, if present."""
+    start = search_box_js.find(SNIPPET_START)
+    if start < 0 or search_box_js.find(SNIPPET_START, start + 1) >= 0:
+        return None
+    end = SNIPPET_END.search(search_box_js, start)
+    if end is None:
+        return None
+    return start, end.end()
+
+
+def update_search_scripts(version_dir, verso_scripts):
+    """
+    Update a version's search scripts to the versions at VERSO_SCRIPTS_REF.
+
+    search-highlight.js is replaced. In search-box.js, the snippet rendering for search results is
+    replaced, because the rest of the file depends on the version of the search index.
+
+    Args:
+        version_dir (Path): The version's directory
+        verso_scripts (dict): Map from filename to text content, from read_verso_scripts
+    """
+    search_dir = version_dir / "-verso-search"
+    highlight = search_dir / "search-highlight.js"
+    if highlight.is_file():
+        highlight.write_text(verso_scripts["search-highlight.js"], encoding="utf-8")
+        print(f"Replaced: {highlight}")
+
+    box = search_dir / "search-box.js"
+    if box.is_file():
+        current = verso_scripts["search-box.js"]
+        new_range = snippet_code(current)
+        if new_range is None:
+            raise Exception(
+                f"Snippet rendering not found in search-box.js at {VERSO_SCRIPTS_REF}"
+            )
+        content = box.read_text(encoding="utf-8")
+        old_range = snippet_code(content)
+        if old_range is None:
+            print(f"Snippet rendering not found, skipping: {box}")
+            return
+        new_content = (
+            content[: old_range[0]]
+            + current[new_range[0] : new_range[1]]
+            + content[old_range[1] :]
+        )
+        box.write_text(new_content, encoding="utf-8")
+        print(f"Updated: {box}")
+
+
 # This function is the right thing to change to change the
 # content of the overlays that are applied.
-def apply_overlays(deploy_dir, unicode_input_files=None, stats_html_content=None):
+def apply_overlays(
+    deploy_dir, unicode_input_files=None, stats_html_content=None, verso_scripts=None
+):
     """
     Apply desired overlays inside current directory.
 
@@ -124,6 +331,9 @@ def apply_overlays(deploy_dir, unicode_input_files=None, stats_html_content=None
             the Unicode input file replacement overlay is skipped.
         stats_html_content (str): Content of stats.html from main. If None,
             the stats HTML injection overlay is skipped.
+        verso_scripts (dict): Map from filename to text content of the permalink
+            and search scripts, from read_verso_scripts. If None, these scripts are left as
+            they are.
     """
     latest_version = find_latest_version(deploy_dir)
     latest_stable_version = find_latest_stable_version(deploy_dir)
@@ -132,6 +342,9 @@ def apply_overlays(deploy_dir, unicode_input_files=None, stats_html_content=None
     for inner in Path(deploy_dir).iterdir():
         # Check for index.html to identify version directories
         if inner.is_dir() and (inner / "index.html").is_file():
+            if verso_scripts:
+                update_find_page(inner, verso_scripts["find.js"])
+                update_search_scripts(inner, verso_scripts)
             add_metadata(inner, str(inner))
             if unicode_input_files:
                 replace_unicode_input_files(inner, unicode_input_files)
@@ -178,6 +391,8 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch):
     else:
         print(f"overlay.py: stats HTML not found on main, skipping: {stats_html_path}")
 
+    verso_scripts = read_verso_scripts()
+
     try:
         if is_git_ancestor(tgt_branch, src_branch):
             raise Exception(
@@ -191,7 +406,9 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch):
             return
 
         print("Applying overlays...")
-        apply_overlays(deploy_dir, unicode_input_files, stats_html_content)
+        apply_overlays(
+            deploy_dir, unicode_input_files, stats_html_content, verso_scripts
+        )
         print("Creating merge commit...")
         # Add version directories and aliases (stable may not exist for RC releases)
         add_paths = ["4*", "latest"]
@@ -231,6 +448,56 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch):
         run_git_command(["git", "reset", "--hard", "HEAD^^"])
     finally:
         run_git_command(["git", "switch", current_branch])
+
+
+# Run from deploy/ with:
+#   python3 -B -c "import overlay; overlay.test()"
+def test():
+    import tempfile
+    from extend_content_security_policy import script_hash
+
+    stats = (
+        '<script async src="https://stats.example/s.js"></script>\n'
+        "<script>\n  track()\n</script>\n"
+    )
+    assert scripts_in(stats) == (["\n  track()\n"], ["https://stats.example"])
+    assert scripts_in('<script src="//cdn.example/a.js"></script>') == (
+        [],
+        ["cdn.example"],
+    )
+    assert scripts_in('<script src="local.js"></script>') == ([], [])
+    assert scripts_in(
+        "<SCRIPT SRC = 'https://stats.example/s.js'></SCRIPT>"
+        '<script src=https://stats.example/t.js src="https://ignored.example/"></script>'
+        '<!-- <script src="https://ignored.example/"></script> -->'
+        '<template><script src="https://ignored.example/"></script></template>'
+        '<noscript><script src="https://ignored.example/"></script></noscript>'
+        '<script data-test=">">let x = 1 < 2 && "&amp;";</script>'
+    ) == (
+        ['let x = 1 < 2 && "&amp;";'],
+        ["https://stats.example", "https://stats.example"],
+    )
+
+    meta = "<meta http-equiv=\"Content-Security-Policy\" content=\"script-src 'self'; base-uri 'self'\"/>"
+    find_page = (
+        f'<html><head><meta charset="UTF-8"/>{meta}</head><body>'
+        '<script>let xref = {"a": 1};\nold()</script></body></html>'
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        version = Path(tmp)
+        (version / "find").mkdir()
+        page = version / "find" / "index.html"
+        page.write_text(find_page, encoding="utf-8")
+        update_find_page(version, "find()")
+        result = page.read_text(encoding="utf-8")
+        body = 'window.xref = {"a": 1};\nfind()\n'
+        assert f"<script>{body}</script>" in result, result
+        assert script_hash(body) in result, result
+
+        inject_stats_html(version, stats)
+        result = page.read_text(encoding="utf-8")
+        assert script_hash("\n  track()\n") in result, result
+        assert "'self' https://stats.example 'sha256-" in result, result
 
 
 def main():

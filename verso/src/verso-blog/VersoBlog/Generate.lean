@@ -9,6 +9,7 @@ public import MultiVerso.Path
 public import VersoBlog.Basic
 public import VersoBlog.Template
 public import VersoBlog.Theme
+public import Verso.Output.Html.ContentSecurityPolicy
 
 public section
 
@@ -36,6 +37,7 @@ structure Generate.Context where
   dir : System.FilePath
   config : Config
   header : String
+  contentSecurityPolicy : ContentSecurityPolicy.Config := {}
   rewriteHtml : Option (TraverseContext → Html → BuildLogT IO Html) := none
   components : Components := {}
   theme : Theme
@@ -48,7 +50,7 @@ def Generate.Context.templateContext (ctxt : Generate.Context) (params : Templat
     params := params ++ ctxt.extraParams path,
     path,
     builtInStyles := ctxt.xref.stylesheets,
-    builtInScripts := ctxt.xref.scripts.insert Traverse.renderMathJs,
+    builtInScripts := ctxt.xref.scripts,
     jsFiles := ctxt.theme.jsFiles.map (·.1) ++ ctxt.xref.jsFiles.map (·.1),
     cssFiles := ctxt.theme.cssFiles.map (·.1) ++ ctxt.xref.cssFiles.map (·.1),
     components := ctxt.components
@@ -164,7 +166,11 @@ def writePage (theme : Theme) (params : Template.Params) (template : Template :=
   ensureDir <| (← currentDir)
   let ⟨baseTemplate, modParams⟩ := theme.adHocTemplates (← currentPath) |>.getD ⟨template, id⟩
   let output ← rewriteOutput <| ← Template.renderMany [baseTemplate, theme.primaryTemplate] <| modParams <| params
+  let policy := (← read).contentSecurityPolicy
   let header := (← read).header
+  if policy.enabled && !ContentSecurityPolicy.isDocumentPreamble header then
+    throw <| IO.userError "Cannot install the content security policy after a custom HTML header containing markup."
+  let output ← IO.ofExcept <| ContentSecurityPolicy.apply policy output
   IO.FS.withFile ((← currentDir).join "index.html") .write fun h => do
     h.putStrLn header
     h.putStrLn output.render

@@ -8,7 +8,6 @@ module
 public import Mathlib.RingTheory.WittVector.Identities
 
 /-!
-
 # Witt vectors over a domain
 
 This file builds to the proof `WittVector.instIsDomain`,
@@ -30,7 +29,6 @@ the 0th component of which must be nonzero.
 
 * `WittVector.iterate_verschiebung_mul_coeff` : an identity from [Haze09]
 * `WittVector.instIsDomain`
-
 -/
 
 @[expose] public section
@@ -76,7 +74,7 @@ theorem eq_iterate_verschiebung {x : 𝕎 R} {n : ℕ} (h : ∀ i < n, x.coeff i
   induction n with
   | zero => cases x; simp [shift]
   | succ k ih =>
-    dsimp; rw [verschiebung_shift]
+    rw [Function.iterate_succ_apply, verschiebung_shift]
     · exact ih fun i hi => h _ (hi.trans (Nat.lt_succ_self _))
     · exact h
 

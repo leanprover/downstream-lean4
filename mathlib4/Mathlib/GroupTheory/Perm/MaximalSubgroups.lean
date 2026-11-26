@@ -175,7 +175,7 @@ theorem has_swap_mem_of_lt_stabilizer [DecidableEq α]
     convert one_add_one_eq_two <;>
     · apply le_antisymm
       · assumption
-      rw [one_le_encard_iff_nonempty, Set.nonempty_iff_ne_empty]
+      by_contra! h
       aesop
   have _ : Finite α := by
     rw [← ENat.card_lt_top, hα]
@@ -266,7 +266,7 @@ lemma subsingleton_of_stabilizer_lt_of_subset {B : Set α}
     · -- `Subtype.val ⁻¹' B = s`
       have hBs' : B = s := Set.Subset.antisymm hBs (by simp_all)
       subst hBs'
-      obtain ⟨g', hg', hg's⟩ := IsConcreteLE.exists_of_lt hG
+      obtain ⟨g', hg', hg's⟩ := exists_mem_notMem_of_lt hG
       have h := (isBlock_iff_smul_eq_or_disjoint.mp hB ⟨g', hg'⟩).resolve_left hg's
       suffices (g' • B).Subsingleton by
         exact subsingleton_of_image (MulAction.injective g') B this
@@ -329,7 +329,7 @@ theorem isCoatom_stabilizer_of_ncard_lt_ncard_compl
     {s : Set α} (h0 : s.Nonempty) (hα : s.ncard < sᶜ.ncard) :
     IsCoatom (stabilizer (Perm α) s) := by
   classical
-  have h1 : sᶜ.Nonempty := nonempty_iff_ne_empty.mpr (by aesop)
+  have h1 : sᶜ.Nonempty := ne_empty_iff_nonempty.mp (by aesop)
   have : Fintype α := Fintype.ofFinite α
   -- To prove that `stabilizer (Perm α) s` is maximal,
   -- we need to prove that it is `≠ ⊤`
@@ -375,7 +375,8 @@ theorem isCoatom_stabilizer_of_ncard_lt_ncard_compl
   have hB_not_le_sc (B : Set α) (hB : IsBlock G B) (hBsc : B ⊆ sᶜ) :
       B.Subsingleton :=
     -- uses Step 1
-    hB.subsingleton_of_ssubset_of_stabilizer_Perm_le (hBsc.ssubset_of_ne (by lia)) hG'.le
+    hB.subsingleton_of_ssubset_of_stabilizer_Perm_le
+      (hBsc.ssubset_of_ne (by lia -filterFacts)) hG'.le
   -- Step 3 : A block contained in `s` is a subsingleton
   have hB_not_le_s (B : Set α) (hB : IsBlock G B) (hBs : B ⊆ s) : B.Subsingleton :=
     have := isPreprimitive_stabilizer_subgroup hG.le

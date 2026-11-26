@@ -30,7 +30,7 @@ Let `𝕜` be a nontrivially normed field, and `F` a normed vector space over `�
   obtained by starting from `f` and differentiating it `n` times within `s`. This only holds when
   `s` has the unique derivative property.
 
-## Implementation details
+## Implementation notes
 
 The results are deduced from the corresponding results for the more general (multilinear) iterated
 Fréchet derivative. For this, we write `iteratedDeriv n f` as the composition of
@@ -211,7 +211,9 @@ theorem iteratedDerivWithin_eq_iterate {x : 𝕜} :
 taking the `n`-th derivative of the derivative. -/
 theorem iteratedDerivWithin_succ' :
     iteratedDerivWithin (n + 1) f s = (iteratedDerivWithin n (derivWithin f s) s) := by
-  ext x; rw [iteratedDerivWithin_eq_iterate, iteratedDerivWithin_eq_iterate]; rfl
+  ext x
+  rw [iteratedDerivWithin_eq_iterate, iteratedDerivWithin_eq_iterate]
+  exact congrFun (Function.iterate_succ_apply _ _ _) x
 
 /-- `C^{n + 1}` is equivalent to `C^n` and the `n`-th derivative being `C^1`. -/
 theorem contDiffOn_nat_succ_iff_contDiffOn_one_iteratedDerivWithin {n : ℕ}

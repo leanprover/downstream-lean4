@@ -8,6 +8,9 @@ module
 public import Mathlib.CategoryTheory.Limits.HasLimits
 public import Mathlib.CategoryTheory.PUnit
 
+set_option doc.verso true
+set_option doc.verso.suggestions false
+
 /-!
 # `Discrete PUnit` has limits and colimits
 
@@ -38,12 +41,12 @@ def punitCocone : Cocone F :=
 /-- Any cone over a functor into `PUnit` is a limit cone.
 -/
 def punitConeIsLimit {c : Cone F} : IsLimit c where
-  lift := fun s => eqToHom rfl
+  lift := fun s => eqToHom (by simp [eq_iff_true_of_subsingleton])
 
 /-- Any cocone over a functor into `PUnit` is a colimit cocone.
 -/
 def punitCoconeIsColimit {c : Cocone F} : IsColimit c where
-  desc := fun s => eqToHom rfl
+  desc := fun s => eqToHom (by simp [eq_iff_true_of_subsingleton])
 
 instance : HasLimitsOfSize.{v', v} (Discrete PUnit) :=
   ⟨fun _ _ => ⟨fun _ => ⟨punitCone, punitConeIsLimit⟩⟩⟩

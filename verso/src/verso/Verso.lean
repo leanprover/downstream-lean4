@@ -26,9 +26,11 @@ public import Verso.Hover
 public import Verso.Instances
 public import Verso.Linters
 public import Verso.Log
+public import Verso.Markdown
 public import Verso.Method
 public import Verso.Output
 public import Verso.Output.Html
+public import Verso.Output.Html.ContentSecurityPolicy
 public import Verso.Output.Html.CssVars
 public import Verso.Output.Html.ElasticLunr
 public import Verso.Output.Html.KaTeX

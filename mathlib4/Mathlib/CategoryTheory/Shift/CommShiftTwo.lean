@@ -11,6 +11,9 @@ public import Mathlib.CategoryTheory.Shift.Twist
 
 import Mathlib.CategoryTheory.Linear.LinearFunctor
 
+set_option doc.verso true
+set_option doc.verso.suggestions false
+
 /-!
 # Commutation with shifts of functors in two variables
 
@@ -26,11 +29,11 @@ are used. These elements are part of a `CommShift₂Setup` structure which exten
 a `TwistShiftData` structure (see the file `Mathlib.CategoryTheory.Shift.Twist`).
 
 ## TODO (@joelriou)
+
 * Show that `G : C₁ ⥤ C₂ ⥤ D` satisfies `Functor.CommShift₂Int` iff the uncurried
   functor `C₁ × C₂ ⥤ D` commutes with the shift by `ℤ × ℤ`, where `C₁ × C₂` is
   equipped with the obvious product shift, and `D` is equipped with
   the twisted shift.
-
 -/
 
 @[expose] public section
@@ -69,7 +72,7 @@ noncomputable def CommShift₂Setup.int [Preadditive D] [HasShift D ℤ]
     rw [← zpow_add, ← zpow_add]
     #adaptation_note /-- After https://github.com/leanprover/lean4/pull/13593
     we need to re-enable model-based theory combination in `lia` for this to go through. -/
-    lia +mbtc
+    lia +mbtc -filterFacts
   commShift _ _ := ⟨by cat_disch⟩
   ε p q := (-1) ^ (p * q)
 

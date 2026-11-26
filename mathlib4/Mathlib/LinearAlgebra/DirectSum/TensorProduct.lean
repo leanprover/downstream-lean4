@@ -8,6 +8,9 @@ module
 public import Mathlib.Algebra.DirectSum.Module
 public import Mathlib.LinearAlgebra.TensorProduct.Tower
 
+set_option doc.verso true
+set_option doc.verso.suggestions false
+
 /-!
 # Tensor products of direct sums
 
@@ -102,7 +105,7 @@ theorem directSumLeft_tmul_lof (i : ι₁) (x : M₁ i) (y : M₂') :
   ```
   -/
   simp only [directSumLeft, LinearEquiv.trans_apply, AlgebraTensorModule.congr_tmul,
-    LinearEquiv.coe_one, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
+    FunLike.coe_one_eq_id, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
     directSum_lof_tmul_lof]
   exact lequivCongrLeft_lof S (by rw [Equiv.prodUnique_symm_apply,
     PUnit.default_eq_unit]) _ _ rfl
@@ -143,7 +146,7 @@ theorem directSumRight_tmul_lof (x : M₁') (i : ι₂) (y : M₂ i) :
   ```
   -/
   simp only [directSumRight, LinearEquiv.trans_apply, AlgebraTensorModule.congr_tmul,
-    LinearEquiv.coe_one, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
+    FunLike.coe_one_eq_id, id_eq, DirectSum.lid_symm_apply, PUnit.default_eq_unit,
     directSum_lof_tmul_lof]
   exact lequivCongrLeft_lof S (by rw [Equiv.uniqueProd_symm_apply,
     PUnit.default_eq_unit]) _ _ rfl

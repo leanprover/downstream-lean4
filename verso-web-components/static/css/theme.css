@@ -4,15 +4,20 @@ span.doc-comment.token {
 }
 
 .long-shadow {
-    box-shadow: 0px 14px 30px 0px rgba(35, 55, 139, 0.10), 0px 124px 74px 0px rgba(35, 55, 139, 0.05), 0px 55px 55px 0px rgba(35, 55, 139, 0.04);
+    box-shadow:
+        0px 14px 30px 0px rgba(35, 55, 139, 0.1),
+        0px 124px 74px 0px rgba(35, 55, 139, 0.05),
+        0px 55px 55px 0px rgba(35, 55, 139, 0.04);
 }
 
 .soft-shadow {
-    box-shadow: 0px 6px 12px rgba(35, 55, 139, 0.06), 0px 12px 20px rgba(35, 55, 139, 0.04);
+    box-shadow:
+        0px 6px 12px rgba(35, 55, 139, 0.06),
+        0px 12px 20px rgba(35, 55, 139, 0.04);
 }
 
 .white-blue-gradient {
-    background: linear-gradient(135deg, #f0f4ff, #F2F5FF, #D5E1FF);
+    background: linear-gradient(135deg, #f0f4ff, #f2f5ff, #d5e1ff);
 }
 
 .dark-theme .white-blue-gradient {
@@ -40,18 +45,18 @@ span.doc-comment.token {
     color: var(--color-text) !important;
 }
 
-.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: var(--color-white);
+.tippy-box[data-theme~="lean"][data-placement^="top"] > .tippy-arrow::before {
+    border-top-color: var(--color-white);
 }
 
 .tippy-box[data-theme~="lean"][data-placement^="bottom"] > .tippy-arrow::before {
-  border-bottom-color: var(--color-white);
+    border-bottom-color: var(--color-white);
 }
 
 .icon-fill {
-  fill: var(--color-text);
+    fill: var(--color-text);
 }
 
 .icon-stroke {
-  stroke: var(--color-text);
+    stroke: var(--color-text);
 }

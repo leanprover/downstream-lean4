@@ -18,6 +18,7 @@ import Manual.BuildTools.Lake.Builds
 import Manual.BuildTools.Lake.Cache
 import Manual.BuildTools.Lake.CLI
 import Manual.BuildTools.Lake.Config
+import Manual.BuildTools.Lake.SystemConfig
 import Manual.BuildTools.Lake.Drivers
 import Manual.BuildTools.Lake.PackageOverrides
 import Manual.BuildTools.Lake.Scripts
@@ -144,7 +145,7 @@ Manifests should be considered part of the package's code and should normally be
 :::paragraph
 A {deftech}_target_ represents an output that can be requested by a user.
 A persistent build output, such as object code, an executable binary, or an {tech}[`.olean` file], is called an {deftech}_artifact_.
-In the process of producing an artifact, Lake may need to produce further artifacts; for example, compiling a Lean program into an executable requires that it and its dependencies be compiled to object files, which are themselves produced from C source files, which result from elaborating Lean sourcefiles and producing {tech}[`.olean` files].
+In the process of producing an artifact, Lake may need to produce further artifacts; for example, compiling a Lean program into an executable requires that it and its dependencies be compiled to object files, which are themselves produced from C source files, which result from elaborating Lean source files and producing {tech}[`.olean` files].
 Each link in this chain is a target, and Lake arranges for each to be built in turn.
 At the start of the chain are the {deftech}_initial targets_:
  * {tech}_Packages_ are units of Lean code that are distributed as a unit.
@@ -196,6 +197,8 @@ Scripts are defined in the {ref "lake-config-lean"}[Lean configuration format] a
 {include 2 Manual.BuildTools.Lake.Scripts}
 
 {include 0 Manual.BuildTools.Lake.CLI}
+
+{include 0 Manual.BuildTools.Lake.SystemConfig}
 
 {include 0 Manual.BuildTools.Lake.Config}
 

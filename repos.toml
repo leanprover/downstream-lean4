@@ -6,7 +6,8 @@ build_options = ["--wfail"]
 
 [batteries]
 source_url = "https://github.com/leanprover-community/batteries"
-source_rev = "nightly-testing"
+source_rev = "main"
+target_rev = "bump/v4.38.0"
 critical = true
 build_options = ["--wfail"]
 
@@ -18,7 +19,7 @@ critical = false
 [cslib]
 source_url = "https://github.com/leanprover/cslib"
 source_rev = "main"
-target_rev = "bump/v4.37.0"
+target_rev = "bump/v4.38.0"
 critical = false
 build_options = ["--wfail", "--iofail"]
 test_options = ["--wfail", "--iofail"]
@@ -72,7 +73,7 @@ test_options = ["--wfail"]
 [mathlib4]
 source_url = "https://github.com/leanprover-community/mathlib4"
 source_rev = "master"
-target_rev = "bump/v4.37.0"
+target_rev = "bump/v4.38.0"
 critical = true
 build_targets = ["Mathlib", "Archive", "Counterexamples", "Wanted", "cache"]
 build_options = ["--wfail"]
@@ -115,7 +116,7 @@ critical = false
 [verso]
 source_url = "https://github.com/leanprover/verso"
 source_rev = "main"
-target_rev = "bump/v4.37.0"
+target_rev = "bump/v4.38.0"
 critical = false
 
 [verso-slides]

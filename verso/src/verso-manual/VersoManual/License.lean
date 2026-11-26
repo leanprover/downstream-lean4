@@ -53,13 +53,13 @@ def LicenseInfo.toHtml (license : LicenseInfo) (headerLevel : Nat) : Html :=
     </section>}
 where
   textHtml
-    | (hdr?, txt) =>
+    | { header?, text } =>
       let hdrHtml :=
-        if let some hdr := hdr? then
+        if let some hdr := header? then
           Html.element s!"h{headerLevel+1}" #[] hdr
         else
           .empty
-      html%{<section>{hdrHtml}{paragraphedHtml txt}</section>}
+      html%{<section>{hdrHtml}{paragraphedHtml text}</section>}
 
 public section
 
@@ -76,7 +76,7 @@ block_extension Block.licenseInfo where
     open Verso.Output.Html in
     some <| fun _ _ _ _ _ => do
       let headerLevel := (← read).traverseContext.headers.size + 1
-      let allLicenses := (← read).traverseState.licenseInfo.toArray
+      let allLicenses := (← read).traverseState.toHtmlAssets.allLicenseInfo.toArray
       let allLicenses := allLicenses.qsort (·.dependency.trimAscii.copy.toLower < ·.dependency.trimAscii.copy.toLower)
 
       return allLicenses.map (·.toHtml headerLevel)

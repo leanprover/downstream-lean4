@@ -37,7 +37,6 @@ this resolution to compute the group cohomology of representations of finite cyc
 ## TODO
 
 * Use this to analyse the group homology of representations of finite cyclic groups.
-
 -/
 
 @[expose] public section
@@ -79,7 +78,7 @@ lemma coinvariantsKer_leftRegular_eq_ker :
   refine le_antisymm (Submodule.span_le.2 ?_) fun x hx => ?_
   · rintro x ⟨⟨g, y⟩, rfl⟩
     simpa [linearCombination, sub_eq_zero, sum_fintype]
-      using Finset.sum_bijective _ (Group.mulLeft_bijective g⁻¹) (by simp) (by lia)
+      using Finset.sum_bijective _ (Group.mulLeft_bijective g⁻¹) (by simp) (by lia -filterFacts)
   · have : x = x.coeff.sum (fun g r => .single g r - .single 1 r) := by
       ext g
       by_cases hg : g = 1
@@ -125,7 +124,6 @@ lemma range_applyAsHom_sub_eq_ker_norm (hg : ∀ x, x ∈ Subgroup.zpowers g) :
 
 end leftRegular
 
-set_option backward.defeqAttrib.useBackward true in
 /-- Given a finite group `G` and `g : G`, this is the functor `Rep k G ⥤ ChainComplex (Rep k G) ℕ`
 sending `A : Rep k G` to the periodic chain complex in `Rep k G` given by
 `... ⟶ A --N--> A --(ρ(g) - 𝟙)--> A --N--> A --(ρ(g) - 𝟙)--> A ⟶ 0`
