@@ -246,7 +246,8 @@ conv =>
 trace: k : Nat
 l : List Nat
 h : ∃ h, k < l.length → l[k] = 0
-| h.2
+| let p := Exists.rec (fun w h => w) h;
+  Exists.rec (motive := fun e => k < l.length → l[k] = 0) (fun w h => h) h
 -/
 #guard_msgs in
 example (k : Nat) (l : List Nat) (h : ∃ (h : k < l.length), k < l.length → l[k] = 0) :
