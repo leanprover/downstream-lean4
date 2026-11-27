@@ -358,8 +358,12 @@ partial def dumpConstant (c : Name) : M Unit := do
           ("ctors", ← dumpNames indVal.ctors),
           ("numNested", indVal.numNested),
           ("isRec", indVal.isRec),
-          ("isReflexive", indVal.isReflexive),
           ("isUnsafe", indVal.isUnsafe),
+          ("isImpredicative", indVal.isImpredicative),
+          ("isK", indVal.isK),
+          ("hasProjections", indVal.hasProjections),
+          ("hasEta", indVal.hasEta),
+          ("hasLargeElim", indVal.hasLargeElim),
       ]
     let ctorValsJson ← ctorVals.mapM <| fun ctorVal => do
       pure <| Json.mkObj [
@@ -420,10 +424,10 @@ def exportMetadata : Json :=
   ]
   let exporterMeta := Json.mkObj [
     ("name", "lean4export"),
-    ("version", "3.1.0")
+    ("version", "3.2.0")
   ]
   let formatMeta := Json.mkObj [
-    ("version", "3.1.0")
+    ("version", "3.2.0")
   ]
 
   Json.mkObj [
