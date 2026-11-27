@@ -35,6 +35,8 @@ def yonedaRingObj (R : C) [RingObj R] : Cᵒᵖ ⥤ RingCat.{v} where
       map_mul' _ _ := MonObj.comp_mul _ _ _
       map_add' _ _ := AddMonObj.comp_add _ _ _ }
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `yonedaRing` (this file).
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 @[simp]
@@ -60,6 +62,8 @@ def yonedaCommRingObj (R : C) [CommRingObj R] : Cᵒᵖ ⥤ CommRingCat.{v} wher
   obj X := ↧(X.unop ⟶ R)
   map f := CommRingCat.ofHom ((yonedaRingObj R).map f).hom
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `yonedaCommRing`, `yonedaCommRing_map_app_apply` (this file).
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 @[simp]

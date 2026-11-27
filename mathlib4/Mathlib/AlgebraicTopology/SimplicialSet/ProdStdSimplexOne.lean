@@ -77,12 +77,16 @@ noncomputable def nonDegenerateEquiv :
           Fin.coe_ofNat_eq_mod, Nat.zero_mod, add_zero] at this
         lia)
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma nonDegenerateEquiv_fst (i : Fin (p + 1)) :
     dsimp% (nonDegenerateEquiv i).val.1 =
       (stdSimplex.objEquiv (m := op ⦋p + 1⦌)).symm (SimplexCategory.σ i) := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `δ_castSucc_nonDegenerateEquiv`, `δ_succ_nonDegenerateEquiv` (this file).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma nonDegenerateEquiv_snd (i : Fin (p + 1)) :

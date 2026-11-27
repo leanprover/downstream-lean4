@@ -74,6 +74,8 @@ lemma objEquiv_map_apply {n m : ℕ}
       objEquiv ((Δ[p] ⊗ Δ[q]).map f.op x) i = objEquiv x (f.toOrderHom i) :=
   rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `exists_nonDegenerate_max_dim_aux` (this file).
 set_option dsimp.resynthInstances false in
 lemma objEquiv_δ_apply {n : ℕ} (x : (Δ[p] : SSet.{u}) _⦋n + 1⦌ ⊗ Δ[q] _⦋n + 1⦌) (i : Fin (n + 2))
     (j : Fin (n + 1)) :

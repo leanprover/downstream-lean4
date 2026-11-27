@@ -66,6 +66,8 @@ lemma whiskerLeft_app_apply (K : SSet.{u}) {L L' : SSet.{u}} (g : L ⟶ L')
     {Δ : SimplexCategoryᵒᵖ} (x : (K ⊗ L).obj Δ) :
     dsimp% (K ◁ g).app Δ x = ⟨x.1, g.app Δ x.2⟩ := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma whiskerRight_app_apply {K K' : SSet.{u}} (f : K ⟶ K') (L : SSet.{u})
@@ -193,10 +195,14 @@ lemma ι₀_fst (X : SSet.{u}) : ι₀ ≫ fst X _ = 𝟙 X := rfl
 @[reassoc (attr := simp)]
 lemma ι₀_snd (X : SSet.{u}) : ι₀ ≫ snd X _ = const (stdSimplex.obj₀Equiv.{u}.symm 0) := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₀_app_fst {X : SSet.{u}} {m} (x : X.obj m) : dsimp% (ι₀.app _ x).1 = x := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₀_app_snd_apply {X : SSet.{u}} {m : ℕ} (x : X _⦋m⦌) (k : Fin (m + 1)) :
@@ -216,6 +222,8 @@ lemma ι₁_snd (X : SSet.{u}) : ι₁ ≫ snd X _ = (const (stdSimplex.obj₀Eq
 lemma ι₁_comp {X Y : SSet.{u}} (f : X ⟶ Y) :
     ι₁ ≫ f ▷ _ = f ≫ ι₁ := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp]
 lemma ι₁_app_fst {X : SSet.{u}} {m} (x : X.obj m) : dsimp% (ι₁.app _ x).1 = x := rfl
@@ -239,18 +247,31 @@ set_option dsimp.resynthInstances false in
 
 end
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `eq_of_isType₂_δ`, `isType₂_δ`, `min_δ`, `weakRankFunction`
+-- (`Mathlib.AlgebraicTopology.SimplicialSet.AnodyneExtensions.UnionProd`);
+-- `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_δ_fst {n : ℕ} (i : Fin (n + 2)) (z : (X ⊗ Y : SSet.{u}) _⦋n + 1⦌) :
     dsimp% ((X ⊗ Y).δ i z).1 = X.δ i z.1 := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `eq_of_isType₂_δ`, `isType₂_δ`, `δ`
+-- (`Mathlib.AlgebraicTopology.SimplicialSet.AnodyneExtensions.UnionProd`);
+-- `δ_castSucc_nonDegenerateEquiv`, `δ_succ_nonDegenerateEquiv`
+-- (`Mathlib.AlgebraicTopology.SimplicialSet.ProdStdSimplexOne`).
 set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_δ_snd {n : ℕ} (i : Fin (n + 2)) (z : (X ⊗ Y : SSet.{u}) _⦋n + 1⦌) :
     dsimp% ((X ⊗ Y).δ i z).2 = Y.δ i z.2 := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_σ_fst {n : ℕ} (i : Fin (n + 1)) (z : (X ⊗ Y : SSet.{u}) _⦋n⦌) :
     dsimp% ((X ⊗ Y).σ i z).1 = X.σ i z.1 := rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `toSimplicialObjectHomotopy` (`Mathlib.AlgebraicTopology.SimplicialSet.Homotopy`).
 set_option dsimp.resynthInstances false in
 @[simp, grind =] lemma prod_σ_snd {n : ℕ} (i : Fin (n + 1)) (z : (X ⊗ Y : SSet.{u}) _⦋n⦌) :
     dsimp% ((X ⊗ Y).σ i z).2 = Y.σ i z.2 := rfl
