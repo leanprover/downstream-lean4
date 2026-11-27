@@ -205,7 +205,6 @@ end DescentAux
 variable (R A B)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /--

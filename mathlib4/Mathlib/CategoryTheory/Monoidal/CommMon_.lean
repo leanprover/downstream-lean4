@@ -327,7 +327,6 @@ variable (C)
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Implementation of `CommMon.equivLaxBraidedFunctorPUnit`. -/
 @[simps]
 def commMonToLaxBraided : CommMon C ⥤ LaxBraidedFunctor (Discrete PUnit.{u + 1}) C where
@@ -339,7 +338,6 @@ def commMonToLaxBraided : CommMon C ⥤ LaxBraidedFunctor (Discrete PUnit.{u + 1
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Implementation of `CommMon.equivLaxBraidedFunctorPUnit`. -/
 @[simps!]
 def unitIso :

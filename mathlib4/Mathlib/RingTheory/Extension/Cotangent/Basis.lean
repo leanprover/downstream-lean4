@@ -58,7 +58,6 @@ abbrev T :=
   MvPolynomial ι R ⧸ (Ideal.span <| Set.range <| Subtype.val ∘ D.f ∘ b)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The map `R[X₁, ..., Xₙ] → S` factors via `T`, because the `bᵢ` are in `I`. -/
@@ -127,7 +126,6 @@ lemma toAlgHom_fhom : D.fhom.toAlgHom = AlgHom.id R P.Ring := by
   simp [fhom]
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma ker_presLeft_le : D.presLeft.ker ≤ P.ker := by
@@ -199,7 +197,6 @@ set_option backward.isDefEq.respectTransparency false in
 def pres : Presentation R S (Unit ⊕ ι) (Unit ⊕ σ) :=
   D.presRight.comp D.presLeft
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma map_ofComp_mk [Nontrivial S] :
@@ -331,36 +328,9 @@ end PresentationOfFreeCotangent.Aux
 
 end
 
-#adaptation_note
-/--
-After https://github.com/leanprover/lean4/pull/14624:
-
-We had to use the `instanceSearchTypes` backward compatibility flag to make an instance search
-succeed. Concretely, the following instance cannot be synthesized:
-`LE (Submodule P.Ring P.toExtension.Cotangent)`
-It is needed by the `refine le_trans le_top (top_le_iff.mpr ?_)` below, as are the `Preorder`,
-`PartialOrder` and `OrderTop` instances on the same type, which fail in the same way.
-
-The failure happens while applying `@Submodule.completeLattice`: assigning one of its
-instance-implicit-argument metavariables is rejected because the metavariable's type and the type
-of the assigned value do not match at `.instances` transparency. The metavariable's expected type
-is `Semiring P.Ring`, whereas the assigned value `CommRing.toCommSemiring.toSemiring` has type
-`Semiring P.toExtension.Ring`. The comparison bottoms out at
-`AddMonoidAlgebra R (α →₀ ℕ) =?= P.toExtension.1`, where `Algebra.Generators.toExtension` is a plain
-semireducible `def` and therefore does not unfold at the `.instances` transparency that instance
-search runs at. Lean falls back to synthesize an instance of the correct type, which succeeds, but
-it returns `AddMonoidAlgebra.semiring`, which is again not defeq to the assigned value; that second
-comparison also runs at `.instances`, `respectTransparency false` suppressing the transparency bump.
-
-Potential fix: make `Algebra.Generators.toExtension` implicit-reducible.
-Then `respectTransparency false` and `instanceSearchTypes false` can both go.
--/
-set_option backward.isDefEq.respectTransparency.instances false in
-set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 open PresentationOfFreeCotangent in
-set_option dsimp.resynthInstances false in
 /--
 Version of `Algebra.Generators.exists_presentation_of_free_cotangent` taking a basis instead
 of a `Module.Free` assumption.

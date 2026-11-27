@@ -316,7 +316,6 @@ def compAsSmallFunctorEquivalenceInverse :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- The functor to build the equivalence `compAsSmallFunctorEquivalence`. -/
 @[simps]
 def compAsSmallFunctorEquivalenceFunctor :
@@ -338,7 +337,6 @@ def compAsSmallFunctorEquivalence :
   counitIso := Iso.refl _
   unitIso := Iso.refl _
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable {F} in

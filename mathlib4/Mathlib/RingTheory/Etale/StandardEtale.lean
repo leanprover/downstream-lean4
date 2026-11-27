@@ -95,7 +95,6 @@ lemma HasMap.isUnit_derivative_f {x : S} (h : P.HasMap x) :
   exact isUnit_of_dvd_unit this (.pow _ h.2)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 lemma aeval_X_g_mul_mk_X : aeval P.X P.g * Ideal.Quotient.mk _ .X = 1 := by
   have : aeval (R := R) P.X = (Ideal.Quotient.mkₐ _ _).comp Polynomial.CAlgHom := by

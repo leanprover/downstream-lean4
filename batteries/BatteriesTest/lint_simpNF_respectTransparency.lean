@@ -54,5 +54,6 @@ using
 Try to change the left-hand side to the simplified term! -/
 -/
 #guard_msgs in
+set_option dsimp.resynthInstances false in
 set_option linter.simpNF.respectTransparency true in
 #lint only simpNF
