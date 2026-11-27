@@ -727,6 +727,7 @@ def HomEquiv.evalAt {X : ModuleCat R} {Y : ModuleCat S} (s : S)
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option warn.repeatedInstanceRejections 0 in
 /--
 Given `R`-module X and `S`-module Y and a map `X ⟶ (restrictScalars f).obj Y`, i.e `R`-linear map
 `X ⟶ Y`, there is a map `(extend_scalars f).obj X ⟶ Y`, i.e `S`-linear map `S ⨂ X → Y` by
@@ -756,6 +757,7 @@ def HomEquiv.fromExtendScalars {X : ModuleCat R} {Y : ModuleCat S}
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Given `R`-module X and `S`-module Y, `S`-linear maps `(extendScalars f).obj X ⟶ Y`
 bijectively correspond to `R`-linear maps `X ⟶ (restrictScalars f).obj Y`.
 -/

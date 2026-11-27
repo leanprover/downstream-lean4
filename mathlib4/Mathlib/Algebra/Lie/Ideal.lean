@@ -270,6 +270,7 @@ theorem map_of_image (h : f '' I = J) : I.map f = J := by
     erw [h]
   · rw [← SetLike.coe_subset_coe, ← h]; exact LieSubmodule.subset_lieSpan
 
+set_option warn.repeatedInstanceRejections 0 in
 /-- Note that this is not a special case of `LieSubmodule.subsingleton_of_bot`. Indeed, given
 `I : LieIdeal R L`, in general the two lattices `LieIdeal R I` and `LieSubmodule R L I` are
 different (though the latter does naturally inject into the former).

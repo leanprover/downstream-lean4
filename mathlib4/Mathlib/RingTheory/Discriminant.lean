@@ -244,6 +244,7 @@ theorem discr_isIntegral {b : ι → L} (h : ∀ i, IsIntegral R (b i)) : IsInte
   rw [discr_def]
   exact IsIntegral.det fun i j ↦ isIntegral_trace ((h i).mul (h j))
 
+set_option warn.repeatedInstanceRejections 0 in
 /-- Let `K` be the fraction field of an integrally closed domain `R` and let `L` be a finite
 separable extension of `K`. Let `B : PowerBasis K L` be such that `IsIntegral R B.gen`.
 Then for all, `z : L` that are integral over `R`, we have

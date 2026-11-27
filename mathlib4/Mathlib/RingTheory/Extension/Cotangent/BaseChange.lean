@@ -139,6 +139,7 @@ lemma tensorToH1Cotangent_tmul (t : T) (x : P.H1Cotangent) :
   rfl
 
 set_option backward.isDefEq.respectTransparency.types false in
+set_option warn.repeatedInstanceRejections 0 in
 /-- If `T` is `R`-flat, the canonical map `T ⊗[R] P.H1Cotangent →ₗ[T] (P.baseChange T).H1Cotangent`
 is bijective. -/
 lemma tensorToH1Cotangent_bijective_of_flat [Module.Flat R T] :

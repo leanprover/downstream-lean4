@@ -393,6 +393,7 @@ lemma mpullback_mfderivWithin_apply_smul {f : M → 𝕜}
 variable [CompleteSpace E]
 
 set_option backward.isDefEq.respectTransparency false in
+set_option warn.repeatedInstanceRejections 0 in
 /--
 Product rule for Lie brackets: given two vector fields `V` and `W` on `M` and a function
 `f : M → 𝕜`, we have `[V, f • W] = (df V) • W + f • [V, W]`. Version within a set.

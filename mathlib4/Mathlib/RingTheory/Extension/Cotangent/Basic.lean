@@ -319,6 +319,7 @@ abbrev toKaehler : P.CotangentSpace →ₗ[S] Ω[S⁄R] := mapBaseChange _ _ _
 lemma toKaehler_surjective : Function.Surjective P.toKaehler :=
   mapBaseChange_surjective _ _ _ P.algebraMap_surjective
 
+set_option warn.repeatedInstanceRejections 0 in
 lemma exact_cotangentComplex_toKaehler : Function.Exact P.cotangentComplex P.toKaehler :=
   exact_kerCotangentToTensor_mapBaseChange _ _ _ P.algebraMap_surjective
 

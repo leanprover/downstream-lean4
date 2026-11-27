@@ -144,6 +144,7 @@ theorem sortedLT_sort (s : Finset α) : (sort s).SortedLT :=
 theorem sortedGT_sort (s : Finset α) : (sort s (· ≥ ·)).SortedGT :=
   (pairwise_sort _ _).sortedGE.sortedGT_of_nodup (sort_nodup _ _)
 
+set_option warn.repeatedInstanceRejections 0 in
 theorem sorted_zero_eq_min'_aux (s : Finset α) (h : 0 < s.sort.length) (H : s.Nonempty) :
     s.sort.get ⟨0, h⟩ = s.min' H := by
   let l := s.sort
@@ -163,6 +164,7 @@ theorem min'_eq_sorted_zero {s : Finset α} {h : s.Nonempty} :
     s.min' h = s.sort[0]'(by rw [length_sort]; exact card_pos.2 h) :=
   (sorted_zero_eq_min'_aux _ _ _).symm
 
+set_option warn.repeatedInstanceRejections 0 in
 theorem sorted_last_eq_max'_aux (s : Finset α)
     (h : s.sort.length - 1 < s.sort.length) (H : s.Nonempty) :
     s.sort[s.sort.length - 1] = s.max' H := by

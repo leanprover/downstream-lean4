@@ -766,6 +766,7 @@ theorem div_spanSingleton (J : FractionalIdeal R₁⁰ K) (d : K) :
   · rw [le_div_iff_mul_le h_spand, mul_assoc, mul_left_comm, one_div_spanSingleton,
       ← map_mul, inv_mul_cancel₀ hd, map_one, mul_one]
 
+set_option warn.repeatedInstanceRejections 0 in
 theorem exists_eq_spanSingleton_mul (I : FractionalIdeal R₁⁰ K) :
     ∃ (a : R₁) (aI : Ideal R₁), a ≠ 0 ∧ I = spanSingleton R₁⁰ (algebraMap R₁ K a)⁻¹ * aI := by
   obtain ⟨a_inv, nonzero, ha⟩ := I.isFractional

@@ -620,6 +620,7 @@ variable [∀ {i j} (f : i ⟶ j), IsAffineHom (D.map f)]
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 include hc in
+set_option warn.repeatedInstanceRejections 0 in
 lemma Scheme.exists_hom_comp_eq_comp_of_locallyOfFiniteType
     {i : I} (a b : D.obj i ⟶ X) (ha : t.app i = a ≫ f) (hb : t.app i = b ≫ f)
     (hab : c.π.app i ≫ a = c.π.app i ≫ b) :

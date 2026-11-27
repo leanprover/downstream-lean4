@@ -320,6 +320,7 @@ private lemma canonicalDecomposition_aux₃ {z : ℂ} (hR : 0 < R) :
     (meromorphicOrderAt_canonicalFactor_ne_top c hR) with ℓ
   simp [← WithTop.coe_mul]
 
+set_option warn.repeatedInstanceRejections 0 in
 /--
 **Canonical decomposition:** A meromorphic function `f` on a disk is equal, up to modification over
 a discrete set, to a product of canonical factors and a meromorphic function `g` without zeros or
@@ -527,6 +528,7 @@ theorem _root_.MeromorphicOn.exists_ecanonicalDecomp (h₁f : MeromorphicOn f (c
       simp_all [← smul_assoc]
     }
 
+set_option warn.repeatedInstanceRejections 0 in
 /--
 Companion lemma to `MeromorphicOn.exists_ecanonicalDecomp`: In the setting of the extended canonical
 decomposition, write the function `h` entirely in terms of `f`.

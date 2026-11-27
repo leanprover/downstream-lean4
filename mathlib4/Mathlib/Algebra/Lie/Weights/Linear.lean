@@ -160,6 +160,7 @@ private lemma aux [h : Nontrivial (shiftedGenWeightSpace R L M χ)] : genWeightS
 
 variable [LinearWeights R L M]
 
+set_option warn.repeatedInstanceRejections 0 in
 instance : LieRingModule L (shiftedGenWeightSpace R L M χ) where
   bracket x m := ⁅x, m⁆ - χ x • m
   add_lie x y m := by

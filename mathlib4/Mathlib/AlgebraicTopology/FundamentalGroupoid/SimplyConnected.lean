@@ -104,6 +104,7 @@ theorem simply_connected_iff_paths_homotopic' :
 
 set_option backward.isDefEq.respectTransparency false in
 open Path.Homotopic.Quotient in
+set_option warn.repeatedInstanceRejections 0 in
 /-- A space is simply connected if and only if it is path-connected and every loop
     at any basepoint is null-homotopic (i.e., homotopic to the constant loop). -/
 theorem simply_connected_iff_loops_nullhomotopic :

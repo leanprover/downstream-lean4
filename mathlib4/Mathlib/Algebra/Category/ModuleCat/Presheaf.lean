@@ -68,6 +68,7 @@ instance {R : Cᵒᵖ ⥤ CommRingCat.{u}} (X : Cᵒᵖ) (M : PresheafOfModules.
 variable (M M₁ M₂ : PresheafOfModules.{v} R)
 
 set_option backward.isDefEq.respectTransparency false in
+set_option warn.repeatedInstanceRejections 0 in
 protected lemma map_smul {X Y : Cᵒᵖ} (f : X ⟶ Y) (r : R.obj X) (m : M.obj X) :
     M.map f (r • m) = R.map f r • M.map f m := by simp
 
@@ -301,6 +302,7 @@ noncomputable def restriction {X Y : Cᵒᵖ} (f : X ⟶ Y) :
   app M := M.map f
 
 set_option backward.isDefEq.respectTransparency false in
+set_option warn.repeatedInstanceRejections 0 in
 /-- The obvious free presheaf of modules of rank `1`. -/
 noncomputable def unit : PresheafOfModules R where
   obj X := ↧(R.obj X)

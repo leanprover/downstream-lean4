@@ -216,6 +216,7 @@ def toLocalized' : M' →ₗ[R] M'.localized' S p f := toLocalized₀ p f M'
 noncomputable abbrev toLocalized : M' →ₗ[R] M'.localized p :=
   M'.toLocalized' (Localization p) p (LocalizedModule.mkLinearMap p M)
 
+set_option warn.repeatedInstanceRejections 0 in
 instance : IsLocalizedModule p (M'.toLocalized₀ p f) where
   map_units x := by
     simp_rw [Module.End.isUnit_iff]

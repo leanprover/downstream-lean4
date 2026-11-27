@@ -161,6 +161,7 @@ theorem log_mono_right {b : ℕ} {r₁ r₂ : R} (h₀ : 0 < r₁) (h : r₁ ≤
     exact Nat.log_mono_right (Nat.floor_mono h)
 
 variable (R) in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Over suitable subtypes, `zpow` and `Int.log` form a Galois coinsertion -/
 def zpowLogGi {b : ℕ} (hb : 1 < b) :
     GaloisCoinsertion
@@ -286,6 +287,7 @@ theorem clog_mono_right {b : ℕ} {r₁ r₂ : R} (h₀ : 0 < r₁) (h : r₁ �
   exact log_mono_right (inv_pos_of_pos h₀') <| (inv_le_inv₀ h₀' h₀).2 h
 
 variable (R) in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Over suitable subtypes, `Int.clog` and `zpow` form a Galois insertion -/
 def clogZPowGi {b : ℕ} (hb : 1 < b) :
     GaloisInsertion (fun r : Set.Ioi (0 : R) => Int.clog b (r : R)) fun z : ℤ =>
