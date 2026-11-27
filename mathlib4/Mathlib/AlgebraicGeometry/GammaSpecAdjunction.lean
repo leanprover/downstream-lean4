@@ -209,7 +209,6 @@ theorem toStalk_stalkMap_toΓSpec (x : X) :
   congr 1
   exact (X.toΓSpecBase _* X.presheaf).germ_res le_top.hom _ _
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The canonical morphism from `X` to the spectrum of its global sections. -/
 @[simps! base]
@@ -252,7 +251,6 @@ lemma toΓSpec_preimage_zeroLocus_eq {X : LocallyRingedSpace.{u}}
   rw [← PrimeSpectrum.zeroLocus_iUnion₂]
   simp
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency.types false in
 theorem comp_ring_hom_ext {X : LocallyRingedSpace.{u}} {R : CommRingCat.{u}} {f : R ⟶ Γ.obj (op X)}
     {β : X ⟶ Spec.locallyRingedSpaceObj R}

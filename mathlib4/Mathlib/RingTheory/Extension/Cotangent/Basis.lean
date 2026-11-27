@@ -111,8 +111,6 @@ def presLeft : Presentation R D.T ι σ :=
 def kerGen (i : σ) : D.presLeft.toExtension.ker :=
   ⟨(D.f (b i)).val, Presentation.mem_ker_naive _ _ i⟩
 
-set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The identity on `R[X₁, ..., Xₙ]` as a map of presentations of `T` to `S`. -/

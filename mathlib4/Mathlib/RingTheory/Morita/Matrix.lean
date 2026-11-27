@@ -203,7 +203,6 @@ def ModuleCat.matrixEquivalence (i : ι) : ModuleCat R ≌ ModuleCat (Matrix ι 
 
 set_option backward.isDefEq.respectTransparency false in
 open ModuleCat.Algebra in
-set_option dsimp.resynthInstances false in
 /-- Moreover `ModuleCat.matrixEquivalence` is a `MoritaEquivalence`. -/
 @[simps]
 def moritaEquivalenceMatrix (R₀ : Type*) [CommRing R₀] [Algebra R₀ R] (i : ι) :

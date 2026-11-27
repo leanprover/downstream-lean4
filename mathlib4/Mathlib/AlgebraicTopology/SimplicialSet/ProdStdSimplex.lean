@@ -165,7 +165,6 @@ instance : (Δ[p] ⊗ Δ[q] : SSet.{u}).HasDimensionLE (p + q) where
 instance : (Δ[p] ⊗ Δ[q] : SSet.{u}).Finite :=
   finite_of_hasDimensionLT _ (p + q + 1) inferInstance
 
-set_option dsimp.resynthInstances false in
 lemma le_orderHomOfSimplex {n : ℕ} (x : (Δ[p] ⊗ Δ[q] : SSet.{u}).nonDegenerate n) {m : ℕ}
     (hm : p + q = m) (i : Fin (n + 1)) : i.val ≤ orderHomOfSimplex x.val hm i := by
   induction i using Fin.induction with

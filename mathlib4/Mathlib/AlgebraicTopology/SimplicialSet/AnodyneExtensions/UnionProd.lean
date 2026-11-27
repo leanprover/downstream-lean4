@@ -485,7 +485,6 @@ lemma eq_of_isType₂_δ {u : (Subcomplex.unionProd.{u} Λ[m + 1, k.castSucc] �
 
 end IsIndex
 
-set_option dsimp.resynthInstances false in
 lemma IsType₂.type₁_eq_of_δ_eq
     {t : (Subcomplex.unionProd.{u} Λ[m + 1, k.castSucc] ∂Δ[n]).N}
     (ht : IsType₂ t) (s : Type₁.{u} k n) (hst : s.δ = t) {d : ℕ} (hd : t.dim = d) :
