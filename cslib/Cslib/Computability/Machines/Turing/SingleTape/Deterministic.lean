@@ -186,7 +186,7 @@ lemma Cfg.spaceUsed_step {tm : SingleTapeTM Symbol} (cfg cfg' : tm.Cfg)
       simp [Cfg.spaceUsed, BiTape.optionMove];
       split
       · simp
-      · lia
+      · grind only
     | some d => simpa [Cfg.spaceUsed, BiTape.optionMove, BiTape.spaceUsed_write, hM] using
         BiTape.spaceUsed_move (tape.write wr) d
 
