@@ -110,6 +110,7 @@ Thanks to Hahn-Banach, one can define a (non-canonical) continuous linear functi
 of all bounded functions, coinciding with the integral on the integrable ones.
 -/
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The subspace of integrable functions in the space of all bounded functions on a type.
 This is a technical device, used to apply Hahn-Banach theorem to construct an extension of the
 integral to all bounded functions. -/
@@ -120,6 +121,7 @@ def boundedIntegrableFunctions [MeasurableSpace α] (μ : Measure α) :
   add_mem' hf hg := Integrable.add hf hg
   smul_mem' c _ hf := Integrable.smul c hf
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- The integral, as a continuous linear map on the subspace of integrable functions in the space
 of all bounded functions on a type. This is a technical device, that we will extend through
 Hahn-Banach. -/
@@ -137,6 +139,7 @@ def boundedIntegrableFunctionsIntegralCLM [MeasurableSpace α] (μ : Measure α)
       intro x
       exact BoundedContinuousFunction.norm_coe_le_norm f.val x)
 
+set_option backward.isDefEq.respectTransparency.instances false in
 /-- Given a measure, there exists a continuous linear form on the space of all bounded functions
 (not necessarily measurable) that coincides with the integral on bounded measurable functions. -/
 theorem exists_linear_extension_to_boundedFunctions [MeasurableSpace α] (μ : Measure α)
@@ -152,6 +155,7 @@ def _root_.MeasureTheory.Measure.extensionToBoundedFunctions [MeasurableSpace α
     [IsFiniteMeasure μ] : (DiscreteCopy α →ᵇ ℝ) →L[ℝ] ℝ :=
   (exists_linear_extension_to_boundedFunctions μ).choose
 
+set_option backward.isDefEq.respectTransparency.instances false in
 theorem extensionToBoundedFunctions_apply [MeasurableSpace α] (μ : Measure α) [IsFiniteMeasure μ]
     (f : DiscreteCopy α →ᵇ ℝ) (hf : Integrable f μ) :
     μ.extensionToBoundedFunctions f = ∫ x, f x ∂μ :=
@@ -431,6 +435,7 @@ theorem toFunctions_toMeasure [MeasurableSpace α] (μ : Measure α) [IsFiniteMe
     apply Filter.Eventually.of_forall
     exact norm_indicator_le_one _
 
+set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
 theorem toFunctions_toMeasure_continuousPart [MeasurableSpace α] [MeasurableSingletonClass α]
     (μ : Measure α) [IsFiniteMeasure μ] [NullSingletonClass μ] (s : Set α) (hs : MeasurableSet s) :
