@@ -2596,6 +2596,7 @@ public import Mathlib.CategoryTheory.Abelian.DiagramLemmas.KernelCokernelComp
 public import Mathlib.CategoryTheory.Abelian.EpiWithInjectiveKernel
 public import Mathlib.CategoryTheory.Abelian.Exact
 public import Mathlib.CategoryTheory.Abelian.Ext
+public import Mathlib.CategoryTheory.Abelian.Flat.Basic
 public import Mathlib.CategoryTheory.Abelian.FreydMitchell
 public import Mathlib.CategoryTheory.Abelian.FunctorCategory
 public import Mathlib.CategoryTheory.Abelian.GrothendieckAxioms.Basic
@@ -2962,6 +2963,7 @@ public import Mathlib.CategoryTheory.Idempotents.Karoubi
 public import Mathlib.CategoryTheory.Idempotents.KaroubiKaroubi
 public import Mathlib.CategoryTheory.Idempotents.SimplicialObject
 public import Mathlib.CategoryTheory.InducedCategory
+public import Mathlib.CategoryTheory.Inserter.Accessible
 public import Mathlib.CategoryTheory.Inserter.Basic
 public import Mathlib.CategoryTheory.Inserter.Limits
 public import Mathlib.CategoryTheory.IsConnected
