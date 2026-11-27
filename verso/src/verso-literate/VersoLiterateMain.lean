@@ -5,7 +5,6 @@ Author: David Thrane Christiansen
 -/
 module
 public import SubVerso.Compat
-public import SubVerso.Examples.Env
 public import SubVerso.Module
 public import SubVerso.Highlighting.Export
 public import MD4Lean
@@ -16,16 +15,19 @@ public import Lean.Elab.InfoTree.Util
 public import Lean.Server.References
 
 public import VersoLiterate
+import Verso.Code.Highlighted
 public import Verso.SyntaxUtils
+import Verso.Output.Html.Markdown
 
 public section
 
 open Lean Elab Frontend
 open Lean.Elab.Command hiding Context
-open SubVerso Examples Module
+open SubVerso Module
 open SubVerso.Highlighting (Highlighted highlight highlightMany)
 open VersoLiterate
 open Verso.Doc
+open Verso.Output.Html
 
 
 def helpText : String :=
@@ -42,6 +44,9 @@ OPTS may be:
 
   --suppress-namespaces FILE
     Suppress the showing of the whitespace-delimited list of namespaces in FILE
+
+  --setup FILE
+    Load imported modules from the artifacts listed in FILE, a Lake module setup
 "
 
 /--
@@ -144,7 +149,12 @@ def findHighestM [Monad m] (stx : Syntax) (fn : Syntax → Option α) : m (Array
 Finds the definition sites of each constant in an info tree, and replaces each docstring with a
 reference to the definition for later substitution.
 -/
-def findDocstringDefs (stx : Syntax) (t : InfoTree) : TermElabM Syntax := do
+partial def findDocstringDefs (stx : Syntax) (t : InfoTree) : TermElabM Syntax := do
+  -- `#guard_msgs` takes the messages it expects as a doc comment, but it's not really
+  -- documentation. It must not be attached to the declaration in the command that `#guard_msgs`
+  -- wraps.
+  if stx.isOfKind ``Lean.guardMsgsCmd then
+    return stx.setArg 4 (← findDocstringDefs stx[4] t)
   -- Find the definition sites of all constants in this info tree
   let defSites := t.deepestNodes fun _ i _ =>
     match i with
@@ -157,6 +167,11 @@ def findDocstringDefs (stx : Syntax) (t : InfoTree) : TermElabM Syntax := do
     | _ => none
   let defSites ← defSites.filterM fun x => do
     return (← findInternalDocString? (← getEnv) x.1) |>.isSome
+  -- An attribute can define a further constant, as in `@[to_additive foo /-- ... -/] def bar`. The
+  -- declaration's modifiers hold `foo`'s definition site and `bar`'s doc comment, while `bar`'s
+  -- definition site lies outside them, so attributes are handled first and the definition sites
+  -- that they claim take no further part.
+  let (stx, defSites) ← (rewriteAttrComments stx).run defSites
   -- Now find the largest syntax object that contains just one of these definition sites and replace
   -- all doc comments with a placeholder token
   let stx ← stx.replaceM fun s => do
@@ -174,7 +189,7 @@ def findDocstringDefs (stx : Syntax) (t : InfoTree) : TermElabM Syntax := do
   -- following heuristic: any remaining unprocessed doc comments are associated with the unique
   -- highest definition site that they share a closest ancestor with.
   let stx ← replaceStackM stx fun stk stx => do
-    if stx.isOfKind ``docComment && stx[1].isAtom || stx[1].isOfKind ``versoCommentBody then
+    if stx.isOfKind ``docComment && (stx[1].isOfKind ``commentBody || stx[1].isOfKind ``versoCommentBody) then
       for (parent, i) in stk do
         let defs ← findHighestM parent fun x =>
           if x.isIdent then defSites.find? (fun y => identMatch y.2 x) |>.map (·.1) else none
@@ -189,15 +204,39 @@ def findDocstringDefs (stx : Syntax) (t : InfoTree) : TermElabM Syntax := do
     else pure none
   return stx
 where
+  -- Finds the attributes of `@[...]` that define a constant, such as `to_additive foo`, and rewrites
+  -- their doc comments as placeholders for that constant. The state is a list of definition sites. A
+  -- definition site pairs a constant's name with the syntax that the info tree records as the binding
+  -- occurrence of that constant, such as `foo` in `to_additive foo`. An attribute counts as defining a
+  -- constant when the sites in the list that lie inside it all name that one constant. The constant's
+  -- sites are then removed from the list, so the enclosing attributes and the later passes over the
+  -- declaration don't assign further doc comments to it. Nested attributes are processed first.
+  -- Most attributes contain no definition sites and are left unchanged.
+  rewriteAttrComments (stx : Syntax) : StateT (List (Name × Syntax)) TermElabM Syntax := do
+    let .node info kind args := stx | return stx
+    let new := Syntax.node info kind (← args.mapM rewriteAttrComments)
+    if kind != ``Lean.Parser.Term.attrInstance then return new
+    let some range := stx.getRange? | return new
+    let inside := (← get).filter fun (_, site) =>
+      site.getRange?.map (range.includes · true true) |>.getD false
+    let [x] := inside.map (·.1) |>.eraseDups | return new
+    modify (·.filter (·.1 != x))
+    new.replaceM fun s => do
+      if s.isOfKind ``docComment then some <$> rewriteComment x s else pure none
+
+  -- For `structure A.B.C`, the binder's syntax is `C` with the source range of `A.B.C`, so the
+  -- identifiers are also compared by their source range.
   identMatch (stx1 stx2 : Syntax) : Bool :=
-    normIdent stx1 == normIdent stx2
+    let stx1 := normIdent stx1
+    let stx2 := normIdent stx2
+    stx1 == stx2 || stx1.hasSameRange stx2
 
   normIdent (stx : Syntax) : Syntax :=
     if stx.getKind == ``declId then stx[0] else stx
 
   rewriteComment (x : Name) (stx : Syntax) : TermElabM Syntax := do
     let indentColumn := (← getFileMap).utf8PosToLspPos stx.getHeadInfo.getPos! |>.character
-    let info := if let .atom info _ := stx[1] then info else spanInfo stx stx
+    let info := if stx[1].isOfKind ``commentBody then spanInfo stx[1] stx[1] else spanInfo stx stx
     return .node .none `replacedDoc #[.atom info s!"▼{indentColumn}◄{x}▲"]
 
 
@@ -346,6 +385,7 @@ can be re-attached to the rendered code. See {name}`DocMessage`.
 -/
 abbrev ToLitM := ReaderT (Array DocMessage) HighlightM
 
+open Verso.Code in
 /--
 Highlights a sequence of syntaxes, each with its own info tree. Typically used for highlighting a
 module, where each command has its own corresponding tree.
@@ -360,7 +400,8 @@ partial def highlightFrontendResult' (result : Compat.Frontend.FrontendResult)
   let modrefs := Lean.Server.findModuleRefs (← getFileMap) trees'
   let ids := build modrefs
 
-  let ctx := ⟨ids, true, false, sortSuppress suppressNamespaces, false, (← IO.mkRef {})⟩
+  let ctx ← mkHighlightingContext (ids := ids) (definitionsPossible := true)
+    (suppressNamespaces := sortSuppress suppressNamespaces)
 
   let mut code : Array (Array Code) := #[]
 
@@ -396,8 +437,8 @@ where
             guard (s.declarationRange.pos == declRange.pos) *> some s
           if let some doc := doc? then
             return #[.modDoc (← toModLit doc |>.run docMsgs)]
-        else if stx[1].isAtom then
-          if let some doc := MD4Lean.parse (stx[1].getAtomVal.dropSuffix "-/").copy then
+        else if stx[1].isOfKind ``commentBody then
+          if let some doc := Markdown.parse stx[1][0].getAtomVal then
             return #[.markdownModDoc doc]
 
     highlight' (Option.map (#[·]) res.info[0]? |>.getD #[]) stx true
@@ -412,7 +453,7 @@ where
         if let some v ← findInternalDocString? (← getEnv) declName then
           some <$> do match v with
           | .inl x =>
-            let some md := MD4Lean.parse x
+            let some md := Markdown.parse x
               | pure (Code.markdown i (some declName) ⟨#[.code #[] #[] none #["Failed to parse Markdown:\n", x]]⟩)
             pure (Code.markdown i (some declName) md)
           | .inr x =>
@@ -440,7 +481,7 @@ where
   parseDocComment (text : String) : Code :=
     let docText := (text.dropPrefix "/-- " |>.toString |>.dropSuffix " -/"
           |>.dropSuffix "\n-/" |>.dropSuffix "-/").trimAsciiEnd.toString
-    match MD4Lean.parse docText with
+    match Markdown.parse docText with
     | some md => .markdown 0 none md
     | none => .markdown 0 none ⟨#[.code #[] #[] none #[docText]]⟩
 
@@ -543,10 +584,6 @@ section ImageCollection
 private def isRelativeImagePath (url : String) : Bool :=
   !url.startsWith "/" && (url.splitOn "://").length <= 1
 
-/-- Converts an MD4Lean `AttrText` array to a plain string. -/
-private def attrTextToString (src : Array MD4Lean.AttrText) : String :=
-  String.join (src.map (fun | .normal s => s | .entity e => e | .nullchar => "") |>.toList)
-
 open MD4Lean in
 /-- Collects relative image paths from an MD4Lean document. -/
 private partial def collectMdImages (doc : Document) : Array String :=
@@ -565,7 +602,7 @@ where
 
   collectText : Text → Array String
     | .img src _title _alt =>
-      let s := attrTextToString src
+      let s := Markdown.attrText src
       if isRelativeImagePath s then #[s] else #[]
     | .a _ _ _ xs | .em xs | .strong xs | .del xs | .u xs | .wikiLink _ xs => collectTexts xs
     | .normal _ | .nullchar | .br _ | .softbr _ | .code _ | .entity _ | .latexMath _ | .latexMathDisplay _ => #[]
@@ -623,8 +660,7 @@ private def collectItemImages (items : Array ModuleItem') : Array String :=
 
 end ImageCollection
 
-
-unsafe def go (suppressedNamespaces : Array Name) (extraImports : Array Name) (mod : String) (leanOptions : Options) (out : IO.FS.Stream) : IO UInt32 := do
+unsafe def go (suppressedNamespaces : Array Name) (extraImports : Array Name) (mod : String) (leanOptions : Options) (importArts : NameMap ImportArtifacts) (out : IO.FS.Stream) : IO UInt32 := do
   try
     initSearchPath (← findSysroot)
     let modName := mod.toName
@@ -642,7 +678,10 @@ unsafe def go (suppressedNamespaces : Array Name) (extraImports : Array Name) (m
     let (headerStx, parserState, msgs) ← Parser.parseHeader ictx
     let imports := headerToImports headerStx
     enableInitializersExecution
-    let env ← Compat.importModules (extraImports.map ({module := ·}) ++ imports) {}
+    let level := if HeaderSyntax.isModule headerStx then .server else .private
+    let env ← importModules (extraImports.map ({module := ·}) ++ imports) {} (loadExts := true) (level := level) (arts := importArts)
+    -- Rewrite `weak.` options based on the definitions discovered during imports
+    let leanOptions ← Lean.Language.Lean.reparseOptions leanOptions
     let pctx : Frontend.Context := {inputCtx := ictx}
 
     let opts := leanOptions.mergeBy (fun _ _ v => v) (maxHeartbeats.set {} 10000000)
@@ -697,10 +736,12 @@ structure Config where
   outFile : Option String := none
   extraImports : Array Name := #[]
   leanOptions : Options := {}
+  importArts : NameMap ImportArtifacts := {}
 
 /--
-Parses a `-Dname=value` flag into a Lean option, registering it in `opts`.
-Uses the registered option declaration to determine the expected type.
+Parses a `-Dname=value` flag into a Lean option, registering it in `opts`.  A registered option's
+value is parsed according to its declaration. Other options are stored as strings, to be parsed
+after their declarations have been imported.
 -/
 private def parseDOption (arg : String) (opts : Options) : IO Options := do
   let arg := arg.drop 2  -- drop "-D"
@@ -709,31 +750,33 @@ private def parseDOption (arg : String) (opts : Options) : IO Options := do
   | [name, value] =>
     let name := String.toName name.copy
     let value := value.copy
-    let decl ← getOptionDecl name
-    match decl.defValue with
-    | .ofBool _ =>
-      match value with
-      | "true" => return opts.setBool name true
-      | "false" => return opts.setBool name false
-      | _ => throw <| .userError s!"Invalid boolean value for option {name}: {value}"
-    | .ofNat _ =>
-      if let some n := value.toNat? then
-        return opts.insert name (DataValue.ofNat n)
-      else
-        throw <| .userError s!"Invalid natural number value for option {name}: {value}"
-    | .ofInt _ =>
-      if let some n := value.toInt? then
-        return opts.insert name (DataValue.ofInt n)
-      else
-        throw <| .userError s!"Invalid integer value for option {name}: {value}"
-    | .ofString _ =>
-      -- No quote removal needed: the shell removes quotes and interprets escapes before we see the
-      -- value
+    if let some decl := (← getOptionDecls).find? name then
+      match decl.defValue with
+      | .ofBool _ =>
+        match value with
+        | "true" => return opts.setBool name true
+        | "false" => return opts.setBool name false
+        | _ => throw <| .userError s!"Invalid boolean value for option {name}: {value}"
+      | .ofNat _ =>
+        if let some n := value.toNat? then
+          return opts.insert name (DataValue.ofNat n)
+        else
+          throw <| .userError s!"Invalid natural number value for option {name}: {value}"
+      | .ofInt _ =>
+        if let some n := value.toInt? then
+          return opts.insert name (DataValue.ofInt n)
+        else
+          throw <| .userError s!"Invalid integer value for option {name}: {value}"
+      | .ofString _ =>
+        -- No quote removal needed: the shell removes quotes and interprets escapes before we see the
+        -- value
+        return opts.insert name (DataValue.ofString value)
+      | .ofName _ =>
+        return opts.insert name (DataValue.ofName (String.toName value))
+      | .ofSyntax _ =>
+        throw <| .userError s!"Cannot set syntax-valued option {name} via -D flag"
+    else
       return opts.insert name (DataValue.ofString value)
-    | .ofName _ =>
-      return opts.insert name (DataValue.ofName (String.toName value))
-    | .ofSyntax _ =>
-      throw <| .userError s!"Cannot set syntax-valued option {name} via -D flag"
   | _ => throw <| .userError s!"Invalid -D option: {arg}"
 
 def Config.fromArgs (args : List String) : IO Config := go {mod := ""} args
@@ -751,6 +794,12 @@ where
         go { cfg with suppressedNamespaces := cfg.suppressedNamespaces ++ nss' } more
       else
         throw <| .userError "No namespace file given after --suppress-namespaces"
+    | "--setup" :: more => do
+      if let file :: more := more then
+        let setup ← ModuleSetup.load file
+        go { cfg with importArts := setup.importArts } more
+      else
+        throw <| .userError "No setup file given after --setup"
     | "--import" :: more => do
       if let mod :: more := more then
         go { cfg with extraImports := cfg.extraImports.push mod.toName } more
@@ -774,16 +823,16 @@ where
 
 unsafe def main (args : List String) : IO UInt32 := do
   try
-    let {suppressedNamespaces, mod, outFile, extraImports, leanOptions} ← Config.fromArgs args
+    let {suppressedNamespaces, mod, outFile, extraImports, leanOptions, importArts} ← Config.fromArgs args
     if mod.isEmpty then throw <| .userError s!"No import module provided"
     match outFile with
     | none =>
-      go suppressedNamespaces extraImports mod leanOptions (← IO.getStdout)
+      go suppressedNamespaces extraImports mod leanOptions importArts (← IO.getStdout)
     | some outFile =>
       if let some p := (outFile : System.FilePath).parent then
         IO.FS.createDirAll p
       IO.FS.withFile outFile .write fun h =>
-        go suppressedNamespaces extraImports mod leanOptions (.ofHandle h)
+        go suppressedNamespaces extraImports mod leanOptions importArts (.ofHandle h)
   catch e =>
     IO.eprintln e
     IO.println helpText

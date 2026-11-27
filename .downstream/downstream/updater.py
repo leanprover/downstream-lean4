@@ -7,6 +7,7 @@ from pathlib import Path
 from subprocess import CalledProcessError
 
 from downstream.merge_tree_theirs import merge_tree_theirs
+from downstream.paths import Paths
 from downstream.util import (
     Subrepo,
     github_full_name,
@@ -33,6 +34,14 @@ class CommitStatus:
         )
 
 
+@dataclass
+class BaseCommit:
+    repo: str
+    url: str
+    rev: str
+    sha: str
+
+
 class Updater:
     def __init__(self) -> None:
         self.toolchain = Path("lean-toolchain").read_text().strip()
@@ -41,23 +50,24 @@ class Updater:
         self.overrides = [r for r in subrepos if r.override_only]
         self.overrides_by_name = {r.name: r for r in self.overrides}
         self.overrides_by_url = {
-            url: r for r in self.overrides for url in (r.url, *r.aliases)
+            url: r for r in self.overrides for url in (r.source_url, *r.alias_urls)
         }
 
         self.subrepos = [r for r in subrepos if not r.override_only]
         self.subrepos_by_name = {r.name: r for r in self.subrepos}
         self.subrepos_by_url = {
-            url: r for r in self.subrepos for url in (r.url, *r.aliases)
+            url: r for r in self.subrepos for url in (r.source_url, *r.alias_urls)
         }
 
     def dep_graph(self, external: bool = False) -> dict[str, set[str]]:
         graph: dict[str, set[str]] = {}
         for subrepo in self.subrepos:
+            manifest_path = Paths(subrepo.path).manifest
             deps: set[str] = set()
             graph[subrepo.name] = deps
-            if subrepo.assume_empty_manifest and not subrepo.manifest_path.exists():
+            if subrepo.assume_empty_manifest and not manifest_path.exists():
                 continue
-            manifest = json.loads(subrepo.manifest_path.read_text())
+            manifest = json.loads(manifest_path.read_text())
             for package in manifest["packages"]:
                 if package["type"] != "git":
                     continue
@@ -89,6 +99,11 @@ class Updater:
         tree = run("git", "rev-parse", "FETCH_HEAD^{tree}", capture=True).stdout.strip()
         return sha, tree
 
+    def local_sha_tree(self, rev: str) -> tuple[str, str]:
+        sha = run("git", "rev-parse", f"{rev}^{{commit}}", capture=True).stdout.strip()
+        tree = run("git", "rev-parse", f"{rev}^{{tree}}", capture=True).stdout.strip()
+        return sha, tree
+
     def restore_tree_to(self, tree: str, path: Path) -> None:
         path.mkdir(parents=True, exist_ok=True)
         shutil.rmtree(path)
@@ -99,14 +114,18 @@ class Updater:
             *("restore", "--worktree", f"--source={tree}", "."),
         )
 
-    def fixup_subrepo_toolchain(self, subrepo: Subrepo) -> None:
-        subrepo_toolchain = (subrepo.path / "lean-toolchain").read_text().strip()
-        for file in subrepo.path.glob("**/lean-toolchain"):
-            if file.read_text().strip() != subrepo_toolchain:
-                continue
-            file.unlink()
-            relative = Path("lean-toolchain").relative_to(file.parent, walk_up=True)
-            file.symlink_to(relative)
+    def fixup_subrepo_toolchain(self, subrepo: Subrepo, source_tree: str) -> None:
+        # The root toolchain will have usually been replaced with a symlink
+        # already at this point, so we need to look at the upstream's original
+        # toolchain file.
+        source_toolchain = run(
+            *("git", "show", f"{source_tree}:lean-toolchain"),
+            capture=True,
+        ).stdout
+
+        Paths(subrepo.path).override_toolchains_with_symlinks(
+            Paths().toolchain, source_toolchain
+        )
 
     def fixup_manifest_dependencies(self, manifest_path: Path) -> None:
         manifest = json.loads(manifest_path.read_text())
@@ -118,8 +137,8 @@ class Updater:
             url = normalize_url(package["url"])
 
             if repo := self.overrides_by_url.get(url):
-                sha, _ = self.fetch_sha_tree(repo.url, repo.rev)
-                package["input_rev"] = repo.rev
+                sha, _ = self.fetch_sha_tree(repo.source_url, repo.source_rev)
+                package["input_rev"] = repo.source_rev
                 package["rev"] = sha
                 packages.append(package)
             elif repo := self.subrepos_by_url.get(url):
@@ -128,18 +147,20 @@ class Updater:
                     repo.path.relative_to(manifest_path.parent, walk_up=True)
                 )
                 package["scope"] = ""
+                if repo.copy:
+                    package["copy"] = True
                 del package["url"]
                 del package["rev"]
                 del package["inputRev"]
                 packages.append(package)
 
         overrides = {"version": manifest["version"], "packages": packages}
-        override_path = manifest_path.parent / ".lake" / "package-overrides.json"
+        override_path = Paths.override_for(manifest_path)
         override_path.parent.mkdir(parents=True, exist_ok=True)
         override_path.write_text(json.dumps(overrides, indent=2))
 
     def fixup_subrepo_dependencies(self, subrepo: Subrepo) -> None:
-        for manifest_path in subrepo.find_manifest_paths():
+        for manifest_path in Paths(subrepo.path).manifests():
             self.fixup_manifest_dependencies(manifest_path)
 
     def commit(self, msg: str, allow_empty: bool = False) -> CommitStatus:
@@ -154,90 +175,145 @@ class Updater:
             committed = True
         return CommitStatus(empty=empty, committed=committed)
 
-    def fixup_subrepo_and_commit(
-        self, subrepo: Subrepo, sha: str, msg: str
-    ) -> CommitStatus:
-        self.fixup_subrepo_toolchain(subrepo)
+    def fixup_subrepo_and_stage(self, subrepo: Subrepo, source_tree: str) -> None:
+        self.fixup_subrepo_toolchain(subrepo, source_tree)
         self.fixup_subrepo_dependencies(subrepo)
+
+        run("git", "add", subrepo.path)
+        for override_path in subrepo.path.glob("**/.lake/package-overrides.json"):
+            run("git", "add", "--force", override_path)
+
+    def fixup_subrepo_and_commit(
+        self, subrepo: Subrepo, sha: str, tree: str, msg: str
+    ) -> CommitStatus:
+        self.fixup_subrepo_and_stage(subrepo, tree)
 
         message = "\n".join([
             f"downstream: {msg}",
             "",
             f"downstream-repo: {subrepo.name}",
-            f"downstream-url: {subrepo.url}",
-            f"downstream-rev: {subrepo.rev}",
+            f"downstream-url: {subrepo.source_url}",
+            f"downstream-rev: {subrepo.source_rev}",
             f"downstream-sha: {sha}",
         ])
 
         try:
-            base_changed = self.find_latest_subrepo_sha(subrepo) != sha
+            base_changed = self.find_latest_base_commit(subrepo).sha != sha
         except ValueError:
             base_changed = True
 
-        run("git", "add", subrepo.path)
-        for override_path in subrepo.path.glob("**/.lake/package-overrides.json"):
-            run("git", "add", "--force", override_path)
         return self.commit(message, allow_empty=base_changed)
 
-    def find_latest_subrepo_sha(self, subrepo: Subrepo) -> str:
-        message = run(
-            *("git", "log", "-1", "-E"),
+    def find_latest_base_commit(self, subrepo: Subrepo) -> BaseCommit:
+        messages = run(
+            *("git", "log", "-z", "-E"),
             f"--grep=^downstream-repo: {re.escape(subrepo.name)}$",
             "--format=%B",
             capture=True,
         ).stdout
 
-        for line in message.splitlines():
-            if match := re.fullmatch(r"downstream-sha: (.+)", line):
-                return match.group(1).strip()
+        # I don't want to rely on the ordering of `downstream-*` tags, so
+        # they're matched here instead of included in the regex above.
+        for message in messages.split("\0"):
+            m_url = re.search(r"^downstream-url: (.+)$", message, re.MULTILINE)
+            m_rev = re.search(r"^downstream-rev: (.+)$", message, re.MULTILINE)
+            m_sha = re.search(r"^downstream-sha: (.+)$", message, re.MULTILINE)
+
+            if not (m_url and m_rev and m_sha):
+                continue
+
+            url = m_url.group(1).strip()
+            rev = m_rev.group(1).strip()
+            if url != subrepo.source_url or rev != subrepo.source_rev:
+                continue
+
+            return BaseCommit(
+                repo=subrepo.name,
+                url=url,
+                rev=rev,
+                sha=m_sha.group(1).strip(),
+            )
 
         raise ValueError(f"no previous commit found for subrepo {subrepo.name}")
 
     def get_tree_in_head(self, path: str) -> str:
         return run("git", "rev-parse", f"HEAD:{path}", capture=True).stdout.strip()
 
-    def add_subrepo(self, subrepo: Subrepo) -> CommitStatus:
+    def add_subrepo(self, subrepo: Subrepo, sha: str | None = None) -> CommitStatus:
         with group(f"add {subrepo.name}"):
             self.reset()
 
-            rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+            if sha is None:
+                rev_sha, rev_tree = self.fetch_sha_tree(
+                    subrepo.source_url, subrepo.source_rev
+                )
+            else:
+                rev_sha, rev_tree = self.local_sha_tree(sha)
             self.restore_tree_to(rev_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"add repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"add repo {subrepo.name}"
             )
 
     def reset_subrepo(self, subrepo: Subrepo) -> CommitStatus:
         with group(f"reset {subrepo.name}"):
             self.reset()
 
-            rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
+            rev_sha, rev_tree = self.fetch_sha_tree(
+                subrepo.source_url, subrepo.source_rev
+            )
             self.restore_tree_to(rev_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"reset repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"reset repo {subrepo.name}"
             )
 
-    def update_subrepo(self, subrepo: Subrepo) -> CommitStatus:
+    # Like reset_subrepo, but from an arbitrary repo and rev, and without
+    # recording a new base commit for the subrepo.
+    def import_subrepo(
+        self, subrepo: Subrepo, url: str, rev: str, source: str | None = None
+    ) -> CommitStatus:
+        with group(f"import {subrepo.name}"):
+            self.reset()
+
+            rev_sha, rev_tree = self.fetch_sha_tree(url, rev)
+            self.restore_tree_to(rev_tree, subrepo.path)
+            self.fixup_subrepo_and_stage(subrepo, rev_tree)
+
+            msg = f"downstream: import repo {subrepo.name}"
+            if source:
+                msg += f" from {source}"
+            msg += f"\n\nsource sha: {rev_sha}"
+            return self.commit(msg)
+
+    # If sha is given, both it and the base commit must be available locally.
+    def update_subrepo(self, subrepo: Subrepo, sha: str | None = None) -> CommitStatus:
         with group(f"update {subrepo.name}"):
             self.reset()
 
-            rev_sha, rev_tree = self.fetch_sha_tree(subrepo.url, subrepo.rev)
             our_tree = self.get_tree_in_head(subrepo.name)
-            base_sha = self.find_latest_subrepo_sha(subrepo)
-            _, base_tree = self.fetch_sha_tree(subrepo.url, base_sha)
+            base_sha = self.find_latest_base_commit(subrepo).sha
+            if sha is None:
+                rev_sha, rev_tree = self.fetch_sha_tree(
+                    subrepo.source_url, subrepo.source_rev
+                )
+                _, base_tree = self.fetch_sha_tree(subrepo.source_url, base_sha)
+            else:
+                rev_sha, rev_tree = self.local_sha_tree(sha)
+                _, base_tree = self.local_sha_tree(base_sha)
             merged_tree = merge_tree_theirs(base_tree, our_tree, rev_tree)
 
             self.restore_tree_to(merged_tree, subrepo.path)
             return self.fixup_subrepo_and_commit(
-                subrepo, rev_sha, f"update repo {subrepo.name}"
+                subrepo, rev_sha, rev_tree, f"update repo {subrepo.name}"
             )
 
     def fixup_subrepo(self, subrepo: Subrepo) -> CommitStatus:
         with group(f"fixup {subrepo.name}"):
             self.reset()
 
-            base_sha = self.find_latest_subrepo_sha(subrepo)
+            base_sha = self.find_latest_base_commit(subrepo).sha
+            _, base_tree = self.fetch_sha_tree(subrepo.source_url, base_sha)
             return self.fixup_subrepo_and_commit(
-                subrepo, base_sha, f"fixup repo {subrepo.name}"
+                subrepo, base_sha, base_tree, f"fixup repo {subrepo.name}"
             )
 
     def remove_subrepo(self, path: Path) -> CommitStatus:
@@ -253,11 +329,13 @@ class Updater:
         else:
             return self.add_subrepo(subrepo)
 
-    def add_or_update_subrepo(self, subrepo: Subrepo) -> CommitStatus:
+    def add_or_update_subrepo(
+        self, subrepo: Subrepo, sha: str | None = None
+    ) -> CommitStatus:
         if subrepo.path.exists():
-            return self.update_subrepo(subrepo)
+            return self.update_subrepo(subrepo, sha)
         else:
-            return self.add_subrepo(subrepo)
+            return self.add_subrepo(subrepo, sha)
 
     def add_or_fixup_subrepo(self, subrepo: Subrepo) -> CommitStatus:
         if subrepo.path.exists():
@@ -276,14 +354,57 @@ class Updater:
                 status = status.join(self.remove_subrepo(path))
         return status
 
-    def split(
-        self, subrepo: Subrepo, message: str = "chore: nightly adaptations"
+    def edit_lakefile(self, lakefile: Path, edits: list[tuple[str, str]]) -> None:
+        text = lakefile.read_text()
+        for pattern, replacement in edits:
+            text = re.sub(pattern, replacement, text, flags=re.MULTILINE)
+        lakefile.write_text(text)
+
+    def resolve_placeholders(self, text: str) -> str:
+        def repl(m: re.Match[str]) -> str:
+            name, field = m.group(1), m.group(2)
+            if name not in self.subrepos_by_name:
+                raise ValueError(f"unknown repo {name!r} in placeholder {m.group(0)!r}")
+            subrepo = self.subrepos_by_name[name]
+            match field:
+                case "source_url":
+                    return subrepo.source_url
+                case "source_rev":
+                    return subrepo.source_rev
+                case "target_url":
+                    return subrepo.target_url
+                case "target_rev":
+                    return subrepo.target_rev
+                case _:
+                    return self.find_latest_base_commit(subrepo).sha
+
+        fields = "source_url|source_rev|target_url|target_rev|sha"
+        return re.sub(rf"<([^<>\s]+) ({fields})>", repl, text)
+
+    def export(
+        self,
+        subrepo: Subrepo,
+        message: str = "chore: nightly adaptations",
+        onto: str | None = None,
+        update_toolchains: bool = False,
+        lakefile_edits: list[tuple[str, str]] | None = None,
+        update_manifests: bool = False,
     ) -> CommitStatus:
         self.reset()
 
         our_tree = self.get_tree_in_head(subrepo.name)
-        base_sha = self.find_latest_subrepo_sha(subrepo)
-        self.fetch_sha_tree(subrepo.url, base_sha)
+        our_toolchain = Path("lean-toolchain").read_text()
+
+        # Must happen while HEAD is still the downstream commit
+        lakefile_edits = [
+            (pattern, self.resolve_placeholders(replacement))
+            for pattern, replacement in (lakefile_edits or [])
+        ]
+
+        base_sha = onto
+        if base_sha is None:
+            base_sha = self.find_latest_base_commit(subrepo).sha
+            self.fetch_sha_tree(subrepo.source_url, base_sha)
 
         run("git", "switch", "--detach", base_sha)
         run("git", "read-tree", "--reset", "-u", our_tree)
@@ -292,14 +413,24 @@ class Updater:
         for file in Path().glob("**/.lake/package-overrides.json"):
             file.unlink()
 
-        # Restore all lean-toolchain files from the base commit
-        for file in Path().glob("**/lean-toolchain"):
-            file.unlink()
+        # Restore lean-toolchain files to their previous value
+        Paths().unlink_all_toolchains()
         run(
-            *("git", "restore", "--worktree"),
-            f"--source={base_sha}",
+            *("git", "restore", "--worktree", f"--source={base_sha}"),
             ":(glob)**/lean-toolchain",
         )
+
+        if update_toolchains:
+            root_toolchain = Path("lean-toolchain").read_text()
+            Paths().override_toolchains_with_values(root_toolchain, our_toolchain)
+
+        if lakefile_edits:
+            for lakefile in Paths().lakefiles():
+                self.edit_lakefile(lakefile, lakefile_edits)
+
+        if update_manifests:
+            for manifest in Paths().manifests():
+                run("lake", "update", "--keep-toolchain", cwd=manifest.parent)
 
         run("git", "add", ".")
         return self.commit(message)

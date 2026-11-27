@@ -7,6 +7,7 @@ export interface BuildReportRepo {
   name: string;
   critical: boolean;
   green: boolean;
+  blocked_by: string[];
   build: BuildReportPhase;
   test: BuildReportPhase;
   lint: BuildReportPhase;

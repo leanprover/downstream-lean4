@@ -3,20 +3,25 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sofia Rodrigues, David Christiansen
 -/
-import VersoBlog
-import Lake.Toml.Grammar
+module
+
+public import VersoBlog
+public meta import Lake.Toml.Grammar
+public meta import VersoBlog
+
+public meta section
 
 namespace Verso.Web
 
 open Verso.Genre.Blog
 open Verso Doc Elab
 open Lean Elab
-open Lean.Doc.Syntax
+open Lean.Doc (CodeBlockView CodeView TextView)
 open Verso.ArgParse
-open Verso.Output (Html)
 
-private def codeblockContents : Lean.Syntax → Option String
-  | `(block|``` | $contents ```) => some contents.getString
+private def codeblockContents (stx : TSyntax ``Lean.Doc.Parser.block) : Option String :=
+  match CodeBlockView.of stx with
+  | some { name? := none, content, .. } => some content.getVersoCodeBlock
   | _ => none
 
 @[directive_expander diff]
@@ -26,8 +31,8 @@ def diff : DirectiveExpander
       | throwErrorAt pre "Expected undecorated code block"
     let some postStr := codeblockContents post
       | throwErrorAt pre "Expected undecorated code block"
-    let preLines ← preStr.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
-    let postLines ← postStr.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
+    let preLines ← preStr.dropEndWhile (· == '\n') |>.split "\n" |>.toArray.mapM fun l => `(Block.code $(quote l.copy))
+    let postLines ← postStr.dropEndWhile (· == '\n') |>.split "\n" |>.toArray.mapM fun l => `(Block.code $(quote l.copy))
     pure #[← ``(Block.other (BlockExt.htmlDiv "diff-view") #[
       Block.other (BlockExt.htmlDiv "del") #[$preLines,*],
       Block.other (BlockExt.htmlDiv "ins") #[$postLines,*]])]
@@ -43,16 +48,18 @@ def diffs : DirectiveExpander
     pure #[← ``(Block.other (BlockExt.htmlDiv "diff-view") #[$blockStx,*])]
   | _, _ => throwUnsupportedSyntax
 where
-  doBlock : Syntax → DocElabM (String × Array (TSyntax `term))
-    | `(block|```|$contents```) => do
-      let lines ← contents.getString.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
-      pure ("plain", lines)
-    | `(block|```$nameStx|$contents```) => do
-      let cls := nameStx.getId.toString
-      if cls ∉ ["ins", "del"] then throwErrorAt nameStx "Expected 'ins' or 'del'"
-      let lines ← contents.getString.dropEndWhile (· == '\n') |>.copy.splitOn "\n" |>.toArray.mapM fun l => `(Block.code $(quote l))
-      pure (cls, lines)
-    | blk => dbg_trace blk; throwErrorAt blk "Expected code block (unnamed, or with 'ins' or 'del')"
+  doBlock (blk : TSyntax ``Lean.Doc.Parser.block) : DocElabM (String × Array (TSyntax `term)) := do
+    let some { name?, content, .. } := CodeBlockView.of blk
+      | throwErrorAt blk "Expected code block (unnamed, or with 'ins' or 'del')"
+    let cls ←
+      match name? with
+      | none => pure "plain"
+      | some nameStx =>
+        let cls := nameStx.getId.toString
+        if cls ∉ ["ins", "del"] then throwErrorAt nameStx "Expected 'ins' or 'del'"
+        pure cls
+    let lines ← content.getVersoCodeBlock.dropEndWhile (· == '\n') |>.split "\n" |>.toArray.mapM fun l => `(Block.code $(quote l.copy))
+    pure (cls, lines)
 
 
 -- Stolen from Lean.Parser.Module
@@ -110,14 +117,14 @@ partial def toml : CodeBlockExpander
       let #[stx] := s.stxStack.toSubarray.toArray
         | throwErrorAt str s!"Internal error parsing TOML - expected one result, got {s.stxStack.toSubarray.toArray}"
       let html := highlightToml stx
-      pure #[← ``(Block.other (BlockExt.htmlDiv "toml") #[Block.other (BlockExt.blob $(quote {{<pre>{{html}}</pre>}})) #[]])]
+      pure #[← ``(Block.other (BlockExt.htmlDiv "toml") #[Block.other (BlockExt.blob $(quote html%{<pre>{html}</pre>})) #[]])]
 where
   infoHtml : SourceInfo → Html → Html
     | .original leading _ trailing _, html =>
-      .text false leading.toString ++ html ++ .text false trailing.toString
+      .raw leading.toString ++ html ++ .raw trailing.toString
     | _, html => html
 
-  hl (cls : String) (html : Html) : Html := {{<span class={{cls}}>{{html}}</span>}}
+  hl (cls : String) (html : Html) : Html := html%{<span class={cls}>{html}</span>}
 
   highlightToml : Syntax → Html
     | .node info `null elts => infoHtml info <| elts.map highlightToml
@@ -133,7 +140,7 @@ where
     | .node info ``Lake.Toml.basicString #[s@(.atom _ str)] =>
       if let some str' := Lean.Syntax.decodeStrLit str then
         if str'.take 8 == "https://" || str'.take 7 == "http://" then
-          infoHtml info <| {{<a href={{str'}}>{{highlightToml s}}</a>}}
+          infoHtml info <| html%{<a href={str'}>{highlightToml s}</a>}
         else
           infoHtml info <| highlightToml s
       else
@@ -154,8 +161,8 @@ where
     | .node info ``Lake.Toml.decInt elts => infoHtml info <| hl "num" <| elts.map highlightToml
     | .node info ``Lake.Toml.array elts => infoHtml info <| elts.map highlightToml
     | .node info ``Lake.Toml.inlineTable elts => infoHtml info <| elts.map highlightToml
-    | .atom info str => infoHtml info (.text true str)
-    | other => {{ "Failed to highlight TOML (probably highlightToml in Lang.Features needs another pattern case): " {{toString other}} }}
+    | .atom info str => infoHtml info (.text str)
+    | other => html%{Failed to highlight TOML (probably highlightToml in Lang.Features needs another pattern case): {toString other}}
 
 
 /--
@@ -166,14 +173,14 @@ def collapsedDetails : DirectiveExpander
   | args, contents => do
     let summary ← ArgParse.run (.positional `summary .string) args
     let blocks ← contents.mapM elabBlock
-    let summary ← ``(Block.other (BlockExt.blob (Html.tag "summary" #[] #[Html.text true $(quote summary)])) #[])
+    let summary ← ``(Block.other (BlockExt.blob (Html.element "summary" #[] #[Html.text $(quote summary)])) #[])
     pure #[← ``(Block.other (BlockExt.htmlWrapper "details" #[]) #[$summary, $blocks,*])]
 
 @[directive_expander TODO]
 def TODO : DirectiveExpander
   | _, contents => do
     let blocks ← contents.mapM elabBlock
-    let header ← ``(Block.other (BlockExt.blob (Html.tag "h3" #[] #[Html.text true "TODO"])) #[])
+    let header ← ``(Block.other (BlockExt.blob (Html.element "h3" #[] #[Html.text "TODO"])) #[])
     pure #[← ``(Block.other (BlockExt.htmlWrapper "div" #[("class", "TODO")]) #[$header, $blocks,*])]
 
 @[role_expander TODO]
@@ -235,24 +242,25 @@ define_lexed_text sh ← shHl
 
 section
 
-open Verso.Output Html
+open Verso.Output.Html
 
 
 @[role_expander kbd]
 def kbd : RoleExpander
   | args, items => do
     ArgParse.done.run args
-    let strs ← items.filterMapM fun
-      | `(inline|code( $s:str )) => pure (some s.getString)
-      | `(inline|$s:str) => pure none
-      | other => logErrorAt other m!"Expected a code element, got {other}" *> pure none
+    let strs ← items.filterMapM fun inl =>
+      match CodeView.of inl, TextView.of inl with
+      | some { content := s, .. }, _ => pure (some s.getVersoCode)
+      | none, some _ => pure none
+      | none, none => logErrorAt inl m!"Expected a code element, got {inl}" *> pure none
     if h : strs.size = 0 then throwError "Expected one or more inline code literals"
     else
       let basic := String.intercalate "+" strs.toList
-      let mut keys := {{<kbd>{{strs[0]}}</kbd>}}
+      let mut keys := html%{<kbd>{strs[0]}</kbd>}
       for s in strs.drop 1 do
-        keys := keys ++ {{"+"<kbd>{{s}}</kbd>}}
-      let html : Html := {{<kbd>{{keys}}</kbd>}}
+        keys := keys ++ html%{+<kbd>{s}</kbd>}
+      let html : Html := html%{<kbd>{keys}</kbd>}
       return #[← ``(Inline.other (InlineExt.blob $(quote html)) #[Inline.code $(quote basic)])]
 
 
@@ -262,10 +270,10 @@ def color : RoleExpander
     ArgParse.done.run args
     let #[str] := items
       | throwError "Expected exactly one inline code element"
-    let `(inline|code( $s:str )) := str
+    let some { content := s, .. } := CodeView.of str
       | throwErrorAt str "Expected an inline code element"
-    let s := s.getString
-    let html : Html := {{<code class="color-preview"><span class="swatch" style=s!"background-color: {s};"></span>{{s}}</code>}}
+    let s := s.getVersoCode
+    let html : Html := html%{<code class="color-preview"><span class="swatch" style={s!"background-color: {s};"}></span>{s}</code>}
     return #[← ``(Inline.other (InlineExt.blob $(quote html)) #[Inline.code $(quote s)])]
 
 end

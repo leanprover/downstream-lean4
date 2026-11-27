@@ -25018,6 +25018,89 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
+// actions/lib/util.ts
+function sleep(ms) {
+  return new Promise((resolve2) => setTimeout(resolve2, ms));
+}
+function abort(reason) {
+  setFailed(reason);
+  process.exit(1);
+}
+function assert(condition, message) {
+  if (!condition) abort(message);
+}
+function runIn(cwd) {
+  return async function(cmd, args, options) {
+    return await exec(cmd, args, { ...options, cwd });
+  };
+}
+function captureIn(cwd) {
+  const run2 = runIn(cwd);
+  return async function(cmd, args, options) {
+    let stdout = "";
+    await run2(cmd, args, {
+      ...options,
+      listeners: { stdout: (data) => stdout += data.toString() }
+    });
+    return stdout.trim();
+  };
+}
+var Repo = class {
+  owner;
+  repo;
+  constructor(fst, repo) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo;
+    }
+  }
+  get fullName() {
+    return `${this.owner}/${this.repo}`;
+  }
+};
+async function getPr(octo2, repo, n) {
+  const { data } = await octo2.rest.pulls.get({
+    ...repo,
+    pull_number: n
+  });
+  return data;
+}
+async function isAncestor(octo2, repo, ancestorSha, descendantSha) {
+  const { data } = await octo2.rest.repos.compareCommitsWithBasehead({
+    ...repo,
+    basehead: `${ancestorSha}...${descendantSha}`
+  });
+  return data.status === "ahead" || data.status === "identical";
+}
+function upstreamPrNumberFor(branchName) {
+  const match = /^adaptation-(\d+)$/.exec(branchName);
+  return match === null ? void 0 : parseInt(match[1], 10);
+}
+async function addAndCommit(cwd, message) {
+  await exec("git", ["add", "."], { cwd });
+  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
+    cwd,
+    ignoreReturnCode: true
+  });
+  if (returnCode === 0) return false;
+  await exec("git", ["commit", "-m", message], { cwd });
+  return true;
+}
+
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
+}
+function parseRepo(input) {
+  const match = /^([^/]+)\/([^/]+)$/.exec(input);
+  assert(match !== null, `Expected "owner/repo", not "${input}"`);
+  return new Repo(match[1], match[2]);
+}
+
 // actions/lib/status-message.ts
 var MARKER = "ybVeuCO3cIRWlSWmC/cEvg2Na4yzOwEa";
 async function postOrUpdateStatus(options) {
@@ -25069,74 +25152,18 @@ async function postOrUpdateStatus(options) {
   }
 }
 
-// actions/lib/util.ts
-function sleep(ms) {
-  return new Promise((resolve2) => setTimeout(resolve2, ms));
-}
-function abort(reason) {
-  setFailed(reason);
-  process.exit(1);
-}
-function assert(condition, message) {
-  if (!condition) abort(message);
-}
-function getInput2(name) {
-  return getInput(name, { required: true });
-}
-function parseRepo(input) {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
-}
-async function getPr(octo2, repo, n) {
-  const { data } = await octo2.rest.pulls.get({
-    ...repo,
-    pull_number: n
-  });
-  return data;
-}
-async function isAncestor(octo2, repo, ancestorSha, descendantSha) {
-  const { data } = await octo2.rest.repos.compareCommitsWithBasehead({
-    ...repo,
-    basehead: `${ancestorSha}...${descendantSha}`
-  });
-  return data.status === "ahead" || data.status === "identical";
-}
-function upstreamPrNumberFor(branchName) {
-  const match = /^adaptation-(\d+)$/.exec(branchName);
-  return match === null ? void 0 : parseInt(match[1], 10);
-}
-async function addAndCommit(cwd, message) {
-  await exec("git", ["add", "."], { cwd });
-  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
-    cwd,
-    ignoreReturnCode: true
-  });
-  if (returnCode === 0) return false;
-  await exec("git", ["commit", "-m", message], { cwd });
-  return true;
-}
-
 // actions/adaptation-pr-merge/main.ts
 var appToken = getInput2("app-token");
 var appSlug = getInput2("app-slug");
-var upstreamRepo = parseRepo(getInput2("upstream-repo"));
+var upstreamRepo = getInput2("upstream-repo", parseRepo);
 var upstreamRev = getInput2("upstream-rev");
-var downstreamRepo = context2.repo;
+var downstreamRepo = new Repo(context2.repo);
 var downstreamClone = getInput2("downstream-clone");
 var downstreamLabel = getInput2("downstream-label");
 var downstreamLabelMerge = getInput2("downstream-label-merge");
 var octo = getOctokit(appToken);
-async function dRun(cmd, args, options) {
-  return await exec(cmd, args, { ...options, cwd: downstreamClone });
-}
-async function dCapture(cmd, args) {
-  let stdout = "";
-  await dRun(cmd, args, {
-    listeners: { stdout: (data) => stdout += data.toString() }
-  });
-  return stdout.trim();
-}
+var dRun = runIn(downstreamClone);
+var dCapture = captureIn(downstreamClone);
 async function tell(aPr, body) {
   await postOrUpdateStatus({
     octo,
@@ -25188,30 +25215,38 @@ async function closeEmptyAdaptationPr(aPr) {
   });
   info(`Closed empty adaptation PR #${aPr.number}`);
 }
-async function waitForMergeability(prNumber) {
-  const attempts = 10;
+async function waitForMergeability(prNumber, headSha) {
+  const attempts = 20;
   const delayMs = 3e3;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     const pr = await getPr(octo, downstreamRepo, prNumber);
-    if (pr.mergeable !== null) return;
-    info(
-      `Mergeability of adaptation PR #${prNumber} unknown, retrying... (attempt ${attempt}/${attempts})`
-    );
+    if (pr.head.sha !== headSha) {
+      info(
+        `Head of adaptation PR #${prNumber} is ${pr.head.sha}, not ${headSha}, retrying... (attempt ${attempt}/${attempts})`
+      );
+    } else if (pr.mergeable === null) {
+      info(
+        `Mergeability of adaptation PR #${prNumber} unknown, retrying... (attempt ${attempt}/${attempts})`
+      );
+    } else {
+      return;
+    }
     await sleep(delayMs);
   }
   warning(`Mergeability of adaptation PR #${prNumber} still unknown`);
 }
-async function squashMergeAdaptationPr(aPr) {
+async function squashMergeAdaptationPr(aPr, headSha) {
   try {
     await octo.rest.pulls.merge({
       ...downstreamRepo,
       pull_number: aPr.number,
+      sha: headSha,
       merge_method: "squash"
     });
     info(`Squash merged adaptation PR #${aPr.number}`);
     return true;
   } catch (error2) {
-    if (error2 instanceof RequestError && error2.status === 405) {
+    if (error2 instanceof RequestError && (error2.status === 405 || error2.status === 409)) {
       error(
         `Failed to merge adaptation PR #${aPr.number}: ${error2.message}`
       );
@@ -25240,9 +25275,10 @@ async function findAdaptationPrMergeCandidates() {
   });
   return prs.filter((pr) => {
     const labels = pr.labels.map((l) => l.name);
-    const isAdaptation = labels.includes(downstreamLabel);
-    const mustMerge = labels.includes(downstreamLabelMerge);
-    return isAdaptation && !mustMerge;
+    if (!labels.includes(downstreamLabel)) return false;
+    if (labels.includes(downstreamLabelMerge)) return false;
+    if (pr.head.repo?.full_name !== downstreamRepo.fullName) return false;
+    return true;
   });
 }
 async function isReachableFromRev(uPr) {
@@ -25258,14 +25294,14 @@ async function mergeForPr(aPr) {
     warning(
       `Adaptation PR #${aPr.number} has invalid branch name "${aPr.head.ref}", skipping...`
     );
-    return true;
+    return "skipped";
   }
   const uPr = await getPr(octo, upstreamRepo, uPrNumber);
   if (!await isReachableFromRev(uPr)) {
     info(
       `Upstream PR #${uPr.number} is not reachable from rev "${upstreamRev}", skipping...`
     );
-    return true;
+    return "skipped";
   }
   const mergeBase = await dCapture("git", [
     "merge-base",
@@ -25274,35 +25310,61 @@ async function mergeForPr(aPr) {
   ]);
   await switchToAdaptationBranch(aPr.head.ref);
   await undoOverridesAndCommit(mergeBase);
+  const headSha = await dCapture("git", ["rev-parse", "HEAD"]);
   if (!await hasChanges(mergeBase)) {
     await tellClosing(aPr);
     await closeEmptyAdaptationPr(aPr);
-    return true;
+    return "closed";
   }
   await tellMerging(aPr);
   await pushAdaptationBranch(aPr.head.ref);
-  await waitForMergeability(aPr.number);
-  if (await squashMergeAdaptationPr(aPr)) return true;
+  await waitForMergeability(aPr.number, headSha);
+  if (await squashMergeAdaptationPr(aPr, headSha)) return "merged";
   await tellAuthorToMerge(uPr, aPr);
   await addMergeLabel(aPr);
-  return false;
+  return "failed";
 }
-function renderZulipReport(unmergedPrs) {
-  return unmergedPrs.map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`).join("\n");
+function renderZulipPrList(prs) {
+  return prs.map((pr) => `- PR **${pr.number}**: *[${pr.title}](${pr.html_url})*`).join("\n");
+}
+function renderZulipReport(mergedPrs, failedPrs) {
+  const sections = [];
+  if (mergedPrs.length > 0) {
+    sections.push(
+      "The following adaptation PRs were merged automatically:\n\n" + renderZulipPrList(mergedPrs)
+    );
+  }
+  if (failedPrs.length > 0) {
+    sections.push(
+      "The following adaptation PRs could not be merged automatically:\n\n" + renderZulipPrList(failedPrs)
+    );
+  }
+  if (sections.length === 0) return "";
+  const query = encodeURIComponent(
+    `is:open is:pr label:"${downstreamLabelMerge}"`
+  );
+  const url = `https://github.com/${downstreamRepo.fullName}/pulls?q=${query}`;
+  sections.push(`View [all PRs requiring manual intervention](${url}).`);
+  return sections.join("\n\n");
 }
 async function run() {
   const aPrs = await findAdaptationPrMergeCandidates();
   info(`Found ${aPrs.length} candidate adaptation PR(s)`);
-  const unmergedPrs = [];
+  const mergedPrs = [];
+  const failedPrs = [];
   for (const aPr of aPrs) {
+    let outcome;
     try {
-      if (!await mergeForPr(aPr)) unmergedPrs.push(aPr);
+      outcome = await mergeForPr(aPr);
     } catch (error2) {
       const errorMsg = error2 instanceof Error ? error2.message : String(error2);
       warning(`Failed to merge adaptation PR #${aPr.number}: ${errorMsg}`);
+      continue;
     }
+    if (outcome === "merged") mergedPrs.push(aPr);
+    if (outcome === "failed") failedPrs.push(aPr);
   }
-  setOutput("report-zulip", renderZulipReport(unmergedPrs));
+  setOutput("report-zulip", renderZulipReport(mergedPrs, failedPrs));
 }
 run().catch((error2) => {
   abort(error2 instanceof Error ? error2.message : String(error2));

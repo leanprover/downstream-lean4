@@ -3,7 +3,12 @@ Copyright (c) 2026 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-import VersoManual.Marginalia
+module
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+import Verso.Doc.Elab.Monad
+
+public section
 
 open Verso
 open Verso.Genre.Manual
@@ -75,9 +80,9 @@ def sectionNote.css := r#"
 
 "#
 
-open Verso.Output Html in
-def sectionNoteHtml (content : Html) : Html :=
-  {{<div class="section-note"><div class="note">{{content}}</div></div>}}
+open Verso.Output in
+private def sectionNoteHtml (content : Html) : Html :=
+  html%{<div class="section-note"><div class="note">{content}</div></div>}
 
 
 block_extension Block.sectionNote where
@@ -86,12 +91,11 @@ block_extension Block.sectionNote where
 
   extraCss := [sectionNote.css]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ goB _ _ content  => do
       sectionNoteHtml <$> content.mapM goB
 
 @[directive]
-def sectionNote : DirectiveExpanderOf Unit
+meta def sectionNote : DirectiveExpanderOf Unit
   | (), inlines => do
     let content ← inlines.mapM elabBlock
     ``(Verso.Doc.Block.other Block.sectionNote #[$content,*])
@@ -102,22 +106,21 @@ block_extension Block.sectionNoteTitle where
   traverse _ _ _ := return none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ _ _ content => do
       match content with
       | #[.para xs] =>
-        return {{<h1> {{← xs.mapM goI}} </h1>}}
+        return html%{<h1>{← xs.mapM goI}</h1>}
       | _ => reportError "Malformed section note title"; return .empty
 
 @[directive]
-def tutorials : DirectiveExpanderOf Unit
+meta def tutorials : DirectiveExpanderOf Unit
   | (), blocks => do
     let content ← blocks.mapM elabBlock
     ``(Verso.Doc.Block.other Block.sectionNote #[Verso.Doc.Block.other Block.sectionNoteTitle #[Verso.Doc.Block.para #[Verso.Doc.Inline.text "Tutorials"]], $content,*])
 
 
 @[directive]
-def seeAlso : DirectiveExpanderOf Unit
+meta def seeAlso : DirectiveExpanderOf Unit
   | (), blocks => do
     let content ← blocks.mapM elabBlock
     ``(Verso.Doc.Block.other Block.sectionNote #[Verso.Doc.Block.other Block.sectionNoteTitle #[Verso.Doc.Block.para #[Verso.Doc.Inline.text "See Also"]], $content,*])

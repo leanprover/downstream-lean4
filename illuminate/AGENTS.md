@@ -88,9 +88,11 @@ The animation player and widget JavaScript in `player_js/` uses JSDoc
 type annotations checked by TypeScript. React types are vendored in
 `vendored_js/` (excluded from language stats via `.gitattributes`).
 
-To run the type checker, use this command:
+Install the pinned development tools (TypeScript and Prettier) once
+with `npm ci`, then run the type checker:
 
 ```sh
+npm ci
 npx tsc --noEmit -p player_js/jsconfig.json
 ```
 
@@ -103,7 +105,8 @@ lake test --wfail && uv run test_playwright.py
 ### Formatting
 
 Before finishing work, run Prettier to format non-Lean files
-(Markdown, Python, JSON, YAML):
+(Markdown, Python, JSON, YAML), using the pinned version installed by
+`npm ci`:
 
 ```sh
 npx prettier --write .
@@ -167,6 +170,8 @@ src/Illuminate/          Library source
   Widget.lean            #diagram command for Lean infoview
 src/Illuminate.lean      Root import (re-exports all modules)
 player_js/               Animation player and widget JavaScript (included via include_str)
+  anim_core.js           Shared animation helpers
+  anim_data.d.ts         Shape of the compiled animation data
   standalone.js          Standalone HTML player (play/pause/scrub)
   reveal.js              Reveal.js fragment-driven player
   diagram_widget.js      #diagram infoview widget

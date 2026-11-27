@@ -6,18 +6,19 @@ Authors: Ching-Tsun Chou
 
 module
 
-public import Cslib.Computability.Automata.NA.Concat
 public import Cslib.Computability.Automata.DA.Congr
-public import Cslib.Computability.Automata.NA.Loop
-public import Cslib.Computability.Automata.NA.Preimage
 public import Cslib.Computability.Automata.DA.Prod
+public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.EpsilonNA.OfRegularExpression
+public import Cslib.Computability.Automata.EpsilonNA.ToNA
+public import Cslib.Computability.Automata.NA.Preimage
 public import Cslib.Computability.Automata.NA.Reverse
 public import Cslib.Computability.Automata.NA.ToDA
-public import Cslib.Computability.Automata.DA.ToNA
+public import Cslib.Computability.Automata.NA.ToEpsilonNA
+public import Cslib.Computability.Automata.TwoWayNA.ComplToNA
+public import Cslib.Computability.Automata.TwoWayNA.OfNA
+public import Cslib.Computability.Languages.KleeneAlgorithm
 public import Mathlib.Computability.DFA
-public import Mathlib.Computability.RegularExpressions
-public import Mathlib.Basic.Finite.Sum
-public import Mathlib.Data.Set.Card
 
 /-!
 # Regular languages
@@ -27,7 +28,7 @@ public import Mathlib.Data.Set.Card
 
 namespace Cslib.Language
 
-open Set List Prod Automata Acceptor RightCongruence
+open Set List Prod Automata Acceptor
 open scoped Computability FLTS DA NA DA.FinAcc NA.FinAcc
 
 variable {Symbol Symbol' : Type*}
@@ -59,6 +60,17 @@ theorem IsRegular.iff_nfa {l : Language Symbol} :
     use Set State, inferInstance, na.toDAFinAcc
     grind
 
+/-- A characterization of `Language.IsRegular` in terms of `εNA`. -/
+theorem IsRegular.iff_epsilon_nfa {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ enfa : εNA.FinAcc State Symbol, language enfa = l := by
+  rw [IsRegular.iff_nfa]
+  constructor
+  · rintro ⟨State, h_fin, nfa, rfl⟩
+    exact ⟨State, h_fin, nfa.toEpsilonNAFinAcc, NA.FinAcc.toEpsilonNAFinAcc_language_eq⟩
+  · rintro ⟨State, h_fin, enfa, rfl⟩
+    exact ⟨State, h_fin, enfa.toNAFinAcc, εNA.FinAcc.toNAFinAcc_language_eq⟩
+
 /-- The complementation of a regular language is regular. -/
 theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegular := by
   rw [IsRegular.iff_dfa] at h ⊢
@@ -69,6 +81,23 @@ theorem IsRegular.compl {l : Language Symbol} (h : l.IsRegular) : (lᶜ).IsRegul
   ext
   simp only [language, Accepts]
   rfl
+
+/-- A language is regular if and only if it is accepted by some two-way nondeterministic
+automaton with finitely many states. -/
+theorem IsRegular.iff_twoWayNA {l : Language Symbol} :
+    l.IsRegular ↔ ∃ State : Type, ∃ _ : Finite State,
+      ∃ a : TwoWayNA State Symbol, language a = l := by
+  constructor
+  · intro h
+    rw [IsRegular.iff_nfa] at h
+    obtain ⟨State, hfin, na, rfl⟩ := h
+    exact ⟨State, hfin, NA.FinAcc.toTwoWayNA na, TwoWayNA.language_toTwoWayNA na⟩
+  · rintro ⟨State, hfin, a, rfl⟩
+    have := hfin
+    have hc : (language a)ᶜ.IsRegular := by
+      rw [IsRegular.iff_nfa]
+      exact ⟨Set State × Set State, inferInstance, a.complToNA, a.language_complToNA⟩
+    simpa using hc.compl
 
 /-- The empty language is regular. -/
 @[simp]
@@ -153,36 +182,24 @@ theorem IsRegular.iSup {I : Type*} [Finite I] {s : Set I} {l : I → Language Sy
     rw [iSup_insert]
     apply IsRegular.add <;> grind
 
-open NA.FinAcc Sum in
 /-- The concatenation of two regular languages is regular. -/
 @[simp]
 theorem IsRegular.mul {l1 l2 : Language Symbol}
     (h1 : l1.IsRegular) (h2 : l2.IsRegular) : (l1 * l2).IsRegular := by
-  obtain (he | hne) := isEmpty_or_nonempty Symbol
-  · obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l1 <;>
-    obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l2 <;> simp
-  · have := Classical.inhabited_of_nonempty hne
-    rw [IsRegular.iff_nfa] at h1 h2 ⊢
-    obtain ⟨State1, h_fin1, nfa1, rfl⟩ := h1
-    obtain ⟨State2, h_fin1, nfa2, rfl⟩ := h2
-    use Option State1 ⊕ Option State2, inferInstance,
-      ⟨finConcat nfa1 nfa2, inr '' (some '' nfa2.accept)⟩
-    exact finConcat_language_eq
+  rw [IsRegular.iff_epsilon_nfa] at h1 h2 ⊢
+  obtain ⟨State1, h_fin1, a1, rfl⟩ := h1
+  obtain ⟨State2, h_fin2, a2, rfl⟩ := h2
+  exact ⟨State1 ⊕ State2, inferInstance, a1.concat a2, εNA.FinAcc.language_concat a1 a2⟩
 
-open NA.FinAcc Sum in
 /-- The Kleene star of a regular language is regular. -/
 @[simp]
 theorem IsRegular.kstar {l : Language Symbol}
     (h : l.IsRegular) : (l∗).IsRegular := by
-  obtain (he | hne) := isEmpty_or_nonempty Symbol
-  · obtain (rfl | rfl) := Language.eq_zero_or_one_ofIsEmpty l <;> simp
-  · have := Classical.inhabited_of_nonempty hne
-    by_cases h_l : l = 0
-    · simp [h_l]
-    · rw [IsRegular.iff_nfa] at h ⊢
-      obtain ⟨State, h_fin, nfa, rfl⟩ := h
-      use Unit ⊕ Option State, inferInstance, ⟨finLoop nfa, {inl ()}⟩, loop_language_eq h_l
+  rw [IsRegular.iff_epsilon_nfa] at h ⊢
+  obtain ⟨State, h_fin, a, rfl⟩ := h
+  exact ⟨Unit ⊕ State, inferInstance, a.star, εNA.FinAcc.language_star a⟩
 
+open _root_.Language RightCongruence in
 /-- If a right congruence is of finite index, then each of its equivalence classes is regular. -/
 @[simp]
 theorem IsRegular.congr_fin_index {Symbol : Type}
@@ -217,29 +234,23 @@ theorem IsRegular.preimage (f : Hom Symbol' Symbol) {l : Language Symbol} (h : l
 
 /-- The language containing only the one character string `a` is regular. -/
 @[simp]
-theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular := by
-  rw [IsRegular.iff_dfa]
-  classical
-  let flts := FLTS.mk (fun (s : Fin 3) (x : Symbol) ↦ if (s = 0 ∧ x = a) then 1 else 2)
-  use Fin 3, inferInstance, ⟨DA.mk flts 0, {1}⟩
-  ext xs
-  induction xs using List.reverseRec with
-  | nil => grind [Accepts, Language.mem_singleton]
-  | append_singleton xs x ih =>
-    simp only [mem_language, Accepts, Language.mem_singleton, FLTS.mtr_concat_eq] at ih ⊢
-    constructor
-    · induction xs using List.reverseRec <;> grind
-    · simp_all [flts, List.append_eq_cons_iff]
+theorem IsRegular.char (a : Symbol) : ({[a]} : Language Symbol).IsRegular :=
+  IsRegular.iff_epsilon_nfa.mpr
+    ⟨Bool, inferInstance, εNA.FinAcc.char a, εNA.FinAcc.language_char a⟩
 
 /-- Languages matching regular expressions are regular. -/
-theorem IsRegular.regex {r : RegularExpression Symbol} :
-    r.matches'.IsRegular := by
-  induction r with
-  | zero => simp
-  | epsilon => simp
-  | char a => simp [IsRegular.char a]
-  | plus P Q hP hQ => grind [RegularExpression.matches', IsRegular.add]
-  | comp P Q hP hQ => grind [RegularExpression.matches', IsRegular.mul]
-  | star P hP => grind [RegularExpression.matches', IsRegular.kstar]
+theorem IsRegular.regex (r : RegularExpression Symbol) : r.matches'.IsRegular :=
+  IsRegular.iff_epsilon_nfa.mpr ⟨r.State, inferInstance, r.toEpsilonNA, r.language_toEpsilonNA⟩
+
+open RegularExpression in
+/-- A characterization of `Language.IsRegular` in terms of `RegularExpression`. -/
+theorem IsRegular.iff_regex [Finite Symbol] {l : Language Symbol} :
+    l.IsRegular ↔ ∃ r : RegularExpression Symbol, l = matches' r := by
+  constructor
+  · intro h
+    obtain ⟨State, _, nfa, rfl⟩ := IsRegular.iff_nfa.mp h
+    exact NA.FinAcc.nfa_eq_regex nfa
+  · rintro ⟨r, rfl⟩
+    exact IsRegular.regex r
 
 end Cslib.Language

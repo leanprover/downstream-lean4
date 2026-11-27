@@ -289,8 +289,194 @@ set_option linter.verso.manual.headerTags true in
 #docs (Verso.Genre.Manual) headerTagsOn "Header tags on" :=
 :::::::
 
+%%%
+tag := "header-tags-on"
+%%%
+
 # Untagged section
 
 Some text.
+
+:::::::
+
+/-!
+A header that is followed by a metadata block without a `tag` field produces a warning whose hint
+adds the field to that metadata block.
+-/
+/--
+warning: Missing permalink tag
+
+Hint: Add a tag to the metadata block or explicitly indicate that no tag is desired:
+  • # Untagged section
+    %%%
+    t̲a̲g̲ ̲:̲=̲ ̲"̲u̲n̲t̲a̲g̲g̲e̲d̲-̲s̲e̲c̲t̲i̲o̲n̲"̲
+    ̲number := false
+    %%%
+  • # Untagged section
+    %%%
+    t̲a̲g̲ ̲:̲=̲ ̲n̲o̲n̲e̲
+    ̲number := false
+    %%%
+
+Note: The tag is used as a permanent name for the section or chapter. Writers of this or other documents may use it to link to the section, and it is used to share permanent links. In HTML content, they are used as IDs for headers. Section tags should remain unchanged over time.
+
+Note: This linter can be disabled with `set_option linter.verso.manual.headerTags false`
+-/
+#test_msgs in
+set_option linter.verso.manual.headerTags true in
+#docs (Verso.Genre.Manual) headerTagsNoTagField "Header tags without a tag field" :=
+:::::::
+
+%%%
+tag := "header-tags-without-a-tag-field"
+%%%
+
+# Untagged section
+
+%%%
+number := false
+%%%
+
+Some text.
+
+:::::::
+
+/-!
+A header that is the last block of a document produces a warning.
+-/
+/--
+warning: Missing permalink tag
+
+Hint: Add a metadata block with a tag or explicitly indicate that no tag is desired:
+  • # Untagged section
+    ̲%̲%̲%̲
+    ̲t̲a̲g̲ ̲:̲=̲ ̲"̲u̲n̲t̲a̲g̲g̲e̲d̲-̲s̲e̲c̲t̲i̲o̲n̲"̲
+    ̲%̲%̲%̲
+  • # Untagged section
+    ̲%̲%̲%̲
+    ̲t̲a̲g̲ ̲:̲=̲ ̲n̲o̲n̲e̲
+    ̲%̲%̲%̲
+
+Note: The tag is used as a permanent name for the section or chapter. Writers of this or other documents may use it to link to the section, and it is used to share permanent links. In HTML content, they are used as IDs for headers. Section tags should remain unchanged over time.
+
+Note: This linter can be disabled with `set_option linter.verso.manual.headerTags false`
+-/
+#test_msgs in
+set_option linter.verso.manual.headerTags true in
+#docs (Verso.Genre.Manual) headerTagsLast "Header tags last" :=
+:::::::
+
+%%%
+tag := "header-tags-last"
+%%%
+
+Some text.
+
+# Untagged section
+
+:::::::
+
+/-!
+A document's title that is followed by a metadata block without a `tag` field produces a warning
+whose hint adds the field to that metadata block.
+-/
+/--
+warning: Missing permalink tag
+
+Hint: Add a tag to the metadata block or explicitly indicate that no tag is desired:
+  • %%%
+    ̲t̲a̲g̲ ̲:̲=̲ ̲"̲f̲a̲l̲l̲e̲n̲-̲l̲e̲a̲v̲e̲s̲"̲
+    shortTitle := "Leaves"
+    %%%
+  • %%%
+    ̲t̲a̲g̲ ̲:̲=̲ ̲n̲o̲n̲e̲
+    shortTitle := "Leaves"
+    %%%
+
+Note: The tag is used as a permanent name for the section or chapter. Writers of this or other documents may use it to link to the section, and it is used to share permanent links. In HTML content, they are used as IDs for headers. Section tags should remain unchanged over time.
+
+Note: This linter can be disabled with `set_option linter.verso.manual.headerTags false`
+-/
+#test_msgs in
+set_option linter.verso.manual.headerTags true in
+#docs (Verso.Genre.Manual) headerTagsTitle "Fallen leaves" :=
+:::::::
+
+%%%
+shortTitle := "Leaves"
+%%%
+
+Leaves fall from the trees in autumn.
+
+:::::::
+
+/-!
+In a genre other than `Manual`, an untagged header doesn't produce a warning, even when the option
+is enabled.
+-/
+#test_msgs in
+set_option linter.verso.manual.headerTags true in
+#docs (Verso.Doc.Genre.none) headerTagsOtherGenre "Header tags other genre" :=
+:::::::
+
+# Untagged section
+
+Some text.
+
+:::::::
+
+/-!
+# `verso.code.warnLineLength` (default: 60, `Manual` genre only)
+
+The limit applies to a line's own width. A code block's indentation is the leading whitespace of
+each of its line tokens, so indenting a block does not make its lines count as longer.
+-/
+
+/-!
+A line within the limit produces no warning.
+-/
+#guard_msgs in
+set_option verso.code.warnLineLength 20 in
+#docs (Verso.Genre.Manual) shortLines "Short lines" :=
+:::::::
+
+```Genre.Manual.InlineLean.lean
+def a := 1
+```
+
+:::::::
+
+/-!
+A line past the limit is reported, at the line itself.
+-/
+/--
+warning: Line 1 is too long (33 columns exceeds 20).
+
+Note: Example code is shown on mobile devices and other narrow contexts. Long lines are likely to be truncated in the rendered output.
+
+Hint: The limit of this linter can be changed with the option `verso.code.warnLineLength`. This linter can be disabled by setting this option to 0.
+-/
+#guard_msgs in
+set_option verso.code.warnLineLength 20 in
+#docs (Verso.Genre.Manual) longLines "Long lines" :=
+:::::::
+
+```Genre.Manual.InlineLean.lean
+def someRatherLongNameIndeed := 1
+```
+
+:::::::
+
+/-!
+Setting the option to 0 disables the linter.
+-/
+#guard_msgs in
+set_option verso.code.warnLineLength 0 in
+#docs (Verso.Genre.Manual) lineLengthOff "Line length off" :=
+:::::::
+
+```Genre.Manual.InlineLean.lean
+def anotherRatherLongNameHere := 1
+```
 
 :::::::

@@ -3,12 +3,13 @@ import * as fs from "node:fs/promises";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
+import { getInput, getInputOpt } from "../lib/input";
 import type { StatusReport } from "../lib/reports";
-import { abort, getInput, getInputOpt } from "../lib/util";
+import { abort } from "../lib/util";
 
 const token = getInput("token");
 const startSha = getInput("commit-sha");
-const maxCommits = parseInt(getInput("max-commits"), 10);
+const maxCommits = getInput("max-commits", (v) => parseInt(v, 10));
 const outputPath = getInputOpt("output-path");
 
 const octo = github.getOctokit(token);

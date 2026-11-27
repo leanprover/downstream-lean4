@@ -8,13 +8,12 @@ require illuminate from git "https://github.com/leanprover/illuminate"@"main"
 require Cli from git "https://github.com/leanprover/lean4-cli"@"main"
 
 package verso where
-  precompileModules := true
-  leanOptions := #[⟨`experimental.module, true⟩]
 
 @[default_target]
 lean_lib VersoUtil where
   srcDir := "src/verso-util"
   roots := #[`VersoUtil]
+  precompileLibrary := true
 
 input_dir staticWeb where
   text := true
@@ -28,33 +27,39 @@ lean_lib Verso where
   srcDir := "src/verso"
   roots := #[`Verso]
   needs := #[staticWeb, vendorJs]
+  precompileLibrary := true
 
 @[default_target]
 lean_lib MultiVerso where
   srcDir := "src/multi-verso"
   roots := #[`MultiVerso]
+  precompileLibrary := true
 
 @[default_target]
 lean_lib VersoSearch where
   srcDir := "src/verso-search"
   -- Rebuild search when JS on disk changes
   needs := #[staticWeb]
+  precompileLibrary := true
 
 @[default_target]
 lean_lib VersoBlog where
   srcDir := "src/verso-blog"
   roots := #[`VersoBlog]
+  precompileLibrary := true
 
 @[default_target]
 lean_lib VersoManual where
   srcDir := "src/verso-manual"
   roots := #[`VersoManual]
   needs := #[staticWeb]
+  precompileLibrary := true
 
 @[default_target]
 lean_lib VersoIlluminate where
   srcDir := "src/verso-illuminate"
   roots := #[`VersoIlluminate]
+  precompileLibrary := true
 
 input_file tutorialDefaultCss where
   text := true
@@ -65,6 +70,7 @@ lean_lib VersoTutorial where
   srcDir := "src/verso-tutorial"
   roots := #[`VersoTutorial]
   needs := #[tutorialDefaultCss]
+  precompileLibrary := true
 
 input_file ghSetupLiteratePages where
   text := true
@@ -81,6 +87,7 @@ lean_exe «verso» where
 lean_lib VersoServe where
   roots := #[`VersoServe]
   srcDir := "src/verso-serve"
+  precompileLibrary := true
 
 @[default_target]
 lean_exe «verso-serve» where
@@ -91,6 +98,7 @@ lean_exe «verso-serve» where
 lean_lib VersoLiterate where
   roots := #[`VersoLiterate]
   srcDir := "src/verso-literate"
+  precompileLibrary := true
 
 @[default_target]
 lean_exe «verso-literate» where
@@ -102,6 +110,7 @@ lean_exe «verso-literate» where
 lean_lib VersoLiterateCode where
   srcDir := "src/verso-literate-code"
   roots := #[`VersoLiterateCode]
+  precompileLibrary := true
 
 input_file «verso-html-css» where
   text := true
@@ -143,14 +152,26 @@ lean_lib VersoTests where
   roots := #[`VersoTests]
   globs := #[Glob.andSubmodules `VersoTests]
 
--- Everything below is Errata's own implementation: its library, its self-tests, the generated
--- discovery runner, and the `lake test` driver.
+-- Everything below is Errata's own implementation: its library, the single-test runner and widget
+-- support exe, its self-tests, the generated discovery runner, and the `lake test` driver.
 namespace Errata
+
+input_file errataRunTestWidgetJs where
+  text := true
+  path := "src/errata/Errata/widget/run_test_widget.js"
 
 @[default_target]
 lean_lib Errata where
   srcDir := "src/errata"
   roots := #[`Errata]
+  needs := #[errataRunTestWidgetJs]
+
+-- Runs one test in a fresh process so the widget can stream its output and kill it on cancel. The
+-- widget builds it when it runs a test.
+lean_exe «errata-run-one» where
+  srcDir := "src/errata"
+  root := `ErrataRunOne
+  supportInterpreter := true
 
 -- Tests that exercise Errata using Errata itself.
 @[default_target]
@@ -186,9 +207,14 @@ private def errataDiscoveredModule (pkg : Package) : Lean.Name :=
 private def errataMainModule (pkg : Package) : Lean.Name :=
   errataGeneratedRoot pkg ++ `Main
 
-/-- The generated bridge module of a package, as a library in said package. -/
+/--
+The generated bridge module of a package, as a library in said package.
+-/
 private def errataDiscoveredLib (pkg : Package) : LeanLib where
-  pkg
+  -- The library is absent from the package's configuration, so Lake doesn't resolve the generated main's
+  -- import of the bridge, and Lean looks for the bridge in the build directory. Lake always keeps this
+  -- one module's artifacts there.
+  pkg := { pkg with config.restoreAllArtifacts? := some true }
   name := `ErrataDiscovered
   config.srcDir := errataRunnerSrcDir pkg
   config.roots := #[errataDiscoveredModule pkg]
@@ -412,7 +438,10 @@ script run (args) do
       IO.eprintln s!"error: {msg}"
       IO.eprintln (usage run withArgs)
       return 1
-  -- `--exit-on-panic` means that the runner should be invoked with LEAN_ABORT_ON_PANIC set.
+  -- `--exit-on-panic` means that the runner should be invoked with LEAN_ABORT_ON_PANIC set.  If it
+  -- is not provided, then the runner should be invoked with LEAN_ABORT_ON_PANIC unset, rather than
+  -- inheriting from the ambient environment, because some CI systems change the value, which can
+  -- interfere.
   let exitOnPanic := runnerArgs.contains "--exit-on-panic"
   -- Search the named libraries, or every library in the package by default. A name may be a bare
   -- `Library` in this package or a `package/Library` reaching into a dependency, following Lake's
@@ -444,18 +473,17 @@ script run (args) do
           return 1
       pure chosen
   -- Build every module in the selected libraries; their compiled `.olean` headers are authoritative
-  -- on which modules carry tests.
+  -- as to which modules include tests.
   let (modInfos, libMods) ← runBuild do
-    let mut oleanJobs := #[]
-    let mut infos : Array (Lean.Name × System.FilePath) := #[]
+    let mut oleanJobs : Array (Job (Lean.Name × System.FilePath)) := #[]
     let mut libMods : Array (Lake.LeanLib × Array Lean.Name) := #[]
     for lib in libs do
       let mods ← (← lib.modules.fetch).await
       libMods := libMods.push (lib, mods.map (·.name))
       for m in mods do
-        oleanJobs := oleanJobs.push (← m.olean.fetch)
-        infos := infos.push (m.name, m.oleanFile)
-    pure <| (Job.collectArray oleanJobs).map (sync := true) fun _ => (infos, libMods)
+        -- The job's path locates the `.olean`, which is in Lake's artifact cache when that is enabled
+        oleanJobs := oleanJobs.push <| (← m.olean.fetch).map (sync := true) (m.name, ·)
+    pure <| (Job.collectArray oleanJobs).map (sync := true) fun infos => (infos, libMods)
   -- A test module is one whose `.olean` records a test. Module-system test modules go in the bridge
   -- module (`import all`); non-module ones can only be imported by the non-module main.
   let mut moduleMods : Array Lean.Name := #[]
@@ -465,11 +493,11 @@ script run (args) do
     if info.hasTests then
       if info.isModule then moduleMods := moduleMods.push moduleName
       else nonModuleMods := nonModuleMods.push moduleName
-  -- A module that sits under a library's roots without being reachable from them is never built, so
-  -- any tests it defines are silently left out. A library is checked when it was named on the
-  -- command line, since naming it declares that its tests are expected, or when its built modules
-  -- carry tests. That is a configuration slip rather than a test failure, so it is a warning that
-  -- the runner reports alongside the results, and the run goes ahead.
+  -- A module that is unreachable from its library root without being transitively imported by said
+  -- roots is never built, so any tests it defines are silently left out. A library is checked when
+  -- it was named on the command line, since naming it declares that its tests are expected, or when
+  -- its built modules include tests. That is a configuration slip rather than a test failure, so it
+  -- is a warning that the runner reports alongside the results, and the run goes ahead.
   let testMods := moduleMods ++ nonModuleMods
   let mut unreachable : Array (Lake.LeanLib × Array Lean.Name) := #[]
   for (lib, mods) in libMods do
@@ -512,7 +540,7 @@ script run (args) do
   let warningArgs := driverWarnings.flatMap (#["--driver-warning", ·])
   let child ← IO.Process.spawn {
     cmd := exePath.toString, args := #[errataDriverFlag] ++ warningArgs ++ runnerArgs.toArray
-    env := if exitOnPanic then #[("LEAN_ABORT_ON_PANIC", some "1")] else #[]
+    env := #[("LEAN_ABORT_ON_PANIC", if exitOnPanic then some "1" else none)]
   }
   child.wait
 
@@ -524,70 +552,47 @@ input_file leanToolchain where
   text := true
   path := "lean-toolchain"
 
+@[default_target]
 lean_lib UsersGuide where
   srcDir := "doc"
   leanOptions := #[⟨`weak.linter.verso.manual.headerTags, true⟩]
   needs := #[leanToolchain]
 
+-- A demo site that shows how to generate websites with Verso.
 @[default_target]
-lean_exe usersguide where
-  root := `UsersGuideMain
-  supportInterpreter := true
-
--- A demo site that shows how to generate websites with Verso
 lean_lib DemoSite where
   srcDir := "test-projects/website"
   roots := #[`DemoSite]
 
+-- An example of a textbook project built in Verso.
 @[default_target]
-lean_exe demosite where
-  srcDir := "test-projects/website"
-  root := `DemoSiteMain
-  supportInterpreter := true
-
--- An example of a textbook project built in Verso
 lean_lib DemoTextbook where
   srcDir := "test-projects/textbook"
   roots := #[`DemoTextbook]
 
+-- An example of a package documentation project built in Verso.
 @[default_target]
-lean_exe demotextbook where
-  srcDir := "test-projects/textbook"
-  root := `DemoTextbookMain
-  supportInterpreter := true
-
--- An example of a package documentation project built in Verso
 lean_lib PackageManual where
   srcDir := "test-projects/package-manual"
   roots := #[`PackageManual]
 
-@[default_target]
-lean_exe packagedocs where
-  srcDir := "test-projects/package-manual"
-  root := `PackageManualMain
-  supportInterpreter := true
-
--- An example of a minimal nontrivial custom genre
+-- An example of a minimal nontrivial custom genre.
 @[default_target]
 lean_lib SimplePage where
   srcDir := "test-projects/custom-genre"
   roots := #[`SimplePage]
 
 @[default_target]
-lean_exe simplepage where
-  srcDir := "test-projects/custom-genre"
-  root := `SimplePageMain
-  supportInterpreter := true
-
-@[default_target]
 lean_lib TutorialExample where
   srcDir := "test-projects/tutorial-test"
 
-@[default_target]
-lean_exe «tutorial-example» where
-  srcDir := "test-projects/tutorial-test"
-  root := `TutorialExampleMain
-  supportInterpreter := true
+/-- `lake run versoMain File.lean ARGS...` is shorthand for `lake lean File.lean -- --run File.lean ARGS...`.
+This uses the IR interpreter to evaluate the `main` function in `File.lean`. -/
+script versoMain (args) do
+  let file :: rest := args
+    | IO.eprintln "usage: lake run versoMain FILE.lean [ARGS...]"
+      return 1
+  (← getWorkspace).evalLeanFile file (#["--run", file] ++ rest.toArray)
 
 private def leanOptionArgs (m : Module) : Array String := Id.run do
   let opts := Module.leanOptions m
@@ -607,24 +612,30 @@ module_facet literate mod : System.FilePath := do
 
   let exeJob ← «verso-literate».fetch
   let modJob ← mod.olean.fetch
+  let setupJob ← mod.setup.fetch
 
   let buildDir := ws.root.buildDir
   let litFile := mod.filePath (buildDir / "literate") "json"
+  -- The setup locates the module's imports, which are in Lake's artifact cache when that is enabled
+  let setupFile := mod.filePath (buildDir / "literate-setup") "json"
 
   let optArgs := leanOptionArgs mod
 
   exeJob.bindM fun exeFile =>
-    modJob.mapM fun _oleanPath => do
-      addLeanTrace
-      addTrace (← computeTrace exeFile)
-      addPureTrace (toString optArgs) "leanOptions"
-      buildFileUnlessUpToDate' (text := true) litFile <|
-        proc {
-          cmd := exeFile.toString
-          args := #[mod.name.toString, litFile.toString] ++ optArgs
-          env := ← getAugmentedEnv
-        }
-      pure litFile
+    modJob.bindM fun _oleanPath =>
+      setupJob.mapM fun setup => do
+        addLeanTrace
+        addTrace (← computeTrace exeFile)
+        addPureTrace (toString optArgs) "leanOptions"
+        buildFileUnlessUpToDate' (text := true) litFile do
+          IO.FS.createDirAll (setupFile.parent.getD buildDir)
+          IO.FS.writeFile setupFile (Lean.toJson setup).compress
+          proc {
+            cmd := exeFile.toString
+            args := #[mod.name.toString, litFile.toString, "--setup", setupFile.toString] ++ optArgs
+            env := ← getAugmentedEnv
+          }
+        pure litFile
 
 library_facet literate lib : Array System.FilePath := do
   let mods ← (← lib.modules.fetch).await

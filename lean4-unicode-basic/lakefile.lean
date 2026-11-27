@@ -19,12 +19,11 @@ target UnicodeCLib pkg : FilePath := do
       let obj := pkg.buildDir / "UnicodeCLib" / ((file.fileName.dropSuffix ".c" |>.copy) ++ ".o")
       let src ← inputTextFile file.path
       let weakArgs := #["-I", (← getLeanIncludeDir).toString, "-I", (pkg.dir / "UnicodeCLib").toString, "-O", "-fPIC"]
-      oFiles := oFiles.push <| ← buildO obj src weakArgs
+      oFiles := oFiles.push <| ← buildO obj src weakArgs (extraDepTrace := getLeanTrace)
   let name := nameToStaticLib "unicodeclib"
   buildStaticLib (pkg.sharedLibDir / name) oFiles
 
--- temporary fix for Windows
-meta if System.Platform.isWindows then
+-- Imported precompiled modules also need the Unicode C symbols.
 extern_lib libunicodeclib := UnicodeCLib.fetch
 
 @[default_target]

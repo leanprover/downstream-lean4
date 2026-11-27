@@ -54,14 +54,21 @@ lemma multiApp_tail {N} : (M.multiApp (Ns ++ [N])) = (M.multiApp Ns).app  N:= by
     and only if the leftmost term and all arguments applied to it are locally closed -/
 @[scoped grind ←]
 lemma multiApp_lc : LC (M.multiApp Ns) ↔ LC M ∧ (∀ N ∈ Ns, LC N) := by
-  induction Ns generalizing M with grind [cases LC]
+  #adaptation_note
+  /-- lean4#16147 replaced the `grind` option `splits`, which capped the depth of the
+  search tree, with `branches`, which caps its total size. This goal splits broadly
+  rather than deeply and needs about 1250 branches, above the default of 1024. -/
+  induction Ns generalizing M with grind (branches := 2048) [cases LC]
 
 /-- Just like ordinary beta reduction, the left-hand side
     of a multi-application step is locally closed -/
 @[scoped grind ←]
 lemma step_multiApp_l (steps : M ⭢βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :
     M.multiApp Ns ⭢βᶠ M'.multiApp Ns := by
-  induction Ns generalizing M M' with grind
+  #adaptation_note
+  /-- A grind regression found moving to nightly-2026-10-01 (changes from lean#15420):
+  this goal now needs more E-matching rounds. -/
+  induction Ns generalizing M M' with grind (ematch := 7)
 
 /-- Congruence lemma for multi reduction of the left most term of a multi-application -/
 lemma steps_multiApp_l (steps : M ↠βᶠ M') (lc_Ns : ∀ N ∈ Ns, LC N) :

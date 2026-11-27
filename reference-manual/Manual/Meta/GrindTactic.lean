@@ -4,21 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
-import Lean.Meta.Hint
+module
+public import SubVerso.Examples
+public meta import VersoManual.Docstring
+public import VersoManual.Docstring
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import SubVerso.Highlighting.Code
-import VersoManual
-
-import Manual.Meta.Basic
+public section
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab Term Parser Tactic Doc
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -34,7 +29,7 @@ tokens by inspecting the category's Pratt parsing tables.
 This replicates `Lean.Elab.Tactic.Doc.firstTacticTokens`, which only scans the `tactic` syntax
 category and so does not cover the `grind` category.
 -/
-def firstGrindTokens [Monad m] [MonadEnv m] : m (Lean.NameMap String) := do
+private meta def firstGrindTokens [Monad m] [MonadEnv m] : m (Lean.NameMap String) := do
   let env ← getEnv
   let some cat := parserExtension.getState env |>.categories.find? `grind
     | return {}
@@ -65,7 +60,7 @@ Builds a hint whose code actions replace the ambiguous reference at `span` with 
 syntax kind, one suggestion per candidate. Each kind is unresolved in the current scope, so the
 suggestion uses the shortest name that refers to it here.
 -/
-def grindDisambiguationHint (span : Syntax) (kinds : List Name) : TermElabM MessageData := do
+private meta def grindDisambiguationHint (span : Syntax) (kinds : List Name) : TermElabM MessageData := do
   let suggestions ← kinds.toArray.mapM fun k => do
     let n ← unresolveNameGlobal k
     return ({ suggestion := .tsyntax (mkIdent n), span? := some span } : Lean.Meta.Hint.Suggestion)
@@ -76,7 +71,7 @@ Resolves a `grind` interactive tactic, either by its leading token (a string lit
 syntax kind (an identifier matched as a suffix). Returns the resolved kind, its leading token, and
 its docstring. Ambiguity is an error.
 -/
-def getGrindTactic (name : StrLit ⊕ Ident) (allowMissing : Option Bool) : TermElabM GrindTacticDoc :=
+meta def getGrindTactic (name : StrLit ⊕ Ident) (allowMissing : Option Bool) : TermElabM GrindTacticDoc :=
   withOptions (allowMissing.map (fun b opts => verso.docstring.allowMissing.set opts b) |>.getD id) do
     let env ← getEnv
     let parserState := parserExtension.getState env
@@ -108,7 +103,7 @@ def Block.grindTactic (name : Name) («show» : String) (docs? : Option String) 
   data := ToJson.toJson (name, «show», docs?)
 
 @[directive]
-def grindTactic : DirectiveExpanderOf TacticDocsOptions
+meta def grindTactic : DirectiveExpanderOf TacticDocsOptions
   | opts, more => do
     let tactic ← getGrindTactic opts.name opts.allowMissing
     Doc.PointOfInterest.save (← getRef) tactic.name.toString
@@ -158,7 +153,7 @@ def grindTactic.descr : BlockDescr := withHighlighting {
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let .ok (name, «show», docs?) := FromJson.fromJson? (α := Name × String × Option String) info
         | do reportError "Failed to deserialize grind tactic data"; pure .empty
       let x : Highlighted := .token ⟨.keyword (some name) none docs?, «show»⟩
@@ -166,19 +161,19 @@ def grindTactic.descr : BlockDescr := withHighlighting {
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"grind tactic"</span>
-          <pre class="signature hl lean block">{{← x.toHtml (g := Verso.Genre.Manual)}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">grind tactic</span>
+          <pre class="signature hl lean block">{← x.toHtml (g := Verso.Genre.Manual)}</pre>
           <div class="text">
-            {{← contents.mapM goB}}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
-  localContentItem := fun _id info _contents => open Verso.Output.Html in do
+      }
+  localContentItem := fun _id info _contents => do
     let (_name, «show», _docs?) ← FromJson.fromJson? (α := Name × String × Option String) info
-    pure #[(«show», {{<code class="tactic-name">{{«show»}}</code>}})]
+    pure #[(«show», html%{<code class="tactic-name">{«show»}</code>})]
 
   toTeX := some <| fun _goI goB _id _info contents => contents.mapM goB
   extraCss := [docstringStyle]
@@ -194,6 +189,8 @@ token shared by several grind tactics.
 structure GrindTacticInlineArgs where
   kind? : Option Ident
 
+meta section
+
 def GrindTacticInlineArgs.parse [Monad m] [MonadError m] : ArgParse m GrindTacticInlineArgs :=
   GrindTacticInlineArgs.mk <$> ((some <$> .positional `kind .ident) <|> pure none)
 
@@ -205,14 +202,17 @@ def grindTacticInline : RoleExpanderOf GrindTacticInlineArgs
   | {kind?}, inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $tac:str )) := arg
+    let some { content := code, .. } := Lean.Doc.CodeView.of arg
       | throwErrorAt arg "Expected code literal with the grind tactic name"
+    let tac := code.getVersoCode
     let name : StrLit ⊕ Ident := match kind? with
       | some k => .inr k
-      | none => .inl tac
+      | none => .inl (Syntax.mkStrLit tac (SourceInfo.fromRef code))
     let tacDoc ← getGrindTactic name none
-    let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac.getString⟩
-    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := $(quote (ToJson.toJson hl))} #[Verso.Doc.Inline.code $(quote tac.getString)])
+    let hl : Highlighted := .token ⟨.keyword (some tacDoc.name) none tacDoc.docs?, tac⟩
+    `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.grindTactic with data := ToJson.toJson (α := Highlighted) $(quote hl)} #[Verso.Doc.Inline.code $(quote tac)])
+
+end
 
 @[inline_extension Inline.grindTactic]
 def grindTacticInline.descr : InlineDescr := withHighlighting {

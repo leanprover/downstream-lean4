@@ -3,13 +3,19 @@ Copyright (c) 2025 Lean FRO, LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import VersoWeb.Components.Icon
-import Lean.Elab
+module
+
+public meta import Verso.Doc.Elab.Monad
+public meta import Verso.Doc.Elab.Block
+public import VersoBlog.Basic
+import VersoBlog.Component
+
+public section
 
 open Lean Elab Term
-open Lean.Doc.Syntax
+open Lean.Doc (DescListView DescItemView ImageView TextView)
 open Verso Genre Blog ArgParse Doc Elab
-open Output Html Traverse
+open Output.Html Traverse
 
 namespace Verso.Web.Components
 
@@ -41,11 +47,11 @@ block_component gallery where
 
   toHtml _id _json _goI goB contents := do
     let «class» := if contents.size == 1 then "screenshot" else "gallery"
-    pure {{
-      <div class={{«class»}}>
-        {{← contents.mapM goB}}
+    pure html%{
+      <div class={«class»}>
+        {← contents.mapM goB}
       </div>
-    }}
+    }
 
 private def keepAlphaNum (s : String) : String := Id.run do
   let mut out := ""
@@ -60,47 +66,44 @@ open Output.Html in
 block_component galleryItem (name url title : String) where
   toHtml _ _ _ goB contents := do
     let descClass := "desc--" ++ keepAlphaNum title
-    pure {{
+    pure html%{
       <div class="gallery-item">
-        <a href={{url}}
-           data-gallery={{name}}
-            data-glightbox=s!"title: {title}; description: .{descClass}">
-          <img src={{url}} alt={{title}}/>
+        <a href={url}
+           data-gallery={name}
+            data-glightbox={s!"title: {title}; description: .{descClass}"}>
+          <img src={url} alt={title}/>
         </a>
       </div>
-      <div class=s!"{descClass} glightbox-desc">
-        {{← contents.mapM goB}}
+      <div class={s!"{descClass} glightbox-desc"}>
+        {← contents.mapM goB}
       </div>
-    }}
+    }
 
 /--
 Translates an item of a description list into a gallery item component.
 -/
-private def getItem (name : String) : Syntax → DocElabM (TSyntax `term)
-  | `(desc_item|: $dts* => $dds*) => do
-    let #[img] := dts.filter fun
-        | `(inline|$s:str) => s.getString.any (fun c : Char => !c.isWhitespace)
-        | _ => true
-      | throwErrorAt (mkNullNode dts.raw) "Expected a single image, got {dts}"
-    let `(inline|image($title)$dest) := img
-      | throwErrorAt img "Expected an image, got {img}"
-    let title := title.getString
-    let `(link_target|( $url:str )) := dest
-      | throwErrorAt dest "Expected URL, got {dest}"
+private meta def getItem (name : String) (item : DescItemView) : DocElabM (TSyntax `term) := do
+  let terms := mkNullNode (item.term.map (·.raw))
+  let #[img] := item.term.filter fun inl =>
+      match TextView.of inl with
+      | some t => t.getVersoText.any (fun c : Char => !c.isWhitespace)
+      | none => true
+    | throwErrorAt terms m!"Expected a single image, got {terms}"
+  let some image := ImageView.of img
+    | throwErrorAt img m!"Expected an image, got {img}"
+  let .url (url := url) .. := image.target
+    | throwErrorAt img m!"Expected an image with a URL, got {img}"
 
-    ``(galleryItem $(quote name) $(quote url.getString) $(quote title) #[$[$(← dds.mapM elabBlock)],*])
-
-  | other => throwErrorAt other "Failed to parse description list item"
+  ``(galleryItem $(quote name) $(quote url.getVersoLinkUrl) $(quote image.getAlt) #[$[$(← item.desc.mapM elabBlock)],*])
 
 @[directive_expander gallery, inherit_doc gallery]
-def galleryDir : DirectiveExpander
+meta def galleryDir : DirectiveExpander
   | args, #[block] => do
     let name ← ArgParse.run (.positional `name .string) args
-    match block with
-    | `(block|dl{$item*})=>
-      let items ← item.mapM (getItem name)
-      pure #[← ``(gallery #[$items,*])]
-    | other => throwErrorAt other "Expected a description list"
+    let some { items, .. } := DescListView.of block
+      | throwErrorAt block "Expected a description list"
+    let items ← items.mapM (getItem name)
+    pure #[← ``(gallery #[$items,*])]
   | _, more => do
     if h : more.size > 1 then
       throwErrorAt more[1] "Expected only a single block"

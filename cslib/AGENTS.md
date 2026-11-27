@@ -9,69 +9,64 @@
 - **Primary Dependency:** Mathlib (leanprover-community/mathlib4)
 - **Project Type:** Lean library
 
+## Lean Development: Use the Lean MCP Server First
+
+**Use the Lean MCP server for routine Lean development whenever its tools are available.**
+Before running Lean or Lake commands, check the tools exposed in the current session (including
+tool discovery, if available) for the Lean MCP server.
+
+- Use MCP goal inspection, diagnostics, hover/type information, and theorem search when available
+  to understand and develop proofs.
+- During proof iteration, check the affected file through MCP diagnostics after edits. Wait for
+  elaboration to finish and resolve errors before continuing.
+- Do not repeatedly run `lake build`, `lake env lean`, or shell-based Lean probes when an available
+  MCP tool can provide the needed feedback.
+- Reserve Lake commands for final project validation, building missing or stale dependencies,
+  import generation, tests, linters, and tasks the MCP tools do not support.
+- If the Lean MCP tools are unavailable or fail, briefly report the limitation and use the smallest
+  relevant command-line check as a fallback. Do not silently skip checking for MCP availability.
+- MCP diagnostics do not replace the final build and CI checks required below.
+
 ## Build & Validation Commands
 
 **Always run commands from the repository root.** The project uses `lake`.
+Use these commands at validation checkpoints, not after every proof edit.
 
 ### Essential Commands (in order of typical usage)
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `lake build` | Build the library | After any code change |
-| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings) | Before committing |
-| `lake test` | Run all tests (builds CslibTests + checks init imports) | After changes to verify correctness |
-| `lake lint` | Run environment linters (Batteries/Mathlib) | Before committing |
-| `lake exe lint-style` | Run text-based style linters | Before committing |
-| `lake exe mk_all --check` | Verify Cslib.lean imports all modules | After adding new files |
-| `lake exe mk_all` | Auto-update Cslib.lean imports | After adding new files |
+| Command                       | Purpose                                                 | When to Use                                                  |
+|-------------------------------|---------------------------------------------------------|--------------------------------------------------------------|
+| `lake build`                  | Build the library                                       | After completing Lean code changes; use MCP during iteration |
+| `lake build --wfail --iofail` | Build with CI strictness (fails on warnings)            | Before committing                                            |
+| `lake test`                   | Run all tests (builds CslibTests + checks init imports) | After completing Lean code changes                           |
+| `lake lint`                   | Run environment linters (Batteries/Mathlib)             | Before committing                                            |
+| `lake exe mk_all --check`     | Verify Cslib.lean imports all modules                   | After adding new files                                       |
+| `lake exe mk_all`             | Auto-update Cslib.lean imports                          | After adding new files                                       |
 
 ### Full CI Validation Sequence
 
-Run these commands **in order** to replicate CI checks locally:
+Run these commands **in order** before committing Lean code changes or when full CI validation is
+requested. The strict build also satisfies the `lake build` checkpoint; do not run both redundantly.
 
 ```bash
 lake build --wfail --iofail
 lake exe mk_all --check
 lake test
 lake lint
-lake exe lint-style
 ```
 
 ### Additional Commands
 
-| Command | Purpose |
-|---------|---------|
-| `lake clean` | Remove build outputs (use if build state is corrupted) |
-| `lake update` | Update dependencies (rarely needed) |
-| `lake exe lint-style --fix` | Auto-fix style errors |
-| `lake exe shake Cslib` | Check for minimized imports |
-
-## Project Structure
-
-```
-/
-├── Cslib.lean           # Root module (imports all library files)
-├── CslibTests.lean      # Root test module
-├── CONTRIBUTING.md      # Contribution guidelines
-├── lakefile.toml        # Lake configuration (linters, dependencies)
-├── lean-toolchain       # Lean version specification
-├── lake-manifest.json   # Locked dependency versions
-├── Cslib/               # Main library source
-│   ├── Init.lean        # Must be imported by all Cslib modules
-│   ├── Foundations/     # General-purpose definitions (semantics, data types, etc.)
-│   ├── Computability/   # Automata and computability theory
-│   ├── Languages/       # Programming language formalisations (e.g., Calculus of Communicating Systems, Lambda Calculus)
-│   └── Logics/          # Logic formalisations (e.g., Linear Logic, Hennessy-Milner Logic)
-├── CslibTests/          # Test files
-├── scripts/             # Build and maintenance scripts
-│   └── noshake.json     # Import exceptions for shake tool
-└── .github/workflows/   # CI workflows
-```
+| Command                | Purpose                                                |
+|------------------------|--------------------------------------------------------|
+| `lake clean`           | Remove build outputs (use if build state is corrupted) |
+| `lake update`          | Update dependencies (rarely needed)                    |
+| `lake exe shake Cslib` | Check for minimized imports                            |
 
 ## Critical Requirements
 
 ### 1. All Cslib Modules Must Import Cslib.Init
-Every file in `Cslib/` must transitively import `Cslib/Init.lean`. This sets up default linters and tactics. The test suite verifies this.
+Every file in `Cslib/` must import `Cslib/Init.lean`, directly or transitively, through a chain of `public import`s. This sets up default linters and tactics. The test suite verifies this.
 
 **Exceptions** (documented in `scripts/CheckInitImports.lean`):
 - `Cslib.Foundations.Lint.Basic` (circular dependency)
@@ -104,20 +99,12 @@ Authors: $LIST_OF_AUTHORS
 ```
 where $YEAR should be replaced with the current year, $AUTHOR_NAME with the name of the file creator, and $LIST_OF_AUTHORS with the list of authors (this is just the file creator if there are no additional authors).
 
-### 5. Always Read Local README.md Files
+### 5. Follow Coding Guidelines
 
-Before working on any file or directory, **always read** all `README.md` files in all directories throughout the entire repository.
-
-These files contain essential context that must be understood before making changes.
-
-## Code Style
-
-- Follow everything written in /CONTRIBUTING.md
-- Follow the [Mathlib code style](https://leanprover-community.github.io/contribute/style.html)
-- Use domain-specific variable names when dealing with APIs that have a clear intention (e.g., `State` for state types, `μ` for transition labels).
-- Keep proofs readable; golfing is welcome if proofs remain clear.
-- Use existing typeclasses for common concepts (`Congruence`, `Context`, etc.).
-- Use the `module` keyword at the start of files with `public import` statements.
+As part of ensuring that your plans and code consider the relevant guidelines or information, always review against the guidelines set in:
+- `/CONTRIBUTING.md`,
+- `/CODESTYLE.md`, and
+- relevant `README.md` files, starting from the one closest to the files being changed or added.
 
 ## Linter Configuration
 
@@ -127,7 +114,7 @@ Linters are configured in `lakefile.toml`.
 
 ### Creating a New Module
 1. Create file in appropriate `Cslib/` subdirectory
-2. Add `import Cslib.Init` (or import a module that imports it)
+2. Start the file with the `module` keyword and make sure it imports `Cslib.Init`, directly or transitively, through a chain of `public import`s
 3. Run `lake exe mk_all`
 4. Run `lake build --wfail --iofail`
 5. Run `lake test` to verify init imports

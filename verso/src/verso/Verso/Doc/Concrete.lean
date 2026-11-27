@@ -12,36 +12,158 @@ import Verso.Doc
 public import Verso.Doc.Elab
 public meta import Verso.Doc.Elab.Monad
 import Verso.Doc.Concrete.InlineString
+public import Verso.Doc.Concrete.Environment
 import Verso.Doc.Lsp
 
 namespace Verso.Doc.Concrete
 
 open Lean Verso Parser Doc Elab
 
+/--
+Ends the trailing whitespace of the token at the top of the stack before the first character that
+isn't a space or a line break.
+
+Callers apply it to the token that opens Verso text. The function moves the position back to the
+token's end before it reads spaces and line breaks, so that a Lean comment right after the token is
+parsed as Verso text, as it is anywhere else in Verso text.
+-/
+private meta def versoWhitespaceFn : ParserFn := fun c s =>
+  match s.stxStack.back with
+  | token@(.atom (.original _ _ trailing endPos) _) =>
+    let s := Lean.Doc.Parser.lineTailWsFn c (s.setPos endPos)
+    s.popSyntax.pushSyntax (token.updateTrailing { trailing with stopPos := s.pos })
+  | _ => s
+
+/--
+Parses the `=>` that opens the document of a `#doc` command or term. A Lean comment right after it
+is part of the document.
+-/
+public meta def docArrow : Parser where
+  info := (symbol " =>").info
+  fn := (symbol " =>").fn >> versoWhitespaceFn
+
+@[combinator_parenthesizer docArrow]
+def docArrow.parenthesizer :=
+  PrettyPrinter.Parenthesizer.tokenWithAntiquot.parenthesizer
+    (PrettyPrinter.Parenthesizer.symbolNoAntiquot.parenthesizer " =>")
+
+@[combinator_formatter docArrow]
+def docArrow.formatter :=
+  PrettyPrinter.Formatter.tokenWithAntiquot.formatter
+    (PrettyPrinter.Formatter.symbolNoAntiquot.formatter " =>")
+
+/-- The text of the delimiter that opened a document. -/
+private meta def openerText : Syntax → String
+  | .node _ _ #[stx] => openerText stx
+  | .atom _ v => v
+  | _ => ""
+
+/-- The position just after the next newline at or after `pos`. -/
+private meta partial def afterNextLine (c : ParserContext) (pos : String.Pos.Raw) :
+    Option String.Pos.Raw :=
+  if c.atEnd pos then none
+  else if c.get pos == '\n' then some (c.next pos)
+  else afterNextLine c (c.next pos)
+
+/-- The position of the first character at or after `pos` that is not a space. -/
+private meta partial def afterSpaces (c : ParserContext) (pos : String.Pos.Raw) : String.Pos.Raw :=
+  if !c.atEnd pos && c.get pos == ' ' then afterSpaces c (c.next pos) else pos
+
+/-- The length of the run of colons that begins at `pos`. -/
+private meta partial def colonRun (c : ParserContext) (pos : String.Pos.Raw) : Nat :=
+  if !c.atEnd pos && c.get pos == ':' then colonRun c (c.next pos) + 1 else 0
+
+/--
+The end of a document's contents, which is `closePos` without the spaces and newlines that separate
+them from the closing delimiter. They belong to the last block's token, as the whitespace before a
+doc comment's closing delimiter does, so the contents end with their final character.
+-/
+private meta partial def contentEnd (c : ParserContext) (startPos closePos : String.Pos.Raw) :
+    String.Pos.Raw :=
+  if closePos.byteIdx ≤ startPos.byteIdx then closePos
+  else
+    let prev := c.prev closePos
+    if c.get prev == ' ' || c.get prev == '\n' then contentEnd c startPos prev else closePos
+
+/--
+The start of the line that closes a document opened by `colons` colons, paired with the number of
+colons that line begins with.
+
+A line that begins with at least as many colons as the opener closes the document, so an author
+keeps a delimiter out of a document's contents by opening it with a longer run.
+-/
+private meta partial def closingLine (colons : Nat) (c : ParserContext) (pos : String.Pos.Raw) :
+    Option (String.Pos.Raw × Nat) :=
+  -- The opening delimiter's trailing whitespace may already have reached the line after it, so the
+  -- line `pos` is on counts when `pos` starts it.
+  let here :=
+    if pos.byteIdx == 0 || c.get (c.prev pos) == '\n' then
+      let found := colonRun c (afterSpaces c pos)
+      if found ≥ colons then some (pos, found) else none
+    else none
+  match here with
+  | some found => some found
+  | none =>
+    match afterNextLine c pos with
+    | none => none
+    | some lineStart => closingLine colons c lineStart
+
+/--
+Parses a document that a run of colons closes.
+
+The contents reach to the closing delimiter, which is found before they are read, so the document
+ends where its input does and a stray character in it is reported where it occurs.
+-/
 public meta def document : Parser where
-  fn := atomicFn <| Verso.Parser.document (blockContext := {maxDirective := some 6})
+  fn := atomicFn <| andthenFn versoWhitespaceFn fun c s =>
+    let openerStx := s.stxStack.back
+    let opener := openerText openerStx
+    if opener.isEmpty || opener.any (· ≠ ':') then
+      s.mkError s!"document opened by colons (got {opener.quote})"
+    else
+      let colons := opener.length
+      match closingLine colons c s.pos with
+      | none =>
+        s.mkErrorAt s!"a line of {colons} colons to close the document"
+          (openerStx.getHeadInfo.getPos!)
+      | some (closePos, found) =>
+        if found != colons then
+          s.mkErrorAt s!"{colons} colons to close the document, not {found}" closePos
+        else
+          let contentsEnd := contentEnd c s.pos closePos
+          let endPos :=
+            if contentsEnd ≤ c.inputString.rawEndPos then contentsEnd else c.inputString.rawEndPos
+          let s :=
+            Verso.Parser.document (blockContext := {maxDirective := some (colons - 1)})
+              (c.setEndPos endPos (by unfold endPos; split <;> simp [*])) s
+          -- The contents stop at their last character, so the delimiter is where the parser resumes.
+          if s.hasError then s else s.setPos (afterSpaces c closePos)
 
 @[combinator_parenthesizer document] def document.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 @[combinator_formatter document] def document.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
 
+/-- The top-level blocks of a document that `document` parsed. -/
+private meta def document.blocks (text : TSyntax ``document) : Array VersoBlock :=
+  text.raw.getArgs.map (⟨·⟩)
+
 public meta def termDocument : Parser where
-  fn := (atomicFn doc) >> whitespace
+  fn := atomicFn (versoWhitespaceFn >> doc) >> whitespace
 where
   doc : ParserFn := fun c s =>
     let opener := s.stxStack.back
     let indent := opener.getHeadInfo.getPos!
-    let col := c.fileMap.toPosition indent |>.column
 
-    let opener := getOpener opener
+    let opener := openerText opener
     if opener.isEmpty || opener.any (· ≠ ':') || opener.length < 3 then
       s.mkError s!"document after at least three colons (got {opener.quote})"
     else
-      Verso.Parser.document (blockContext := {maxDirective := some (opener.length - 1), minIndent := col}) c s
-
-  getOpener : Syntax → String
-    | .node _ _ #[stx] => getOpener stx
-    | .atom _ v => v
-    | _ => ""
+      -- The blocks start at or right of the colons' column, which a saved position enforces.
+      let startPos := s.pos
+      let blockContext := {maxDirective := some (opener.length - 1)}
+      let s := adaptCacheableContextFn ({ · with savedPos? := indent })
+        (ignoreFn Lean.Doc.Parser.lineTailWsFn >> blocksFn blockContext) c s
+      if s.hasError then s
+      else s.popSyntax.pushSyntax (Lean.Doc.Parser.setStartLeading startPos s.stxStack.back)
 
 @[combinator_parenthesizer termDocument] def termDocument.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 @[combinator_formatter termDocument] def termDocument.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
@@ -56,6 +178,10 @@ where
 @[combinator_parenthesizer completeDocument] def completeDocument.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 @[combinator_formatter completeDocument] def completeDocument.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
 
+/-- The top-level blocks of a document that `completeDocument` parsed. -/
+private meta def completeDocument.blocks (text : TSyntax ``completeDocument) : Array VersoBlock :=
+  text.raw.getArgs.map (⟨·⟩)
+
 meta partial def findGenreTm : Syntax → TermElabM Unit
   | `($g:ident) => discard <| realizeGlobalConstNoOverloadWithInfo g -- Don't allow it to become an auto-argument
   | `(($e)) => findGenreTm e
@@ -64,27 +190,27 @@ meta partial def findGenreTm : Syntax → TermElabM Unit
 meta partial def findGenreCmd (genre : Syntax) : Command.CommandElabM Unit :=
   Command.runTermElabM fun _ => findGenreTm genre
 
-meta def saveRefs [Monad m] [MonadInfoTree m] (st : DocElabM.State) (st' : PartElabM.State) : m Unit := do
-  for r in internalRefs st'.linkDefs st.linkRefs do
-    for stx in r.syntax do
-      pushInfoLeaf <| .ofCustomInfo {stx := stx , value := Dynamic.mk r}
-  for r in internalRefs st'.footnoteDefs st.footnoteRefs do
-    for stx in r.syntax do
-      pushInfoLeaf <| .ofCustomInfo {stx := stx , value := Dynamic.mk r}
-
+/--
+Elaborates the genre `genre` and creates the context for elaborating the document that the current
+command declares as `x`.
+-/
+public meta def _root_.Verso.Doc.Elab.DocElabContext.forDeclaration (genre : Term) (x : Ident) :
+    Command.CommandElabM DocElabContext := do
+  let (docConstName, _) ← mkDeclName (← getCurrNamespace) {} x.getId
+  Command.runTermElabM fun _ => DocElabContext.fromGenreTerm genre docConstName
 
 open PartElabM in
 /--
 All-at-once elaboration of verso document syntax to syntax denoting a verso `VersoDoc`. Implements
-elaboration of the `#docs` command and `#doc` term. The `#doc` command is incremental, and thus
-splits the logic in this function across multiple functions.
+elaboration of the `#docs` command, the `#doc` term and the `verso` term. The `#doc` command is
+incremental, and thus splits the logic in this function across multiple functions.
 -/
-private meta def elabDoc (genre: Term) (title: StrLit) (topLevelBlocks : Array Syntax) (endPos: String.Pos.Raw) : TermElabM Term := do
+private meta def elabDoc (ctx : DocElabContext) (title: StrLit) (topLevelBlocks : Array VersoBlock)
+    (endPos: String.Pos.Raw) : TermElabM Term := do
   let rootRangeStx ← getRef
   let env ← getEnv
   let titleParts ← stringToInlines title
   let titleString := inlinesToString env titleParts
-  let ctx ← DocElabContext.fromGenreTerm genre
   let initDocState : DocElabM.State := { highlightDeduplicationTable := .some {} }
   -- Use the complete document syntax for the range, and the title syntax for the selection.
   -- This means that the outline contains all sub-parts, and clicking the root goes to the title.
@@ -95,8 +221,9 @@ private meta def elabDoc (genre: Term) (title: StrLit) (topLevelBlocks : Array S
       let mut errors := #[]
       PartElabM.setTitle titleString (← PartElabM.liftDocElabM <| titleParts.mapM (elabInline ⟨·⟩))
       for b in topLevelBlocks do
+        let name ← nextBlockDefinitionName
         try
-          partCommand ⟨b⟩
+          elabTopLevelBlock name b
         catch e =>
           errors := errors.push e
       closePartsUntil 0 endPos
@@ -105,26 +232,42 @@ private meta def elabDoc (genre: Term) (title: StrLit) (topLevelBlocks : Array S
         | .error stx msg => logErrorAt stx msg
         | oops@(.internal _ _) => throw oops
       pure ()
-  saveRefs docElabState partElabState
 
   let finished := partElabState.partContext.toPartFrame.close endPos
 
   pushInfoLeaf <| .ofCustomInfo {stx := (← getRef) , value := Dynamic.mk finished.toTOC}
-  finished.toVersoDoc genre ctx docElabState partElabState
+  finished.toVersoDoc ⟨ctx.genreSyntax⟩ ctx docElabState partElabState
 
-elab "#docs" "(" genre:term ")" n:ident title:str ":=" ":::::::" text:document ":::::::" : command => do
+elab "#docs" "(" genre:term ")" n:ident title:str ":=" ":::::::" text:document close:":::::::" :
+    command => do
   findGenreCmd genre
-  let rootRangeStx ← getRef
-  let endTok :=
-    match rootRangeStx with
-    | .node _ _ t =>
-      match t.back? with
-      | some x => x
-      | none => panic! "No final token!"
-    | _ => panic! "Nothing"
-  let endPos := endTok.getTailPos?.getD endTok.getPos!
-  let doc ← Command.runTermElabM fun _ => elabDoc genre title text.raw.getArgs endPos
+  let endPos := close.getTailPos?.getD close.getPos!
+  let ctx ← DocElabContext.forDeclaration genre n
+  let doc ← Command.runTermElabM fun _ => elabDoc ctx title (document.blocks text) endPos
   Command.elabCommand (← `(def $n : VersoDoc $genre := $doc))
+
+/--
+Elaborates a document that's not the canonical document for some module, returning an {name}`Expr`
+that denotes it. Such a document can be used in any term position.
+-/
+private meta def elabAuxDoc (genre : Term) (title : StrLit) (blocks : Array VersoBlock)
+    (endPos : String.Pos.Raw) : TermElabM Expr := do
+  let docConstName ← Term.mkAuxName `doc
+  let ctx ← DocElabContext.fromGenreTerm genre docConstName
+  let doc ← elabDoc ctx title blocks endPos
+  let type ← Meta.mkAppM ``VersoDoc #[ctx.genre]
+  let value ← Term.elabTermEnsuringType doc type
+  Term.synthesizeSyntheticMVarsNoPostponing
+  let value ← instantiateMVars value
+  if ← Term.logUnassignedUsingErrorInfos (← Meta.getMVarsNoDelayed value) then throwAbortTerm
+  let fvars := (collectFVars {} value).fvarIds
+  unless fvars.isEmpty do
+    let refs := MessageData.joinSep (fvars.map (m!"`{mkFVar ·}`")).toList ", "
+    throwError m!"Can't refer to a local variable here (reference to {refs})."
+  -- Adding the definition asynchronously makes child name generators. Under the document's own
+  -- prefix, they leave the enclosing declaration's generator as it was.
+  withDeclNameForAuxNaming docConstName <|
+    Meta.mkAuxDefinition docConstName (← instantiateMVars type) value
 
 public syntax docTermBody :=
   atomic(":::" termDocument ":::") <|>
@@ -138,36 +281,75 @@ public syntax docTermBody :=
   atomic(":::::::::::" termDocument ":::::::::::")
 
 /--
-Elaborates a Verso document in a term position. There are two forms:
+The top-level blocks of a document term's body.
 
-verso "TITLE"
+Each delimiter alternative of `docTermBody` is a group of the opening delimiter, the blocks that
+`termDocument` parsed, and the closing delimiter.
+-/
+private meta def docTermBody.blocks (body : TSyntax ``docTermBody) : TermElabM (Array VersoBlock) :=
+  match body.raw with
+  | .node _ ``docTermBody #[.node _ `group #[.atom _ _, .node _ `null blocks, .atom _ _]] =>
+    pure (blocks.map (⟨·⟩))
+  | _ => do
+    -- The parser has already reported the error in partial syntax.
+    if body.raw.hasMissing then throwAbortTerm
+    throwErrorAt body "Expected a document between delimiters"
+
+/--
+A Verso document as a term of type `VersoDoc genre`.
+
+There are two forms:
+
+* `verso (genre) "Title" :::: ... ::::` specifies the genre `genre` directly.
+* `verso "Title" :::: ... ::::` infers the genre from the expected type.
+
+The matching colon delimiters may have from three to eleven colons. Directives within the document
+must have at most one fewer colon.
 -/
 scoped syntax (name := docTerm) "verso " ("(" term ")")? str docTermBody : term
 
 open Elab Term in
-elab_rules : term
-  | `(verso $[($genre)]? $title:str $body:docTermBody) => do
-  genre.forM (findGenreTm ·.raw)
-  let genre ←
-    if let some g := genre then
-      findGenreTm g.raw
-      pure g
-    else
-      `((_ : Genre))
-  let endPos := body.raw.getTailPos? |>.getD (← getFileMap).source.rawEndPos
-  let docu ← elabDoc genre title body.raw[0][1].getArgs endPos
-  Term.elabTerm (← ``( ($(docu) : VersoDoc $genre))) none
+/--
+Elaborates a `verso` term. `verso` terms without a genre get their genre from the expected type.
+-/
+@[term_elab docTerm]
+public meta def elabDocTerm : TermElab := fun stx expectedType? => do
+  match stx with
+  | `(verso ($genre) $title:str $body:docTermBody) =>
+    findGenreTm genre
+    let endPos := body.raw.getTailPos? |>.getD (← getFileMap).source.rawEndPos
+    elabAuxDoc genre title (← docTermBody.blocks body) endPos
+  | `(verso $title:str $body:docTermBody) =>
+    withExpectedType expectedType? fun expectedType => do
+      let genre ← Meta.mkFreshExprMVar (some (.const ``Genre []))
+      unless ← Meta.isDefEq expectedType (← Meta.mkAppM ``VersoDoc #[genre]) do
+        throwError m!"A `verso` term without a genre expects the type `VersoDoc g` for some genre \
+          `g`, but the expected type is{indentExpr expectedType}\n\
+          Give the genre in parentheses after `verso`."
+      let genre ← instantiateMVars genre
+      if genre.hasMVar then
+        tryPostpone
+        throwError m!"The genre of the `verso` term can't be determined from the expected \
+          type{indentExpr expectedType}\n\
+          Give the genre in parentheses after `verso`."
+      let endPos := body.raw.getTailPos? |>.getD (← getFileMap).source.rawEndPos
+      elabAuxDoc (← exprToSyntax genre) title (← docTermBody.blocks body) endPos
+  | _ => throwUnsupportedSyntax
 
+section
+open Lean.Doc.Parser
 
-elab "#doc" "(" genre:term ")" title:str "=>" text:completeDocument eoi : term => do
-  findGenreTm genre
-  let endPos := (← getFileMap).source.rawEndPos
-  let doc ← elabDoc genre title text.raw.getArgs endPos
-  Term.elabTerm (← `( ($(doc) : VersoDoc $genre))) none
+-- `Lean.Doc.Parser.block` is an imported parser, so a formatter and parenthesizer cannot be
+-- generated for it here. Verso never pretty-prints document syntax, so stubs suffice.
+@[combinator_parenthesizer block]
+def versoBlock.parenthesizer := PrettyPrinter.Parenthesizer.visitToken
 
+@[combinator_formatter block]
+def versoBlock.formatter := PrettyPrinter.Formatter.visitAtom Name.anonymous
 
 scoped syntax (name := addBlockCmd) block : command
 scoped syntax (name := addLastBlockCmd) block : command
+end
 
 /-!
 Unlike `#doc` expressions and `#docs` commands, which are elaborated all at once, `#doc` commands
@@ -188,66 +370,6 @@ The Lean command parser automatically skips whitespace and comments, but Lean co
 meta initialize lastVersoEndPosExt : EnvExtension (Option String.Pos.Raw) ← registerEnvExtension (pure none)
 
 /--
-A version of `Lean.Syntax.updateTrailing` that converts `none` source info into `original` source info.
-
-This is a bit of a hack. Verso's parser concocts tokens that don't exist in the source document in order
-to make it easier to pattern match them with Lean quasiquotations, in a syntax that works in a Lean context.
-These tokens have `none` source info, which `Lean.Syntax.updateTrailing` leaves untouched. Here, though, we need
-them in order to communicate positions between command parses.
--/
-private meta partial def updateSyntaxTrailing (trailing : Substring.Raw) : Syntax → Syntax
-  | .atom info val => .atom (updateInfoTrailing trailing info) val
-  | .ident info rawVal val pre => .ident (updateInfoTrailing trailing info) rawVal val pre
-  | n@(.node info k args) =>
-    if let some i := findIdxRev? (not ∘ empty) args then
-     let last := updateSyntaxTrailing trailing args[i]
-     let args := args.set i last;
-     Syntax.node info k args
-    else n
-  | s => s
-where
-  findIdxRev? {α} (p : α → Bool) (xs : Array α) : Option (Fin xs.size) := do
-    if h : xs.size = 0 then failure
-    else
-      let mut n : Fin xs.size := ⟨xs.size - 1, by grind⟩
-      repeat
-        if p xs[n] then return n
-        if n.val = 0 then
-          break
-        else
-          n := ⟨n.val - 1, by grind⟩
-      failure
-
-  empty : Syntax → Bool
-  | .atom .. | .ident .. | .missing => false
-  | .node .none _ args | .node (.synthetic ..) _ args => args.all empty
-  | .node (.original leading _ trailing _) _ args =>
-    leading.startPos == leading.stopPos && trailing.startPos == trailing.stopPos && args.all empty
-
-  updateInfoTrailing (trailing : Substring.Raw) : SourceInfo → SourceInfo
-    | .original leading pos _ endPos => .original leading pos trailing endPos
-    | .none =>
-      let pos := trailing.startPos
-      .original {trailing with startPos := pos, stopPos := pos} pos trailing pos
-    | info                                     => info
-
-
-private meta partial def getTailContext? (source : String) (stx : Syntax) : Option (String.Pos.Raw × Substring.Raw) :=
-  match stx with
-  | .missing => none
-  | .ident info .. | .atom info .. =>
-    match info with
-    | .none => none
-    | .synthetic _ endPos _ => pure (endPos, ⟨source, endPos, endPos⟩)
-    | .original _ _ trailing endPos => pure (endPos, trailing)
-  | .node info _k args =>
-    match info with
-    | .none => args.findSomeRev? (getTailContext? source)
-    | .synthetic _ endPos _ => pure (endPos, ⟨source, endPos, endPos⟩)
-    | .original _ _ trailing endPos => pure (endPos, trailing)
-
-
-/--
 Parses each top-level block as either an `addBlockCmd` or an `addLastBlockCmd`. (This is what
 Verso uses to replace the command parser.)
 -/
@@ -255,42 +377,17 @@ private meta def versoBlockCommandFn : ParserFn := fun c s =>
   let iniSz  := s.stackSize
   let lastPos? := lastVersoEndPosExt.getState c.env
   let s := lastPos? |>.map s.setPos |>.getD s
-  let s := recoverBlockWith #[.missing] (Verso.Parser.block {}) c s
+  let s := blockCommandRecovery c s
   if s.hasError then s
-  else
-    let s := ignoreFn (manyFn blankLine) c s
-    let s := updateTrailing c s
-    let i := s.pos
-    if c.atEnd i then
-      s.mkNode ``addLastBlockCmd iniSz
-    else
-      s.mkNode ``addBlockCmd iniSz
-where
-  /--
-  Updates the trailing whitespace information in the syntax at the top of the stack based on
-  subsequently consumed whitespace.
-  -/
-  updateTrailing : ParserFn := fun c s =>
-    let top := s.stxStack.back
-    if let some ⟨_, tr⟩ := getTailContext? c.fileMap.source top then
-      let tr := { tr with stopPos := s.pos }
-      s.popSyntax.pushSyntax <| updateSyntaxTrailing tr top
-    else
-      s
+  else if c.atEnd s.pos then s.mkNode ``addLastBlockCmd iniSz
+  else s.mkNode ``addBlockCmd iniSz
 
-/--
-As we elaborate a `#doc` command top-level-block by top-level-block, the Lean environment will
-be used to thread state between the separate top level blocks. These environment extensions contain
-the state that needs to exist across top-level-block parsing events.
--/
-public meta structure DocElabEnvironment where
-  genreSyntax : Term := ⟨.missing⟩
-  ctx : DocElabContext := ⟨.missing, mkConst ``Unit, .always, .none⟩
-  docState : DocElabM.State := { highlightDeduplicationTable := some {} }
-  partState : PartElabM.State := .init (.node .none nullKind #[]) (.node .none nullKind #[])
-deriving Inhabited
-
-public meta initialize docEnvironmentExt : EnvExtension DocElabEnvironment ← registerEnvExtension (pure {})
+elab (name := docTerm') "#doc" "(" genre:term ")" title:str docArrow text:completeDocument eoi : term => do
+  findGenreTm genre
+  let endPos := (← getFileMap).source.rawEndPos
+  let blocks := completeDocument.blocks text
+  let blocks := blocks.modify (blocks.size - 1) (⟨dropFinalLinebreak ·.raw⟩)
+  elabAuxDoc genre title blocks endPos
 
 /--
 The original parser for the `command` category, which is restored while elaborating a Verso block so
@@ -317,10 +414,6 @@ private meta def runPartElabInEnv (act : PartElabM a) : Command.CommandElabM a :
   finally
     modifyEnv (categoryParserFnExtension.setState · versoCmdFn)
 
-private meta def saveRefsInEnv : Command.CommandElabM Unit := do
-  let versoEnv := docEnvironmentExt.getState (← getEnv)
-  saveRefs versoEnv.docState versoEnv.partState
-
 /-!
 When we do incremental parsing of `#doc` commands, we split the behaviors that are done all at once
 in `elabDoc` across three functions: the prelude in `startDoc`, the loop body in `runVersoBlock`,
@@ -332,7 +425,8 @@ private meta def startDoc (genreSyntax : Term) (title: StrLit) : Command.Command
   let env ← getEnv
   let titleParts ← stringToInlines title
   let titleString := inlinesToString env titleParts
-  let ctx ← Command.runTermElabM fun _ => DocElabContext.fromGenreTerm genreSyntax
+  let docName ← currentDocName
+  let ctx ← Command.runTermElabM fun _ => DocElabContext.fromGenreTerm genreSyntax docName
   let initDocState : DocElabM.State := { highlightDeduplicationTable := .some {} }
   -- See `elabDoc`: the current command anchors the root range; the title literal is the selection.
   let initPartState : PartElabM.State := .init rootRangeStx title.raw
@@ -341,14 +435,15 @@ private meta def startDoc (genreSyntax : Term) (title: StrLit) : Command.Command
   runPartElabInEnv <| do
     PartElabM.setTitle titleString (← titleParts.mapM (elabInline ⟨·⟩))
 
-private meta def runVersoBlock (block : TSyntax `block) : Command.CommandElabM Unit := do
-  runPartElabInEnv <| partCommand block
-  -- This calls pushInfoLeaf a quadratic number of times for a for a linear number of top-level
-  -- verso blocks, which should be harmless but may be inefficient. It may be desirable to tag
-  -- info leaves that have already been pushed to avoid pushing them again.
-  saveRefsInEnv
+private meta def runVersoBlock (block : VersoBlock) : Command.CommandElabM Unit := do
+  let name ← runPartElabInEnv PartElabM.nextBlockDefinitionName
+  runPartElabInEnv <| elabTopLevelBlock name block
 
 open PartElabM in
+/--
+Finishes the document: closes its parts, checks its links and footnotes, and defines the document
+constant.
+-/
 private meta def finishDoc : Command.CommandElabM Unit:= do
   let endPos := (← getFileMap).source.rawEndPos
   runPartElabInEnv <| do closePartsUntil 0 endPos
@@ -364,11 +459,41 @@ private meta def finishDoc : Command.CommandElabM Unit:= do
   let ty ← ``(VersoDoc $versoEnv.genreSyntax)
   Command.elabCommand (← `(public def $n : $ty := $doc))
 
-syntax (name := replaceDoc) "#doc " "(" term ") " str " =>" : command
-elab_rules : command
-  | `(command|#doc ( $genreSyntax:term ) $title:str =>%$tok) => open Lean Parser Elab Command in do
-  elabCommand <| ← `(open scoped Lean.Doc.Syntax)
+end Verso.Doc.Concrete
 
+namespace Verso.Parser
+
+open Lean Parser
+
+/--
+Succeeds with a node without children at the end of the input, and fails elsewhere. It doesn't
+consume input.
+
+The `#doc` command's syntax ends with this node exactly when the document has no blocks.
+-/
+public meta def emptyDocument : Parser :=
+  withAntiquot (mkAntiquot "emptyDocument" `Verso.Parser.emptyDocument) {
+    fn := fun c s =>
+      if c.atEnd s.pos then s.mkNode `Verso.Parser.emptyDocument s.stackSize
+      else s.mkError "end of input"
+  }
+
+@[combinator_parenthesizer emptyDocument]
+def emptyDocument.parenthesizer := PrettyPrinter.Parenthesizer.visitArgs (pure ())
+
+@[combinator_formatter emptyDocument]
+def emptyDocument.formatter := PrettyPrinter.Formatter.visitArgs (pure ())
+
+end Verso.Parser
+
+namespace Verso.Doc.Concrete
+
+open Lean Verso Parser Doc Elab
+
+syntax (name := replaceDoc) "#doc " "(" term ") " str docArrow (emptyDocument)? : command
+
+elab_rules : command
+  | `(command|#doc ( $genreSyntax:term ) $title:str =>%$tok $[$empty]?) => open Lean Parser Elab Command in do
   startDoc genreSyntax title
 
   -- Sets up basic incremental evaluation of documents by replacing Lean's command-by-command parser
@@ -376,32 +501,20 @@ elab_rules : command
   modifyEnv fun env => originalCatParserExt.setState env (categoryParserFnExtension.getState env)
   replaceCategoryParser `command versoBlockCommandFn
 
-  if let some stopPos := tok.getTailPos? then
-    let txt ← getFileMap
+  -- The document's first block starts after the arrow's trailing whitespace.
+  if let some contentStart := tok.getTrailingTailPos? then
+    modifyEnv fun env => lastVersoEndPosExt.setState env (some contentStart)
 
-    -- Edge case: if there's a Lean comment right after `#doc`, then the Lean command parser will skip
-    -- it. We need to tell the Verso parser to start parsing right after skipping blank lines only.
-    let mut pos := txt.source.pos! stopPos
-    let mut newlinePos := pos
-    while h : pos ≠ txt.source.endPos do
-      if pos.get h == ' ' then
-        pos := pos.next h
-      else if pos.get h == '\n' then
-        pos := pos.next h
-        newlinePos := pos
-      else break
-    modifyEnv fun env => lastVersoEndPosExt.setState env (some newlinePos.offset)
-
-    -- Edge case: if there's no blocks after the =>, the replacement command parser won't get called,
-    -- so we detect that case and call finishDoc.
-    if stopPos.extract txt.source txt.source.rawEndPos |>.all Char.isWhitespace then
-      finishDoc
+  -- Edge case: if there are no blocks after the =>, the replacement command parser isn't called, so
+  -- this command finishes the document. Its syntax ends with `emptyDocument` exactly in this case.
+  if empty.isSome then
+    finishDoc
 
 open Command in
 /--
 Updates the saved Verso parser position to the end of `b`'s trailing whitespace.
 -/
-private meta def updatePos (b : TSyntax `block) : CommandElabM Unit := do
+private meta def updatePos (b : VersoBlock) : CommandElabM Unit := do
   let endPos? :=
     if b.raw.isMissing then
       none
@@ -420,7 +533,8 @@ public meta def elabVersoBlock : Command.CommandElab
 public meta def elabVersoLastBlock : Command.CommandElab
   | `(addLastBlockCmd| $b:block) => do
     updatePos b
-    runVersoBlock b
-    -- Finish up the document
+    -- Verso finishes the document even when its last block fails. An interrupt is rethrown, and then
+    -- Verso does not finish the document.
+    withLogging <| runVersoBlock b
     finishDoc
   | _ => throwUnsupportedSyntax

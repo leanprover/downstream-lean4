@@ -3,13 +3,21 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-import Manual.Meta.LakeCmd -- TODO: generalize the common parts into a library that can be upstreamed
+module
+public import Manual.Meta.CommandSpec
+public meta import Manual.Meta.CommandSpec
+public import Verso.Doc.ArgParse
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+import VersoManual.Docstring
+
+public section
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab
 open SubVerso.Highlighting Highlighted
-open scoped Lean.Doc.Syntax
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -19,7 +27,7 @@ structure ElanCommandOptions where
   -- This only allows one level of subcommand, but it's sufficient for Elan as it is today
   aliases : List Name
 
-partial def ElanCommandOptions.parse [Monad m] [MonadError m] : ArgParse m ElanCommandOptions :=
+meta partial def ElanCommandOptions.parse [Monad m] [MonadError m] : ArgParse m ElanCommandOptions :=
   ElanCommandOptions.mk <$>
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
@@ -87,7 +95,7 @@ private partial def addElanMetaBlock (name : String) : Doc.Block Verso.Genre.Man
 
 
 @[directive_expander elan]
-def elan : DirectiveExpander
+meta def elan : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← ElanCommandOptions.parse.run args
     let spec ←
@@ -108,7 +116,7 @@ def elan : DirectiveExpander
 def elanCommandDomain : Name := `Manual.elanCommand
 
 open Verso.Search in
-def elanCommandDomainMapper : DomainMapper := {
+private def elanCommandDomainMapper : DomainMapper := {
   displayName := "Elan Command",
   className := "elan-command-domain",
   dataToSearchables := "(domainData) =>
@@ -149,7 +157,7 @@ def elanCommand.descr : BlockDescr := withHighlighting {
 
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let Json.arr #[ Json.str name, aliases, spec] := info
         | do reportError s!"Failed to deserialize data while making HTML for Elan command, got {info}"; pure .empty
       let .ok (aliases : List String) := FromJson.fromJson? aliases
@@ -167,46 +175,46 @@ def elanCommand.descr : BlockDescr := withHighlighting {
       let aliasHtml : Html :=
         match aliases with
         | [] => .empty
-        | _::more => {{
+        | _::more => html%{
             <p>
-              <strong>{{if more.isEmpty then "Alias:" else "Aliases:"}}</strong>
-              " "
-              {{aliases.map (fun (a : String) => {{<code>s!"elan {a}"</code>}}) |>.intersperse {{", "}}}}
+              <strong>{if more.isEmpty then "Alias:" else "Aliases:"}</strong>
+              {" "}
+              {aliases.map (fun (a : String) => html%{<code>{s!"elan {a}"}</code>}) |>.intersperse (.text ", ")}
             </p>
-          }}
+          }
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"Elan command"</span>
-          <pre class="signature hl lean block" data-lean-context={{name.replace " "  "~~"}}>
-            {{← (Highlighted.seq #[elanTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}}
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">Elan command</span>
+          <pre class="signature hl lean block" data-lean-context={name.replace " "  "~~"}>
+            {← (Highlighted.seq #[elanTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}
           </pre>
           <div class="text">
-            {{aliasHtml}}
-            {{← contents.mapM goB}}
+            {aliasHtml}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := none
   extraCss := [docstringStyle]
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let Json.arr #[ Json.str name, _, _] := info then
       let str := s!"elan {name}"
-      pure #[(str, {{<code>{{str}}</code>}})]
+      pure #[(str, html%{<code>{str}</code>})]
     else throw s!"Expected a three-element array with a string first, got {info}"
 }
 
 @[role_expander elanMeta]
-def elanMeta : RoleExpander
+meta def elanMeta : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $mName:str )) := arg
+    let some { content := mName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the metavariable"
-    let mName := mName.getString
+    let mName := mName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.elanMeta with data := Json.arr #[$(quote mName), .null]} #[Inline.code $(quote mName)])]
 
@@ -220,7 +228,6 @@ def elanMeta.descr : InlineDescr := withHighlighting {
         pure <| .seq #[← go b, .raw "\n"]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       let (mName, ctx) :=
         match data with
@@ -235,14 +242,14 @@ def elanMeta.descr : InlineDescr := withHighlighting {
 
 
 @[role_expander elan]
-def elanInline : RoleExpander
+meta def elanInline : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $cmdName:str )) := arg
+    let some { content := cmdName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Elan command name"
-    let name := cmdName.getString
+    let name := cmdName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.elan with data := $(quote name)} #[Inline.code $(quote name)])]
 
@@ -267,7 +274,6 @@ a.elan-command:hover {
 "#
 ]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ data is => do
       let (name) :=
         match data with
@@ -278,21 +284,21 @@ a.elan-command:hover {
         if let some dest := (← read).traverseState.getDomainObject? elanCommandDomain n then
           for id in dest.ids do
             if let some dest := (← read).traverseState.externalTags[id]? then
-              return {{<a href={{dest.link}} class="elan-command"><code>s!"elan {n}"</code></a>}}
+              return html%{<a href={dest.link} class="elan-command"><code>{s!"elan {n}"}</code></a>}
 
       reportError s!"No name/dest for elan command {name}"
       is.mapM goI
 
 @[role_expander elanArgs]
-def elanArgs : RoleExpander
+meta def elanArgs : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $spec:str )) := arg
+    let some { content := spec, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Elan command name"
 
-    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with
+    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getVersoCode (← getFileName) with
     | .error e => throwErrorAt spec e
     | .ok stx =>
       match CommandSpec.ofSyntax stx with
@@ -308,7 +314,6 @@ def elanArgs.descr : InlineDescr := withHighlighting {
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       if let .arr #[hl, name] := data then
         match fromJson? (α := Highlighted) hl with

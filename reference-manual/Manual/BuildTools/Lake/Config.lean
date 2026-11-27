@@ -25,7 +25,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 open Lake.DSL
 
-#doc (Manual) "Configuration File Format" =>
+#doc (Manual) "Package Configuration File Format" =>
 %%%
 tag := "lake-config"
 %%%
@@ -76,7 +76,7 @@ Field names not used by Lake should not be used to store metadata to be processe
 
 ## Package Configuration
 
-The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
+The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], and compiler flags to be used for all {tech}[targets].
 The only mandatory field is `name`, which declares the package's name.
 
 :::::tomlTableDocs root "Package Configuration" Lake.PackageConfig (skip := backend) (skip := releaseRepo?) (skip := buildArchive?) (skip := manifestFile) (skip := moreServerArgs) (skip := dynlibs) (skip := plugins)
@@ -110,6 +110,7 @@ The code that is run to perform tests and linting is referred to as the test or 
 In Lean configuration files, these can be specified by applying the `@[test_driver]` or `@[lint_driver]` attributes to a {tech}[Lake script] or an executable or library target.
 In both Lean and TOML configuration files, they can also be configured by setting these options.
 A target or script `TGT` from a dependency `PKG` can be specified as a test or lint driver using the string `"PKG/TGT"`
+Setting {tomlField Lake.PackageConfig}`builtinLint` to {lean}`true` causes {lake}`lint` to also run {ref "running-lake-lint"}[Lean's built-in linters], and {tomlField Lake.PackageConfig}`checks` lists the modules that provide {ref "package-code-quality-checks"}[package code quality checks].
 
 :::
 
@@ -176,6 +177,7 @@ name = "example-package"
       releaseRepo := none,
       buildArchive := ELIDED,
       preferReleaseBuild := false,
+      downloadCacheService? := none,
       testDriver := "",
       testDriverArgs := #[],
       lintDriver := "",
@@ -207,6 +209,7 @@ name = "example-package"
   targetDecls := #[],
   targetDeclMap := {},
   defaultTargets := #[],
+  cacheServices := {},
   scripts := {},
   defaultScripts := #[],
   postUpdateHooks := #[],
@@ -269,6 +272,7 @@ name = "Sorting"
       releaseRepo := none,
       buildArchive := ELIDED,
       preferReleaseBuild := false,
+      downloadCacheService? := none,
       testDriver := "",
       testDriverArgs := #[],
       lintDriver := "",
@@ -380,6 +384,7 @@ name = "Sorting"
           name_eq := …},
       },
   defaultTargets := #[`Sorting],
+  cacheServices := {},
   scripts := {},
   defaultScripts := #[],
   postUpdateHooks := #[],
@@ -536,7 +541,7 @@ path = "../example"
 #[{name := `example,
     scope := "",
     version := Lake.InputVer.none,
-    src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
+    src? := some (Lake.DependencySrc.path (FilePath.mk "../example") false),
     opts := {}}]
 ```
 ::::
@@ -769,6 +774,82 @@ def main : List String → IO UInt32 := fun _ => pure 0
 
 The executable's {lean}`main` function is expected in a module named `TrustworthyTool.lean` in the package's default source file path.
 :::::
+
+## Cache Services
+%%%
+tag := "lake-config-cache-services"
+%%%
+
+Cache services for a package are declared by adding entries to the {toml}`[[cache_service]]` table array.
+Each entry in the array defines a remote cache service that is accessible both in the current workspace and in downstream packages.
+This service can be used to provide cached {tech (key := "artifact")}[build artifacts] to users.
+Unlike cache services that are defined in the {ref "lake-system-config"}[Lake system configuration file], they are read-only; package developers who provide cache services to users should define the services in their Lake system configuration file to enable {ref "lake-cache-remote"}[pushing].
+
+
+::::tomlTableDocs "cache_service" "S3 Cache Services" Lake.CacheServiceS3Config (variant := "S3")
+
+:::tomlField Lake.CacheServiceS3Config name "The service name" "Service names" String
+The service's name, as passed to {lakeOpt}`--service`. Required.
+:::
+
+:::tomlField Lake.CacheServiceS3Config kind "Service kind" "Service kinds" Lake.CacheServiceKind
+For S3 cache services, this field's value is always {tomlValue Lake.CacheServiceKind}`"s3"`.
+Use {tomlValue Lake.CacheServiceKind}`"reservoir"` for Reservoir-style cache services' {tomlField Lake.CacheServiceReservoirConfig}`kind` field.
+This field is required.
+:::
+
+:::tomlField Lake.CacheServiceS3Config artifactEndpoint "Artifact endpoint" "Artifact endpoints" String
+The base URL from which {tech (key := "artifact")}[build artifacts] are downloaded.
+Required.
+:::
+
+:::tomlField Lake.CacheServiceS3Config revisionEndpoint "Revision endpoint" "Revision endpoints" String
+The base URL from which each Git commit's {tech (key := "mappings file")}[mappings] are downloaded.
+Required.
+:::
+
+::::
+
+::::tomlTableDocs "cache_service" "Reservoir Cache Services" Lake.CacheServiceReservoirConfig (variant := "Reservoir")
+
+:::tomlField Lake.CacheServiceReservoirConfig name "The service name" "Service names" String
+The service's name, as passed to {lakeOpt}`--service`. Required.
+:::
+
+:::tomlField Lake.CacheServiceReservoirConfig kind "Service kind" "Service kinds" Lake.CacheServiceKind
+For Reservoir-style cache services, this field's value is always {tomlValue Lake.CacheServiceKind}`"reservoir"`.
+Use {tomlValue Lake.CacheServiceKind}`"s3"` for S3 cache services' {tomlField Lake.CacheServiceS3Config}`kind` field.
+This field is required.
+:::
+
+:::tomlField Lake.CacheServiceReservoirConfig apiEndpoint "API endpoint" "API endpoints" String
+The base URL of the service's Reservoir-compatible API.
+Required.
+:::
+
+::::
+
+::::::example "Package Cache Services"
+This package declares two cache services: an S3 service named `my-s3` and a Reservoir service named `my-reservoir`.
+
+```toml
+name = "example-package"
+
+[[cache_service]]
+name = "my-s3"
+kind = "s3"
+artifactEndpoint = "https://my-s3.example.com/a0"
+revisionEndpoint = "https://my-s3.example.com/r0"
+
+[[cache_service]]
+name = "my-reservoir"
+kind = "reservoir"
+apiEndpoint = "https://reservoir.example.com/api/v1"
+```
+
+In a workspace that contains this package, {lake}`cache services` lists both services, marked `(from example-package)`.
+A user downloads from the S3 service with {lake}`cache get` by passing {lakeOpt}`--service` `my-s3` together with the {tech (key := "cache scope")}[scope] that the package's maintainers publish.
+::::::
 
 # Lean Format
 %%%
@@ -1110,6 +1191,32 @@ Whitespace is not permitted between the name and `.*` or `.+`.
 {docstring Lake.LeanOption}
 
 {docstring Lake.Backend}
+
+## Cache Services
+
+Cache services are declared using the {keywordOf Lake.DSL.cacheServiceCommand}`cache_service` declaration.
+The declaration's body should be one of three smart constructors, {name Lake.CacheService.downloadService}`downloadService`, {name Lake.CacheService.downloadArtsService}`downloadArtsService`, or {name Lake.CacheService.reservoirService}`reservoirService`.
+
+:::syntax command (title := "Cache Service Declarations")
+```grammar
+$[$_:docComment]?
+$[@[$_,*]]?
+cache_service $[$_:identOrStr]? :=
+  $_:term
+$[where
+  $_*]?
+```
+
+{includeDocstring Lake.DSL.cacheServiceCommand}
+
+:::
+
+{docstring Lake.CacheService.downloadService}
+
+{docstring Lake.CacheService.downloadArtsService}
+
+{docstring Lake.CacheService.reservoirService}
+
 
 ## Scripts
 

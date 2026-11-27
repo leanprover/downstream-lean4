@@ -4,17 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
-
-import Verso
-import Verso.Doc.ArgParse
+module
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
 
-import SubVerso.Highlighting
-import SubVerso.Examples
+public section
 
 open Verso
 open Verso.Genre.Manual
@@ -24,7 +19,7 @@ namespace Manual
 def configFileDomain := `Manual.configFile
 
 open Verso.Search in
-def configFileDomainMapper : DomainMapper where
+private def configFileDomainMapper : DomainMapper where
   displayName := "Configuration File"
   className := "config-file-domain"
   dataToSearchables :=
@@ -52,7 +47,6 @@ inline_extension Inline.configFile (filename : String) where
     pure none
 
   toHtml :=
-    open Verso.Output.Html in
     open Verso.Doc.Html in
     some fun _ id data _ => do
       let .str filename := data
@@ -60,22 +54,22 @@ inline_extension Inline.configFile (filename : String) where
           pure .empty
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
-      return {{<code {{idAttr}}>{{filename}}</code>}}
+      return html%{<code {...idAttr}>{filename}</code>}
 
   toTeX := none
 
 open Verso.Doc.Elab
-open Lean.Doc.Syntax
 open Lean
+open Lean.Doc (CodeView)
 
 @[role]
-def configFile : RoleExpanderOf Unit
+meta def configFile : RoleExpanderOf Unit
   | (), inlines => do
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $cmdName:str )) := arg
+    let some { content := cmdName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the config file's name"
-    let filename := cmdName.getString
+    let filename := cmdName.getVersoCode
 
     `(show Verso.Doc.Inline Verso.Genre.Manual from
       .other (Manual.Inline.configFile $(quote filename)) #[.code $(quote filename)])

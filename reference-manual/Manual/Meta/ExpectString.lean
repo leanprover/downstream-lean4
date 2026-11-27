@@ -4,20 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.Suggestion.Basic
+public import Lean.Util.Diff
+public import Verso.Literal
 
-import Verso
+public section
 
 open Lean Elab
 open Verso Doc
+open Verso (Literal)
 
 namespace Manual
 
 variable {m : Type → Type} [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 variable [MonadInfoTree m]
 
-def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
+private def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
   if what.length > maxLength then
     (what.take maxLength).copy ++ "…"
   else
@@ -34,10 +37,10 @@ modulo `preEq`. The parameter `what` is used in the error message header, in a c
 
 Errors are logged, not thrown; the returned `Bool` indicates whether an error was logged.
 -/
-def expectString (what : String) (expected : StrLit) (actual : String)
+def expectString [Literal k] (what : String) (expected : TSyntax k) (actual : String)
     (preEq : String → String := id)
     (useLine : String → Bool := fun _ => true) : m Bool := do
-  let expectedLines := expected.getString.splitOn "\n" |>.filter useLine |>.toArray
+  let expectedLines := (Literal.decode expected).splitOn "\n" |>.filter useLine |>.toArray
   let actualLines := actual.splitOn "\n" |>.filter useLine |>.toArray
 
   unless expectedLines.map preEq == actualLines.map preEq do

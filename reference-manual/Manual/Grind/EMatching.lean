@@ -118,7 +118,7 @@ contain the function symbol `g`.
 In this example, {tactic}`grind` fails because the pattern is too restrictive: the goal does not contain the function symbol {lean}`g`.
 ```lean +error (name := restrictivePattern)
 example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
-  grind
+  grind +verbose
 ```
 ```leanOutput restrictivePattern (expandTrace := eqc)
 `grind` failed
@@ -295,6 +295,7 @@ grindFunCC
 grindFwd
 grindGen
 grindHom
+grindHomFallback
 grindHomPred
 grindInj
 grindIntro
@@ -440,7 +441,7 @@ example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
 ```
 However, it can't solve goals like this one that require an appeal to propositional equalities:
 ```lean +error (name := noExt)
-example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by grind
+example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by grind +verbose
 ```
 ```leanOutput noExt
 `grind` failed
@@ -464,7 +465,7 @@ def Point.swap (p : Point) : Point := ⟨p.y, p.x⟩
 ```lean +error (name := noExt')
 theorem swap_swap_eq_id : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
-  grind
+  grind +verbose
 ```
 ```leanOutput noExt'
 `grind` failed
@@ -555,7 +556,7 @@ The function is correct if it returns {name}`true` exactly when {name}`Decreasin
 Attempting to prove this fact using a combination of {tactic}`fun_induction` and {tactic}`grind` fails immediately, with none of the three cases proven:
 ```lean +error (name := decreasingCorrect1)
 def decreasingCorrect : decreasing xs = Decreasing xs := by
-  fun_induction decreasing <;> grind
+  fun_induction decreasing <;> grind +verbose
 ```
 ```leanOutput decreasingCorrect1
 `grind` failed
@@ -637,20 +638,6 @@ norm
 The {tactic}`grind` tactic can work with a source algebra that doesn't have a great deal of solving infrastructure (e.g. bitvectors) by “injecting” it into another algebra that has more solving infrastructure (like natural numbers or integers).
 {ref "grind-hom"}[Homomorphism rules] describe the injection from source to target, and how the injection commutes with other operations (like addition or multiplication in the case of bitvectors).
 Homomorphism predicates present additional facts that {tactic}`grind` can use about the injection (like that a bitvector of length $`n` corresponds to a natural number less than $`2^n`).
-
-:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Rules")
-```grammar
-hom
-```
-{includeDocstring Lean.Parser.Attr.grindHom}
-:::
-
-:::syntax Lean.Parser.Attr.grindMod (title := "Homomorphism Predicates")
-```grammar
-hom_pred
-```
-{includeDocstring Lean.Parser.Attr.grindHomPred}
-:::
 
 
 {TODO}[Document `gen` modifier for `grind` patterns]
@@ -850,7 +837,7 @@ This matches the pattern `s x`, and is thus used to instantiate {lean}`s_eq` wit
 and so on until the round limit is reached.
 ```lean +error (name := ematchUnbounded)
 example : s 0 > 0 := by
-  grind
+  grind +verbose
 ```
 
 ```leanOutput ematchUnbounded (expandTrace := limits) (expandTrace := ematch) (expandTrace := facts)
@@ -879,7 +866,7 @@ h : s 0 = 0
 Increasing the round limit to 20 causes E-matching to terminate due to the default generation limit of 8:
 ```lean +error (name := ematchUnbounded2)
 example : s 0 > 0 := by
-  grind (ematch := 20)
+  grind +verbose (ematch := 20)
 ```
 ```leanOutput ematchUnbounded2 (expandTrace := limits) (expandTrace := ematch) (expandTrace := facts)
 `grind` failed
@@ -925,7 +912,7 @@ The fact that {lean}`(iota 20).length > 10` can be proven by repeatedly instanti
 However, {tactic}`grind` does not succeed:
 ```lean +error (name := biggerGrindLimits)
 example : (iota 20).length > 10 := by
-  grind
+  grind +verbose
 ```
 ```leanOutput biggerGrindLimits (expandTrace := limits) (expandTrace := facts)
 `grind` failed
@@ -1029,7 +1016,7 @@ example (x y : Nat)
       0 < match x with
           | 0 => 0
           | _+1 => 1 := by
-  grind -matchEqs
+  grind +verbose -matchEqs
 ```
 ```leanOutput noMatchEqs
 `grind` failed

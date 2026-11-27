@@ -8,6 +8,7 @@ public import VersoLiterateCode
 public import VersoSearch.DomainSearch
 public import Verso.Code.Highlighted.WebAssets
 public import Verso.Output.Html.CssVars
+import Verso.Output.Html.KaTeX
 
 public section
 
@@ -35,23 +36,26 @@ def code.css := include_str "code.css"
 open Verso Output Html Search in
 /--
 The `<head>` fragment shared by module pages and the full-page search results view.
-Bundles the code-highlighting assets and every piece of the search UI (combobox on
-normal pages; plain input + live-updating list on `/search/`).
+Bundles the code-highlighting assets, KaTeX for math in hover docstrings, and every piece of the
+search UI (combobox on normal pages; plain input + live-updating list on `/search/`).
 -/
-private def headContents : Html := {{
+private def headContents : Html := html%{
   <!-- Stop favicon requests -->
   <link rel="icon" href="data:," />
 
   <script src="popper.js"></script>
   <script src="tippy.js"></script>
-  <script>{{Html.text false highlightingJs}}</script>
-  <style>{{Html.text false highlightingStyle}}</style>
+  <script>{Html.raw highlightingJs}</script>
+  <style>{Html.raw highlightingStyle}</style>
   <link rel="stylesheet" href="verso-vars.css"/>
   <link rel="stylesheet" href="tippy-border.css"/>
   <link rel="stylesheet" href="code.css"/>
+  <link rel="stylesheet" href="katex/katex.css"/>
+  <script defer="defer" src="katex/katex.js"></script>
+  <script defer="defer" src="katex/math.js"></script>
 
-  {{ searchAssetTags }}
-}}
+  { searchAssetTags }
+}
 
 open Verso Output Doc Html in
 def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod) : EmitM Unit := do
@@ -66,25 +70,29 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod) : EmitM Unit :
     have : i < components.length := by
       have := h.2.1
       grind
-    breadcrumbs := {{<li><a href={{addr}}><code>{{toString components[i]}}</code></a></li>}} ++ breadcrumbs
+    breadcrumbs := html%{<li><a href={addr}><code>{toString components[i]}</code></a></li>} ++ breadcrumbs
 
   let htmlId? := (← read).moduleIds.find? mod.name
 
   let children : Array Html :=
     if let some d := root[mod.name]? then
       d.children.map fun (c : Name × Dir) =>
-        {{<li><a href={{(components.map toString |> "/".intercalate) ++ "/" ++ toString c.1}}>{{mod.name ++ c.1 |> toString}}</a></li>}}
+        html%{<li><a href={(components.map toString |> "/".intercalate) ++ "/" ++ toString c.1}>{mod.name ++ c.1 |> toString}</a></li>}
     else #[]
 
   let base ← read
-  let ctx := { base with
+  let ctx : HtmlT.Context Literate := { base with
     options := {}
     traverseContext := { currentModule := mod.name }
     codeOptions := {}
   }
 
-  let (results, st) ← mod.contents.mapIdxM renderCode |>.run ctx (← get).hlState
-  -- Discard the accumulated headers because there's no local ToC here
+  let hovers := (← get).hlState
+  -- The heading IDs avoid the IDs that were assigned by traversal. The accumulated headers are
+  -- discarded because there's no local ToC here.
+  let (results, st) ←
+    StateT.run' (s := ({ usedIds := base.traverseState.usedHtmlIds } : HeadingState)) <|
+      (mod.contents.mapIdxM renderCode).run ctx hovers
   let body : Html := .seq (results.map (·.1))
 
   modify ({ · with hlState := st })
@@ -95,7 +103,7 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod) : EmitM Unit :
 
   IO.FS.createDirAll outFile
 
-  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ contents.asString
+  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ contents.render
 
 def emitDir (outDir : System.FilePath) (dir : Dir) : EmitM Unit := do
   let root := dir
@@ -116,32 +124,32 @@ Emits the search page at `search/index.html`. Result rendering is deferred to `s
 `<base href="../"/>` makes the search infrastructure resolve against the site root.
 -/
 def emitSearchResultsPage (outDir : System.FilePath) : IO Unit := do
-  let pageHtml : Html := {{
+  let pageHtml : Html := html%{
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <base href="../"/>
-        <title>"Search"</title>
+        <title>Search</title>
         <!-- Start the xref.json download in parallel with script loading. The
              search page JS can't fetch it until it runs, so without the preload
              the data fetch sits at the tail of the critical path. -->
         <link rel="preload" href="xref.json" as="fetch"/>
-        {{ headContents }}
+        { headContents }
       </head>
       <body>
         <main class="search-page" id="main-content">
-          <h1>"Search"</h1>
+          <h1>Search</h1>
           <div data-search-host class="search-page-host"></div>
-          <noscript><p>"This search feature requires JavaScript."</p></noscript>
+          <noscript><p>This search feature requires JavaScript.</p></noscript>
           <div id="search-page-results"></div>
           <script type="module" src="-verso-search/search-page.js"></script>
         </main>
       </body>
     </html>
-  }}
+  }
   IO.FS.createDirAll (outDir / "search")
-  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
 
 def main (args : List String) : IO UInt32 := do
   let config ←
@@ -155,6 +163,7 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
     IO.FS.writeFile (config.outputDir / "code.css") code.css
     IO.FS.writeFile (config.outputDir / "verso-vars.css") «verso-vars.css»
+    writeKaTeX (config.outputDir / "katex")
     emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")
     let dir ← loadDir config.inputDir
     let dir := dir.sort

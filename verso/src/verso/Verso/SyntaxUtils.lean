@@ -4,8 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 module
+import Lean.DocString.Parser
 public import Lean.Parser.Types
 public import Std.Data.TreeMap
+public import Verso.Literal
 public meta import Verso.Instances
 import Verso.Instances
 import Verso.Method
@@ -14,9 +16,8 @@ namespace Verso.Parser
 -- TODO: make public upstream and delete these
 
 open Lean Doc Parser
+open Lean.Doc
 
-
-public def textLine (allowNewlines := true) : ParserFn := many1Fn (inline { allowNewlines })
 
 public def nl := satisfyFn (· == '\n') "newline"
 
@@ -24,7 +25,7 @@ public def nl := satisfyFn (· == '\n') "newline"
 Parses a line that contains only spaces.
 -/
 public def blankLine : ParserFn :=
-  nodeFn `blankLine <| atomicFn <| asStringFn <| takeWhileFn (· == ' ') >> nl
+  nodeFn `blankLine <| atomicFn <| asTokenFn <| takeWhileFn (· == ' ') >> nl
 
 private def skipToNewline : ParserFn :=
     takeUntilFn (· == '\n')
@@ -47,16 +48,124 @@ where
 
 
 /--
-Recovers from a parse error by skipping input until one or more complete blank lines has been
-skipped.
+Returns the node that marks where a recovered block starts, at `pos`.
 
-The provided `stxs` are pushed to the stack upon recovery.
+The node's children are an atom without width at `pos` and `Syntax.missing`. The atom gives
+recovered blocks' syntax a position, even when their parser doesn't leave a tree. `Syntax.missing`
+makes every recovered block partial syntax.
 -/
-public def recoverBlockWith (stxs : Array Syntax) (p : ParserFn) : ParserFn :=
+private def recoveredBlockStart (c : ParserContext) (pos : String.Pos.Raw) : Syntax :=
+  let here : Substring.Raw := ⟨c.inputString, pos, pos⟩
+  .node .none `Verso.Parser.recoveredBlockStart #[.atom (.original here pos here pos) "", .missing]
+
+/--
+Runs `p`. On a parse error, skips input until one or more complete blank lines have been skipped.
+
+After a parse error, exactly one tree is left on the stack: a null node. Its first child, of kind
+`Verso.Parser.recoveredBlockStart`, marks where `p` started and contains `Syntax.missing`. The trees
+that `p` left on the stack follow.
+
+The trees that `p` left are elaborated in order as top-level blocks that are partial syntax.
+-/
+public def recoverPartialBlock (p : ParserFn) : ParserFn :=
   recoverFn p fun rctx =>
     ignoreFn skipBlock >>
-    show ParserFn from
-      fun _ s => stxs.foldl (init := s.shrinkStack rctx.initialSize) (·.pushSyntax ·)
+    show ParserFn from fun c s =>
+      let built := s.stxStack.extract rctx.initialSize s.stxStack.size
+      (s.shrinkStack rctx.initialSize).pushSyntax
+        (mkNullNode (#[recoveredBlockStart c rctx.initialPos] ++ built))
+
+private def findIdxRev? {α} (p : α → Bool) (xs : Array α) : Option (Fin xs.size) := do
+  if h : xs.size = 0 then failure
+  else
+    let mut n : Fin xs.size := ⟨xs.size - 1, by grind⟩
+    repeat
+      if p xs[n] then return n
+      if n.val = 0 then
+        break
+      else
+        n := ⟨n.val - 1, by grind⟩
+    failure
+
+/-- Checks whether `stx` contains no atoms, no identifiers and no whitespace. -/
+private partial def isEmptySyntax : Syntax → Bool
+  | .missing => true
+  | .atom .. | .ident .. => false
+  | .node .none _ args | .node (.synthetic ..) _ args => args.all isEmptySyntax
+  | .node (.original leading _ trailing _) _ args =>
+    leading.startPos == leading.stopPos && trailing.startPos == trailing.stopPos &&
+      args.all isEmptySyntax
+
+private def lastNonEmptyIdx? (args : Array Syntax) : Option (Fin args.size) :=
+  findIdxRev? (not ∘ isEmptySyntax) args
+
+/--
+Sets the trailing whitespace of the last token of `stx` to `trailing`.
+
+At each node, the last child that isn't empty is the one that gets the whitespace, so a final
+`Syntax.missing` or a final node without tokens is skipped.
+-/
+private partial def updateSyntaxTrailing (trailing : Substring.Raw) : Syntax → Syntax
+  | .atom info val => .atom (info.updateTrailing trailing) val
+  | .ident info rawVal val pre => .ident (info.updateTrailing trailing) rawVal val pre
+  | n@(.node info k args) =>
+    if let some i := lastNonEmptyIdx? args then
+     let last := updateSyntaxTrailing trailing args[i]
+     let args := args.set i last;
+     Syntax.node info k args
+    else n
+  | s => s
+
+/--
+Removes the line break inline at the very end of `block`, if there is one.
+
+The parser adds a final line break inline to blocks that end in a paragraph only when the input ends
+right after said line break. When a blank line follows, the line break is trailing whitespace. This
+workaround removes the line break element, converting it back to trailing whitespace.
+-/
+public partial def dropFinalLinebreak (block : Syntax) : Syntax :=
+  withoutLast block |>.getD block
+where
+  withoutLast : Syntax → Option Syntax
+    | .node info k args => do
+      let i ← lastNonEmptyIdx? args
+      let last := args[i]
+      if last.isOfKind ``Lean.Doc.Parser.Inline.linebreak then
+        pure (.node info k (args.eraseIdx i))
+      else
+        pure (.node info k (args.set i (← withoutLast last)))
+    | _ => none
+
+/--
+Updates the trailing whitespace information in the syntax at the top of the stack based on
+subsequently consumed whitespace.
+-/
+private def updateTrailing : ParserFn := fun c s =>
+  let top := s.stxStack.back
+  let start? :=
+    match top.getTailInfo? with
+    | some (.original (trailing := trailing) ..) => some trailing.startPos
+    | some (.synthetic (endPos := endPos) ..) => some endPos
+    | _ => none
+  if let some start := start? then
+    s.popSyntax.pushSyntax <| updateSyntaxTrailing ⟨c.inputString, start, s.pos⟩ top
+  else
+    s
+
+private def dropFinalLinebreakAtInputEnd : ParserFn := fun c s =>
+  if c.atEnd s.pos then s.popSyntax.pushSyntax (dropFinalLinebreak s.stxStack.back) else s
+
+/--
+Parses one top-level block of a document, the blank lines after it and the indentation of the next
+line. On a parse error, it recovers with `recoverPartialBlock`. The block command parser
+`versoBlockCommandFn` uses it for each top-level block.
+-/
+public def blockCommandRecovery : ParserFn := fun c s =>
+  let s := recoverPartialBlock (Lean.Doc.Parser.blockFn { recordTrailing := true }) c s
+  if s.hasError then s
+  else
+    (ignoreFn (manyFn blankLine >> takeWhileFn (· == ' ')) >> dropFinalLinebreakAtInputEnd >>
+      updateTrailing) c s
 
 
 end Verso.Parser
@@ -72,6 +181,15 @@ public defmethod Syntax.getPos! (stx : Syntax) : String.Pos.Raw :=
 
 public defmethod SourceInfo.getPos! (info : SourceInfo) : String.Pos.Raw :=
   if let some pos := info.getPos? then pos else panic! s!"No position for {repr info}"
+
+/--
+Checks whether two syntax objects have source ranges that are the same. If either syntax is lacking
+a source range, the result is `false`.
+-/
+public defmethod Syntax.hasSameRange (stx1 stx2 : Syntax) : Bool :=
+  match stx1.getRange?, stx2.getRange? with
+  | some r1, some r2 => r1 == r2
+  | _, _ => false
 
 public def ppSyntax (stx : Syntax) : Std.Format := .nest 2 <| stx.formatStx (some 50) false
 
@@ -156,8 +274,8 @@ public def strLitInputContext [Monad m] [MonadFileMap m] [MonadError m] (str : S
 Given a string literal, constructs a Lean string that can be parsed by the Lean parser, yielding
 correct source positions for items in the string literal.
 -/
-public def parserInputString [Monad m] [MonadFileMap m]
-    (str : TSyntax `str) :
+public def parserInputString [Monad m] [MonadFileMap m] [Literal k]
+    (str : TSyntax k) :
     m String := do
   let text ← getFileMap
   let preString := (0 : String.Pos.Raw).extract text.source (str.raw.getPos?.getD 0)
@@ -174,7 +292,7 @@ public def parserInputString [Monad m] [MonadFileMap m]
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
     start.extract text.source stop
-  code := code ++ strOriginal?.getD str.getString
+  code := code ++ strOriginal?.getD (Literal.decode str)
   return code
 
 
@@ -337,14 +455,15 @@ actual string contents. When the literal's source text differs from its contents
 sequences, the decoded contents are parsed and the resulting positions are mapped back to the
 source.
 -/
-public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] (p : ParserFn) (input : StrLit) : m Syntax := do
+public def parseStrLitWith [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Literal k] (p : ParserFn) (input : TSyntax k) : m Syntax := do
   let text ← getFileMap
+  let inputText := Literal.decode input
   if let some startPos := input.raw.getPos? then
     let endPos := input.raw.getTailPos?.getD startPos
     let stopPos := if endPos > text.source.rawEndPos then text.source.rawEndPos else endPos
-    if startPos.extract text.source stopPos != input.getString then
+    if startPos.extract text.source stopPos != inputText then
       let (decoded, posMap) := decodeContentWithMap text.source startPos stopPos
-      if decoded == input.getString then
+      if decoded == inputText then
         return ← parseDecoded p decoded (mapDecodedPos posMap) text
   -- The contents appear verbatim in the source: parse it directly for exact source positions.
   let (ictx, startPos) ← strLitInputContext input.raw (← getFileName)
@@ -384,7 +503,7 @@ Parses an original string literal as part of a syntax category.
 The provided string literal is used only for source positions; the `FileMap` is used to acquire the
 actual string contents.
 -/
-public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] (catName : Name) (input : StrLit) : m Syntax :=
+public def parseStrLitAsCategory [Monad m] [MonadLog m] [MonadEnv m] [MonadOptions m] [MonadError m] [AddMessageContext m] [Literal k] (catName : Name) (input : TSyntax k) : m Syntax :=
   parseStrLitWith (andthenFn whitespace (categoryParserFnImpl catName)) input
 
 /--

@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Data.Json
+module
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
+import Verso.Doc.Elab.Monad
+
+public section
 
 open Verso Doc Elab Output Html Code
 open Verso.Genre Manual
@@ -19,18 +23,17 @@ block_extension Block.customCSS (css : String) where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
         reportError <| "Couldn't deserialize CSS while rendering HTML: " ++ err
         pure .empty
       | .ok (css : String) =>
-        pure {{
-          <style>{{css}}</style>
-        }}
+        pure html%{
+          <style>{css}</style>
+        }
 
 @[code_block]
-def customCSS : CodeBlockExpanderOf Unit
+meta def customCSS : CodeBlockExpanderOf Unit
   | (), str =>
-    `(Block.other (Block.customCSS $(quote str.getString)) #[])
+    `(Block.other (Block.customCSS $(quote str.getVersoCodeBlock)) #[])

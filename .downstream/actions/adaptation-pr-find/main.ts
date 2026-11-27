@@ -1,16 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import {
-  abort,
-  adaptationBranchNameFor,
-  findPrFor,
-  getInput,
-  parseRepo,
-} from "../lib/util";
+import { getInput, parseRepo } from "../lib/input";
+import { abort, adaptationBranchNameFor, findPrFor } from "../lib/util";
 
 const token = getInput("token");
-const upstreamPr = parseInt(getInput("upstream-pr"), 10);
-const downstreamRepo = parseRepo(getInput("downstream-repo"));
+const upstreamPr = getInput("upstream-pr", (v) => parseInt(v, 10));
+const downstreamRepo = getInput("downstream-repo", parseRepo);
 const octo = github.getOctokit(token);
 
 async function run(): Promise<void> {

@@ -4,17 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Term
-import Lean.Elab.Tactic
+module
+public import Verso.Doc.ArgParse
 
-import Verso.Code.Highlighted
-import Verso.Doc.ArgParse
-import Verso.Doc.Suggestion
-import SubVerso.Highlighting.Code
-import VersoManual
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+public meta import VersoManual.Markdown
+import VersoManual.Docstring
 
-import Manual.Meta.Basic
-import Manual.Meta.PPrint
+public section
 
 namespace Manual
 
@@ -43,13 +41,13 @@ structure ParserAliasOptions where
   name : Name
   «show» : Option String
 
-def ParserAliasOptions.parse [Monad m] [MonadError m] : ArgParse m ParserAliasOptions :=
+meta def ParserAliasOptions.parse [Monad m] [MonadError m] : ArgParse m ParserAliasOptions :=
   ParserAliasOptions.mk <$> .positional `name .name <*> .named `show .string true
 
 
 
 @[directive_expander parserAlias]
-def parserAlias : DirectiveExpander
+meta def parserAlias : DirectiveExpander
   | args, more => do
     let opts ← ParserAliasOptions.parse.run args
     let {declName, stackSz?, autoGroupArgs} ← Parser.getParserAliasInfo opts.name
@@ -97,7 +95,7 @@ def parserAlias.descr : BlockDescr where
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let Json.arr #[ name, declName, «show», stackSz?, autoGroupArgs, docs?, argCount] := info
         | do reportError s!"Failed to deserialize docstring data while making HTML for parser alias, expected array but got {info}"; pure .empty
 
@@ -123,28 +121,28 @@ def parserAlias.descr : BlockDescr where
 
       let arity : Html :=
         match stackSz? with
-        | some n => {{s!"Arity: {n}"}}
-        | none => {{"Arity is sum of arguments' arities"}}
+        | some n => s!"Arity: {n}"
+        | none => "Arity is sum of arguments' arities"
       let grp :=
         if autoGroupArgs then
-          some {{"Automatically wraps arguments in a " <code>"null"</code> " node unless there's exactly one"}}
+          some html%{Automatically wraps arguments in a <code>null</code> node unless there's exactly one}
         else none
       let metadata :=
         match grp with
-        | none => {{<p>{{arity}}</p>}}
-        | some g => {{<ul><li>{{arity}}</li><li>{{g}}</li></ul>}}
+        | none => html%{<p>{arity}</p>}
+        | some g => html%{<ul><li>{arity}</li><li>{g}</li></ul>}
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"parser alias"</span>
-          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}}</pre>
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">parser alias</span>
+          <pre class="signature hl lean block">{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}</pre>
           <div class="text">
-            {{metadata}}
-            {{← contents.mapM goB}}
+            {metadata}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]

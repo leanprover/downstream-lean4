@@ -4,129 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public import Manual.Meta.CommandSpec
+public meta import Manual.Meta.CommandSpec
+public meta import Verso.Doc.Elab.Block
+public import VersoManual.Basic
+import VersoManual.Docstring
 
-import SubVerso.Highlighting
-import SubVerso.Examples
-
-import Manual.Meta.Basic
+public section
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab
 open SubVerso.Highlighting Highlighted
-open Lean.Doc.Syntax
 
 open Lean.Elab.Tactic.GuardMsgs
+open Lean.Doc (CodeView)
 
 namespace Manual
-
-namespace CommandSpec
-mutual
-  inductive Item where
-    | metavar (name : String)
-    | literalSyntax (string : String)
-    | ellipses
-    | optional (contents : List DecoratedItem)
-    | or
-  deriving ToJson, FromJson, Repr
-  structure DecoratedItem where
-    leading : String
-    item : Item
-    trailing : String
-  deriving ToJson, FromJson, Repr
-end
-
-mutual
-  partial def Item.toHighlighted : Item → Highlighted
-    | .metavar x => .token ⟨.var ⟨x.toName⟩ x none, x⟩ -- Hack: abusing FVarId here
-    | .literalSyntax s => .token ⟨.keyword none none none, s⟩
-    | .ellipses => .token ⟨.unknown, "..."⟩
-    | .or => .token ⟨.keyword none none none, "|"⟩
-    | .optional xs =>
-      .token ⟨.keyword none none none, "["⟩ ++
-      .seq (xs.toArray.map DecoratedItem.toHighlighted) ++
-      .token ⟨.keyword none none none, "]"⟩
-
-  partial def DecoratedItem.toHighlighted : DecoratedItem → Highlighted
-    | ⟨l, x, r⟩ => .text l ++ x.toHighlighted ++ .text r
-end
-
-open Syntax (mkCApp)
-
-private def quoteList [Quote α `term] : List α → Term
-  | []      => mkCIdent ``List.nil
-  | (x::xs) => Syntax.mkCApp ``List.cons #[quote x, quoteList xs]
-
-mutual
-  partial def Item.quote : Item → Term
-    | .metavar x => mkCApp ``Item.metavar #[Quote.quote x]
-    | .literalSyntax s => mkCApp ``Item.literalSyntax #[Quote.quote s]
-    | .ellipses => mkCApp ``Item.ellipses #[]
-    | .or => mkCApp ``Item.or #[]
-    | .optional xs =>
-      have : Quote DecoratedItem := ⟨DecoratedItem.quote⟩
-      mkCApp ``Item.optional #[quoteList xs]
-
-  partial def DecoratedItem.quote : DecoratedItem → Term
-    | ⟨l, i, t⟩ => mkCApp ``DecoratedItem.mk #[quote l, i.quote, quote t]
-end
-
-instance : Quote Item := ⟨Item.quote⟩
-instance : Quote DecoratedItem := ⟨DecoratedItem.quote⟩
-
-end CommandSpec
-
-
-abbrev CommandSpec : Type := List CommandSpec.DecoratedItem
-
-def CommandSpec.toHighlighted (spec : CommandSpec) : Highlighted := .seq (spec.map (·.toHighlighted)).toArray
-
-declare_syntax_cat lake_cmd_spec_item
-syntax ident : lake_cmd_spec_item
-syntax str : lake_cmd_spec_item
-syntax "..." : lake_cmd_spec_item
-syntax "|" : lake_cmd_spec_item
-syntax "[" lake_cmd_spec_item+ "]" : lake_cmd_spec_item
-
-declare_syntax_cat lake_cmd_spec
-syntax lake_cmd_spec_item* : lake_cmd_spec
-
-mutual
-  partial def CommandSpec.Item.ofSyntax (stx : TSyntax `lake_cmd_spec_item) : Except String CommandSpec.Item :=
-    match stx with
-    | `(lake_cmd_spec_item|$i:ident) => pure <| .metavar <| i.getId.toString (escape := false)
-    | `(lake_cmd_spec_item|$s:str) => pure <| .literalSyntax s.getString
-    | `(lake_cmd_spec_item|...) => pure <| .ellipses
-    | `(lake_cmd_spec_item||) => pure <| .or
-    | `(lake_cmd_spec_item|[ $items* ]) => .optional <$> items.toList.mapM DecoratedItem.ofSyntax
-    | _ => .error s!"Not a command spec item: {stx}"
-
-  partial def CommandSpec.DecoratedItem.ofSyntax
-      (stx : TSyntax `lake_cmd_spec_item) : Except String CommandSpec.DecoratedItem := do
-    return ⟨lead stx.raw.getHeadInfo, ← Item.ofSyntax stx, trail stx.raw.getTailInfo⟩
-  where
-    lead : SourceInfo → String
-      | .original l .. => l.toString
-      | _ => ""
-
-    trail : SourceInfo → String
-      | .original _ _ t _ => t.toString
-      | _ => ""
-end
-
-def CommandSpec.ofSyntax (stx : Syntax) : Except String CommandSpec :=
-  match stx with
-  | `(lake_cmd_spec|$items:lake_cmd_spec_item*) => do
-      items.toList.mapM DecoratedItem.ofSyntax
-  | _ => .error s!"Not a command spec: {stx}"
 
 structure LakeCommandOptions where
   name : List Name
@@ -134,7 +31,7 @@ structure LakeCommandOptions where
   -- This only allows one level of subcommand, but it's sufficient for Lake as it is today
   aliases : List Name
 
-partial def LakeCommandOptions.parse [Monad m] [MonadError m] : ArgParse m LakeCommandOptions :=
+meta partial def LakeCommandOptions.parse [Monad m] [MonadError m] : ArgParse m LakeCommandOptions :=
   LakeCommandOptions.mk <$>
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
@@ -203,7 +100,7 @@ private partial def addLakeMetaBlock (name : String) : Doc.Block Verso.Genre.Man
 
 
 @[directive_expander lake]
-def lake : DirectiveExpander
+meta def lake : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← LakeCommandOptions.parse.run args
     let spec ←
@@ -223,7 +120,7 @@ def lake : DirectiveExpander
 def lakeCommandDomain : Name := `Manual.lakeCommand
 
 open Verso.Search in
-def lakeCommandDomainMapper : DomainMapper where
+private def lakeCommandDomainMapper : DomainMapper where
   displayName := "Lake Command"
   className := "lake-command-domain"
   dataToSearchables :=
@@ -262,7 +159,7 @@ def lakeCommand.descr : BlockDescr where
 
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
       let Json.arr #[ Json.str name, aliases, spec] := info
         | do reportError s!"Failed to deserialize data while making HTML for Lake command, got {info}"; pure .empty
       let .ok (aliases : List String) := FromJson.fromJson? aliases
@@ -280,45 +177,45 @@ def lakeCommand.descr : BlockDescr where
       let aliasHtml : Html :=
         match aliases with
         | [] => .empty
-        | _::more => {{
+        | _::more => html%{
             <p>
-              <strong>{{if more.isEmpty then "Alias:" else "Aliases:"}}</strong>
-              " "
-              {{aliases.map (fun (a : String) => {{<code>s!"lake {a}"</code>}}) |>.intersperse {{", "}}}}
+              <strong>{if more.isEmpty then "Alias:" else "Aliases:"}</strong>
+              {" "}
+              {aliases.map (fun (a : String) => html%{<code>{s!"lake {a}"}</code>}) |>.intersperse (.text ", ")}
             </p>
-          }}
+          }
 
-      return {{
-        <div class="namedocs" {{idAttr}}>
-          {{permalink id xref false}}
-          <span class="label">"Lake command"</span>
-          <pre class="signature hl lean block" data-lean-context={{name}}>
-            {{← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}}
+      return html%{
+        <div class="namedocs" {...idAttr}>
+          {permalink id xref false}
+          <span class="label">Lake command</span>
+          <pre class="signature hl lean block" data-lean-context={name}>
+            {← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}
           </pre>
           <div class="text">
-            {{aliasHtml}}
-            {{← contents.mapM goB}}
+            {aliasHtml}
+            {← contents.mapM goB}
           </div>
         </div>
-      }}
+      }
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let Json.arr #[ Json.str name, _, _] := info then
       let str := s!"lake {name}"
-      pure #[(str, {{<code>{{str}}</code>}})]
+      pure #[(str, html%{<code>{str}</code>})]
     else throw s!"Expected a three-element array with a string first, got {info}"
 
 @[role_expander lakeMeta]
-def lakeMeta : RoleExpander
+meta def lakeMeta : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $mName:str )) := arg
+    let some { content := mName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the metavariable"
-    let mName := mName.getString
+    let mName := mName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.lakeMeta with data := Json.arr #[$(quote mName), .null]} #[Inline.code $(quote mName)])]
 
@@ -331,7 +228,6 @@ def lakeMeta.descr : InlineDescr := withHighlighting {
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       let (mName, ctx) :=
         match data with
@@ -345,14 +241,14 @@ def lakeMeta.descr : InlineDescr := withHighlighting {
 }
 
 @[role_expander lake]
-def lakeInline : RoleExpander
+meta def lakeInline : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $cmdName:str )) := arg
+    let some { content := cmdName, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Lake command name"
-    let name := cmdName.getString
+    let name := cmdName.getVersoCode
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.lake with data := $(quote name)} #[Inline.code $(quote name)])]
 
@@ -377,7 +273,6 @@ a.lake-command:hover {
 "#
 ]
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goI _ data is => do
       let (name) :=
         match data with
@@ -388,21 +283,21 @@ a.lake-command:hover {
         if let some dest := (← read).traverseState.getDomainObject? lakeCommandDomain n then
           for id in dest.ids do
             if let some dest := (← read).traverseState.externalTags[id]? then
-              return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
+              return html%{<a href={dest.link} class="lake-command"><code>{s!"lake {n}"}</code></a>}
 
       reportError s!"No name for lake command in {data.compress}"
       is.mapM goI
 
 @[role_expander lakeArgs]
-def lakeArgs : RoleExpander
+meta def lakeArgs : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $spec:str )) := arg
+    let some { content := spec, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the Lake command name"
 
-    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with
+    match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getVersoCode (← getFileName) with
     | .error e => throwErrorAt spec e
     | .ok stx =>
       match CommandSpec.ofSyntax stx with
@@ -418,7 +313,6 @@ def lakeArgs.descr : InlineDescr := withHighlighting {
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun _ _ data _ => do
       if let .arr #[hl, name] := data then
         match fromJson? (α := Highlighted) hl with

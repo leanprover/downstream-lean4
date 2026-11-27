@@ -174,46 +174,45 @@ includes popper/tippy/highlighting/copy-button assets needed for code hover tool
 -/
 private def mkHeadContents (litConfig : LiterateConfig) (includeCodeAssets : Bool := true) (includeKaTeXAssets : Bool := true) : Html :=
   let faviconTag : Html := match litConfig.metadata.favicon with
-    | some fav => {{<link rel="icon" href={{(System.FilePath.fileName fav).getD fav}}/>}}
-    | none => {{<link rel="icon" href="data:,"/>}}
+    | some fav => html%{<link rel="icon" href={(System.FilePath.fileName fav).getD fav}/>}
+    | none => html%{<link rel="icon" href="data:,"/>}
   let descTag : Html := match litConfig.metadata.description with
-    | some desc => {{<meta name="description" content={{desc}}/>}}
+    | some desc => html%{<meta name="description" content={desc}/>}
     | none => .empty
   let extraCssTags : Html := litConfig.extraCss.foldl (init := .empty) fun acc css =>
-    acc ++ {{<link rel="stylesheet" href={{(⟨css⟩ : System.FilePath).fileName.getD css}}/>}}
+    acc ++ html%{<link rel="stylesheet" href={(⟨css⟩ : System.FilePath).fileName.getD css}/>}
   let extraJsTags : Html := litConfig.extraJs.foldl (init := .empty) fun acc js =>
-    acc ++ {{<script src={{(⟨js⟩ : System.FilePath).fileName.getD js}} defer="defer"></script>}}
+    acc ++ html%{<script src={(⟨js⟩ : System.FilePath).fileName.getD js} defer="defer"></script>}
   let hasThemeCss := !litConfig.theme.isEmpty || !litConfig.themeDark.isEmpty
-  let themeCssTag : Html := if hasThemeCss then {{<link rel="stylesheet" href="literate-theme.css"/>}} else .empty
-  let katexAssets : Html := if includeKaTeXAssets then {{
+  let themeCssTag : Html := if hasThemeCss then html%{<link rel="stylesheet" href="literate-theme.css"/>} else .empty
+  let katexAssets : Html := if includeKaTeXAssets then html%{
     <script src="katex/katex.js"></script>
     <script src="katex/math.js"></script>
     <link rel="stylesheet" href="katex/katex.css"/>
-  }} else .empty
-  let codeAssets : Html := if includeCodeAssets then {{
+  } else .empty
+  let codeAssets : Html := if includeCodeAssets then html%{
     <script src="popper.js"></script>
     <script src="tippy.js"></script>
-    <script src="marked.js"></script>
-    <script>{{Html.text false highlightingJs}}</script>
-    <style>{{Html.text false highlightingStyle}}</style>
+    <script>{Html.raw highlightingJs}</script>
+    <style>{Html.raw highlightingStyle}</style>
     <link rel="stylesheet" href="tippy-border.css"/>
-  }} else .empty
-  let copyButtonTag : Html := if includeCodeAssets then {{
+  } else .empty
+  let copyButtonTag : Html := if includeCodeAssets then html%{
     <script src="copy-button.js" defer="defer"></script>
-  }} else .empty
-  {{
-    {{ faviconTag }}
-    {{ descTag }}
-    {{ katexAssets }}
-    {{ codeAssets }}
+  } else .empty
+  html%{
+    { faviconTag }
+    { descTag }
+    { katexAssets }
+    { codeAssets }
     <link rel="stylesheet" href="verso-vars.css"/>
     <link rel="stylesheet" href="literate.css"/>
-    {{ themeCssTag }}
-    {{ copyButtonTag }}
-    {{ searchAssetTags }}
-    {{ extraCssTags }}
-    {{ extraJsTags }}
-  }}
+    { themeCssTag }
+    { copyButtonTag }
+    { searchAssetTags }
+    { extraCssTags }
+    { extraJsTags }
+  }
 
 open Verso Output Doc Html in
 /--
@@ -222,7 +221,9 @@ Returns the body HTML and updated highlight state.
 -/
 private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
     (ctx : HtmlContext) (initHlState : HtmlState) :
-    BuildLogT IO (Html × HtmlState × Array Heading) := do
+    BuildLogT IO (Html × HtmlState × Array Heading) :=
+  -- The heading state makes the module docs on the page one outline with unique IDs.
+  StateT.run' (s := { usedIds := ctx.traverseState.usedHtmlIds : HeadingState }) do
   let emitCtx := { ctx with
     options := {}
     traverseContext := { currentModule := mod.name }
@@ -231,13 +232,15 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
   let hlCtx : HighlightHtmlM.Context Literate := { emitCtx with options := emitCtx.codeOptions }
 
   -- Render a single code item and its output messages
-  let renderCodeItemWithOutput (idx : Nat) (item : ModuleItem') (hlState : HtmlState) : BuildLogT IO (Html × HtmlState) := do
-    let ((codeHtml, _, _), st) ← renderCode idx item |>.run emitCtx hlState.hlState
+  let renderCodeItemWithOutput (idx : Nat) (item : ModuleItem') (hlState : HtmlState) :
+      StateT HeadingState (BuildLogT IO) (Html × HtmlState) := do
+    let ((codeHtml, _), st) ← renderCode idx item |>.run emitCtx hlState.hlState
     let (outputHtml, st') := renderOutputMessages #[(idx, item)] resolved.showOutput hlCtx st
     return (codeHtml ++ outputHtml, { hlState with hlState := st' })
 
   -- Render accumulated code items into a code box
-  let flushCodeItems (items : Array (Nat × ModuleItem')) (hlState : HtmlState) : BuildLogT IO (Html × HtmlState) := do
+  let flushCodeItems (items : Array (Nat × ModuleItem')) (hlState : HtmlState) :
+      StateT HeadingState (BuildLogT IO) (Html × HtmlState) := do
     if items.isEmpty then return (.empty, hlState)
     let mut boxHtml : Html := .empty
     let mut hlState := hlState
@@ -246,7 +249,7 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
       hlState := hlState'
       boxHtml := boxHtml ++ itemHtml
     if boxHtml == .empty then return (.empty, hlState)
-    return ({{<div class="code-box">{{boxHtml}}</div>}}, hlState)
+    return (html%{<div class="code-box">{boxHtml}</div>}, hlState)
 
   -- Filter docstrings based on resolved config
   let filterDocstrings (item : ModuleItem') : ModuleItem' :=
@@ -275,22 +278,21 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
   for h : itemIdx in 0...mod.contents.size do
     let item := mod.contents[itemIdx]
     if ModuleItem'.isImport item then
-      let ((codeHtml, _, _), st) ← renderCode itemIdx item |>.run emitCtx importHlState.hlState
+      let ((codeHtml, _), st) ← renderCode itemIdx item |>.run emitCtx importHlState.hlState
       importHlState := { importHlState with hlState := st }
       importHtml := importHtml ++ codeHtml
   if resolved.showImports && importHtml != .empty then
-    body := body ++ {{
+    body := body ++ html%{
       <details class="imports-list">
-        <summary>"Imports"</summary>
-        <div class="imports-code">{{importHtml}}</div>
+        <summary>Imports</summary>
+        <div class="imports-code">{importHtml}</div>
       </details>
-    }}
+    }
 
   -- Process items: prose (modDoc) flows between code boxes
   let mut currentCodeItems : Array (Nat × ModuleItem') := #[]
   let mut hlState := importHlState
   let mut allHeadings : Array Heading := #[]
-  let mut usedIds := ctx.traverseState.usedHtmlIds
   for (origIdx, item) in contents do
     let item := filterDocstrings item
     let hasModDoc := item.code.any Code.isModDoc
@@ -301,9 +303,8 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
       hlState := hlState'
       body := body ++ flushHtml
       currentCodeItems := #[]
-      let ((itemHtml, hdgs, usedIds'), st) ← renderCode origIdx item (usedHtmlIds := usedIds) |>.run emitCtx hlState.hlState
+      let ((itemHtml, hdgs), st) ← renderCode origIdx item |>.run emitCtx hlState.hlState
       hlState := { hlState with hlState := st }
-      usedIds := usedIds'
       allHeadings := allHeadings ++ hdgs
       body := body ++ itemHtml
     else if hasDeclDocAsText then
@@ -316,13 +317,14 @@ private def renderModBody (mod : LitMod) (resolved : ResolvedConfig)
       let remainingCode := (item.code.filter (!Code.isDeclDoc ·)).toList.dropWhile
         fun | .highlighted hl => newlinesOnly hl | _ => false
       let codeItem := { item with code := remainingCode.toArray }
-      let ((docHtml, _), st) ← renderCode origIdx docItem (docstringsAsText := true) |>.run emitCtx hlState.hlState
+      let ((docHtml, _), st) ←
+        renderCode origIdx docItem (docstringsAsText := true) |>.run emitCtx hlState.hlState
       hlState := { hlState with hlState := st }
       body := body ++ docHtml
       let (codeBoxHtml, hlState') ← renderCodeItemWithOutput origIdx codeItem hlState
       hlState := hlState'
       unless codeBoxHtml == .empty do
-        body := body ++ {{<div class="code-box">{{codeBoxHtml}}</div>}}
+        body := body ++ html%{<div class="code-box">{codeBoxHtml}</div>}
     else
       currentCodeItems := currentCodeItems.push (origIdx, item)
 
@@ -362,7 +364,7 @@ def emitMod (root : Dir) (outDir: System.FilePath) (mod : LitMod)
 
   IO.FS.createDirAll outFile
 
-  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outFile / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
 
 def emitDir (outDir : System.FilePath) (dir : Dir)
     (srcDirs : Lean.NameMap System.FilePath := {}) : EmitM Unit := do
@@ -383,37 +385,37 @@ partial def emitLandingPage (outDir : System.FilePath) (dir : Dir) (litConfig : 
   let headContents := mkHeadContents litConfig (includeCodeAssets := false) (includeKaTeXAssets := false)
   let landingTitle := litConfig.metadata.title.getD "Module Index"
   let toc := buildToc dir
-  let pageContents : Html := {{
+  let pageContents : Html := html%{
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{landingTitle}}</title>
-        {{ headContents }}
+        <title>{landingTitle}</title>
+        { headContents }
       </head>
       <body>
         <main class="landing-page" id="main-content">
-          <h1>{{landingTitle}}</h1>
-          {{ toc }}
+          <h1>{landingTitle}</h1>
+          { toc }
         </main>
       </body>
     </html>
-  }}
-  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.asString
+  }
+  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.render
 where
   buildToc (dir : Dir) : Html :=
     if dir.children.isEmpty then .empty
-    else {{<ul class="module-toc">{{dir.children.map fun (_, d) => tocEntry d}}</ul>}}
+    else html%{<ul class="module-toc">{dir.children.map fun (_, d) => tocEntry d}</ul>}
   tocEntry (dir : Dir) : Html :=
     let link : Html :=
       if let some m := dir.mod then
         let ctx := moduleContext m.name litConfig
-        {{<a href={{ctx.href}}>{{m.name.toString}}</a>}}
+        html%{<a href={ctx.href}>{m.name.toString}</a>}
       else
         -- namespace-only node (no module file)
         .empty
     let children := buildToc dir
-    {{<li>{{link}}{{children}}</li>}}
+    html%{<li>{link}{children}</li>}
 
 open Verso Output Html in
 /--
@@ -424,32 +426,32 @@ the search infrastructure (loaded via the shared head) resolves correctly.
 def emitSearchResultsPage (outDir : System.FilePath) (litConfig : LiterateConfig := {}) : IO Unit := do
   let headContents := mkHeadContents litConfig (includeCodeAssets := false) (includeKaTeXAssets := false)
   let siteTitle := litConfig.metadata.title.getD "Module Index"
-  let pageContents : Html := {{
+  let pageContents : Html := html%{
     <html>
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <base href="../"/>
-        <title>{{s!"Search — {siteTitle}"}}</title>
+        <title>{s!"Search — {siteTitle}"}</title>
         <!-- Start the xref.json download in parallel with script loading. The
              search page JS can't fetch it until it runs, so without the preload
              the data fetch sits at the tail of the critical path. -->
         <link rel="preload" href="xref.json" as="fetch"/>
-        {{ headContents }}
+        { headContents }
       </head>
       <body>
         <main class="landing-page search-page" id="main-content">
-          <h1>"Search"</h1>
+          <h1>Search</h1>
           <div data-search-host class="search-page-host"></div>
-          <noscript><p>"This search feature requires JavaScript."</p></noscript>
+          <noscript><p>This search feature requires JavaScript.</p></noscript>
           <div id="search-page-results"></div>
           <script type="module" src="-verso-search/search-page.js"></script>
         </main>
       </body>
     </html>
-  }}
+  }
   IO.FS.createDirAll (outDir / "search")
-  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.asString
+  IO.FS.writeFile (outDir / "search" / "index.html") <| "<!DOCTYPE html>\n" ++ pageContents.render
 
 open Verso Output Doc Html in
 /--
@@ -479,7 +481,7 @@ def emitLandingFromModule (outDir : System.FilePath) (root : Dir) (modName : Nam
     | some siteTitle => s!"{modLabel} — {siteTitle}"
     | none => modLabel
   let pageHtml := page landingPageTitle siteRoot headContents mod.name root htmlId? body (pageToc := tocHtml) (litConfig := litConfig)
-  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.asString
+  IO.FS.writeFile (outDir / "index.html") <| "<!DOCTYPE html>\n" ++ pageHtml.render
   return hlState
 
 def main (args : List String) : IO UInt32 := do
@@ -492,18 +494,9 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeFile (config.outputDir / "popper.js") Verso.Code.Highlighted.WebAssets.popper
     IO.FS.writeFile (config.outputDir / "tippy.js") Verso.Code.Highlighted.WebAssets.tippy
     IO.FS.writeFile (config.outputDir / "tippy-border.css") Verso.Code.Highlighted.WebAssets.tippy.border.css
-    IO.FS.writeFile (config.outputDir / "marked.js") Verso.Code.Highlighted.WebAssets.marked
     IO.FS.writeFile (config.outputDir / "verso-vars.css") Verso.Output.Html.«verso-vars.css»
     IO.FS.writeFile (config.outputDir / "literate.css") literate.css
-    -- Copy KaTeX dependencies
-    IO.FS.createDirAll (config.outputDir / "katex")
-    IO.FS.writeFile (config.outputDir / "katex" / "katex.css") katex.css
-    IO.FS.writeFile (config.outputDir / "katex" / "katex.js") katex.js
-    IO.FS.writeFile (config.outputDir / "katex" / "math.js") math.js
-    for (name, contents) in katexFonts do
-      let path := config.outputDir / name
-      path.parent.forM IO.FS.createDirAll
-      IO.FS.writeBinFile path contents
+    writeKaTeX (config.outputDir / "katex")
     -- Copy the copy-button JS
     IO.FS.writeFile (config.outputDir / "copy-button.js") copyButtonJs
     emitSearchBox (config.outputDir / "-verso-search") (searchPagePath := some "search/")

@@ -20930,6 +20930,12 @@ function setFailed(message) {
 function error(message, properties = {}) {
   issueCommand("error", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
+function warning(message, properties = {}) {
+  issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+function notice(message, properties = {}) {
+  issueCommand("notice", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
 function info(message) {
   process.stdout.write(message + os5.EOL);
 }
@@ -25019,6 +25025,115 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
+// actions/lib/util.ts
+function exit(reason, level = "info") {
+  if (level === "warning") warning(reason);
+  else if (level === "notice") notice(reason);
+  else info(reason);
+  process.exit(0);
+}
+function abort(reason) {
+  setFailed(reason);
+  process.exit(1);
+}
+function assert(condition, message) {
+  if (!condition) abort(message);
+}
+function runIn(cwd) {
+  return async function(cmd, args, options) {
+    return await exec(cmd, args, { ...options, cwd });
+  };
+}
+function captureIn(cwd) {
+  const run2 = runIn(cwd);
+  return async function(cmd, args, options) {
+    let stdout = "";
+    await run2(cmd, args, {
+      ...options,
+      listeners: { stdout: (data) => stdout += data.toString() }
+    });
+    return stdout.trim();
+  };
+}
+var Repo = class {
+  owner;
+  repo;
+  constructor(fst, repo) {
+    if (typeof fst === "object") {
+      this.repo = fst.repo;
+      this.owner = fst.owner;
+    } else {
+      this.owner = fst;
+      this.repo = repo;
+    }
+  }
+  get fullName() {
+    return `${this.owner}/${this.repo}`;
+  }
+};
+async function getPr(octo2, repo, n) {
+  const { data } = await octo2.rest.pulls.get({
+    ...repo,
+    pull_number: n
+  });
+  return data;
+}
+async function findPrFor(octo2, repo, branchName, options = {}) {
+  const { state = "all", headRepo = repo } = options;
+  const { data } = await octo2.rest.pulls.list({
+    ...repo,
+    head: `${headRepo.owner}:${branchName}`,
+    state,
+    sort: "created",
+    direction: "desc",
+    per_page: 100
+  });
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr) => pr.head.repo?.full_name.toLowerCase() === fullName);
+}
+function adaptationBranchNameFor(prNumber) {
+  return `adaptation-${prNumber}`;
+}
+async function addAndCommit(cwd, message) {
+  await exec("git", ["add", "."], { cwd });
+  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
+    cwd,
+    ignoreReturnCode: true
+  });
+  if (returnCode === 0) return false;
+  await exec("git", ["commit", "-m", message], { cwd });
+  return true;
+}
+
+// actions/lib/input.ts
+function getInput2(name, parser) {
+  const value = getInput(name, { required: true });
+  return parser ? parser(value) : value;
+}
+function getInputOpt(name, parser) {
+  const value = getInput(name, { required: false });
+  if (value === "") return null;
+  return parser ? parser(value) : value;
+}
+function parseBool(input) {
+  return input.trim().toLowerCase() === "true";
+}
+function parseReplacements(input) {
+  const result = [];
+  for (const line of input.split("\n")) {
+    if (line.trim() === "") continue;
+    const i = line.indexOf(" -> ");
+    assert(i >= 0, `Expected "pattern -> replacement", not "${line}"`);
+    result.push([line.slice(0, i), line.slice(i + " -> ".length)]);
+  }
+  return result;
+}
+function parseRepo(input) {
+  const match = /^([^/]+)\/([^/]+)$/.exec(input);
+  assert(match !== null, `Expected "owner/repo", not "${input}"`);
+  return new Repo(match[1], match[2]);
+}
+
 // actions/lib/status-message.ts
 var MARKER = "ybVeuCO3cIRWlSWmC/cEvg2Na4yzOwEa";
 async function postOrUpdateStatus(options) {
@@ -25070,93 +25185,34 @@ async function postOrUpdateStatus(options) {
   }
 }
 
-// actions/lib/util.ts
-function exit(reason) {
-  info(`Exiting: ${reason}`);
-  process.exit(0);
-}
-function abort(reason) {
-  setFailed(reason);
-  process.exit(1);
-}
-function assert(condition, message) {
-  if (!condition) abort(message);
-}
-function getInput2(name) {
-  return getInput(name, { required: true });
-}
-function getInputOpt(name) {
-  const value = getInput(name, { required: false });
-  return value === "" ? null : value;
-}
-function parseBool(input) {
-  return input.trim().toLowerCase() === "true";
-}
-function parseRepo(input) {
-  const match = /^([^/]+)\/([^/]+)$/.exec(input);
-  assert(match !== null, `Expected "owner/repo", not "${input}"`);
-  return { owner: match[1], repo: match[2] };
-}
-async function getPr(octo2, repo, n) {
-  const { data } = await octo2.rest.pulls.get({
-    ...repo,
-    pull_number: n
-  });
-  return data;
-}
-async function isAncestor(octo2, repo, ancestorSha, descendantSha) {
-  const { data } = await octo2.rest.repos.compareCommitsWithBasehead({
-    ...repo,
-    basehead: `${ancestorSha}...${descendantSha}`
-  });
-  return data.status === "ahead" || data.status === "identical";
-}
-async function findPrFor(octo2, repo, branchName, options = {}) {
-  const { state = "all", headOwner = repo.owner } = options;
-  const { data } = await octo2.rest.pulls.list({
-    ...repo,
-    head: `${headOwner}:${branchName}`,
-    state,
-    sort: "created",
-    direction: "desc",
-    per_page: 1
-  });
-  return data[0];
-}
-function adaptationBranchNameFor(prNumber) {
-  return `adaptation-${prNumber}`;
-}
-async function addAndCommit(cwd, message) {
-  await exec("git", ["add", "."], { cwd });
-  const returnCode = await exec("git", ["diff", "--cached", "--quiet"], {
-    cwd,
-    ignoreReturnCode: true
-  });
-  if (returnCode === 0) return false;
-  await exec("git", ["commit", "-m", message], { cwd });
-  return true;
-}
-
 // actions/adaptation-pr-create/main.ts
+function parseRefMapping(input) {
+  return parseReplacements(input).map(([pattern, replacement]) => ({
+    pattern: new RegExp(`^(?:${pattern})$`),
+    replacement
+  }));
+}
 var appToken = getInput2("app-token");
 var appSlug = getInput2("app-slug");
-var upstreamRepo = context2.repo;
-var upstreamPr = parseInt(getInput2("upstream-pr"), 10);
-var upstreamCiGreen = parseBool(getInput2("upstream-ci-green"));
+var upstreamRepo = new Repo(context2.repo);
+var upstreamClone = getInput2("upstream-clone");
+var upstreamPr = getInput2("upstream-pr", (v) => parseInt(v, 10));
+var upstreamCiGreen = getInput2("upstream-ci-green", parseBool);
 var upstreamCiGreenMsg = getInput2("upstream-ci-green-msg");
-var upstreamBranch = getInput2("upstream-branch");
+var refMapping = getInput2("ref-mapping", parseRefMapping);
+var refMappingDesc = getInput2("ref-mapping-desc").trim();
 var upstreamLabel = getInput2("upstream-label");
 var upstreamLabelForce = getInputOpt("upstream-label-force");
-var downstreamRepo = parseRepo(getInput2("downstream-repo"));
+var downstreamRepo = getInput2("downstream-repo", parseRepo);
 var downstreamClone = getInput2("downstream-clone");
-var downstreamBranch = getInput2("downstream-branch");
 var downstreamLabel = getInput2("downstream-label");
 var downstreamLabelMerge = getInput2("downstream-label-merge");
 var overrideToolchain = getInputOpt("override-toolchain");
 var octo = getOctokit(appToken);
-async function dRun(cmd, args, options) {
-  return await exec(cmd, args, { ...options, cwd: downstreamClone });
-}
+var uRun = runIn(upstreamClone);
+var uCapture = captureIn(upstreamClone);
+var dRun = runIn(downstreamClone);
+var dCapture = captureIn(downstreamClone);
 function ensurePrIsUnmerged(pr) {
   if (pr.merged_at !== null) exit("PR is merged, exiting...");
   info("PR is unmerged, continuing...");
@@ -25197,19 +25253,98 @@ async function getBranch(repo, branch) {
     throw error2;
   }
 }
-async function ensureCorrectMergeBase(prefix, uPr, uBranch) {
-  const { data: mergeBase } = await octo.rest.repos.compareCommits({
+async function getMergeBase(uPr) {
+  const { data } = await octo.rest.repos.compareCommits({
     ...upstreamRepo,
-    base: uPr.base.sha,
+    base: uPr.base.repo.default_branch,
     head: uPr.head.sha
   });
-  const uBranchSha = uBranch.commit.sha;
-  const mergeBaseSha = mergeBase.merge_base_commit.sha;
-  if (mergeBaseSha === uBranchSha) return;
-  await updateStatus(
-    uPr,
-    prefix + `The merge base of this PR does not coincide with branch \`${upstreamBranch}\`. Please rebase this PR onto \`${upstreamBranch}\` and force-push. Alternatively, if \`${upstreamBranch}\` is further ahead than this PR, you can also merge it into this PR.`
+  return data.merge_base_commit.sha;
+}
+function mapRef(ref) {
+  for (const [i, { pattern, replacement }] of refMapping.entries()) {
+    if (pattern.test(ref)) return [ref.replace(pattern, replacement), i];
+  }
+  return void 0;
+}
+async function findUpstreamCandidates(uPr, mergeBaseSha) {
+  await uRun("git", ["fetch", "--no-tags", "origin", uPr.head.sha]);
+  const output = await uCapture(
+    "git",
+    [
+      "for-each-ref",
+      ...["--merged", mergeBaseSha],
+      "--format=%(objectname)%09%(*objectname)%09%(refname)%09%(refname:short)"
+    ],
+    { silent: true }
   );
+  const candidates = [];
+  for (const line of output.split("\n")) {
+    if (line === "") continue;
+    const [sha, peeledSha, ref, refShort] = line.split("	");
+    const mapped = mapRef(ref);
+    if (mapped === void 0) continue;
+    candidates.push({
+      upstreamRef: ref,
+      upstreamRefShort: refShort,
+      // Annotated tags must be peeled to the commit they point to.
+      upstreamSha: peeledSha !== "" ? peeledSha : sha,
+      downstreamRef: mapped[0],
+      priority: mapped[1]
+    });
+  }
+  return candidates;
+}
+async function listDownstreamRefs() {
+  const output = await dCapture(
+    "git",
+    ["for-each-ref", "--format=%(refname)"],
+    { silent: true }
+  );
+  return new Set(output.split("\n"));
+}
+async function findClosestSha(mergeBaseSha, shas) {
+  const output = await uCapture(
+    "git",
+    ["rev-list", "--topo-order", mergeBaseSha],
+    { silent: true }
+  );
+  const closest = output.split("\n").find((sha) => shas.has(sha));
+  assert(closest !== void 0, "no candidate is an ancestor of merge base");
+  return closest;
+}
+async function findBase(uPr, mergeBaseSha) {
+  info("Searching for base of the upstream PR...");
+  const downstreamRefs = await listDownstreamRefs();
+  const candidates = (await findUpstreamCandidates(uPr, mergeBaseSha)).filter(
+    (c) => downstreamRefs.has(c.downstreamRef)
+  );
+  if (candidates.length === 0) {
+    info("Found no base");
+    return void 0;
+  }
+  const shas = new Set(candidates.map((c) => c.upstreamSha));
+  const closestSha = await findClosestSha(mergeBaseSha, shas);
+  const base = candidates.filter((c) => c.upstreamSha === closestSha).sort(
+    (a, b) => a.priority - b.priority || // Prefer the lexicographically larger ref, e.g. the newer nightly.
+    b.upstreamRef.localeCompare(a.upstreamRef)
+  )[0];
+  info(
+    `Found base "${base.upstreamRef}" (${base.upstreamSha}), corresponding to downstream ref "${base.downstreamRef}"`
+  );
+  return base;
+}
+async function ensureCorrectMergeBase(prefix, uPr, mergeBaseSha, base) {
+  if (base?.upstreamSha === mergeBaseSha) return;
+  let message = prefix + `The merge base of this PR does not coincide with ${refMappingDesc}. Please ensure it does so`;
+  if (upstreamLabelForce !== null) {
+    const labelUrl = `https://github.com/${upstreamRepo.fullName}/labels/${encodeURIComponent(upstreamLabelForce)}`;
+    message += `, or label this PR ${labelUrl} to override this check`;
+    if (base !== void 0) {
+      message += ` (the adaptation PR will then be based on \`${base.upstreamRefShort}\`)`;
+    }
+  }
+  await updateStatus(uPr, message + ".");
   exit("incorrect merge base");
 }
 async function ensureUpstreamCiGreen(prefix, uPr) {
@@ -25217,45 +25352,35 @@ async function ensureUpstreamCiGreen(prefix, uPr) {
   await updateStatus(uPr, prefix + upstreamCiGreenMsg);
   exit("upstream CI is not green");
 }
-async function switchToAdaptationBranch(aBranchName, aBranchExists) {
+async function switchToAdaptationBranch(aBranchName, aBranchExists, base) {
   if (aBranchExists) {
     await dRun("git", ["switch", "-c", aBranchName, `origin/${aBranchName}`]);
   } else {
-    await dRun("git", [
-      "switch",
-      "-c",
-      aBranchName,
-      `origin/${downstreamBranch}`
-    ]);
+    assert(base !== void 0, "no base for new adaptation branch");
+    info(`Creating adaptation branch from "${base.downstreamRef}"...`);
+    await dRun("git", ["switch", "-c", aBranchName, base.downstreamRef]);
   }
 }
-async function isDownstreamGreenReachable(uPr, uBranch) {
-  return isAncestor(octo, upstreamRepo, uBranch.commit.sha, uPr.head.sha);
-}
-async function isGreenReachableFromAdaptationBranch() {
-  const returnCode = await dRun(
+async function mergeBaseIntoAdaptationBranch(prefix, uPr, base) {
+  const isAncestorCode = await dRun(
     "git",
-    ["merge-base", "--is-ancestor", `origin/${downstreamBranch}`, "HEAD"],
+    ["merge-base", "--is-ancestor", base.downstreamRef, "HEAD"],
     { ignoreReturnCode: true }
   );
-  return returnCode === 0;
-}
-async function mergeGreenIntoAdaptationBranch(prefix, uPr) {
-  await dRun("git", ["fetch", "origin", downstreamBranch]);
-  if (await isGreenReachableFromAdaptationBranch()) return;
-  info(`Merging "${downstreamBranch}" into adaptation branch...`);
+  if (isAncestorCode === 0) return;
+  info(`Merging "${base.downstreamRef}" into adaptation branch...`);
   const returnCode = await dRun(
     "git",
-    ["merge", "-X", "theirs", "--no-edit", `origin/${downstreamBranch}`],
+    ["merge", "-X", "theirs", "--no-edit", base.downstreamRef],
     { ignoreReturnCode: true }
   );
   if (returnCode === 0) return;
   await dRun("git", ["merge", "--abort"]);
   await updateStatus(
     uPr,
-    prefix + `Merging \`${downstreamBranch}\` into the adaptation branch failed due to conflicts that could not be resolved automatically. Please resolve them manually.`
+    prefix + `Merging \`${base.downstreamRef}\` into the adaptation branch failed due to conflicts that could not be resolved automatically. Please resolve them manually.`
   );
-  exit(`failed to merge "${downstreamBranch}" into adaptation branch`);
+  exit(`failed to merge "${base.downstreamRef}" into adaptation branch`);
 }
 async function applyOverridesAndCommit() {
   if (overrideToolchain !== null) {
@@ -25376,20 +25501,24 @@ async function run() {
   if (aPr !== void 0 && aPr.labels.some((l) => l.name === downstreamLabelMerge)) {
     exit(`Adaptation PR #${aPr.number} is labeled "${downstreamLabelMerge}"`);
   }
-  const uBranch = await getBranch(upstreamRepo, upstreamBranch);
-  assert(
-    uBranch !== void 0,
-    `Upstream branch "${upstreamBranch}" not found`
-  );
+  const mergeBaseSha = await getMergeBase(uPr);
+  const base = await findBase(uPr, mergeBaseSha);
   if (!hasForceLabel) {
     if (aBranch === void 0)
-      await ensureCorrectMergeBase(prefix, uPr, uBranch);
+      await ensureCorrectMergeBase(prefix, uPr, mergeBaseSha, base);
     await ensureUpstreamCiGreen(prefix, uPr);
   }
   assert(overrideToolchain !== null, "at least one override is required");
-  await switchToAdaptationBranch(aBranchName, aBranch !== void 0);
-  if (await isDownstreamGreenReachable(uPr, uBranch)) {
-    await mergeGreenIntoAdaptationBranch(prefix, uPr);
+  if (aBranch === void 0 && base === void 0) {
+    await updateStatus(
+      uPr,
+      prefix + `No ancestor of this PR coincides with ${refMappingDesc}. Please rebase or merge this PR so that it has such an ancestor.`
+    );
+    exit("no base found");
+  }
+  await switchToAdaptationBranch(aBranchName, aBranch !== void 0, base);
+  if (base !== void 0) {
+    await mergeBaseIntoAdaptationBranch(prefix, uPr, base);
   }
   await applyOverridesAndCommit();
   await pushAdaptationBranch(aBranchName);

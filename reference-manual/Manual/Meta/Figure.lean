@@ -4,16 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import VersoManual
-import Lean.Elab.InfoTree.Types
+module
+public import Verso.Doc.ArgParse
+public meta import Verso.Doc.Elab.Block
+public meta import Verso.Doc.Elab.Inline
+public meta import Verso.Doc.PointOfInterest
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
 open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
 
 open Lean Elab
+open Lean.Doc (VersoInline)
 
 
 
@@ -24,16 +29,16 @@ def Block.figure (captionString : String) (name : Option String) : Block where
   data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : TSyntaxArray `inline
+  caption : Array VersoInline
   /-- Name for refs -/
   tag : Option String := none
 
 
-def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FigureConfig :=
+meta def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FigureConfig :=
   FigureConfig.mk <$> .positional `caption .inlinesString <*> .named `tag .string true
 
 @[directive_expander figure]
-def figure : DirectiveExpander
+meta def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
 
@@ -68,7 +73,6 @@ def figure.descr : BlockDescr where
         pure <| .seq #[← go b, .raw "\n"]
   toHtml :=
     open Verso.Doc.Html in
-    open Verso.Output.Html in
     some <| fun goI goB id _data blocks => do
       if h : blocks.size < 1 then
         reportError "Malformed figure"
@@ -78,12 +82,12 @@ def figure.descr : BlockDescr where
           | reportError "Malformed figure - caption not paragraph"; pure .empty
         let xref ← HtmlT.state
         let attrs := xref.htmlId id
-        pure {{
-          <figure {{attrs}}>
-            {{← blocks.extract 1 blocks.size |>.mapM goB}}
-            <figcaption>{{← caption.mapM goI}}</figcaption>
+        pure html%{
+          <figure {...attrs}>
+            {← blocks.extract 1 blocks.size |>.mapM goB}
+            <figcaption>{← caption.mapM goI}</figcaption>
           </figure>
-        }}
-  localContentItem _ info blocks := open Verso.Output.Html in do
+        }
+  localContentItem _ info blocks := do
     let (captionString, _, _) ← FromJson.fromJson? info (α := String × Option String × Option Tag)
-    pure #[(captionString, {{<span class="figure">{{captionString}}</span>}})]
+    pure #[(captionString, html%{<span class="figure">{captionString}</span>})]

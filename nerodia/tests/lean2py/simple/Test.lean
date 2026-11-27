@@ -25,8 +25,32 @@ def alwaysRaise : IO Empty :=
   throw <| IO.userError "alwaysRaise() called"
 
 @[py_module_fn]
-def countbytes (bs : ByteArray) : Nat :=
-  bs.size
+def countbytes (bs : ByteArray) : USize :=
+  bs.usize
+
+@[py_module_fn]
+def encodeUTF8 (s : String) : ByteArray :=
+  s.toByteArray
+
+@[py_module_fn]
+def tripleAdd (u8 : UInt8) (i32 : Int32) (usize : USize) : Int64 :=
+  u8.toInt8.toInt64 + i32.toInt64 + usize.toUInt64.toInt64
+
+@[py_module_fn]
+def bnot (b : Bool) : Bool :=
+  !b
+
+@[py_module_fn]
+def optToNat (s : Option String) : Option Nat :=
+  s.bind (·.toNat?)
+
+@[py_module_fn]
+def scale (x : Float) (k : Float32) : Float :=
+  x * k.toFloat
+
+@[py_module_fn]
+def narrow (x : Float) : Float32 :=
+  x.toFloat32
 
 /-- Return a standard greeting ("Olá!"). -/
 @[py_module_fn]

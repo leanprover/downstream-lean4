@@ -3,16 +3,18 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Components.NoJs
-import VersoWeb.Components.NavBar
-import VersoWeb.Components.Footer
-import VersoWeb.Theme.Head
-import VersoWeb.Theme.Css
-import VersoWeb.Theme.Post
+module
 
-open Verso Genre Blog Template Output Html Multi
+public import VersoWeb.Components.NavBar
+public import VersoWeb.Components.Footer
+public import VersoWeb.Theme.Head
+public import VersoWeb.Theme.Post
+import VersoWeb.Components.NoJs
+
+public section
+
+open Lean (Html)
+open Verso Genre Blog Template Multi
 open Verso.Web.Components
 
 namespace Verso.Web.Theme
@@ -71,21 +73,18 @@ structure LayoutConfig where
 Primary HTML template with configurable site name and extra head content.
 -/
 def primaryTemplate (config : SiteConfig) (extraHead : Html := .empty) (beforeNavBar : Html := .empty) (navBar : TemplateM NavBarConfig) (footer : TemplateM FooterConfig) : TemplateM Html := do
-  let path ← currentPath
 
-  let base := if path == #["404"] then some "/" else "/".intercalate (path.map (fun _ => "..") |>.push ".").toList
-
-  return {{
+  return html%{
     <html lang="en">
-      {{ ← head config.siteName config.rootTitle config.headConfig config.variables config.socialMeta extraHead base }}
+      { ← head config.siteName config.rootTitle config.headConfig config.variables config.socialMeta extraHead }
       <body>
-        {{ ← Components.noJSBar }}
-        {{ beforeNavBar }}
+        { ← Components.noJSBar }
+        { beforeNavBar }
         <header class="site-header">
-          {{ ← Components.NavBar.render (← navBar) }}
+          { ← Components.NavBar.render (← navBar) }
         </header>
-        {{ ← param "content" }}
-        {{ ← Components.Footer.render (← footer) }}
+        { ← param "content" }
+        { ← Components.Footer.render (← footer) }
 
         <script src="-verso-data/theme.js" />
         <script src="-verso-data/copy.js" />
@@ -95,6 +94,6 @@ def primaryTemplate (config : SiteConfig) (extraHead : Html := .empty) (beforeNa
 
       </body>
     </html>
-  }}
+  }
 
 end Verso.Web.Theme

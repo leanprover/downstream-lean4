@@ -15,6 +15,7 @@ open InlineLean
 open Verso.Doc
 
 open Verso.Output
+open Lean (Html)
 
 open Verso.Code
 
@@ -26,52 +27,36 @@ tag := "output-html"
 While most users of Verso don't need to worry about the specific details of the HTML that it produces, authors of new {tech}[genres] or of substantial extensions to existing genres may need to produce custom HTML.
 Verso's HTML output follows a number of conventions and uses built-in libraries and features.
 
-Verso's {name}`Html` type represents HTML documents.
-They are typically produced using an embedded DSL that is available when the namespace `Verso.Output.Html` is opened.
+Lean's {name}`Html` type represents HTML documents.
 
 {docstring Html}
 
 {docstring Html.empty}
 
-{docstring Html.fromArray}
+{docstring Html.ofArray}
 
-{docstring Html.fromList}
+{docstring Html.ofList}
 
 {docstring Html.append}
 
-{docstring Html.visitM}
+{docstring Html.rewritePostM}
 
-{docstring Html.format}
+{docstring Html.render}
 
-{docstring Html.asString}
 
-HTML documents are written in double curly braces, in a syntax very much like HTML itself.
-The differences are:
- * Double curly braces escape back to Lean. This can be done for HTML elements, attribute values, or whole sets of attributes.
- * Text content is written as Lean string literals to facilitate precise control over whitespace.
- * Interpolated Lean strings (with `s!`) may be used in any context that expects a string.
-
+HTML documents are typically produced using an embedded DSL, accessible via the `html%{…}` literal syntax.
 For example, this definition creates a `<ul>` list:
 ```lean -keep (name := htmllist)
-open Verso.Output.Html
-
 def mkList (xs : List Html) : Html :=
-  {{ <ul> {{ xs.map ({{<li>{{·}}</li>}}) }} </ul>}}
+  html%{<ul>{ xs.map fun x => html%{<li>{x}</li>} }</ul>}
 
-#eval mkList ["A", {{<emph>"B"</emph>}}, "C"]
-  |>.asString
+#eval mkList ["A", html%{<emph>B</emph>}, "C"]
+  |>.render
   |> IO.println
 ```
 
 ```leanOutput htmllist
-<ul>
-  <li>
-    A</li>
-  <li>
-    <emph>B</emph></li>
-  <li>
-    C</li>
-  </ul>
+<ul><li>A</li><li><emph>B</emph></li><li>C</li></ul>
 ```
 
 # Conventions
@@ -119,6 +104,9 @@ Each message severity (info, warning, and error) has four sets of related styles
 * the marker bar on output blocks, via `--verso-output-error-color`.
 :::
 
+For readability, message text is rendered in a single color.
+Syntax highlighting of embedded Lean code is limited to typographic properties such as weight.
+
 Tooltips share a generic palette (`--verso-tooltip-color`, `--verso-tooltip-bg-color`, `--verso-tooltip-border-color`, and `--verso-tooltip-separator-color`) that the severity-specific tooltip colors default to.
 Proof states are styled by the `--verso-tactic-state-` and `--verso-tactic-toggle-` variable families, and the hover highlight on interactive code by `--verso-code-hover-bg-color`.
 
@@ -132,7 +120,7 @@ Rendering highlighted code requires supporting CSS and JavaScript on each page t
 * {name}`highlightingStyle` contains the CSS rules that style highlighted code.
 * {name}`highlightingJs` produces JavaScript code that displays hovers and highlights other occurrences of an identifier. By default, it obtains hover content using {name}`fetchDocsJson`.
 * Hovers are displayed using the `tippy.js` and `popper.js` libraries. Copies of them are included as the string constants {name}`Highlighted.WebAssets.tippy` and {name}`Highlighted.WebAssets.popper`, with source maps {name}`Highlighted.WebAssets.tippy.map` and {name}`Highlighted.WebAssets.popper.map` and a stylesheet {name}`Highlighted.WebAssets.tippy.border.css`.
-* Markdown in documentation shown in hovers is rendered by the `marked` library, included as the string constant {name}`Highlighted.WebAssets.marked` with source map {name}`Highlighted.WebAssets.marked.map`.
+* Markdown in documentation shown in hovers is rendered to HTML when the site is built.
 :::
 
 {docstring highlightingStyle}
@@ -154,6 +142,7 @@ Math is typeset in the browser using the bundled KaTeX library.
 When a page has loaded, the script in {name}`Html.math.js` renders every element with these classes.
 Pages that contain mathematical notation should include this script together with KaTeX itself: its stylesheet ({name}`Html.katex.css`), its code ({name}`Html.katex.js`), and its fonts ({name}`Html.katexFonts`).
 The stylesheet refers to the fonts by relative paths, so the file layout described in their docstrings should be preserved.
+The helper function {name}`Html.writeKaTeX` writes all of these files to a directory with that layout and should be called by the code that writes a genre's HTML.
 
 {docstring Html.katex.css}
 
@@ -162,3 +151,5 @@ The stylesheet refers to the fonts by relative paths, so the file layout describ
 {docstring Html.katexFonts}
 
 {docstring Html.math.js}
+
+{docstring Html.writeKaTeX}

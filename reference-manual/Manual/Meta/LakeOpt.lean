@@ -4,20 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
+module
+public import Verso.Doc.ArgParse
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
+public meta import Verso.Doc.Elab.Monad
+public import VersoManual.Basic
 
-import Manual.Meta.Basic
+public section
 
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Lean.Doc.Syntax
+open Verso ArgParse Doc Elab Genre.Manual Html Code
 open Lean Elab
+open Lean.Doc (CodeView)
 
 namespace Manual
 
@@ -31,7 +28,7 @@ def LakeOptKind.ns : LakeOptKind → String
   | .option => "lake-option"
 
 open LakeOptKind in
-instance : Quote LakeOptKind where
+meta instance : Quote LakeOptKind where
   quote
     | .flag => Syntax.mkCApp ``LakeOptKind.flag #[]
     | .option => Syntax.mkCApp ``LakeOptKind.option #[]
@@ -49,7 +46,7 @@ def lakeOptDomain := `Manual.lakeOpt
 structure LakeOptDefOpts where
   kind : LakeOptKind
 
-def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
+meta def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
   LakeOptDefOpts.mk <$> .positional `kind optKind
 where
   optKind : ValDesc m LakeOptKind := {
@@ -76,14 +73,14 @@ r#"
 "#
 
 @[role_expander lakeOptDef]
-def lakeOptDef : RoleExpander
+meta def lakeOptDef : RoleExpander
   | args, inlines => do
     let {kind} ← LakeOptDefOpts.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let origName := name.getString
+    let origName := name.getVersoCode
     let name := origName.takeWhile fun c => c == '-' || c.isAlphanum
     let name := name.copy
     let valMeta := origName.drop name.length |>.dropWhile fun (c : Char) => !c.isAlphanum
@@ -113,7 +110,6 @@ def lakeOptDef.descr : InlineDescr where
   toTeX := none
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB id data content => do
       let .arr #[.str name, _jsonKind, metadata] := data
         | reportError s!"Failed to deserialize metadata for Lake option def: {data}"; content.mapM goB
@@ -124,28 +120,28 @@ def lakeOptDef.descr : InlineDescr where
         | reportError s!"Failed to deserialize argument metadata for Lake option def: {metadata}"; content.mapM goB
 
       if let some mv := metadata then
-        pure {{<code {{idAttr}} class="lake-opt">{{name}}"="{{mv}}</code>}}
+        pure html%{<code {...idAttr} class="lake-opt">{name}={mv}</code>}
       else
-        pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
+        pure html%{<code {...idAttr} class="lake-opt">{name}</code>}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := do
     if let .arr #[.str name, _jsonKind, _meta] := info then
-      pure #[(name, {{<code>{{name}}</code>}})]
+      pure #[(name, html%{<code>{name}</code>})]
     else throw s!"Expected three-element array with string first, got {info}"
 
 
 @[role_expander lakeOpt]
-def lakeOpt : RoleExpander
+meta def lakeOpt : RoleExpander
   | args, inlines => do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code( $name:str )) := arg
+    let some { content := name, .. } := CodeView.of arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let optName := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
+    let optName := name.getVersoCode.takeWhile fun c => c == '-' || c.isAlphanum
     let optName := optName.copy
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getString)) #[Inline.code $(quote name.getString)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getVersoCode)) #[Inline.code $(quote name.getVersoCode)])]
 
 @[inline_extension lakeOpt]
 def lakeOpt.descr : InlineDescr where
@@ -157,7 +153,6 @@ def lakeOpt.descr : InlineDescr where
   extraCss := [lakeOptCss]
 
   toHtml :=
-    open Verso.Output.Html in
     some <| fun goB _ data content => do
       let .arr #[.str name, .str original] := data
         | reportError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
@@ -165,6 +160,6 @@ def lakeOpt.descr : InlineDescr where
       if let some obj := (← read).traverseState.getDomainObject? lakeOptDomain name then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return {{<code class="lake-opt"><a href={{dest.link}} class="lake-command">{{name}}</a>{{original.drop name.length |>.copy}}</code>}}
+            return html%{<code class="lake-opt"><a href={dest.link} class="lake-command">{name}</a>{original.drop name.length |>.copy}</code>}
 
-      pure {{<code class="lake-opt">{{original}}</code>}}
+      pure html%{<code class="lake-opt">{original}</code>}

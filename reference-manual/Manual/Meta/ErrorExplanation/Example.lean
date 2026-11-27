@@ -4,11 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import VersoManual
-import Manual.Meta.Example
+module
+public meta import VersoManual.InlineLean
+public import VersoManual.InlineLean
+import Manual.Meta.Example -- shake: keep
+public meta import Manual.Meta.Basic
+
+public section
 
 open Lean
 open Verso (reportError)
+open Lean.Doc (CodeBlockView VersoBlock VersoCodeBlock)
+open Manual (namedCodeBlock)
 set_option doc.verso true
 
 /-
@@ -100,7 +107,7 @@ window.addEventListener('DOMContentLoaded', () => {
   "#]
   toHtml := some fun _goI goB id info contents =>
     open Verso.Doc.Html in
-    open Verso.Output Html in do
+    open Verso.Output in do
     let .ok titles := FromJson.fromJson? (α := Array String) info
       | reportError "Invalid titles JSON for example block"
         pure .empty
@@ -114,15 +121,15 @@ window.addEventListener('DOMContentLoaded', () => {
     let buttons ← titles.mapIdxM fun i (title : String) => do
       let (tabIndex, selected) := if i == 0 then ("0", "true") else ("-1", "false")
       let idxStr := toString i
-      return {{
+      return html%{
         <button type="button" role="tab"
-            aria-selected={{selected}}
-            tabindex={{tabIndex}}
-            id={{s!"{htmlId.toString}-button-{idxStr}"}}
-            aria-controls={{s!"{htmlId.toString}-panel-{idxStr}"}}>
-          {{title}}
+            aria-selected={selected}
+            tabindex={tabIndex}
+            id={s!"{htmlId.toString}-button-{idxStr}"}
+            aria-controls={s!"{htmlId.toString}-panel-{idxStr}"}>
+          {title}
         </button>
-      }}
+      }
     let panels ← contents.mapIdxM fun i b => do
       let className := "error-example-tabpanel" ++ if i == 0 then "" else " error-example-tabpanel-hidden"
       let idxStr := toString i
@@ -131,31 +138,31 @@ window.addEventListener('DOMContentLoaded', () => {
       -- z-index issues
       let panelContents ← withReader (fun ctx => { ctx with codeOptions := { ctx.codeOptions with inlineProofStates := false } } )
         (goB b)
-      return {{
+      return html%{
         <div role="tabpanel"
-            class={{className}}
-            id={{s!"{htmlId.toString}-panel-{idxStr}"}}
-            aria-labelledby={{s!"{htmlId.toString}-button-{i}"}}>
-          {{ panelContents }}
+            class={className}
+            id={s!"{htmlId.toString}-panel-{idxStr}"}
+            aria-labelledby={s!"{htmlId.toString}-button-{i}"}>
+          {panelContents}
         </div>
-      }}
-    pure {{
+      }
+    pure html%{
       <div class="error-example-container">
         <div class="error-example-tab-list" role="tablist" aria-label="Code Samples">
-          {{buttons}}
+          {buttons}
         </div>
         <div class="error-example-tab-view">
-          {{panels}}
+          {panels}
         </div>
       </div>
-    }}
+    }
 
 
 variable [Monad m] [MonadError m]
 set_option pp.rawOnError true
 structure ErrorExampleConfig where
   title : String
-instance : Verso.ArgParse.FromArgs ErrorExampleConfig m where
+meta instance : Verso.ArgParse.FromArgs ErrorExampleConfig m where
   fromArgs :=
     ErrorExampleConfig.mk <$> Verso.ArgParse.positional `title Verso.ArgParse.ValDesc.string
 
@@ -190,16 +197,16 @@ Some explanatory text here.
 `````
 -/
 @[directive]
-def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
+meta def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
   | { title }, contents => do
     let brokenStx :: restStx := contents.toList
       | throwError m!"The error example had no contents"
-    let `(Lean.Doc.Syntax.codeblock|``` broken| $brokenTxt ```) := brokenStx
+    let some brokenTxt := namedCodeBlock `broken brokenStx
       | throwErrorAt brokenStx m!"First element in errorExample must be a `broken` codeblock containing the broken minimal working example"
 
     let errorStx :: restStx := restStx
       | throwError m!"The error example did not contain a second element"
-    let `(Lean.Doc.Syntax.codeblock|``` output| $errorTxt ```) := errorStx
+    let some errorTxt := namedCodeBlock `output errorStx
       | throwErrorAt errorStx m!"Second element in errorExample must be an `output` codeblock containing the generated error message"
 
     let brokenBlock ← brokenTxt |> Verso.Genre.Manual.InlineLean.lean
@@ -234,12 +241,15 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
           $narrativeBlocks.toArray,*])
 where
-  partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax × Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
+  partitionFixed (blocks : List VersoBlock) :
+      Verso.Doc.Elab.DocElabM
+        (List (Syntax × Option StrLit × VersoCodeBlock) × List VersoBlock) := do
   match blocks with
   | [] => pure ([], [])
   | block :: rest =>
-    let `(Lean.Doc.Syntax.codeblock|``` fixed $args*| $fixedTxt ```) := block
+    let some { name? := some name, args, content := fixedTxt, .. } := CodeBlockView.of block
       | return ([], blocks)
+    unless name.getId == `fixed do return ([], blocks)
     let parsedArgs ← Verso.Doc.Elab.parseArgs args
     let arg? : Option _ ← match parsedArgs.toList with
       | [] => pure none

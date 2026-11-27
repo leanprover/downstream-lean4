@@ -38,7 +38,7 @@ public protected abbrev maxLowSurrogate : UInt32 := 0xDFFF
 @[simp, grind =]
 public protected abbrev minSurrogate : UInt32 := Unicode.minHighSurrogate
 
-/-- Minimum surrogate code point -/
+/-- Maximum surrogate code point -/
 @[simp, grind =]
 public protected abbrev maxSurrogate : UInt32 := Unicode.maxLowSurrogate
 
@@ -47,15 +47,13 @@ public protected abbrev maxSurrogate : UInt32 := Unicode.maxLowSurrogate
   Same as `toHexString` but without the `U+` prefix. -/
 public def toHexStringRaw (code : UInt32) : String := Id.run do
   let hex := #['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
-  let mut code := code
-  let mut dgts := []
-  for _ in [:4] do
-    dgts := hex[(code &&& 0xF).toNat]! :: dgts
-    code := code >>> 4
-  while code != 0 do
-    dgts := hex[(code &&& 0xF).toNat]! :: dgts
-    code := code >>> 4
-  return String.ofList dgts
+  let mut n := 4
+  while n < 8 && code >>> (4 * n).toUInt32 != 0 do
+    n := n + 1
+  let mut str := ""
+  for i in [:n] do
+    str := str.push hex[(code >>> (4 * (n - 1 - i)).toUInt32 &&& 0xF).toNat]!
+  return str
 
 /-- Hexadecimal string representation of a code point
 
@@ -109,6 +107,10 @@ public def ofHexString! (str : String.Slice) : UInt32 :=
 
 /-- General category (GC)
 
+  A value of this type is a set of general categories. Derived categories
+  (such as `GC.L`) are unions of basic categories (such as `GC.Lu`),
+  `GC.none` is the empty set and `GC.univ` is the set of all categories.
+
   Unicode property: `General_Category` -/
 @[expose]
 public def GC := UInt32 deriving DecidableEq, Inhabited
@@ -127,54 +129,110 @@ public instance : HasSubset GC where
 
 public instance (x y : GC) : Decidable (x ⊆ y) := inferInstanceAs (Decidable (_ == _))
 
+/-- Every general category is included in itself -/
+@[simp] public theorem subset_refl (x : GC) : x ⊆ x :=
+  beq_iff_eq.2 (UInt32.and_self (a := x))
+
+private theorem and_eq_of_and_eq {x y z : UInt32} (h₁ : x &&& y = x) (h₂ : y &&& z = y) :
+    x &&& z = x := by
+  rw [← h₁, UInt32.and_assoc, h₂]
+
+/-- Inclusion of general categories is transitive -/
+public theorem subset_trans {x y z : GC} (h₁ : x ⊆ y) (h₂ : y ⊆ z) : x ⊆ z := by
+  have h₁ : x &&& y = x := beq_iff_eq.1 h₁
+  have h₂ : y &&& z = y := beq_iff_eq.1 h₂
+  exact beq_iff_eq.2 (and_eq_of_and_eq h₁ h₂)
+
+/-- Empty set of general categories -/
 public protected abbrev none : GC := (0x00000000 : UInt32)
+/-- Set of all general categories -/
 public protected abbrev univ : GC := (0x3FFFFFFF : UInt32)
 
+/-- General category: uppercase letter -/
 public protected abbrev Lu  : GC := (0x00000001 : UInt32)
+/-- General category: lowercase letter -/
 public protected abbrev Ll  : GC := (0x00000002 : UInt32)
+/-- General category: titlecase letter -/
 public protected abbrev Lt  : GC := (0x00000004 : UInt32)
+/-- General category: modifier letter -/
 public protected abbrev Lm  : GC := (0x00000008 : UInt32)
+/-- General category: other letter -/
 public protected abbrev Lo  : GC := (0x00000010 : UInt32)
+/-- General category: cased letter (`Lu | Ll | Lt`) -/
 public protected abbrev LC  : GC := .Lu ||| .Ll ||| .Lt
+/-- General category: letter (`Lu | Ll | Lt | Lm | Lo`) -/
 public protected abbrev L   : GC := .Lu ||| .Ll ||| .Lt ||| .Lm ||| .Lo
 
+/-- General category: nonspacing mark -/
 public protected abbrev Mn  : GC := (0x00000020 : UInt32)
+/-- General category: spacing mark -/
 public protected abbrev Mc  : GC := (0x00000040 : UInt32)
+/-- General category: enclosing mark -/
 public protected abbrev Me  : GC := (0x00000080 : UInt32)
+/-- General category: mark (`Mn | Mc | Me`) -/
 public protected abbrev M   : GC := .Mn ||| .Mc ||| .Me
 
+/-- General category: decimal number -/
 public protected abbrev Nd  : GC := (0x00000100 : UInt32)
+/-- General category: letter number -/
 public protected abbrev Nl  : GC := (0x00000200 : UInt32)
+/-- General category: other number -/
 public protected abbrev No  : GC := (0x00000400 : UInt32)
+/-- General category: number (`Nd | Nl | No`) -/
 public protected abbrev N   : GC := .Nd ||| .Nl ||| .No
 
+/-- General category: connector punctuation -/
 public protected abbrev Pc  : GC := (0x00000800 : UInt32)
+/-- General category: dash punctuation -/
 public protected abbrev Pd  : GC := (0x00001000 : UInt32)
+/-- General category: open punctuation -/
 public protected abbrev Ps  : GC := (0x00002000 : UInt32)
+/-- General category: close punctuation -/
 public protected abbrev Pe  : GC := (0x00004000 : UInt32)
+/-- General category: initial punctuation -/
 public protected abbrev Pi  : GC := (0x00008000 : UInt32)
+/-- General category: final punctuation -/
 public protected abbrev Pf  : GC := (0x00010000 : UInt32)
+/-- General category: other punctuation -/
 public protected abbrev Po  : GC := (0x00020000 : UInt32)
+/-- General category: grouping punctuation (`Ps | Pe`, not defined by Unicode) -/
 public protected abbrev PG  : GC := .Ps ||| .Pe
+/-- General category: quoting punctuation (`Pi | Pf`, not defined by Unicode) -/
 public protected abbrev PQ  : GC := .Pi ||| .Pf
+/-- General category: punctuation (`Pc | Pd | Ps | Pe | Pi | Pf | Po`) -/
 public protected abbrev P   : GC := .Pc ||| .Pd ||| .Ps ||| .Pe ||| .Pi ||| .Pf ||| .Po
 
+/-- General category: math symbol -/
 public protected abbrev Sm  : GC := (0x00040000 : UInt32)
+/-- General category: currency symbol -/
 public protected abbrev Sc  : GC := (0x00080000 : UInt32)
+/-- General category: modifier symbol -/
 public protected abbrev Sk  : GC := (0x00100000 : UInt32)
+/-- General category: other symbol -/
 public protected abbrev So  : GC := (0x00200000 : UInt32)
+/-- General category: symbol (`Sm | Sc | Sk | So`) -/
 public protected abbrev S   : GC := .Sm ||| .Sc ||| .Sk ||| .So
 
+/-- General category: space separator -/
 public protected abbrev Zs  : GC := (0x00400000 : UInt32)
+/-- General category: line separator -/
 public protected abbrev Zl  : GC := (0x00800000 : UInt32)
+/-- General category: paragraph separator -/
 public protected abbrev Zp  : GC := (0x01000000 : UInt32)
+/-- General category: separator (`Zs | Zl | Zp`) -/
 public protected abbrev Z   : GC := .Zs ||| .Zl ||| .Zp
 
+/-- General category: control -/
 public protected abbrev Cc  : GC := (0x02000000 : UInt32)
+/-- General category: format -/
 public protected abbrev Cf  : GC := (0x04000000 : UInt32)
+/-- General category: surrogate -/
 public protected abbrev Cs  : GC := (0x08000000 : UInt32)
+/-- General category: private use -/
 public protected abbrev Co  : GC := (0x10000000 : UInt32)
+/-- General category: unassigned -/
 public protected abbrev Cn  : GC := (0x20000000 : UInt32)
+/-- General category: other (`Cc | Cf | Cs | Co | Cn`) -/
 public protected abbrev C   : GC := .Cc ||| .Cf ||| .Cs ||| .Co ||| .Cn
 
 def reprAux (x : GC) (extra := false) : List String := Id.run do
@@ -271,6 +329,9 @@ def reprAux (x : GC) (extra := false) : List String := Id.run do
       c := c.push "Cn"
   return c.toList
 
+/-- Abbreviation of a single general category, such as `"Lu"`
+
+  Panics if `x` is not a single basic or derived category. -/
 @[inline]
 public def toAbbrev! (x : GC) : String :=
   match reprAux x true with
@@ -278,12 +339,15 @@ public def toAbbrev! (x : GC) : String :=
   | _ => panic! "invalid general category"
 
 open Std.Format Repr in
+/-- Representation of a set of general categories as a union of `Unicode.GC` constants -/
 public def reprPrec (x : GC) := addAppParen (group (joinSep (reprAux x |>.map (text "Unicode.GC." ++ text ·)) (text " |||" ++ line)) .fill)
 public instance : Repr GC where reprPrec
 
+/-- Abbreviations of a set of general categories, separated by `" | "` -/
 public def toString (x : GC) := " | ".intercalate (reprAux x)
 public instance : ToString GC where toString
 
+/-- Get general category from abbreviation, such as `"Lu"` or `"L"` -/
 public def ofAbbrev? (s : String.Slice) : Option GC :=
   match s.chars.take 3 |>.toList with
   | ['C'] => some .C
@@ -328,17 +392,20 @@ public def ofAbbrev? (s : String.Slice) : Option GC :=
   | ['Z', 'p'] => some .Zp
   | _ => none
 
+@[inherit_doc ofAbbrev?]
 public def ofAbbrev! (s : String.Slice) : GC :=
   match ofAbbrev? s with
   | .some c => c
   | none => panic! "invalid general category"
 
+/-- Get set of general categories from abbreviations separated by `"|"`, such as `"Lu | Ll"` -/
 public def ofString? (s : String.Slice) : Option GC := do
   let mut c := .none
   for a in s.split "|" do
     c := c ||| (← GC.ofAbbrev? a.trimAscii)
   return c
 
+@[inherit_doc ofString?]
 public def ofString! (s : String.Slice) : GC :=
   match ofString? s with
   | .some c => c
@@ -369,6 +436,7 @@ deriving Inhabited, DecidableEq, Repr
 
   Unicode property: `Numeric_Type`
 -/
+@[expose]
 public def NumericType.isDecimal : NumericType → Bool
 | decimal _ => true
 | _ => false
@@ -379,6 +447,7 @@ public def NumericType.isDecimal : NumericType → Bool
 
   Unicode property: `Numeric_Type`
 -/
+@[expose]
 public def NumericType.isDigit : NumericType → Bool
 | decimal _ => true
 | digit _ => true
@@ -459,7 +528,7 @@ public instance : ToString CompatibilityTag where
   | .fraction => "<fraction>"
   | .compat => "<compat>"
 
-/-- Decomposition maping
+/-- Decomposition mapping
 
   Unicode properties: `Decomposition_Type`, `Decomposition_Mapping` -/
 public structure DecompositionMapping where
@@ -485,7 +554,7 @@ public inductive BidiClass
 | public arabicLetter
 /-- (`EN`) ASCII digit or Eastern Arabic-Indic digit -/
 | public europeanNumber
-/-- (`ES`) European separator: plus and-/
+/-- (`ES`) European separator: plus and minus signs -/
 | public europeanSeparator
 /-- (`ET`) European terminator in a numeric format context, includes currency signs -/
 | public europeanTerminator
@@ -497,80 +566,84 @@ public inductive BidiClass
 | public nonspacingMark
 /-- (`BN`) boundary neutral: most format characters, control codes, or noncharacters -/
 | public boundaryNeutral
-/-- (`B`)	paragraph separator, various newline characters -/
+/-- (`B`) paragraph separator, various newline characters -/
 | public paragraphSeparator
-/-- (`S`)	segment separator, various segment-related control codes -/
+/-- (`S`) segment separator, various segment-related control codes -/
 | public segmentSeparator
 /-- (`WS`) white spaces -/
 | public whiteSpace
 /-- (`ON`) other neutral: most other symbols and punctuation marks -/
 | public otherNeutral
-/-- (`LRE`) left to right embedding (U+202A: the LR embedding control) -/
+/-- (`LRE`) left-to-right embedding (U+202A: the LR embedding control) -/
 | public leftToRightEmbedding
-/-- (`LRO`)	Left_To_Right_Override	(U+202D: the LR override control) -/
+/-- (`LRO`) left-to-right override (U+202D: the LR override control) -/
 | public leftToRightOverride
 /-- (`RLE`) right-to-left embedding (U+202B: the RL embedding control) -/
-| public rightToLeftEmbeding
+| public rightToLeftEmbedding
 /-- (`RLO`) right-to-left override (U+202E: the RL override control) -/
 | public rightToLeftOverride
 /-- (`PDF`) pop directional format (U+202C: terminates an embedding or override control) -/
 | public popDirectionalFormat
 /-- (`LRI`) left-to-right isolate (U+2066: the LR isolate control) -/
 | public leftToRightIsolate
-/-- (`RLI`) right-toleft isolate (U+2067: the RL isolate control) -/
+/-- (`RLI`) right-to-left isolate (U+2067: the RL isolate control) -/
 | public rightToLeftIsolate
-/-- (`FSI`)	first strong isolate (U+2068: the first strong isolate control) -/
+/-- (`FSI`) first strong isolate (U+2068: the first strong isolate control) -/
 | public firstStrongIsolate
 /-- (`PDI`) pop directional isolate (U+2069: terminates an isolate control) -/
 | public popDirectionalIsolate
 deriving Inhabited, DecidableEq
 
+/-- Misspelled alias of `BidiClass.rightToLeftEmbedding` -/
+@[deprecated BidiClass.rightToLeftEmbedding (since := "2026-10-06"), match_pattern]
+public abbrev BidiClass.rightToLeftEmbeding := BidiClass.rightToLeftEmbedding
+
 /-- Bidi class: strong left-to-right (`L`) -/
-public protected def BidiClass.L := leftToRight
+public protected abbrev BidiClass.L := leftToRight
 /-- Bidi class: strong right-to-left (`R`) -/
-public protected def BidiClass.R := rightToLeft
+public protected abbrev BidiClass.R := rightToLeft
 /-- Bidi class: arabic letter (`AL`) -/
-public protected def BidiClass.AL := arabicLetter
+public protected abbrev BidiClass.AL := arabicLetter
 /-- Bidi class: european number (`EN`) -/
-public protected def BidiClass.EN := europeanNumber
+public protected abbrev BidiClass.EN := europeanNumber
 /-- Bidi class: european separator (`ES`) -/
-public protected def BidiClass.ES := europeanSeparator
+public protected abbrev BidiClass.ES := europeanSeparator
 /-- Bidi class: european terminator (`ET`) -/
-public protected def BidiClass.ET := europeanTerminator
+public protected abbrev BidiClass.ET := europeanTerminator
 /-- Bidi class: arabic number (`AN`) -/
-public protected def BidiClass.AN := arabicNumber
+public protected abbrev BidiClass.AN := arabicNumber
 /-- Bidi class: common separator (`CS`) -/
-public protected def BidiClass.CS := commonSeparator
+public protected abbrev BidiClass.CS := commonSeparator
 /-- Bidi class: nonspacing mark (`NSM`) -/
-public protected def BidiClass.NSM := nonspacingMark
+public protected abbrev BidiClass.NSM := nonspacingMark
 /-- Bidi class: boundary neutral (`BN`) -/
-public protected def BidiClass.BN := boundaryNeutral
+public protected abbrev BidiClass.BN := boundaryNeutral
 /-- Bidi class: paragraph separator (`B`) -/
-public protected def BidiClass.B := paragraphSeparator
+public protected abbrev BidiClass.B := paragraphSeparator
 /-- Bidi class: segment separator (`S`) -/
-public protected def BidiClass.S := segmentSeparator
+public protected abbrev BidiClass.S := segmentSeparator
 /-- Bidi class: white space (`WS`) -/
-public protected def BidiClass.WS := whiteSpace
+public protected abbrev BidiClass.WS := whiteSpace
 /-- Bidi class: other neutral (`ON`) -/
-public protected def BidiClass.ON := otherNeutral
+public protected abbrev BidiClass.ON := otherNeutral
 /-- Bidi class: left-to-right embedding (`LRE`) -/
-public protected def BidiClass.LRE := leftToRightEmbedding
+public protected abbrev BidiClass.LRE := leftToRightEmbedding
 /-- Bidi class: left-to-right override (`LRO`) -/
-public protected def BidiClass.LRO := leftToRightOverride
+public protected abbrev BidiClass.LRO := leftToRightOverride
 /-- Bidi class: right-to-left embedding (`RLE`) -/
-public protected def BidiClass.RLE := rightToLeftEmbeding
+public protected abbrev BidiClass.RLE := rightToLeftEmbedding
 /-- Bidi class: right-to-left override (`RLO`) -/
-public protected def BidiClass.RLO := rightToLeftOverride
+public protected abbrev BidiClass.RLO := rightToLeftOverride
 /-- Bidi class: pop directional format (`PDF`) -/
-public protected def BidiClass.PDF := popDirectionalFormat
+public protected abbrev BidiClass.PDF := popDirectionalFormat
 /-- Bidi class: left-to-right isolate (`LRI`) -/
-public protected def BidiClass.LRI := leftToRightIsolate
+public protected abbrev BidiClass.LRI := leftToRightIsolate
 /-- Bidi class: right-to-left isolate (`RLI`) -/
-public protected def BidiClass.RLI := rightToLeftIsolate
+public protected abbrev BidiClass.RLI := rightToLeftIsolate
 /-- Bidi class: first strong isolate (`FSI`) -/
-public protected def BidiClass.FSI := firstStrongIsolate
+public protected abbrev BidiClass.FSI := firstStrongIsolate
 /-- Bidi class: pop directional isolate (`PDI`) -/
-public protected def BidiClass.PDI := popDirectionalIsolate
+public protected abbrev BidiClass.PDI := popDirectionalIsolate
 
 /-- String abbreviation for bidi class -/
 public def BidiClass.toAbbrev : BidiClass → String
@@ -590,7 +663,7 @@ public def BidiClass.toAbbrev : BidiClass → String
 | otherNeutral => "ON"
 | leftToRightEmbedding => "LRE"
 | leftToRightOverride => "LRO"
-| rightToLeftEmbeding => "RLE"
+| rightToLeftEmbedding => "RLE"
 | rightToLeftOverride  => "RLO"
 | popDirectionalFormat => "PDF"
 | leftToRightIsolate => "LRI"
@@ -617,7 +690,7 @@ public def BidiClass.ofAbbrev? (abbr : String.Slice) : Option BidiClass :=
   | ['O', 'N'] => some otherNeutral
   | ['L', 'R', 'E'] => some leftToRightEmbedding
   | ['L', 'R', 'O'] => some leftToRightOverride
-  | ['R', 'L', 'E'] => some rightToLeftEmbeding
+  | ['R', 'L', 'E'] => some rightToLeftEmbedding
   | ['R', 'L', 'O'] => some rightToLeftOverride
   | ['P', 'D', 'F'] => some popDirectionalFormat
   | ['L', 'R', 'I'] => some leftToRightIsolate
@@ -639,8 +712,11 @@ public instance : Repr BidiClass where
   ## Scripts ##
 -/
 
-/-- Check if valid script identifier -/
-@[inline]
+/-- Check if valid script identifier
+
+  A valid script identifier consists of an uppercase letter followed by three
+  lowercase letters. -/
+@[expose, inline]
 public def Script.isValid (c : UInt32) : Bool :=
   let c0 := (c >>> 24).toUInt8
   let c1 := (c >>> 16).toUInt8
@@ -651,7 +727,11 @@ public def Script.isValid (c : UInt32) : Bool :=
       && (c2 ≤ 'z'.toUInt8 && 'a'.toUInt8 ≤ c2)
         && (c3 ≤ 'z'.toUInt8 && 'a'.toUInt8 ≤ c3)
 
-/-- Script identifier type -/
+/-- Script identifier type
+
+  A script is identified by its four-letter ISO 15924 code, such as `Latn` for
+  Latin. Use `Script.ofAbbrev?` and `Script.toAbbrev` to convert from and to
+  this code. -/
 public structure Script where
   public code : UInt32
   public is_valid : Script.isValid code
@@ -694,3 +774,46 @@ public def ofAbbrev? (abbr : String.Slice) : Option Script :=
 public def ofAbbrev! (abbr : String.Slice) : Script := ofAbbrev? abbr |>.get!
 
 end Script
+
+/-- Check if an array of scripts is strictly sorted by script code -/
+@[expose]
+public def ScriptSet.isSorted (a : Array Script) : Bool :=
+  loop a.toList
+where
+  loop : List Script → Bool
+  | s₁ :: s₂ :: ss => s₁.code < s₂.code && loop (s₂ :: ss)
+  | _ => true
+
+/-- Set of scripts, such as the scripts a character is commonly used with -/
+public structure ScriptSet where
+  /-- Scripts in the set, sorted by script code -/
+  public toArray : Array Script
+  public is_sorted : ScriptSet.isSorted toArray
+deriving BEq
+
+namespace ScriptSet
+
+/-- Default value is the empty set -/
+public instance : Inhabited ScriptSet where
+  default := ⟨#[], rfl⟩
+
+/-- List of the scripts in the set, sorted by script code -/
+@[expose, inline]
+public def toList (s : ScriptSet) : List Script := s.toArray.toList
+
+/-- String of the script abbreviations in the set, separated by spaces -/
+public def toAbbrev (s : ScriptSet) : String :=
+  " ".intercalate <| s.toList.map Script.toAbbrev
+
+/-- Check whether a script is in the set -/
+@[expose, inline]
+public def contains (s : ScriptSet) (sc : Script) : Bool :=
+  s.toArray.contains sc
+
+public instance : Membership Script ScriptSet where
+  mem s sc := s.contains sc
+
+public instance (sc : Script) (s : ScriptSet) : Decidable (sc ∈ s) :=
+  inferInstanceAs (Decidable (_ = true))
+
+end ScriptSet
