@@ -141,7 +141,6 @@ lemma surjective_hom₁ : Function.Surjective (hom₁ pres) := by
   simp only [LinearMap.coe_mk, AddHom.coe_mk, hom₁_single, φ]
   rfl
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma comm₁₂_single (r : σ) :

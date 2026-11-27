@@ -46,7 +46,6 @@ include hX
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 lemma map_cochainsFunctor_shortExact :
     ShortExact (X.map (cochainsFunctor k G)) :=
   HomologicalComplex.shortExact_of_degreewise_shortExact _ fun i => {

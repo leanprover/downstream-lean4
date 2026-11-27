@@ -204,7 +204,6 @@ def ClassGroup.equiv :
     (Units.mapEquiv (FractionalIdeal.canonicalEquiv R⁰ (FractionRing R) K).toMulEquiv) this
 
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 @[simp]
 theorem ClassGroup.equiv_mk (K' : Type*) [Field K'] [Algebra R K'] [IsFractionRing R K']
     (I : (FractionalIdeal R⁰ K)ˣ) :

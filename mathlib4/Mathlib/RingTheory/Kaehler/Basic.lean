@@ -219,7 +219,6 @@ implicit-reducible definition does not unfold, and the search fails as before.
 The `_aux_1` wrappers for the instance fields become implicit-reducible as soon as
 `KaehlerDifferential` is.
 -/
-set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 /-- The universal derivation into `Ω[S⁄R]`. -/

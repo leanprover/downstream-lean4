@@ -156,7 +156,6 @@ noncomputable def FiniteEtale.fiberIsoComp [IsSepClosed Ω] :
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- If `Ω` is a separably closed field, the category of finite étale `Ω`-algebras is
 anti-equivalent to `FintypeCat`. -/
 @[expose, simps! functor inverse_obj inverse_map]

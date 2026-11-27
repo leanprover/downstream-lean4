@@ -90,10 +90,8 @@ def yoneda₀ (x : B) : Pseudofunctor Bᵒᵖ Cat.{w, v} where
   mapId a := leftUnitorNatIsoCat (unop a) x
   mapComp f g := associatorNatIsoRightCat g.unop f.unop x
 
-set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Postcomposing of a 1-morphism seen as a strong transformation between pseudofunctors. -/
 @[simps!]
 def postcomp₂ {a b : B} (f : a ⟶ b) : yoneda₀ a ⟶ yoneda₀ b where
@@ -111,10 +109,8 @@ def postcomposing₂ (a b : B) : (a ⟶ b) ⥤ (yoneda₀ a ⟶ yoneda₀ b) whe
   obj := postcomp₂
   map η := { as := { app x := (postcomposingCat (unop x) a b).map η } }
 
-set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- The Yoneda pseudofunctor from `B` to `Bᵒᵖ ⥤ᵖ Cat`.
 
 It consists of the following:

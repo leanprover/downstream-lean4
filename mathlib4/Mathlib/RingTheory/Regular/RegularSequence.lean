@@ -605,7 +605,6 @@ LinearMap.mk₂'ₛₗ
 Then both backward compatibility options can go.
 -/
 set_option backward.isDefEq.respectTransparency.types false in
-set_option backward.isDefEq.respectTransparency.instanceSearchTypes false in
 open _root_.LinearMap in
 private lemma IsWeaklyRegular.swap {a b : R} (h1 : IsWeaklyRegular M [a, b])
     (h2 : torsionBy R M b = a • torsionBy R M b → torsionBy R M b = ⊥) :

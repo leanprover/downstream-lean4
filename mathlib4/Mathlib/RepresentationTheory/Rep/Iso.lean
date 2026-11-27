@@ -139,7 +139,6 @@ def counitIso (M : ModuleCat.{w} k[G]) :
       map_smul' := fun r x => by
         simp [counitIsoAddEquiv] }
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 theorem unit_iso_comm (V : Rep.{w} k G) (g : G) (x : V) :
     unitIsoAddEquiv ((V.ρ g).toFun x) = ((ofModuleMonoidAlgebra.obj

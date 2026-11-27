@@ -81,7 +81,6 @@ noncomputable def coproductCofan : Cocone F where
       naturality := fun ⟨j⟩ ⟨j'⟩ ⟨(f : j = j')⟩ => by subst f; simp }
 
 set_option backward.defeqAttrib.useBackward true in
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 /-- The explicit coproduct cofan constructed in `coproductCofan` is indeed a colimit. -/
 noncomputable def coproductCofanIsColimit : IsColimit (coproductCofan F) where

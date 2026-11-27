@@ -87,7 +87,6 @@ class HasCoeffs (R₀ : Type*) [CommRing R₀] [Algebra R₀ R] [Algebra R₀ S]
     [IsScalarTower R₀ R S] where
   coeffs_subset_range : P.coeffs ⊆ Set.range (algebraMap R₀ R)
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 instance : P.HasCoeffs P.Core where
   coeffs_subset_range := by

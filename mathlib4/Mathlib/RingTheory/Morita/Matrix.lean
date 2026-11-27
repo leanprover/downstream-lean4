@@ -171,9 +171,7 @@ def toModuleCatFromModuleCatLinearEquiv (M : ModuleCat (Matrix ι ι R)) (j : ι
     obtain ⟨y, hy⟩ := by simpa [-SetLike.coe_mem] using (v i).property
     simp [← mul_smul, ← hy]
 
-set_option backward.isDefEq.respectTransparency.instances false in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- The natural isomorphism showing that `toMatrixModCat` is the right inverse of `toModuleCat`. -/
 def MatrixModCat.counitIso (i : ι) :
     MatrixModCat.toModuleCat R i ⋙ ModuleCat.toMatrixModCat R ι ≅ 𝟭 (ModuleCat (Matrix ι ι R)) :=
