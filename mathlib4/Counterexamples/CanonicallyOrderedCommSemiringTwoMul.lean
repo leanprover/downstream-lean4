@@ -141,11 +141,9 @@ def lSubsemiring : Subsemiring (ℕ × ZMod 2) where
   add_mem' := add_L
   mul_mem' := mul_L
 set_option linter.checkRespectTransparency.instances false in
-
 instance : CommSemiring L :=
   lSubsemiring.toCommSemiring
 set_option linter.checkRespectTransparency.instances false in
-
 instance : PartialOrder L :=
   Subtype.partialOrder _
 
