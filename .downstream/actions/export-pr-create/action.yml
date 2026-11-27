@@ -148,6 +148,10 @@ inputs:
       based on. Note that these commits may not yet include fixes from the
       downstream repository.
 
+      Occurrences of `<REPO source_url>`, `<REPO source_rev>`, `<REPO
+      target_url>` and `<REPO target_rev>` in the replacement are replaced by
+      the corresponding field of the subrepo `REPO` in `repos.toml`.
+
   lakefile-interesting:
     description: >
       Whether a lakefile update alone is interesting enough to warrant an export

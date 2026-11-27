@@ -24334,16 +24334,17 @@ var Repo = class {
   }
 };
 async function findPrFor(octo2, repo, branchName, options = {}) {
-  const { state = "all", headOwner = repo.owner } = options;
+  const { state = "all", headRepo = repo } = options;
   const { data } = await octo2.rest.pulls.list({
     ...repo,
-    head: `${headOwner}:${branchName}`,
+    head: `${headRepo.owner}:${branchName}`,
     state,
     sort: "created",
     direction: "desc",
-    per_page: 1
+    per_page: 100
   });
-  return data[0];
+  const fullName = headRepo.fullName.toLowerCase();
+  return data.find((pr) => pr.head.repo?.full_name.toLowerCase() === fullName);
 }
 function adaptationBranchNameFor(prNumber) {
   return `adaptation-${prNumber}`;

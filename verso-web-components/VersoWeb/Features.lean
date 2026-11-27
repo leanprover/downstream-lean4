@@ -3,8 +3,13 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sofia Rodrigues, David Christiansen
 -/
-import VersoBlog
-import Lake.Toml.Grammar
+module
+
+public import VersoBlog
+public meta import Lake.Toml.Grammar
+public meta import VersoBlog
+
+public meta section
 
 namespace Verso.Web
 

@@ -3,14 +3,16 @@ Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sofia Rodrigues
 -/
-import Verso.Doc.Html
-import VersoBlog
-import VersoWeb.Components.ArchiveEntry
-import VersoWeb.Components.Aside
+module
+
+public import VersoBlog.Template
+import VersoWeb.Util
+
+public section
 
 open Lean (Html)
-open Verso Genre Blog Template Output.Html
-open Verso.Web Components Util Multi
+open Verso Genre Blog Template
+open Verso.Web Util Multi
 
 namespace Verso.Web.Theme
 
@@ -25,32 +27,32 @@ structure PostConfig where
 Render article content with optional metadata.
 -/
 def articleContent (title : Html) (content : Html) (metadata : Option Post.PartMetadata) (page : String) : Html :=
-  {{
-    <article class="post-container" id={{(metadata >>= (Post.Meta.htmlId)) |>.getD "post"}}>
-      <h1>{{title}}</h1>
-      {{ match metadata with
+  html%{
+    <article class="post-container" id={(metadata >>= (Post.Meta.htmlId)) |>.getD "post"}>
+      <h1>{title}</h1>
+      { match metadata with
         | none => Html.empty
-        | some md => {{
+        | some md => html%{
             <div class="metadata">
-              {{(md : Post.PartMetadata).authors.map ({{<div class="author">{{Html.text ·}}</div>}}) |>.toArray}}
+              {(md : Post.PartMetadata).authors.map (html%{<div class="author">{Html.text ·}</div>}) |>.toArray}
               <div class="date">
-                {{md.date.toIso8601String}}
+                {md.date.toIso8601String}
               </div>
-              {{if md.categories.isEmpty then Html.empty
-                else {{
+              {if md.categories.isEmpty then Html.empty
+                else html%{
                   <ul class="categories">
-                    {{md.categories.toArray.map (fun cat => {{<li><a href=s!"../{cat.slug}">{{cat.name}}</a></li>}})}}
+                    {md.categories.toArray.map (fun cat => html%{<li><a href={s!"../{cat.slug}"}>{cat.name}</a></li>})}
                   </ul>
-                }}
-              }}
+                }
+              }
           </div>
-        }}
-      }}
+        }
+      }
       <div class="post-content">
-        {{ addSlug page content }}
+        { addSlug page content }
       </div>
     </article>
-  }}
+  }
 
 /--
 Generic post template with configurable styling.
@@ -64,26 +66,26 @@ def postTemplate (config : PostConfig) : Template := do
 
   let containerClass := s!"container {config.hasSpecialStyling path |>.map (" " ++ ·) |>.getD ""}"
 
-  pure {{
-    <main class={{containerClass}}>
-    <div class=s!"{if nav.isSome then "post-grid" else "post-center"} post-page" role="main">
-      {{ articleContent title content metadata path.relativeLink }}
-      {{
+  pure html%{
+    <main class={containerClass}>
+    <div class={s!"{if nav.isSome then "post-grid" else "post-center"} post-page"} role="main">
+      { articleContent title content metadata path.relativeLink }
+      {
         if let some nav := nav then
-          {{
+          html%{
             <nav class="post-index">
             <h1 class="title">
-              {{title}}
+              {title}
             </h1>
-            {{ nav }}
+            { nav }
           </nav>
-          }}
+          }
         else
           .empty
-      }}
+      }
     </div>
     </main>
-  }}
+  }
 
 
 end Verso.Web.Theme

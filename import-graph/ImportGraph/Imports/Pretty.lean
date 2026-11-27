@@ -34,6 +34,9 @@ This module defines the following utilities for pretty-printing imports:
 
 - Some parts of this API only work in the module system. In general, we should also support
   non-modules.
+- We should factor this in order to allow providing a means for suggesting the `module` keyword (and
+  possibly `@[expose] public section` below) to promote modulization and allow moving from a
+  non-module to a module.
 -/
 
 public section
@@ -412,7 +415,7 @@ We assume `sourceImps` has been created by `ImportGraph.headerToImportRefsWithWh
     (msg, errs)
 
 /-- Create a message that suggests replacing `sourceImps` with `newImps`. Includes errors as a
-comment. Returns `none` if the suggestion is would not modify the source at all (including
+comment. Returns `none` if the suggestion would not modify the source at all (including
 whitespace).
 
 Note that the resulting widget will show a diff view if the resulting `errs : Import.FormatErrors`

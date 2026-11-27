@@ -259,7 +259,7 @@ theorem Satisfies.b (f : Frame World τ) [f.DiagonalSymm op] (φ : Proposition �
     Axiom f⇓(φ → ∇[op](PropositionMap.const op (Δ[op](PropositionMap.const op φ)))) := by
   intro _ w
   have := Frame.DiagonalSymm.symm (f := f) (op := op)
-  grind
+  grind only [modal, => axiom_def, = triangle_iff_exists, = nabla_iff_forall]
 
 /-- Any frame that admits B at `op` is diagonally symmetric at `op`. -/
 theorem Satisfies.b_symm (f : Frame World τ) [Nonempty Atom]
@@ -286,12 +286,12 @@ theorem Satisfies.four (f : Frame World τ) [f.Trans op]
   grind only [modal, =_ axiom_def, = triangle_iff_exists]
 
 /-- Any frame that admits 4 at `op` is transitive at `op`. -/
-theorem Satisfies.four_trans (f : Frame World τ) [Nonempty Atom]
+theorem Satisfies.four_trans (f : Frame World τ)
     (e : τ.B op ↪ Atom) (h : ∀ (φs ψs : PropositionMap τ op Atom) (i : τ.B op),
       φs i = (Δ[op]ψs) → Axiom f⇓(Δ[op]φs → Δ[op]ψs)) : f.Trans op where
   trans w ws i ws' h₁ h₂ := by
     classical
-    let a := Classical.arbitrary Atom
+    let a := e i
     -- Each coordinate gets its own atom.
     let ψs : PropositionMap τ op Atom := fun j => e j
     -- A tautology for the irrelevant coordinates of the outer triangle.

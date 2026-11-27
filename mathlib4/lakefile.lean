@@ -6,17 +6,17 @@ open Lake DSL
 ## Mathlib dependencies on upstream projects
 -/
 
-require "leanprover-community" / "batteries" @ git "nightly-testing"
+require "leanprover-community" / "batteries" @ git "main"
 require "leanprover-community" / "Qq" @ git "master"
 
-require "leanprover-community" / "aesop" @ git "nightly-testing"
-require "leanprover-community" / "proofwidgets" @ git "nightly-testing"
+require "leanprover-community" / "aesop" @ git "master"
+require "leanprover-community" / "proofwidgets" @ git "main"
   with NameMap.empty.insert `errorOnBuild
     "ProofWidgets failed to reuse pre-built JS code. \
     Please report this issue on the Lean Zulip."
 require "leanprover-community" / "importGraph" @ git "main"
 require "leanprover-community" / "LeanSearchClient" @ git "main"
-require "leanprover-community" / "plausible" @ git "nightly-testing"
+require "leanprover-community" / "plausible" @ git "main"
 
 
 /-!
@@ -156,8 +156,6 @@ lean_exe mk_all where
   allowNonModules := true
   srcDir := "scripts"
   supportInterpreter := true
-  -- Executables which import `Lake` must set `-lLake`.
-  weakLinkArgs := #["-lLake"]
 
 /-- `lake exe lint-style` runs text-based style linters. -/
 lean_exe «lint-style» where
@@ -165,15 +163,11 @@ lean_exe «lint-style» where
   supportInterpreter := true
   -- TODO: modulise this script, so remove the need for this option
   allowNonModules := true
-  -- Executables which import `Lake` must set `-lLake`.
-  weakLinkArgs := #["-lLake"]
 
 /-- `lake exe check-title-labels` checks if a PR title obeys some basic formatting requirements.
 Currently, these checks are quite lenient, but could be made stricter in the future. -/
-lean_exe «check_title_labels» where
+lean_exe «check-title-labels» where
   srcDir := "scripts"
-  -- TODO: modulise this script, so remove the need for this option
-  allowNonModules := true
 
 /-- `lake exe nightly-testing-checklist` reports nightly-testing branch status. -/
 lean_exe «nightly-testing-checklist» where

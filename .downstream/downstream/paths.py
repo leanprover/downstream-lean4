@@ -18,8 +18,8 @@ class Paths:
     def toolchains(self) -> Generator[Path]:
         yield from sorted(self.root.glob("**/lean-toolchain"))
 
-    def toolchains_to_override(self) -> Generator[Path]:
-        root_toolchain = self.toolchain.read_text().strip()
+    def toolchains_to_override(self, root_toolchain: str) -> Generator[Path]:
+        root_toolchain = root_toolchain.strip()
         for file in self.toolchains():
             if file.read_text().strip() == root_toolchain:
                 yield file
@@ -28,14 +28,18 @@ class Paths:
         for file in self.toolchains():
             file.unlink()
 
-    def override_toolchains_with_symlinks(self, target: Path) -> None:
-        for file in self.toolchains_to_override():
+    def override_toolchains_with_symlinks(
+        self, target: Path, root_toolchain: str
+    ) -> None:
+        for file in self.toolchains_to_override(root_toolchain):
             file.unlink()
             file.symlink_to(target.relative_to(file.parent, walk_up=True))
 
-    def override_toolchains_with_values(self, toolchain: str) -> None:
+    def override_toolchains_with_values(
+        self, root_toolchain: str, toolchain: str
+    ) -> None:
         toolchain = toolchain.strip() + "\n"
-        for file in self.toolchains_to_override():
+        for file in self.toolchains_to_override(root_toolchain):
             file.write_text(toolchain)
 
     ###############

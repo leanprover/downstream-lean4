@@ -1,3 +1,7 @@
+module
+
+public section
+
 namespace Verso.Web.Theme.Static
 
 def dark.js := include_str "../../static/js/dark.js"

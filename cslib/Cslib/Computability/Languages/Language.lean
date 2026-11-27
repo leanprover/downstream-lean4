@@ -42,7 +42,7 @@ theorem eq_zero_or_one_ofIsEmpty [IsEmpty α] (l : Language α) : l = 0 ∨ l = 
   · simp [h]
   · right
     ext xl
-    obtain ⟨yl, _⟩ := nonempty_iff_ne_empty.mpr h
+    obtain ⟨yl, _⟩ := ne_empty_iff_nonempty.mp h
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty xl
     obtain ⟨rfl⟩ := eq_nil_ofIsEmpty yl
     simpa
@@ -127,5 +127,12 @@ theorem sub_one_kstar : (l - 1)∗ = l∗ := by
 theorem kstar_iff_mul_add : m = l∗ ↔ m = (l - 1) * m + 1 := by
   rw [self_eq_mul_add_iff, mul_one, sub_one_kstar]
   grind
+
+/-- The reverse version of Arden's lemma `Language.self_eq_mul_add_iff`. -/
+theorem self_eq_add_mul_iff {l m n : Language α} (hm : [] ∉ m) :
+    l = l * m + n ↔ l = n * m∗ := by
+  rw [← reverse_injective.eq_iff, ← reverse_injective.eq_iff (a := l)]
+  simp only [reverse_add, reverse_mul, reverse_kstar]
+  exact (self_eq_mul_add_iff (by simp [hm]))
 
 end Language
