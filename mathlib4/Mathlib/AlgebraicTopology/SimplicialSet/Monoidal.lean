@@ -288,6 +288,8 @@ variable {X Y : SSet.{u}} (S : X.Subcomplex) (T : Y.Subcomplex)
 def unionProd : (X ⊗ Y).Subcomplex := ((⊤ : X.Subcomplex).prod T) ⊔ (S.prod ⊤)
 
 set_option backward.isDefEq.respectTransparency false in
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `preimage_β_hom` (this file).
 set_option dsimp.resynthInstances false in
 lemma mem_unionProd_iff {n : SimplexCategoryᵒᵖ} (x : (X ⊗ Y).obj n) :
     dsimp% x ∈ (unionProd S T).obj _ ↔ x.2 ∈ T.obj _ ∨ x.1 ∈ S.obj _ := by
