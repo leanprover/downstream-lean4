@@ -127,6 +127,7 @@ variable {b N : ℕ} (hbN : ∀ t ≥ N, #(pool a t) = b) (ht : t ≥ N)
 
 include ha hbN
 
+set_option dsimp.resynthInstances false in
 lemma b_pos : 0 < b := by
   by_contra! h; rw [nonpos_iff_eq_zero] at h; subst h
   replace hbN : ∀ t, #(pool a t) = 0 := fun t ↦ by

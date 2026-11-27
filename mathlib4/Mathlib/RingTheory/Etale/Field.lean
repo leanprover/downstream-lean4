@@ -46,6 +46,7 @@ open scoped TensorProduct
 
 namespace Algebra.FormallyEtale
 
+set_option warn.repeatedInstanceRejections 0 in
 /--
 This is a weaker version of `of_isSeparable` that additionally assumes `EssFiniteType K L`.
 Use that instead.

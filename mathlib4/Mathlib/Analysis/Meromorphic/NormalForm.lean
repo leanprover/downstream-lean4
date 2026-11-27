@@ -52,6 +52,7 @@ def MeromorphicNFAt :=
   f =ᶠ[𝓝 x] 0 ∨
     ∃ (n : ℤ) (g : 𝕜 → E), AnalyticAt 𝕜 g x ∧ g x ≠ 0 ∧ f =ᶠ[𝓝 x] (· - x) ^ n • g
 
+set_option warn.repeatedInstanceRejections 0 in
 /--
 A meromorphic function has normal form at `x` iff it is either analytic there, or if it has a pole
 at `x` and takes the default value `0`.

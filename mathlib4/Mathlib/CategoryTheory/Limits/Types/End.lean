@@ -97,6 +97,11 @@ lemma chosenCoend.desc_apply {X : Type max w u} (f : ∀ j, (F.obj (op j)).obj j
         cases h with | mk f x => congrm $(hf f) _) x :=
   rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `associator`, `associatorHom`, `associatorHomFun_rel`, `associatorInv`,
+-- `associatorInvFun_rel`, `comp_whiskerRight`, `id_whiskerLeft`, `id_whiskerRight`, `leftUnitor`,
+-- `rightUnitor`, `whiskerLeft`, `whiskerRight`, `whiskerRight_comp`, `whiskerRight_id`,
+-- `whisker_assoc`, `whisker_exchange` (`Mathlib.CategoryTheory.Profunctor.Comp`).
 set_option dsimp.resynthInstances false in
 lemma chosenCoend.map_apply {G : Jᵒᵖ ⥤ J ⥤ Type max w u} (f : F ⟶ G) (x : chosenCoend F) :
     dsimp% chosenCoend.map f x =

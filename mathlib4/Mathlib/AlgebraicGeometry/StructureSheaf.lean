@@ -238,7 +238,6 @@ instance (U : (Opens (PrimeSpectrum.Top R))ᵒᵖ) :
   .of_algebraMap_smul fun r m ↦ Subtype.ext <| funext fun x ↦
     IsScalarTower.algebraMap_smul (Localizations R x.val) r (m.val x)
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 variable (R M) in

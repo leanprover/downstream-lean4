@@ -73,6 +73,7 @@ lemma IsGaussian.eq_gaussianReal (μ : Measure ℝ) (h : IsGaussian μ) :
   μ = μ.map (ContinuousLinearMap.id ℝ ℝ) := by simp
   _ = gaussianReal μ[id] Var[id; μ].toNNReal := by rw [h.map_eq_gaussianReal]; simp
 
+set_option warn.repeatedInstanceRejections 0 in
 lemma isGaussian_of_isGaussian_map {E : Type*} [TopologicalSpace E] [AddCommMonoid E]
     [Module ℝ E] {mE : MeasurableSpace E} [OpensMeasurableSpace E] {μ : Measure E}
     (h : ∀ L : E →L[ℝ] ℝ, IsGaussian (μ.map L)) : IsGaussian μ := by
@@ -90,6 +91,7 @@ lemma isGaussian_of_map_eq_gaussianReal {E : Type*} [TopologicalSpace E] [AddCom
   rw [h]
   infer_instance
 
+set_option warn.repeatedInstanceRejections 0 in
 /-- Mapping a Gaussian measure by a measurable and continuous linear map yields a Gaussian
 measure. See also `isGaussian_map`, which does not assume measurability but has stronger hypotheses
 on `E`. In particular, it requires `E` to be a Borel space, which requires some second countability

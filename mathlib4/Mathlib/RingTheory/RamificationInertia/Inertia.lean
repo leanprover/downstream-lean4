@@ -184,6 +184,7 @@ theorem inertiaDeg_smul {G : Type*} [Group G] [MulSemiringAction G S] [SMulCommC
 
 @[deprecated (since := "2026-07-03")] alias inertiaDeg'_smul := inertiaDeg_smul
 
+set_option warn.repeatedInstanceRejections 0 in
 theorem cardQuot_pow_inertiaDeg [Module.Finite R S] [p.IsMaximal] [q.IsMaximal] [q.LiesOver p] :
     p.cardQuot ^ q.inertiaDeg R = q.cardQuot := by
   let _ : Field (R ⧸ p) := Quotient.field p

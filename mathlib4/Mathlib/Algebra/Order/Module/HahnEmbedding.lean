@@ -414,6 +414,7 @@ theorem apply_of_mem_stratum {x : f.val.domain} {c : FiniteArchimedeanClass M}
   simp [HahnSeries.coeff_single_of_ne hdc, hdc.symm]
 
 open ArchimedeanClass in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Archimedean equivalence is preserved by `f`. -/
 theorem archimedeanClassMk_eq_iff [IsOrderedAddMonoid R] (x y : f.val.domain) :
     ArchimedeanClass.mk (f.val x) = .mk (f.val y) ↔ ArchimedeanClass.mk x.val = .mk y.val := by

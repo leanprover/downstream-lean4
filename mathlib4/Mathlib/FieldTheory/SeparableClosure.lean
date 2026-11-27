@@ -436,6 +436,7 @@ theorem insepDegree_bot' : insepDegree F (⊥ : IntermediateField E K) = insepDe
   insepDegree_eq_of_equiv _ _ _ ((botEquiv E K).restrictScalars F)
 
 variable (F) in
+set_option warn.repeatedInstanceRejections 0 in
 lemma _root_.Field.insepDegree_top_le_insepDegree_of_isScalarTower :
     insepDegree E K ≤ insepDegree F K := by
   let := (IntermediateField.inclusion (separableClosure.le_restrictScalars F E K)).toAlgebra
@@ -452,6 +453,7 @@ lemma _root_.Field.insepDegree_le_of_left_le {E₁ E₂ : IntermediateField F K}
   exact insepDegree_top_le_insepDegree_of_isScalarTower _ _ _
 
 variable (F) in
+set_option warn.repeatedInstanceRejections 0 in
 lemma _root_.Field.finInsepDegree_top_le_finInsepDegree_of_isScalarTower [Module.Finite F K] :
     finInsepDegree E K ≤ finInsepDegree F K := by
   let := (IntermediateField.inclusion (separableClosure.le_restrictScalars F E K)).toAlgebra

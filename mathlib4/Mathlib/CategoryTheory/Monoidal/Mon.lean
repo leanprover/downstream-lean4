@@ -1117,7 +1117,6 @@ variable (C)
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Implementation of `Mon.equivLaxMonoidalFunctorPUnit`. -/
 @[to_additive (attr := simps) addMonToLaxMonoidal
 /-- Implementation of `AddMon.equivLaxMonoidalFunctorPUnit`. -/]
@@ -1132,7 +1131,6 @@ attribute [local aesop safe tactic (rule_sets := [CategoryTheory])]
 
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 /-- Implementation of `Mon.equivLaxMonoidalFunctorPUnit`. -/
 @[to_additive (attr := simps!)
 /-- Implementation of `AddMon.equivLaxMonoidalFunctorPUnit`. -/]

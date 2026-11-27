@@ -44,6 +44,8 @@ abbrev mathlibLeanOptions := #[
     ⟨`autoImplicit, false⟩,
     ⟨`maxSynthPendingDepth, .ofNat 3⟩,
     ⟨`linter.checkRespectTransparency.instances, true⟩,
+    -- `simp` and `dsimp` still refuse rewrites that leave an instance mistyped; only their warning is off
+    ⟨`dsimp.resynthInstances.warning, false⟩,
     ⟨`weak.linter.unreachableTactic, false⟩, -- superseded by the unused tactic linter
     ⟨`weak.linter.unnecessarySeqFocus, false⟩, -- superseded by the unused tactic linter
   ] ++ -- options that are used in `lake build`

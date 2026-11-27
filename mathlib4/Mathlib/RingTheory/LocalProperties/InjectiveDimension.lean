@@ -27,7 +27,6 @@ variable {R : Type u} [CommRing R]
 
 open CategoryTheory Limits
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 instance [Small.{v} R] [IsNoetherianRing R] (S : Submonoid R) :
     (ModuleCat.localizedModuleFunctor.{v} S).PreservesInjectiveObjects where

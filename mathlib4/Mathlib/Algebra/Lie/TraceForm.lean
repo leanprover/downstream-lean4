@@ -135,6 +135,7 @@ lemma trace_toEnd_mul_eq_zero_of_traceForm_eq_zero (h : traceForm R L M = 0)
   | add u v _ _ hu hv => simp [add_mul, hu, hv]
   | smul t u _ hu => simp [hu]
 
+set_option warn.repeatedInstanceRejections 0 in
 @[simp]
 lemma traceForm_genWeightSpace_eq [Module.Free R M]
     [IsDomain R] [IsPrincipalIdealRing R]

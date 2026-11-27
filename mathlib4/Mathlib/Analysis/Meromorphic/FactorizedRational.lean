@@ -450,6 +450,7 @@ theorem MeromorphicOn.extract_zeros_poles_log {f g : 𝕜 → E} {D : Function.l
     ((log_norm_eventuallyEq_codiscreteWithin D).add .rfl)
 
 open scoped Classical in
+set_option warn.repeatedInstanceRejections 0 in
 /--
 In the setting of `MeromorphicOn.extract_zeros_poles`, compute the trailing
 coefficient of `f` in terms of `divisor f U` and `g x`.

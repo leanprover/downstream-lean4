@@ -151,6 +151,7 @@ lemma ConvexOn.pow (hf : ConvexOn 𝕜 s f) (hf₀ : ∀ ⦃x⦄, x ∈ s → 0 
     exact hf.mul (hf.pow hf₀ _) hf₀ (fun x hx ↦ pow_nonneg (hf₀ hx) _) <|
       (monovaryOn_self f s).pow_right₀ hf₀ n
 
+set_option warn.repeatedInstanceRejections 0 in
 /-- `x^n`, `n : ℕ` is convex on `[0, +∞)` for all `n`. -/
 lemma convexOn_pow : ∀ n, ConvexOn 𝕜 (Ici 0) fun x : 𝕜 ↦ x ^ n :=
   (convexOn_id <| convex_Ici _).pow fun _ ↦ id

@@ -151,6 +151,7 @@ theorem algebraMap_mem_iff (S : Type*) {R A : Type*} [CommSemiring R] [CommSemir
 
 protected alias ⟨of_algebraMap_mem, algebraMap_mem⟩ := spectrum.algebraMap_mem_iff
 
+set_option warn.repeatedInstanceRejections 0 in
 @[simp]
 theorem preimage_algebraMap (S : Type*) {R A : Type*} [CommSemiring R] [CommSemiring S]
     [Ring A] [Algebra R S] [Algebra R A] [Algebra S A] [IsScalarTower R S A] {a : A} :
@@ -260,6 +261,7 @@ theorem unit_mem_mul_comm {a b : A} {r : Rˣ} : ↑r ∈ σ (a * b) ↔ ↑r ∈
   simpa only [mem_iff, not_iff_not, Algebra.algebraMap_eq_smul_one, ← Units.smul_def,
     IsUnit.smul_sub_iff_sub_inv_smul, smul_mul_assoc]
 
+set_option warn.repeatedInstanceRejections 0 in
 theorem preimage_units_mul_comm (a b : A) :
     ((↑) : Rˣ → R) ⁻¹' σ (a * b) = (↑) ⁻¹' σ (b * a) :=
   Set.ext fun _ => unit_mem_mul_comm

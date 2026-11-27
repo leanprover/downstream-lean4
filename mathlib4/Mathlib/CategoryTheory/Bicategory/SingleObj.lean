@@ -47,6 +47,7 @@ deriving Inhabited
 
 open MonoidalCategory
 
+set_option warn.repeatedInstanceRejections 0 in
 instance : Bicategory (MonoidalSingleObj C) where
   Hom _ _ := C
   id _ := 𝟙_ C

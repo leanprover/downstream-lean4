@@ -710,6 +710,7 @@ theorem coe_inclusion (s : S) : (inclusion h s : A) = s :=
 
 namespace inclusion
 
+set_option warn.repeatedInstanceRejections 0 in
 scoped instance isScalarTower_left (X) [SMul X R] [SMul X A] [IsScalarTower X R A] :
     letI := (inclusion h).toModule; IsScalarTower X S T :=
   letI := (inclusion h).toModule

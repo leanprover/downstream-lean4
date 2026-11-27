@@ -78,7 +78,6 @@ def lift (x : S) (h : P.HasMap x) : P.Ring →ₐ[R] S :=
   Ideal.Quotient.liftₐ _ (aevalAeval x ↑(h.2.unit⁻¹))
     (Ideal.span_le (I := RingHom.ker _).mpr (by simp [Set.pair_subset_iff, h.1]))
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma lift_X (x : S) (h : P.HasMap x) : P.lift x h P.X = x := by
@@ -96,7 +95,6 @@ lemma HasMap.isUnit_derivative_f {x : S} (h : P.HasMap x) :
   exact isUnit_of_dvd_unit this (.pow _ h.2)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 lemma aeval_X_g_mul_mk_X : aeval P.X P.g * Ideal.Quotient.mk _ .X = 1 := by
   have : aeval (R := R) P.X = (Ideal.Quotient.mkₐ _ _).comp Polynomial.CAlgHom := by
@@ -106,8 +104,6 @@ lemma aeval_X_g_mul_mk_X : aeval P.X P.g * Ideal.Quotient.mk _ .X = 1 := by
   rw [← map_mul, ← map_one (Ideal.Quotient.mk _), ← sub_eq_zero, ← map_sub, mul_comm]
   exact Ideal.Quotient.eq_zero_iff_mem.mpr (Ideal.subset_span (Set.mem_insert_of_mem _ rfl))
 
-set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 variable {P} in
 lemma hasMap_X : P.HasMap P.X :=
@@ -116,8 +112,6 @@ lemma hasMap_X : P.HasMap P.X :=
   ⟨this ▸ Ideal.Quotient.eq_zero_iff_mem.mpr (Ideal.subset_span (Set.mem_insert _ _)),
     IsUnit.of_mul_eq_one _ P.aeval_X_g_mul_mk_X⟩
 
-set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 variable {P} in
 @[ext]
@@ -241,7 +235,6 @@ def equivMvPolynomialQuotient :
   Ideal.quotientEquivAlg _ _ (Bivariate.equivMvPolynomial R)
     (by simp [Ideal.map_span])
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 @[simp]
 lemma equivMvPolynomialQuotient_symm_apply :

@@ -294,6 +294,8 @@ def stalkToFiber (P : LocalPredicate T) (x : X) :
     (subsheafToTypes P).presheaf.stalk x ⟶ T x :=
   colimit.desc _ (P.cocone x)
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `stalkToFiber_injective` (this file).
 set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 @[simp]

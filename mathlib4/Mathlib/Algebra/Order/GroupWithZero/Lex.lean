@@ -78,6 +78,7 @@ open MonoidWithZeroHom
 #adaptation_note
 /-- `respectTransparency.types true` changes the auto-generated lemmas' signature -/
 set_option backward.isDefEq.respectTransparency.types false in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Given linearly ordered groups with zero M, N, the natural inclusion ordered homomorphism from
 M to `WithZero (Mˣ ×ₗ Nˣ)`, which is the linearly ordered group with zero that can be identified
 as their product. -/
@@ -89,6 +90,7 @@ nonrec def inl : α →*₀o WithZero (αˣ ×ₗ βˣ) where
 #adaptation_note
 /-- `respectTransparency.types true` changes the auto-generated lemmas' signature -/
 set_option backward.isDefEq.respectTransparency.types false in
+set_option warn.repeatedInstanceRejections 0 in
 /-- Given linearly ordered groups with zero M, N, the natural inclusion ordered homomorphism from
 N to `WithZero (Mˣ ×ₗ Nˣ)`, which is the linearly ordered group with zero that can be identified
 as their product. -/

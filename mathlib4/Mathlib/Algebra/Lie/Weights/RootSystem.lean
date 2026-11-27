@@ -70,6 +70,7 @@ def chainLength (α β : Weight K H L) : ℕ :=
 
 lemma chainLength_of_isZero (hα : α.IsZero) : chainLength α β = 0 := dite_eq_left hα
 
+set_option warn.repeatedInstanceRejections 0 in
 lemma chainLength_nsmul {x} (hx : x ∈ rootSpace H (chainTop α β)) :
     chainLength α β • x = ⁅coroot α, x⁆ := by
   by_cases hα : α.IsZero
@@ -281,6 +282,7 @@ lemma chainLength_of_eq_zsmul_add (β' : Weight K H L) (n : ℤ) (hβ' : (β' : 
       chainBotCoeff_of_eq_zsmul_add α β hα β' n hβ', sub_eq_add_neg, add_add_add_comm,
       neg_add_cancel, add_zero]
 
+set_option warn.repeatedInstanceRejections 0 in
 lemma chainTopCoeff_zero_right [Nontrivial L] (hα : α.IsNonZero) :
     chainTopCoeff α (0 : Weight K H L) = 1 := by
   symm

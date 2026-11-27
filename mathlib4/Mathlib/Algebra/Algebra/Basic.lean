@@ -74,6 +74,7 @@ theorem _root_.ULift.down_algebraMap (r : R) : (algebraMap R (ULift A) r).down =
   rfl
 
 variable (R A) in
+set_option warn.repeatedInstanceRejections 0 in
 /-- If `A` is an `R`-algebra, it is also a `ULift R`-algebra. In particular, `Ulift A` is a
 `ULift R` algebra. This is not an instance, because it causes a non-reducible diamond in the case
 where `A = Ulift R`. -/

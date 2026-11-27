@@ -608,6 +608,7 @@ section
 variable (R S) [NoZeroDivisors R]
 
 -- TODO: `PolynomialModule` version
+set_option warn.repeatedInstanceRejections 0 in
 theorem rank_polynomial_polynomial : Module.rank R[X] S[X] = Module.rank R S :=
   ((Algebra.isPushout_iff ..).mp inferInstance).rank_eq
 

@@ -554,6 +554,7 @@ section RKHSSubmodule
 
 variable (H₀ : Submodule 𝕜 H) [CompleteSpace H₀]
 
+set_option warn.repeatedInstanceRejections 0 in
 instance instRKHSSubmodule : RKHS 𝕜 H₀ X V where
   coeCLM := (coeCLM 𝕜).comp H₀.subtypeL
   coeCLM_injective := coeCLM_injective.comp H₀.subtype_injective

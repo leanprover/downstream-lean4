@@ -27,6 +27,7 @@ universe u v w
 variable {R : Type u} {A : Type v} {B : Type w} [CommSemiring R] [CommSemiring A] [CommRing B]
 variable [Algebra R A] [Algebra R B] (I : Ideal B)
 
+set_option warn.repeatedInstanceRejections 0 in
 /-- If `f₁ f₂ : A →ₐ[R] B` are two lifts of the same `A →ₐ[R] B ⧸ I`,
   we may define a map `f₁ - f₂ : A →ₗ[R] I`. -/
 def diffToIdealOfQuotientCompEq (f₁ f₂ : A →ₐ[R] B)

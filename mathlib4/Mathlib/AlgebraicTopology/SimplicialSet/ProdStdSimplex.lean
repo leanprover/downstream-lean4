@@ -74,6 +74,8 @@ lemma objEquiv_map_apply {n m : ℕ}
       objEquiv ((Δ[p] ⊗ Δ[q]).map f.op x) i = objEquiv x (f.toOrderHom i) :=
   rfl
 
+-- Without this opt-out, this declaration elaborates differently, and these declarations no longer
+-- compile: `exists_nonDegenerate_max_dim_aux` (this file).
 set_option dsimp.resynthInstances false in
 lemma objEquiv_δ_apply {n : ℕ} (x : (Δ[p] : SSet.{u}) _⦋n + 1⦌ ⊗ Δ[q] _⦋n + 1⦌) (i : Fin (n + 2))
     (j : Fin (n + 1)) :
@@ -165,7 +167,6 @@ instance : (Δ[p] ⊗ Δ[q] : SSet.{u}).HasDimensionLE (p + q) where
 instance : (Δ[p] ⊗ Δ[q] : SSet.{u}).Finite :=
   finite_of_hasDimensionLT _ (p + q + 1) inferInstance
 
-set_option dsimp.resynthInstances false in
 lemma le_orderHomOfSimplex {n : ℕ} (x : (Δ[p] ⊗ Δ[q] : SSet.{u}).nonDegenerate n) {m : ℕ}
     (hm : p + q = m) (i : Fin (n + 1)) : i.val ≤ orderHomOfSimplex x.val hm i := by
   induction i using Fin.induction with

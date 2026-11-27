@@ -319,6 +319,7 @@ abbrev toKaehler : P.CotangentSpace →ₗ[S] Ω[S⁄R] := mapBaseChange _ _ _
 lemma toKaehler_surjective : Function.Surjective P.toKaehler :=
   mapBaseChange_surjective _ _ _ P.algebraMap_surjective
 
+set_option warn.repeatedInstanceRejections 0 in
 lemma exact_cotangentComplex_toKaehler : Function.Exact P.cotangentComplex P.toKaehler :=
   exact_kerCotangentToTensor_mapBaseChange _ _ _ P.algebraMap_surjective
 
@@ -442,7 +443,6 @@ lemma cotangentSpaceBasis_repr_tmul (r x i) :
   simp only [cotangentSpaceBasis, Basis.baseChange_repr_tmul, mvPolynomialBasis_repr_apply,
     Algebra.smul_def, mul_comm r, algebraMap_apply, toExtension]
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma cotangentSpaceBasis_repr_one_tmul (x i) :
@@ -464,7 +464,6 @@ def cotangentRestrict {σ : Type*} {u : σ → ι} (hu : Function.Injective u) :
   Finsupp.lcomapDomain u hu ∘ₗ P.cotangentSpaceBasis.repr.toLinearMap ∘ₗ
     P.toExtension.cotangentComplex
 
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma cotangentRestrict_mk {σ : Type*} {u : σ → ι} (hu : Function.Injective u) (x : P.ker) :
@@ -499,8 +498,6 @@ lemma repr_CotangentSpaceMap (f : Hom P P') (i j) :
   rw [CotangentSpace.map_tmul, map_one]
   erw [cotangentSpaceBasis_repr_one_tmul, Hom.toAlgHom_X]
 
-set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma toKaehler_tmul_D (i) :
@@ -520,7 +517,6 @@ set_option backward.isDefEq.respectTransparency false in
 -- TODO: generalize to essentially of finite presentation algebras
 open KaehlerDifferential in
 attribute [local instance] Module.finitePresentation_of_projective in
-set_option dsimp.resynthInstances false in
 instance [Algebra.FinitePresentation R S] : Module.FinitePresentation S Ω[S⁄R] := by
   let P := Algebra.Presentation.ofFinitePresentation R S
   have : Algebra.FiniteType R P.toExtension.Ring := by
@@ -585,7 +581,6 @@ abbrev Generators.equivH1Cotangent (P : Generators R S ι) :
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 attribute [local instance] Module.finitePresentation_of_projective in
-set_option dsimp.resynthInstances false in
 instance [FinitePresentation R S] [Module.Projective S Ω[S⁄R]] :
     Module.Finite S (H1Cotangent R S) := by
   let P := Algebra.Presentation.ofFinitePresentation R S

@@ -267,7 +267,6 @@ variable {FC : C → C → Type*} {CC : C → Type s} [∀ X Y, FunLike (FC X Y)
 variable [ConcreteCategory.{s} C FC]
 
 set_option backward.isDefEq.respectTransparency false in
-set_option dsimp.resynthInstances false in
 theorem multiequalizer_ext {J : MulticospanShape.{w, w'}}
     {I : MulticospanIndex J C} [HasMultiequalizer I]
     [PreservesLimit I.multicospan (forget C)] (x y : ToType (multiequalizer I))

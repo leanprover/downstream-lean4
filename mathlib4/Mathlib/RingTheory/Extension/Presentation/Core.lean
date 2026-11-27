@@ -87,7 +87,6 @@ class HasCoeffs (R₀ : Type*) [CommRing R₀] [Algebra R₀ R] [Algebra R₀ S]
     [IsScalarTower R₀ R S] where
   coeffs_subset_range : P.coeffs ⊆ Set.range (algebraMap R₀ R)
 
-set_option dsimp.resynthInstances false in
 set_option backward.isDefEq.respectTransparency false in
 instance : P.HasCoeffs P.Core where
   coeffs_subset_range := by
@@ -246,7 +245,6 @@ namespace Algebra.SubmersivePresentation
 variable [Finite σ] (P : Algebra.SubmersivePresentation R S ι σ)
 
 set_option backward.isDefEq.respectTransparency.instances false in
-set_option dsimp.resynthInstances false in
 set_option backward.defeqAttrib.useBackward true in
 set_option backward.isDefEq.respectTransparency false in
 lemma exists_sum_eq_σ_jacobian_mul_σ_jacobian_inv_sub_one
