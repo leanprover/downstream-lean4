@@ -689,12 +689,6 @@ theorem forall_and_index' {p q : Prop} {r : p → q → Prop} :
     (∀ (hp : p) (hq : q), r hp hq) ↔ ∀ h : p ∧ q, r h.1 h.2 :=
   (forall_and_index (r := fun h => r h.1 h.2)).symm
 
-theorem Exists.fst {b : Prop} {p : b → Prop} : Exists p → b
-  | ⟨h, _⟩ => h
-
-theorem Exists.snd {b : Prop} {p : b → Prop} : ∀ h : Exists p, p h.fst
-  | ⟨_, h⟩ => h
-
 theorem Prop.exists {p : Prop → Prop} : (∃ h, p h) ↔ p False ∨ p True :=
   ⟨fun ⟨h₁, h₂⟩ ↦ by_cases (fun H : h₁ ↦ .inr <| by simpa only [H] using h₂)
     (fun H ↦ .inl <| by simpa only [H] using h₂), fun h ↦ h.elim (.intro _) (.intro _)⟩
