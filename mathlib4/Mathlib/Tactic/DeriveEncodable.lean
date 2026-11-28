@@ -355,7 +355,9 @@ def mkEncodableInstance (declNames : Array Name) : CommandElabM Bool := do
   for declName in declNames do
     if seen.contains declName then continue
     let indVal ← getConstInfoInduct declName
-    if indVal.isNested || indVal.isReflexive || indVal.numIndices != 0 then
+    if indVal.isNested || indVal.numIndices != 0 then
+      return false -- not supported yet
+    if ← liftTermElabM <| isReflexive indVal then
       return false -- not supported yet
     seen := seen.append (NameSet.ofList indVal.all)
     toVisit := toVisit.push indVal

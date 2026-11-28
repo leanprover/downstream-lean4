@@ -271,7 +271,9 @@ def mkCountableInstance (declNames : Array Name) : CommandElabM Bool := do
   for declName in declNames do
     if seen.contains declName then continue
     let indVal ← getConstInfoInduct declName
-    if indVal.isNested || indVal.isReflexive then
+    if indVal.isNested then
+      return false -- not supported yet
+    if ← liftTermElabM <| isReflexive indVal then
       return false -- not supported yet
     seen := seen.append (NameSet.ofList indVal.all)
     toVisit := toVisit.push indVal

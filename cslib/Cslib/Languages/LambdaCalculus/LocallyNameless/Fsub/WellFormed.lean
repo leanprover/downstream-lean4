@@ -125,7 +125,13 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ ⟨X, Binding.sub τ⟩ :: Δ)) (wf_τ' : 
   have := @mapVal_mem Var (Binding Var)
   generalize eq : Γ ++ ⟨X, Binding.sub τ⟩ :: Δ = Θ at wf_σ
   induction wf_σ generalizing Γ τ' with
-  | all => apply all (free_union [dom] Var) <;> grind [open_subst_var]
+  | @all _ σ τ _ _ _ _ ih =>
+    apply all (free_union [dom] Var)
+    · grind [open_subst_var]
+    · intros X' _
+      have : (τ ^ᵞ fvar X')[X := τ'] = (subst X τ' τ ^ᵞ fvar X') := by grind [open_subst_var]
+      have := @ih ‹_› (by grind) (⟨X', Binding.sub σ⟩::Γ)  τ' ‹_› (ok.cons (by grind)) (by grind)
+      grind
   | _ => grind [weaken_head]
 
 variable [HasFresh Var] in
