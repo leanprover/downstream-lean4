@@ -6,17 +6,17 @@ Authors: Chris Henson
 
 module
 
-public import Batteries.Tactic.Lint.Basic
+public import Batteries.Linter.Basic
 public import Lean.Message
 
 namespace Cslib.Lint
 
-open Lean Meta Std Batteries.Tactic.Lint
+open Lean Meta Std Batteries.Linter
 
 -- TODO: adapt `topNamespace` to the module system
 
 /-- A linter for checking that new declarations fall under some preexisting namespace. -/
-public meta def topNamespace : Batteries.Tactic.Lint.Linter where
+public meta def topNamespace : Batteries.Linter where
   noErrorsFound := "No declarations are outside a namespace."
   errorsFound := "TOP LEVEL DECLARATIONS:"
   test declName := do
